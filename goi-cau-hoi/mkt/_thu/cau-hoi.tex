@@ -1,0 +1,34 @@
+% cau-hoi.tex: GÓI THỬ 1 câu trên bộ MARKETING (MySQL `mkt`), chỉ để kiểm ánh xạ dulieu=mkt -> mkt, mkt_hidden_1.
+\documentclass[11pt,a4paper]{article}
+\usepackage{aio-sql-cauhoi}
+
+\khaibaodulieu{mkt}{Marketing · chiến dịch số ba thương hiệu mỹ phẩm}
+  {Chiến dịch marketing số của Nykaa, Purplle, Tira Beauty, ngày bắt đầu từ 1/7/2024 tới 24/6/2025.}
+\khaibaodomain{marketing}{Marketing}{Chiến dịch, loại chiến dịch, kênh, phễu marketing.}
+
+\khaibaokhainiem{chien-dich}{Chiến dịch marketing}
+  {Chiến dịch marketing là tập hợp hoạt động truyền thông có cùng mục tiêu, chạy trong một khoảng thời gian xác định.}
+  {}
+  {bảng \code{campaigns}: mỗi dòng là một chiến dịch, \code{start_date} là ngày bắt đầu, \code{duration_days} là số ngày chạy.}
+
+\begin{document}
+\begin{cauhoi}[ma=mkt-thu-1-so-chien-dich-6-thang, dulieu=mkt, domain=marketing,
+  hinhthuc=write, cap=basic, dang=A2, kynang={COUNT, WHERE}, bay={quen-can-tren},
+  tacgia={Bộ kiểm}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, socot=vitri, saiso=0.01]
+\tieude{Nykaa mở bao nhiêu chiến dịch trong sáu tháng đầu năm 2025?}
+\boicanh[Chị Thảo · Trưởng phòng marketing]{Chị đang tổng kết nửa đầu năm. Em đếm giúp chị Nykaa đã mở bao nhiêu chiến dịch.}
+\begin{yeucau}
+  \item Đếm chiến dịch của thương hiệu có \code{brand_id = 1} (Nykaa) bắt đầu từ ngày 1/1/2025 tới hết ngày 30/6/2025.
+  \item Trả về đúng một cột \code{so_chien_dich}.
+\end{yeucau}
+\begin{erd}
+  \erdbang{campaigns}{0,0}{campaign_id*=NY-CMP-1000, brand_id*=1, start_date*=2025-04-29, revenue}
+\end{erd}
+\begin{nghiepvu}{Theo dõi nhịp mở chiến dịch để lập kế hoạch nửa cuối năm.}
+  \khainiem{chien-dich}
+  \luuy{Sáu tháng đầu năm gồm mọi ngày từ 1/1 tới hết 30/6; lọc đủ cả cận dưới và cận trên.}
+\end{nghiepvu}
+\goiy{Lọc \code{start_date} từ \code{'2025-01-01'} tới trước \code{'2025-07-01'}.}
+\ghichuthietke{Gói thử: bẫy thiếu cận trên lộ ở hidden-1 (có chiến dịch ngày 2025-07-01).}
+\end{cauhoi}
+\end{document}

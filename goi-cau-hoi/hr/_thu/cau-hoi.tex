@@ -1,0 +1,38 @@
+% cau-hoi.tex: GÓI THỬ 1 CÂU cho bộ HR Analytics (MySQL `hr`, `hr_hidden_1`). Không phát hành.
+% Dùng để kiểm `dulieu=hr` ánh xạ đúng 2 database. Biên dịch: XeLaTeX. Hướng dẫn: HUONG_DAN.md.
+\documentclass[11pt,a4paper]{article}
+\usepackage{aio-sql-cauhoi}
+
+\khaibaodulieu{hr}{HR Analytics · quản trị nhân lực}
+  {Tập đoàn vận hành số ~3.000 nhân viên ở 6 nước Đông Nam Á: ảnh chụp nhân sự theo tháng 2024-01 … 2025-12,
+   khảo sát gắn kết theo quý, kế hoạch định biên, yêu cầu tuyển dụng, thang lương thị trường.}
+
+\khaibaodomain{operations}{Vận hành nhân sự}{Chấm công, làm thêm giờ, vắng mặt, định biên.}
+
+\khaibaokhainiem{gio-lam-them}{Giờ làm thêm}
+  {Số giờ làm việc ngoài thời giờ làm việc bình thường của một nhân viên trong một tháng.}
+  {SUM(overtime\_hours)}
+  {\code{employee_monthly_snapshot}: mỗi dòng là một nhân viên trong một tháng còn làm việc.}
+
+\begin{document}
+{\LARGE\bfseries Gói thử bộ kiểm · HR Analytics\par}
+
+\begin{cauhoi}[ma=hr-thu-top3-lam-them-2025, dulieu=hr, domain=operations,
+  hinhthuc=write, cap=basic, dang=B1, kynang={SUM, GROUP BY, ORDER BY, LIMIT}, bay={hoa-hang},
+  tacgia={Bộ kiểm}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, socot=vitri, saiso=0.01]
+\tieude{Ba nhân viên làm thêm giờ nhiều nhất năm 2025}
+\boicanh[Chị Hạnh · Trưởng phòng Nhân sự]{Em lọc giúp chị ba người làm thêm giờ nhiều nhất năm 2025 để rà soát giới hạn làm thêm.}
+\begin{yeucau}
+  \item Cộng giờ làm thêm của từng nhân viên trong 12 tháng năm 2025.
+  \item Trả về đúng 3 dòng, cột \code{employee_id}, \code{tong_gio}; tổng giảm dần, bằng nhau thì \code{employee_id} nhỏ hơn trước.
+\end{yeucau}
+\begin{erd}
+  \erdbang{employee_monthly_snapshot}{0,0}{employee_id:PK, snapshot_month:PK, overtime_hours}
+\end{erd}
+\begin{nghiepvu}{Theo dõi làm thêm giờ để không vượt giới hạn của Bộ luật Lao động.}
+  \khainiem{gio-lam-them}
+  \luuy{\code{snapshot_month} là chuỗi 'YYYY-MM'.}
+\end{nghiepvu}
+\ghichuthietke{Hidden-1 có hoà hạng 3; RANK() trả 4 dòng.}
+\end{cauhoi}
+\end{document}

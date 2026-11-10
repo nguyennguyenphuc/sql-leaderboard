@@ -1,0 +1,685 @@
+% cau-hoi.tex: gói 3 bộ GAME Jelly Trail Academy (jelly). Module 5 Joins (9 câu), Module 6 Subqueries (9 câu), case c5 (Dễ), c6 (Trung bình).
+% SQL nằm trong solution.sql, nối với câu bằng mã câu. Biên dịch: XeLaTeX. Hướng dẫn: HUONG_DAN.md.
+\documentclass[11pt,a4paper]{article}
+\usepackage{aio-sql-cauhoi}
+% Vá XeLaTeX (cong-cu/va-xelatex.tex), không sửa .sty:
+\setmonofont{NotoSansMono}[Extension=.ttf, UprightFont=*-Regular, BoldFont=*-Bold, Scale=0.86]
+\renewcommand{\erdkhoa}[1]{\node[font=\small, color=cqMuted, anchor=north west, align=left, text width=14cm] at ([yshift=-1mm]current bounding box.south west) {\textbf{Khoá:} #1};}
+
+% ================================================================ KHAI BÁO DÙNG CHUNG
+% ---------------------------------------------------------------- bộ dữ liệu
+\khaibaodulieu{jelly}{GAME · Jelly Trail Academy}
+  {Game giải đố ghép kẹo trên di động (iOS, Android, 8 thị trường): người chơi, phiên chơi, lượt chơi màn, mua trong ứng dụng, quảng cáo, chi phí thu hút; 60 ngày từ 2026-07-01 tới 2026-08-29.}
+
+% ---------------------------------------------------------------- mảng nghiệp vụ
+\khaibaodomain{customer}{Người chơi}{Hoạt động, giữ chân, phễu hướng dẫn, nhóm cài đặt.}
+\khaibaodomain{sales}{Mua trong ứng dụng}{Giao dịch IAP, gói vật phẩm, người chơi trả tiền.}
+\khaibaodomain{marketing}{Thu hút và sự kiện}{Kênh, chiến dịch, chi phí, sự kiện LiveOps, thử nghiệm A/B.}
+\khaibaodomain{operations}{Vận hành game}{Màn chơi, độ khó, booster, phiên chơi, phiên bản.}
+\khaibaodomain{finance}{Doanh thu}{Tổng doanh thu, ARPDAU, ARPPU, CPI, ROAS.}
+\khaibaodomain{after_sales}{Chất lượng sau phát hành}{Sự cố, hoàn tiền, đối soát sau bản vá.}
+
+% ---------------------------------------------------------------- khái niệm
+% \khaibaokhainiem{ma}{Tên}{Định nghĩa}{Công thức}{Trong bộ dữ liệu}
+\khaibaokhainiem{fan-out}{Nhân dòng khi nối (fan-out)}
+  {Nhân dòng khi nối là hiện tượng một dòng của bảng này khớp với nhiều dòng của bảng kia, nên dòng đó lặp lại và bị cộng nhiều lần.}
+  {}
+  {\code{campaign_spend} có nhiều dòng cho một chiến dịch trong một ngày (theo quốc gia và nền tảng); một người chơi có nhiều phiên, nhiều lượt chơi, nhiều giao dịch. Nối hai bảng sự kiện với nhau theo cột không phải khoá làm số bị cộng lặp.}
+\khaibaokhainiem{dau}{DAU (số người chơi hoạt động trong ngày)}
+  {DAU là số người chơi khác nhau có mở game ít nhất một lần trong một ngày.}
+  {số user\_id khác nhau có hoạt động trong ngày}
+  {bảng \code{player_daily}: mỗi dòng là một người chơi trong một ngày có hoạt động; \code{daily_kpi.dau} là số tổng hợp sẵn, khớp với cách đếm này.}
+\khaibaokhainiem{nhom-cai-dat}{Nhóm cài đặt (cohort)}
+  {Nhóm cài đặt là tập người chơi cài game trong cùng một khoảng thời gian, được theo dõi theo số ngày kể từ ngày cài.}
+  {}
+  {\code{users.install_date}; \code{player_daily.cohort_day} = số ngày từ ngày cài tới ngày hoạt động, D0 là ngày cài.}
+\khaibaokhainiem{pheu-huong-dan}{Phễu hướng dẫn}
+  {Phễu hướng dẫn mô tả số người chơi mới đi qua từng bước của phần hướng dẫn chơi và phần rơi khỏi phễu ở mỗi bước.}
+  {tỷ lệ hoàn thành bước k = số người hoàn thành bước k / số người bắt đầu bước k}
+  {\code{tutorial_steps}: mỗi dòng là một người chơi ở một bước đã bắt đầu; bước sau chỉ có dòng khi bước trước hoàn thành; \code{step_completed} = 0 là bỏ dở.}
+\khaibaokhainiem{phien-choi}{Phiên chơi và thời lượng phiên}
+  {Phiên chơi là một lần người chơi mở game cho tới khi rời đi. Thời lượng phiên là số phút của phiên đó.}
+  {thời lượng phiên bình quân = tổng duration\_minutes / số phiên}
+  {\code{sessions}; mã phiên có hai dạng, phiên hướng dẫn có \code{entry_screen} = \code{'tutorial'}. Lượt chơi, giao dịch, lần xem quảng cáo đều ghi \code{session_id} của phiên diễn ra lượt chơi, giao dịch hay lần xem đó.}
+\khaibaokhainiem{ty-le-thang-man}{Tỷ lệ thắng màn}
+  {Tỷ lệ thắng màn là phần lượt chơi hoàn thành mục tiêu của màn trên tổng số lượt chơi màn đó.}
+  {số lượt result = 'complete' / tổng số lượt}
+  {\code{level_attempts}; mẫu số gồm cả lượt thua (\code{'fail_out_of_moves'}), bỏ cuộc (\code{'quit'}) và gặp sự cố (\code{'crash'}). Tỷ lệ thua tính cùng mẫu số.}
+\khaibaokhainiem{ty-le-su-co}{Tỷ lệ sự cố trên 1.000 phiên}
+  {Tỷ lệ sự cố đo số lần ứng dụng tự thoát do lỗi trên mỗi 1.000 phiên chơi.}
+  {tổng crash\_count / tổng sessions × 1000}
+  {\code{player_daily.crash_count}, \code{player_daily.sessions}. Số lượt chơi có \code{result} = \code{'crash'} là nguồn đếm khác, không khớp với \code{crash_count}.}
+\khaibaokhainiem{phien-ban-luc-choi}{Phiên bản lúc chơi và lúc cài}
+  {Phiên bản lúc chơi là phiên bản ứng dụng người chơi dùng trong ngày hoạt động; người chơi có thể cập nhật sau khi cài.}
+  {}
+  {\code{player_daily.app_version}, \code{sessions.app_version}, \code{level_attempts.app_version} là phiên bản lúc chơi; \code{users.app_version_install} là phiên bản lúc cài. Bản 2.1.0 có từ 30/7, 2.1.1 từ 15/8.}
+\khaibaokhainiem{doanh-thu-iap}{Doanh thu IAP}
+  {Doanh thu IAP là tiền người chơi trả để mua gói vật phẩm ảo trong ứng dụng.}
+  {tổng price\_usd của giao dịch không hoàn tiền}
+  {bảng \code{purchases}: mỗi dòng là một giao dịch, giá theo USD; trong cửa sổ dữ liệu chưa có giao dịch hoàn tiền (\code{is_refund} = 0). \code{level_id_if_relevant} rỗng khi mua ở cửa hàng, không gắn với màn nào.}
+\khaibaokhainiem{doanh-thu-quang-cao}{Doanh thu quảng cáo}
+  {Doanh thu quảng cáo là tiền mạng quảng cáo trả cho game khi người chơi xem quảng cáo.}
+  {tổng revenue\_usd}
+  {\code{ad_events} (từng lần xem, 5 chữ số thập phân, \code{ad_type} là \code{'rewarded'} hoặc \code{'interstitial'}); \code{player_daily.ad_revenue} là tổng theo ngày đã làm tròn 4 chữ số.}
+\khaibaokhainiem{nguoi-choi-tra-tien}{Người chơi trả tiền}
+  {Người chơi trả tiền là người có ít nhất một giao dịch mua trong ứng dụng trong kỳ xét.}
+  {số user\_id khác nhau có giao dịch}
+  {\code{purchases}; một người có thể có nhiều giao dịch, kể cả mua cùng một gói hai lần.}
+\khaibaokhainiem{cpi}{CPI (chi phí cho mỗi lượt cài đặt)}
+  {CPI là chi phí quảng cáo bình quân để có một lượt cài đặt từ một kênh trả phí.}
+  {tổng spend\_usd / số người cài của kênh}
+  {\code{campaign_spend} chia theo ngày, chiến dịch, quốc gia, nền tảng; kênh tự nhiên (Organic) không có chi phí nên không có CPI. CPI của nhiều kênh gộp lại bằng tổng chi chia tổng lượt cài, không lấy trung bình các CPI.}
+\khaibaokhainiem{roas}{ROAS}
+  {ROAS là doanh thu thu về trên mỗi đồng chi cho quảng cáo thu hút người chơi.}
+  {doanh thu của nhóm người cài từ kênh / chi phí của kênh}
+  {doanh thu lấy từ \code{player_daily} (\code{iap_revenue} + \code{ad_revenue}) của người chơi cùng \code{campaign_id}; đề phải nêu cửa sổ doanh thu (ví dụ D0--D6).}
+\khaibaokhainiem{vat-pham-ho-tro}{Vật phẩm hỗ trợ (booster)}
+  {Vật phẩm hỗ trợ là vật phẩm ảo người chơi dùng trong màn để dễ đạt mục tiêu hơn.}
+  {}
+  {\code{booster_events}: mỗi dòng là một lần dùng, gắn với một lượt chơi qua \code{attempt_id} và với màn qua \code{level_id}.}
+
+\begin{document}
+{\LARGE\bfseries Gói 3 · GAME Jelly Trail Academy · Joins và Subqueries\par}
+\medskip
+{\color{cqMuted}Module 5 Joins (9 câu) · Module 6 Subqueries (9 câu) · 2 case study · chuẩn \texttt{aio-sql-cauhoi} v0.4\par}
+\tableofcontents
+
+
+% ################################################################ MODULE 5 · JOINS
+
+% ================================================================ J1 · write · Dễ
+\begin{cauhoi}[ma=jelly-j1-luot-choi-kem-the-gioi, dulieu=jelly, domain=operations,
+  hinhthuc=write, cap=easy, dang=A1, kynang={INNER JOIN, ORDER BY, LIMIT}, bay={thieu-can-tren, hoa-thoi-gian},
+  tacgia={Agent gói 3}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
+\tieude{Lượt chơi gần nhất kèm độ khó thiết kế}
+\boicanh[Chị Hương · Kỹ sư QA]{Chị cần xem lượt chơi cuối cùng ngày 29/8 đã ghi đủ chưa, kèm xác suất thua thiết kế của màn để đối chiếu. Em lấy giúp chị 20 lượt muộn nhất.}
+\begin{yeucau}
+  \item Xét các lượt chơi trong cửa sổ dữ liệu (1/7 tới 29/8/2026).
+  \item Lấy 20 lượt chơi có \code{event_time} muộn nhất.
+  \item Trả về \code{attempt_id}, \code{event_time}, \code{level_id}, \code{result}, \code{designed_fail_probability}.
+  \item Sắp \code{event_time} giảm dần; cùng thời điểm thì \code{attempt_id} lớn hơn đứng trước.
+\end{yeucau}
+\begin{erd}
+  \erdbang{level_attempts}{0,0}{attempt_id:PK, event_date*, event_time*, level_id:FK, result*}
+  \erdbang{level_metadata}{1,0}{level_id:PK, world_name, difficulty_tag, designed_fail_probability*}
+  \erdnoi[kieu=n-1, tren={\code{level_attempts.level_id = level_metadata.level_id}}, duoi={nhiều lượt chơi, một màn}]{level_attempts.level_id}{level_metadata.level_id}
+\end{erd}
+\begin{nghiepvu}{Kiểm tra dữ liệu lượt chơi của ngày cuối cửa sổ trước khi lập báo cáo độ khó.}
+  \luuy{Xác suất thua theo thiết kế là thông số của màn, nằm ở bảng màn chơi. Bảng lượt chơi chỉ ghi kết quả thực tế của từng lượt.}
+\end{nghiepvu}
+\goiy{Cột \code{designed_fail_probability} không có trong bảng lượt chơi. Hai bảng có chung cột nào?}
+\goiy{Lọc \code{event_date <= '2026-08-29'} trước khi sắp; nhiều lượt có cùng \code{event_time} nên cần thêm tiêu chí phụ.}
+\ghichuthietke{Dễ: 2 bảng, chữ trên đường nối. Wrong: không giới hạn cửa sổ dữ liệu (rớt ở hidden-1, có lượt chơi ngày 2026-09-01); tiêu chí phụ sai chiều (rớt ở public, ngày 29/8 có nhiều lượt cùng giây).}
+\end{cauhoi}
+
+% ================================================================ J2 · write · Dễ
+\begin{cauhoi}[ma=jelly-j2-doanh-thu-theo-kenh-cai, dulieu=jelly, domain=marketing,
+  hinhthuc=write, cap=easy, dang=A3, kynang={INNER JOIN, GROUP BY, COUNT DISTINCT}, bay={thieu-can-tren, dem-giao-dich},
+  tacgia={Agent gói 3}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
+\tieude{Doanh thu IAP tháng 8 theo kênh thu hút}
+\boicanh[Anh Tuấn · Quản lý thu hút người chơi]{Anh chuẩn bị báo cáo kênh cho ban giám đốc. Em tổng hợp giúp anh trong tháng 8 vừa rồi, mỗi kênh có bao nhiêu người chơi trả tiền và mang về bao nhiêu doanh thu IAP (mua hàng trong ứng dụng).}
+\begin{yeucau}
+  \item Xét các giao dịch mua trong ứng dụng (IAP) từ ngày 1/8/2026 tới hết tháng 8 (dữ liệu có tới ngày 29/8).
+  \item Tính số người chơi trả tiền và doanh thu IAP của từng kênh thu hút (\code{users.channel}).
+  \item Trả về \code{kenh}, \code{so_nguoi_tra_tien}, \code{doanh_thu_iap_usd} (USD, làm tròn 2 chữ số).
+  \item Sắp \code{doanh_thu_iap_usd} giảm dần; bằng nhau thì \code{kenh} theo thứ tự chữ cái.
+\end{yeucau}
+\begin{erd}
+  \erdbang{purchases}{0,0}{transaction_id:PK, user_id:FK, event_date*, price_usd*}
+  \erdbang{users}{1,0}{user_id:PK, install_date, channel*, campaign_id}
+  \erdnoi[kieu=n-1, tren={\code{purchases.user_id = users.user_id}}, duoi={nhiều giao dịch, một người chơi}]{purchases.user_id}{users.user_id}
+\end{erd}
+\begin{nghiepvu}{Báo cáo doanh thu IAP tháng 8 của từng kênh thu hút cho ban giám đốc.}
+  \khainiem{doanh-thu-iap}
+  \khainiem{nguoi-choi-tra-tien}
+  \luuy{Kênh thu hút là thuộc tính của người chơi lúc cài, không ghi trên giao dịch. Một người chơi trả tiền có thể có nhiều giao dịch trong tháng.}
+\end{nghiepvu}
+\goiy{Bảng giao dịch không có kênh. Nối với bảng người chơi theo \code{user_id}.}
+\goiy{Đếm người chơi bằng \code{COUNT(DISTINCT ...)}; lọc tháng bằng cả cận dưới và cận trên \code{< '2026-09-01'}.}
+\ghichuthietke{Dễ: 2 bảng có chữ trên đường nối. Wrong: đếm giao dịch thay cho người chơi (rớt ở public); thiếu cận trên (rớt ở hidden-1 vì có giao dịch ngày 2026-09-01).}
+\end{cauhoi}
+
+% ================================================================ J3 · write · Trung bình
+\begin{cauhoi}[ma=jelly-j3-nguoi-chua-mua, dulieu=jelly, domain=customer,
+  hinhthuc=write, cap=medium, dang=A2, kynang={LEFT JOIN, COUNT DISTINCT, điều kiện trong ON}, bay={inner-join-mat-dong, dem-ca-giao-dich},
+  tacgia={Agent gói 3}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
+\tieude{Bao nhiêu người chơi chưa từng mua?}
+\boicanh[Chị Lan · Quản lý doanh thu]{Chị muốn thử một gói ưu đãi cho người chưa bao giờ trả tiền. Em cho chị biết trên mỗi nền tảng có bao nhiêu người như vậy và chiếm bao nhiêu phần trăm số người chơi.}
+\begin{yeucau}
+  \item Xét mọi người chơi trong \code{users} và các giao dịch tới hết ngày 29/8/2026.
+  \item Tính cho từng nền tảng số người chơi, số người chưa có giao dịch nào và tỷ lệ của nhóm này.
+  \item Trả về \code{nen_tang}, \code{so_nguoi_choi}, \code{so_chua_mua}, \code{ty_le_chua_mua_pct} (phần trăm, làm tròn 2 chữ số).
+  \item Sắp \code{nen_tang} theo thứ tự chữ cái.
+\end{yeucau}
+\begin{erd}
+  \erdbang{users}{0,0}{user_id:PK, install_date, platform*, channel}
+  \erdbang{purchases}{1,0}{transaction_id:PK, user_id:FK, event_date*, price_usd}
+  \erdbang{sessions}{0,1}{session_id:PK, user_id:FK, event_date}
+  \erdnoi[kieu=1-n]{users.user_id}{purchases.user_id}
+  \erdnoi[kieu=1-n]{users.user_id}{sessions.user_id}
+\end{erd}
+\begin{nghiepvu}{Xác định quy mô nhóm nhận gói ưu đãi cho người chưa trả tiền.}
+  \khainiem{nguoi-choi-tra-tien}
+  \luuy{Người chưa mua không có dòng nào trong bảng giao dịch. Người đã mua nhiều lần có nhiều dòng sau khi nối.}
+\end{nghiepvu}
+\goiy{Phép nối nào giữ lại người chơi không có giao dịch? Điều kiện về ngày của giao dịch nên đặt ở \code{ON} hay \code{WHERE}?}
+\goiy{\code{LEFT JOIN} rồi đếm \code{COUNT(DISTINCT CASE WHEN p.transaction_id IS NULL THEN u.user_id END)}.}
+\ghichuthietke{Trung bình: LEFT JOIN, điều kiện lọc bảng giao dịch (bảng bên phải) đặt trong ON. Bảng \code{sessions} là bảng nhiễu. Wrong: INNER JOIN (số chưa mua bằng 0); \code{COUNT(*)} sau LEFT JOIN đếm cả giao dịch. Hidden-1 bỏ 10\% người chơi nên mọi số đổi; hidden-1 còn có giao dịch Starter Pack ngày 1/9/2026 của một người iOS chưa mua trong kỳ, nên bài thiếu cận trên ra 3.276 người iOS chưa mua thay vì 3.277 và rớt ở hidden-1.}
+\end{cauhoi}
+
+% ================================================================ J4 · write · Trung bình
+\begin{cauhoi}[ma=jelly-j4-cpi-theo-kenh, dulieu=jelly, domain=finance,
+  hinhthuc=write, cap=medium, dang=C3, kynang={bảng dẫn xuất, nối sau khi gom nhóm, CROSS JOIN}, bay={fan-out, trung-binh-ty-le},
+  tacgia={Agent gói 3}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
+\tieude{Mỗi lượt cài của từng kênh trả phí tốn bao nhiêu?}
+\boicanh[Anh Tuấn · Quản lý thu hút người chơi]{Tháng sau anh phải cắt bớt ngân sách quảng cáo. Em cho anh biết tháng 7 mỗi lượt cài của từng kênh trên từng nền tảng tốn bao nhiêu, đắt hay rẻ hơn mức chung bao nhiêu.}
+\begin{yeucau}
+  \item Xét chi phí quảng cáo và người chơi cài từ ngày 1/7/2026 tới hết ngày 31/7/2026; chỉ các kênh trả phí.
+  \item Tính CPI (chi phí cho mỗi lượt cài đặt) của từng cặp kênh, nền tảng; chi phí lấy theo \code{target_platform}, lượt cài theo \code{users.platform}.
+  \item Tính CPI chung của mọi kênh trả phí trong tháng 7 và chênh lệch giữa CPI của từng cặp kênh, nền tảng và CPI chung.
+  \item Trả về \code{kenh}, \code{nen_tang}, \code{so_luot_cai}, \code{cpi_usd}, \code{chenh_lech_usd} (USD, làm tròn 2 chữ số).
+  \item Sắp \code{chenh_lech_usd} giảm dần; bằng nhau thì theo \code{kenh}, rồi \code{nen_tang}.
+\end{yeucau}
+\begin{erd}
+  \erdbang{campaign_spend}{0,0}{date, campaign_id, channel*, country, target_platform*, spend_usd*}
+  \erdbang{users}{1,0}{user_id:PK, install_date*, platform*, channel*, campaign_id}
+  \erdbang{player_daily}{1,1}{user_id:FK, activity_date, iap_revenue}
+  \erdnoi[kieu=n-n, tren={nối theo chiến dịch, nhiều dòng với nhiều dòng}, canhbao]{campaign_spend.campaign_id}{users.campaign_id}
+  \erdnoi[kieu=1-n]{users.user_id}{player_daily.user_id}
+\end{erd}
+\begin{nghiepvu}{Xếp thứ tự kênh và nền tảng cần cắt ngân sách.}
+  \khainiem{cpi}
+  \khainiem{fan-out}
+  \luuy{Bảng chi phí có một dòng cho mỗi ngày, chiến dịch, quốc gia và nền tảng; bảng người chơi có một dòng cho mỗi lượt cài. Hai bảng không có quan hệ một dòng với một dòng.}
+\end{nghiepvu}
+\goiy{Nếu nối thẳng người chơi với dòng chi phí theo chiến dịch, mỗi người chơi khớp với bao nhiêu dòng chi phí? Gom mỗi bảng về cùng mức (kênh, nền tảng) rồi mới nối.}
+\goiy{Hai bảng dẫn xuất \code{(SELECT ... GROUP BY channel, target_platform)} và \code{(SELECT ... GROUP BY channel, platform)}; CPI chung tính bằng tổng chi chia tổng lượt cài trả phí.}
+\ghichuthietke{Trung bình: 3 bảng chỉ ký hiệu, \code{player_daily} là bảng nhiễu. Wrong: nối thẳng hai bảng rồi cộng chi (fan-out, rớt ở public); CPI chung lấy trung bình các CPI (rớt ở public). Hidden-1 bỏ 10\% người chơi nên lượt cài đổi.}
+\end{cauhoi}
+
+% ================================================================ J5 · write · Dễ
+\begin{cauhoi}[ma=jelly-j5-booster-theo-the-gioi, dulieu=jelly, domain=operations,
+  hinhthuc=write, cap=easy, dang=A3, kynang={INNER JOIN, GROUP BY nhiều cột}, bay={fan-out, sap-theo-ten},
+  tacgia={Agent gói 3}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
+\tieude{Loại vật phẩm hỗ trợ nào được dùng nhiều ở mỗi thế giới?}
+\boicanh[Chị Mai · Quản lý sản phẩm]{Đội thiết kế muốn đổi giá vật phẩm hỗ trợ theo từng thế giới. Chị muốn biết ở mỗi thế giới người chơi dùng loại nào nhiều nhất.}
+\begin{yeucau}
+  \item Xét mọi lần dùng vật phẩm hỗ trợ (booster) trong cửa sổ dữ liệu.
+  \item Đếm số lần dùng theo thế giới của màn và loại booster.
+  \item Trả về \code{world_name}, \code{booster_type}, \code{so_lan_dung}.
+  \item Sắp theo thứ tự thế giới trong game (\code{episode} tăng dần), trong mỗi thế giới \code{so_lan_dung} giảm dần; bằng nhau thì \code{booster_type} theo thứ tự chữ cái.
+\end{yeucau}
+\begin{erd}
+  \erdbang{booster_events}{0,0}{booster_event_id:PK, attempt_id, session_id, level_id:FK, booster_type*}
+  \erdbang{level_metadata}{1,0}{level_id:PK, episode*, world_name*}
+  \erdnoi[kieu=n-1, tren={\code{booster_events.level_id = level_metadata.level_id}}, duoi={nhiều lần dùng, một màn}]{booster_events.level_id}{level_metadata.level_id}
+\end{erd}
+\begin{nghiepvu}{Định giá gói vật phẩm hỗ trợ theo từng thế giới.}
+  \khainiem{vat-pham-ho-tro}
+  \khainiem{fan-out}
+  \luuy{Một phiên chơi có thể chơi lại cùng một màn nhiều lần. Nối lần dùng booster với lượt chơi theo phiên và màn sẽ gắn một lần dùng vào nhiều lượt.}
+\end{nghiepvu}
+\goiy{Bảng lần dùng booster đã có \code{level_id}. Cần đi qua bảng lượt chơi không?}
+\ghichuthietke{Dễ (hạ từ Trung bình theo review B): 2 bảng, chữ trên đường nối. Wrong: đi qua \code{level_attempts} theo phiên và màn (nhân dòng, rớt ở public); sắp thế giới theo tên thay cho \code{episode} (rớt ở public). Hidden-1 bỏ 10\% người chơi nên mọi số đổi.}
+\end{cauhoi}
+
+% ================================================================ J6 · write · Trung bình
+\begin{cauhoi}[ma=jelly-j6-phien-co-mua, dulieu=jelly, domain=sales,
+  hinhthuc=write, cap=medium, dang=A2, kynang={LEFT JOIN, COUNT cột so với COUNT(*)}, bay={count-sao-dem-null, inner-join},
+  tacgia={Agent gói 3}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
+\tieude{Phiên vào từ màn hình nào hay phát sinh giao dịch?}
+\boicanh[Chị Lan · Quản lý doanh thu]{Chị định đặt thêm nút cửa hàng ở một màn hình vào game. Em tính giúp chị trong tháng 7, phiên mở từ màn hình nào hay có người mua hàng nhất.}
+\begin{yeucau}
+  \item Xét các phiên chơi bắt đầu từ ngày 1/7/2026 tới hết ngày 31/7/2026.
+  \item Tính số phiên, số phiên có ít nhất một giao dịch và tỷ lệ phiên có giao dịch của từng màn hình vào game (\code{entry_screen}).
+  \item Trả về \code{man_hinh_vao}, \code{so_phien}, \code{so_phien_co_mua}, \code{ty_le_pct} (phần trăm, làm tròn 2 chữ số).
+  \item Sắp \code{ty_le_pct} giảm dần; bằng nhau thì \code{man_hinh_vao} theo thứ tự chữ cái.
+\end{yeucau}
+\begin{erd}
+  \erdbang{sessions}{0,0}{session_id:PK, user_id:FK, event_date*, entry_screen*}
+  \erdbang{purchases}{1,0}{transaction_id:PK, user_id:FK, session_id:FK, price_usd}
+  \erdbang{users}{0,1}{user_id:PK, platform, channel}
+  \erdnoi[kieu=1-n]{sessions.session_id}{purchases.session_id}
+  \erdnoi[kieu=1-n]{users.user_id}{sessions.user_id}
+\end{erd}
+\begin{nghiepvu}{Quyết định màn hình nào được đặt thêm nút cửa hàng.}
+  \khainiem{phien-choi}
+  \khainiem{doanh-thu-iap}
+  \luuy{Phần lớn phiên không có giao dịch. Sau phép nối giữ dòng, phiên không có giao dịch vẫn còn một dòng với cột của bảng giao dịch rỗng.}
+\end{nghiepvu}
+\goiy{Sau \code{LEFT JOIN}, \code{COUNT(*)} và \code{COUNT(p.session_id)} khác nhau ở những dòng nào?}
+\goiy{Đếm phiên có giao dịch bằng \code{COUNT(DISTINCT p.session_id)}, mẫu số bằng \code{COUNT(DISTINCT s.session_id)}.}
+\ghichuthietke{Trung bình: 3 bảng chỉ ký hiệu, \code{users} là bảng nhiễu. Wrong: tử số \code{COUNT(*)} đếm cả dòng rỗng (tỷ lệ 100\%); INNER JOIN mất mẫu số. Hidden-1 bỏ 10\% người chơi nên mọi số đổi.}
+\end{cauhoi}
+
+% ================================================================ J7 · debug · Dễ
+\begin{cauhoi}[ma=jelly-j7-join-nhan-dong, dulieu=jelly, domain=finance,
+  hinhthuc=debug, cap=easy, dang=A2, kynang={JOIN theo khoá, fan-out}, bay={fan-out, mat-organic},
+  tacgia={Agent gói 3}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
+\tieude{Doanh thu quảng cáo theo kênh gấp nhiều lần thực tế}
+\boicanh[Bạn Vy · Thực tập sinh phân tích]{Em tính doanh thu quảng cáo tháng 7 theo kênh mà ra gấp nhiều lần số tổng của tháng, lại không thấy người chơi tự nhiên (không qua quảng cáo). Em nghi mình ghép dữ liệu chưa đúng mà chưa tìm ra chỗ nào.}
+\begin{yeucau}
+  \item Xét các ngày hoạt động từ 1/7/2026 tới hết 31/7/2026.
+  \item Sửa truy vấn khởi đầu để tính đúng doanh thu quảng cáo theo kênh thu hút của người chơi, gồm cả kênh tự nhiên (\code{'Organic'}).
+  \item Giữ nguyên cột \code{kenh}, \code{doanh_thu_qc_usd} (USD, làm tròn 2 chữ số) và thứ tự \code{doanh_thu_qc_usd} giảm dần.
+\end{yeucau}
+\begin{erd}
+  \erdbang{player_daily}{0,0}{user_id:FK, activity_date*, campaign_id, ad_revenue*}
+  \erdbang{campaign_spend}{1,0}{date, campaign_id, channel, country, target_platform, spend_usd}
+  \erdbang{users}{1,1}{user_id:PK, channel*}
+  \erdnoi[kieu=n-n, tren={một chiến dịch, nhiều dòng chi mỗi ngày}, canhbao]{player_daily.campaign_id}{campaign_spend.campaign_id}
+  \erdnoi[kieu=n-1]{player_daily.user_id}{users.user_id}
+\end{erd}
+\begin{nghiepvu}{Báo cáo doanh thu quảng cáo theo kênh cho cuộc họp phân bổ ngân sách.}
+  \khainiem{doanh-thu-quang-cao}
+  \khainiem{fan-out}
+  \luuy{Bảng chi phí chỉ có chiến dịch trả phí và chia mỗi ngày thành nhiều dòng theo quốc gia, nền tảng. Kênh của người chơi đã có ở bảng người chơi.}
+\end{nghiepvu}
+\goiy{Mỗi dòng hoạt động ngày khớp với bao nhiêu dòng chi phí? Người chơi tự nhiên khớp với dòng nào?}
+\goiy{Bỏ bảng chi phí; lấy kênh từ \code{users} (nối theo \code{user_id}).}
+\ghichuthietke{Dễ: đường nối gây lỗi tô cảnh báo; thêm bảng \code{users} (nơi lấy kênh) theo review B. Starter nhân dòng (8 dòng chi mỗi chiến dịch mỗi ngày) và mất kênh tự nhiên. Wrong: \code{SUM(DISTINCT ...)} (gộp mất các giá trị trùng); LEFT JOIN vẫn nhân dòng.}
+\end{cauhoi}
+
+% ================================================================ J8 · debug · Trung bình
+\begin{cauhoi}[ma=jelly-j8-left-join-where, dulieu=jelly, domain=customer,
+  hinhthuc=debug, cap=medium, dang=A2, kynang={LEFT JOIN, điều kiện trong ON}, bay={where-bien-left-thanh-inner},
+  tacgia={Agent gói 3}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
+\tieude{Số người chưa tới bước hướng dẫn cuối bằng 0}
+\boicanh[Bạn Nam · Thực tập sinh phân tích]{Em đếm người chơi chưa tới bước 5 của phần hướng dẫn trên từng nền tảng mà ra 0, trong khi phễu cho thấy nhiều người dừng sớm. Chắc em lọc sai chỗ nào đó, nhờ anh chị xem lại điều kiện lọc.}
+\begin{yeucau}
+  \item Xét mọi người chơi trong \code{users}.
+  \item Truy vấn khởi đầu cần đếm số người chơi không có dòng bước 5 (\code{step_id = 5}) trong \code{tutorial_steps}, theo từng nền tảng, nhưng đang ra 0. Sửa lại.
+  \item Giữ nguyên cột \code{nen_tang}, \code{so_nguoi_choi}, \code{so_chua_den_buoc_5}, \code{ty_le_pct} (phần trăm, làm tròn 2 chữ số) và thứ tự theo \code{nen_tang}.
+\end{yeucau}
+\begin{erd}
+  \erdbang{users}{0,0}{user_id:PK, install_date, platform*}
+  \erdbang{tutorial_steps}{1,0}{user_id:FK, step_id*, step_completed, event_date}
+  \erdbang{sessions}{0,1}{session_id:PK, user_id:FK, entry_screen}
+  \erdnoi[kieu=1-n]{users.user_id}{tutorial_steps.user_id}
+  \erdnoi[kieu=1-n]{users.user_id}{sessions.user_id}
+\end{erd}
+\begin{nghiepvu}{Đánh giá phần người chơi chưa tới bước cuối của phần hướng dẫn trên từng nền tảng.}
+  \khainiem{pheu-huong-dan}
+  \luuy{Người chưa tới bước 5 không có dòng bước 5, nhưng vẫn có dòng ở các bước trước. Người đã bắt đầu bước 5 mà bỏ dở vẫn tính là đã tới bước 5.}
+\end{nghiepvu}
+\goiy{Sau \code{LEFT JOIN}, dòng nào còn lại khi lọc \code{WHERE t.step_id = 5}?}
+\goiy{Đưa \code{t.step_id = 5} vào mệnh đề \code{ON}.}
+\ghichuthietke{Trung bình: lỗi hay gặp, điều kiện ở WHERE làm LEFT JOIN thành INNER JOIN. Wrong: đưa điều kiện vào ON nhưng gom theo nền tảng của bảng bên phải \code{t.platform} (người chưa tới bước 5 rơi vào nhóm rỗng, rớt ở public); chỉ nối bước 5 đã hoàn thành (đổi nghĩa, đếm cả người bỏ dở bước 5).}
+\end{cauhoi}
+
+% ================================================================ J9 · debug · Trung bình
+\begin{cauhoi}[ma=jelly-j9-noi-sai-khoa, dulieu=jelly, domain=after_sales,
+  hinhthuc=debug, cap=medium, dang=A1, kynang={JOIN theo đúng khoá}, bay={noi-sai-khoa, fan-out},
+  tacgia={Agent gói 3}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
+\tieude{Lượt chơi gặp sự cố bị gắn nhầm phiên}
+\boicanh[Chị Hương · Kỹ sư QA]{Chị cần danh sách lượt chơi gặp sự cố ngày 28/8 kèm phiên chơi của từng lượt để tái hiện lỗi. Bảng em gửi có lượt chơi lặp nhiều lần, mỗi lần một phiên khác nhau.}
+\begin{yeucau}
+  \item Xét các lượt chơi có \code{result = 'crash'} ngày 28/8/2026.
+  \item Mỗi lượt chơi phải đi kèm đúng phiên chơi của lượt đó; sửa truy vấn khởi đầu cho đúng.
+  \item Giữ nguyên cột \code{attempt_id}, \code{level_id}, \code{session_id}, \code{entry_screen}, \code{duration_minutes} và thứ tự theo \code{attempt_id}.
+\end{yeucau}
+\begin{erd}
+  \erdbang{level_attempts}{0,0}{attempt_id:PK, user_id:FK, session_id:FK, event_date*, level_id, result*}
+  \erdbang{sessions}{1,0}{session_id:PK, user_id:FK, event_date, entry_screen*, duration_minutes*}
+  \erdbang{users}{0,1}{user_id:PK, platform, device_tier}
+  \erdnoi[kieu=n-1]{level_attempts.session_id}{sessions.session_id}
+  \erdnoi[kieu=1-n]{users.user_id}{level_attempts.user_id}
+\end{erd}
+\begin{nghiepvu}{Lập danh sách lượt chơi gặp sự cố để đội QA tái hiện lỗi.}
+  \khainiem{phien-choi}
+  \khainiem{ty-le-su-co}
+  \luuy{Một người chơi có thể mở game nhiều lần trong một ngày. Người chơi và ngày chưa đủ để xác định một phiên.}
+\end{nghiepvu}
+\goiy{Bảng lượt chơi có cột nào chỉ thẳng tới một phiên duy nhất?}
+\ghichuthietke{Trung bình: 3 bảng chỉ ký hiệu, ERD để trung tính. Starter nối theo người chơi và ngày (nhân dòng). Wrong: gom theo lượt chơi và lấy phiên có mã nhỏ nhất trong ngày (hết lặp nhưng gắn sai phiên, rớt ở public).}
+\end{cauhoi}
+
+
+% ################################################################ MODULE 6 · SUBQUERIES
+
+% ================================================================ Q1 · write · Dễ
+\begin{cauhoi}[ma=jelly-q1-man-thua-tren-tb, dulieu=jelly, domain=operations,
+  hinhthuc=write, cap=easy, dang=C3, kynang={truy vấn con một giá trị, HAVING}, bay={trung-binh-ty-le, sai-mau-so},
+  tacgia={Agent gói 3}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
+\tieude{Màn nào có tỷ lệ thua cao hơn mức chung của game?}
+\boicanh[Anh Khoa · Thiết kế màn chơi]{Anh đang tìm màn bị chỉnh quá khó. Em liệt kê giúp anh những màn có tỷ lệ thua cao hơn tỷ lệ thua của cả game.}
+\begin{yeucau}
+  \item Xét mọi lượt chơi tới hết ngày 29/8/2026.
+  \item Tỷ lệ thua của một màn bằng số lượt có \code{result = 'fail_out_of_moves'} chia tổng số lượt chơi màn đó.
+  \item Giữ các màn có tỷ lệ thua lớn hơn tỷ lệ thua chung, tính trên mọi lượt chơi của mọi màn.
+  \item Trả về \code{level_id}, \code{difficulty_tag}, \code{so_luot}, \code{ty_le_thua_pct} (phần trăm, làm tròn 2 chữ số).
+  \item Sắp \code{ty_le_thua_pct} giảm dần; bằng nhau thì \code{level_id} nhỏ hơn đứng trước.
+\end{yeucau}
+\begin{erd}
+  \erdbang{level_attempts}{0,0}{attempt_id:PK, event_date*, level_id:FK, result*}
+  \erdbang{level_metadata}{1,0}{level_id:PK, world_name, difficulty_tag*}
+  \erdnoi[kieu=n-1, tren={\code{level_attempts.level_id = level_metadata.level_id}}, duoi={nhiều lượt chơi, một màn}]{level_attempts.level_id}{level_metadata.level_id}
+\end{erd}
+\begin{nghiepvu}{Lập danh sách màn cần xem lại độ khó trong bản cập nhật tới.}
+  \khainiem{ty-le-thang-man}
+  \luuy{Tỷ lệ thua chung là tổng lượt thua chia tổng lượt chơi. Màn đầu game có rất nhiều lượt, màn cuối có ít lượt, nên mức chung khác trung bình cộng tỷ lệ của các màn.}
+\end{nghiepvu}
+\goiy{Mức chung là một con số duy nhất. Tính mức chung trong một truy vấn con rồi so trong \code{HAVING}.}
+\goiy{Mẫu số gồm mọi lượt chơi, kể cả lượt bỏ cuộc và lượt gặp sự cố.}
+\ghichuthietke{Dễ: 2 bảng có chữ trên đường nối. Wrong: mức chung lấy trung bình tỷ lệ các màn (thêm màn có tỷ lệ nằm giữa hai mức, rớt ở public); mẫu số chỉ gồm thắng và thua (rớt ở public).}
+\end{cauhoi}
+
+% ================================================================ Q2 · write · Dễ
+\begin{cauhoi}[ma=jelly-q2-nguoi-mua-season-pass, dulieu=jelly, domain=sales,
+  hinhthuc=write, cap=easy, dang=A1, kynang={IN (SELECT ...)}, bay={join-dem-trung},
+  tacgia={Agent gói 3}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
+\tieude{Người mua Season Pass đến từ đâu?}
+\boicanh[Chị Lan · Quản lý doanh thu]{Season Pass là gói đắt nhất của game. Em tìm giúp chị người mua gói này ở thị trường nào, đến từ kênh nào, để mùa sau nhắm quảng cáo cho trúng.}
+\begin{yeucau}
+  \item Xét người chơi có ít nhất một giao dịch \code{product_type = 'season_pass'}.
+  \item Đếm số người chơi như vậy theo thị trường (quốc gia, \code{users.country}) và kênh thu hút (\code{users.channel}).
+  \item Trả về \code{quoc_gia}, \code{kenh}, \code{so_nguoi_choi}.
+  \item Sắp \code{so_nguoi_choi} giảm dần; bằng nhau thì theo \code{quoc_gia}, rồi \code{kenh}.
+\end{yeucau}
+\begin{erd}
+  \erdbang{users}{0,0}{user_id:PK, country*, channel*, platform}
+  \erdbang{purchases}{1,0}{transaction_id:PK, user_id:FK, product_type*, price_usd}
+  \erdnoi[kieu=1-n, tren={\code{users.user_id = purchases.user_id}}, duoi={một người chơi, nhiều giao dịch}]{users.user_id}{purchases.user_id}
+\end{erd}
+\begin{nghiepvu}{Xác định thị trường và kênh để nhắm quảng cáo Season Pass mùa sau.}
+  \khainiem{nguoi-choi-tra-tien}
+  \luuy{Câu hỏi đếm người chơi, không đếm giao dịch. Có người mua Season Pass hơn một lần trong cửa sổ dữ liệu.}
+\end{nghiepvu}
+\goiy{Lọc người chơi bằng \code{user_id IN (SELECT user_id FROM purchases WHERE ...)}; mỗi người chơi chỉ có một dòng trong \code{users}.}
+\ghichuthietke{Dễ: 2 bảng có chữ trên đường nối. Wrong: JOIN rồi \code{COUNT(*)} (người mua hai lần bị đếm hai lần, rớt ở public); quên điều kiện gói trong truy vấn con (đếm mọi người trả tiền, rớt ở public).}
+\end{cauhoi}
+
+% ================================================================ Q3 · write · Trung bình
+\begin{cauhoi}[ma=jelly-q3-chua-qua-buoc-4, dulieu=jelly, domain=customer,
+  hinhthuc=write, cap=medium, dang=D1, kynang={NOT EXISTS, truy vấn con tương quan}, bay={hieu-sai-buoc-co-dong},
+  tacgia={Agent gói 3}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
+\tieude{Bao nhiêu người chơi mới dừng ở bước dùng búa kẹo mút?}
+\boicanh[Chị Mai · Quản lý sản phẩm]{Đội hỗ trợ báo nhiều người chơi mới không biết dùng búa kẹo mút ở phần hướng dẫn. Em đếm giúp chị trên mỗi nền tảng có bao nhiêu người dừng lại đúng ở bước này.}
+\begin{yeucau}
+  \item Xét người chơi đã bắt đầu bước hướng dẫn 4 (\code{step_id = 4}, dùng vật phẩm hỗ trợ búa kẹo mút).
+  \item Người dừng ở bước 4 là người đã bắt đầu bước 4 nhưng không có dòng bước 5.
+  \item Tính số người bắt đầu bước 4, số người dừng ở bước 4 và tỷ lệ dừng của từng nền tảng.
+  \item Trả về \code{nen_tang}, \code{so_bat_dau_buoc_4}, \code{so_dung_buoc_4}, \code{ty_le_dung_pct} (phần trăm, làm tròn 2 chữ số); sắp theo \code{nen_tang}.
+\end{yeucau}
+\begin{erd}
+  \erdbang{tutorial_steps}{0,0}{user_id:FK, step_id*, step_name, step_completed, session_id}
+  \erdbang{users}{1,0}{user_id:PK, install_date, platform*}
+  \erdbang{sessions}{0,1}{session_id:PK, user_id:FK, entry_screen}
+  \erdnoi[kieu=n-1]{tutorial_steps.user_id}{users.user_id}
+  \erdnoi[kieu=n-1]{tutorial_steps.session_id}{sessions.session_id}
+\end{erd}
+\begin{nghiepvu}{Quyết định có làm lại hướng dẫn bước dùng búa kẹo mút hay không.}
+  \quytrinh{Phần hướng dẫn chơi}{mở màn 1, ghép lần đầu, tạo kẹo sọc, dùng búa kẹo mút, thắng màn 3}{bỏ dở ở một bước}
+  \khainiem{pheu-huong-dan}
+  \luuy{Người dừng ở bước 1 tới 3 cũng không có dòng bước 5, nhưng họ chưa bao giờ tới bước 4. Mẫu số chỉ gồm người đã bắt đầu bước 4.}
+\end{nghiepvu}
+\goiy{Lấy các dòng \code{step_id = 4} rồi kiểm tra người chơi của từng dòng có dòng bước 5 hay không.}
+\goiy{\code{NOT EXISTS (SELECT 1 FROM tutorial_steps t5 WHERE t5.user_id = t4.user_id AND t5.step_id = 5)}.}
+\ghichuthietke{Trung bình: 3 bảng chỉ ký hiệu, \code{sessions} là bảng nhiễu. Wrong: lấy mọi người không có bước 5 (gồm người dừng ở bước 1--3); coi người bỏ dở bước 5 là dừng ở bước 4. Hidden-1 bỏ 10\% người chơi.}
+\end{cauhoi}
+
+% ================================================================ Q4 · write · Trung bình
+\begin{cauhoi}[ma=jelly-q4-ngay-dau-cao-nhat, dulieu=jelly, domain=customer,
+  hinhthuc=write, cap=medium, dang=C3, kynang={truy vấn con tương quan, AVG}, bay={khong-tuong-quan},
+  tacgia={Agent gói 3}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.1]
+\tieude{Ngày nào DAU cao hơn mức bình quân của tháng?}
+\boicanh[Chị Ngọc · Trưởng nhóm LiveOps]{Trước khi xếp lịch sự kiện quý sau, chị đang rà xem lượng người chơi trong từng tháng tăng đều hay dồn vào cuối tháng. Em lọc giúp chị những ngày lượng người chơi cao hơn mức bình quân của chính tháng đó.}
+\begin{yeucau}
+  \item Xét các ngày từ 1/7/2026 tới hết 29/8/2026 trong bảng chỉ số ngày \code{daily_kpi}.
+  \item DAU (số người chơi hoạt động trong ngày) bình quân của tháng là trung bình cột \code{dau} của các ngày cùng tháng, trong khoảng ngày trên.
+  \item Giữ các ngày có \code{dau} lớn hơn DAU bình quân của tháng chứa ngày đó.
+  \item Trả về \code{ngay}, \code{dau}, \code{dau_tb_thang} (người, làm tròn 1 chữ số); sắp \code{ngay} tăng dần.
+\end{yeucau}
+\begin{erd}
+  \erdbang{daily_kpi}{0,0}{date:PK, dau*, new_users, sessions, arpdau}
+  \erdbang{player_daily}{1,0}{user_id:FK, activity_date, sessions}
+  \erdbang{users}{2,0}{user_id:PK, install_date}
+  \erdnoi[kieu=1-n]{daily_kpi.date}{player_daily.activity_date}
+  \erdnoi[kieu=1-n]{users.user_id}{player_daily.user_id}
+\end{erd}
+\begin{nghiepvu}{Đánh giá lượng người chơi trong tháng phân bố đều hay dồn về cuối tháng, làm căn cứ xếp lịch sự kiện LiveOps.}
+  \khainiem{dau}
+  \luuy{Số người chơi tăng dần theo thời gian vì người cài mới cộng thêm mỗi ngày. So với bình quân của cả hai tháng thì gần như mọi ngày tháng 7 đều thấp.}
+\end{nghiepvu}
+\goiy{Mức so sánh đổi theo tháng của từng ngày. Truy vấn con cần tham chiếu tới ngày của dòng bên ngoài.}
+\goiy{Ghép cùng tháng bằng \code{MONTH(k2.date) = MONTH(k.date)} (cả hai tháng nằm trong một năm).}
+\ghichuthietke{Trung bình: 3 bảng chỉ ký hiệu, \code{player_daily} và \code{users} là bảng nhiễu. Đổi so với bản đồ: dữ liệu không có ngày DAU hoà ở hạng nhất nên câu chuyển sang so với bình quân tháng (vẫn C3, truy vấn con tương quan). Wrong: truy vấn con không tương quan (bình quân cả hai tháng, rớt ở public). Hidden-1 bỏ 10\% người chơi nên mọi DAU đổi; hidden-1 có hai ngày tháng 9 (1/9 DAU 2, 2/9 DAU 1), nên bài thiếu cận trên ra thêm dòng 1/9/2026 và rớt ở hidden-1. Mã giữ \code{ngay-dau-cao-nhat} dù nội dung là so với bình quân tháng (quy tắc không đổi mã).}
+\end{cauhoi}
+
+% ================================================================ Q5 · write · Trung bình
+\begin{cauhoi}[ma=jelly-q5-roas-tren-chuan, dulieu=jelly, domain=finance,
+  hinhthuc=write, cap=medium, dang=C3, kynang={bảng dẫn xuất, truy vấn con một giá trị}, bay={trung-binh-ty-le, fan-out},
+  tacgia={Agent gói 3}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
+\tieude{Chiến dịch nào thu về trên mỗi đồng chi nhiều hơn mức chung?}
+\boicanh[Chị Thu · Kế toán quản trị]{Chị cần so hiệu quả của bốn chiến dịch thu hút tháng 7 để chốt ngân sách quý sau. Em tính giúp chị mỗi chiến dịch thu về bao nhiêu trên tiền đã chi, đặt cạnh mức chung.}
+\begin{yeucau}
+  \item Xét người chơi cài từ ngày 1/7/2026 tới hết 31/7/2026 qua kênh trả phí, và chi phí quảng cáo của tháng 7/2026.
+  \item Doanh thu của một chiến dịch là tổng \code{iap_revenue + ad_revenue} của người chơi cài từ chiến dịch đó trong 30 ngày đầu kể từ ngày cài (\code{cohort_day} từ 0 tới 29).
+  \item Tính ROAS (doanh thu trên chi phí quảng cáo) của từng chiến dịch và ROAS chung của cả bốn chiến dịch (tổng doanh thu chia tổng chi phí).
+  \item Trả về \code{campaign_id}, \code{kenh}, \code{chi_phi_usd}, \code{doanh_thu_usd} (USD, làm tròn 2 chữ số), \code{roas_pct}, \code{roas_chung_pct} (phần trăm, làm tròn 2 chữ số).
+  \item Sắp \code{roas_pct} giảm dần; bằng nhau thì \code{campaign_id} theo thứ tự chữ cái.
+\end{yeucau}
+\begin{erd}
+  \erdbang{campaign_spend}{0,0}{date, campaign_id, channel, spend_usd*}
+  \erdbang{users}{1,0}{user_id:PK, install_date*, channel, campaign_id*}
+  \erdbang{player_daily}{2,0}{user_id:FK, cohort_day*, iap_revenue*, ad_revenue*}
+  \erdnoi[kieu=n-n]{campaign_spend.campaign_id}{users.campaign_id}
+  \erdnoi[kieu=1-n]{users.user_id}{player_daily.user_id}
+\end{erd}
+\begin{nghiepvu}{Chốt chiến dịch được giữ ngân sách trong quý sau.}
+  \khainiem{roas}
+  \khainiem{fan-out}
+  \luuy{Chi phí ở mức ngày × chiến dịch × quốc gia × nền tảng, doanh thu ở mức người chơi × ngày. Cộng mỗi bên về mức chiến dịch rồi mới ghép. ROAS chung là tổng chia tổng, không phải trung bình bốn ROAS. Mọi người cài tháng 7 đều có đủ 30 ngày quan sát tới 29/8, nên cửa sổ D0--D29 công bằng giữa người cài đầu và cuối tháng.}
+\end{nghiepvu}
+\goiy{Mỗi bên (chi phí, doanh thu) gom về một dòng mỗi chiến dịch trong một bảng dẫn xuất, rồi mới nối hai bảng dẫn xuất.}
+\goiy{ROAS chung là tỷ số của hai truy vấn con một giá trị: tổng doanh thu của người cài trả phí tháng 7 và tổng chi tháng 7.}
+\ghichuthietke{Trung bình: 3 bảng chỉ ký hiệu. Sửa theo review C: cửa sổ doanh thu D0--D29 (thay cho ``tới hết 29/8''), khớp cách c6 coi doanh thu cả kỳ là lỗi. Wrong: ROAS chung lấy trung bình bốn ROAS (rớt ở public); nối người chơi, hoạt động ngày và dòng chi phí theo chiến dịch rồi mới cộng (nhân dòng, rớt ở public; ROAS chung tính đúng bằng truy vấn con). Hidden-1 bỏ 10\% người chơi nên doanh thu đổi.}
+\end{cauhoi}
+
+% ================================================================ Q6 · write · Trung bình
+\begin{cauhoi}[ma=jelly-q6-phien-ban-dau-tien, dulieu=jelly, domain=operations,
+  hinhthuc=write, cap=medium, dang=B4, kynang={truy vấn con tương quan, MIN}, bay={phien-ban-luc-cai, dem-moi-ngay},
+  tacgia={Agent gói 3}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
+\tieude{Người chơi lên bản 2.1.0 vào ngày nào?}
+\boicanh[Anh Đức · Quản lý sản phẩm]{Bản 2.1.0 phát hành từ cuối tháng 7. Em đếm giúp anh mỗi ngày có thêm bao nhiêu người bắt đầu dùng bản này, kể cả người cài mới.}
+\begin{yeucau}
+  \item Ngày lên bản 2.1.0 của một người chơi là ngày hoạt động sớm nhất có \code{app_version = '2.1.0'} trong \code{player_daily}.
+  \item Đếm số người chơi theo ngày lên bản 2.1.0.
+  \item Trả về \code{ngay}, \code{so_nguoi_len_210}; sắp \code{ngay} tăng dần.
+\end{yeucau}
+\begin{erd}
+  \erdbang{player_daily}{0,0}{user_id:FK, activity_date*, app_version*, cohort_day}
+  \erdbang{users}{1,0}{user_id:PK, install_date, app_version_install}
+  \erdbang{sessions}{0,1}{session_id:PK, user_id:FK, app_version}
+  \erdnoi[kieu=1-n]{users.user_id}{player_daily.user_id}
+  \erdnoi[kieu=1-n]{users.user_id}{sessions.user_id}
+\end{erd}
+\begin{nghiepvu}{Theo dõi số người bắt đầu dùng bản 2.1.0 mỗi ngày (cả người cập nhật lẫn người cài mới) để lên lịch ngừng hỗ trợ bản cũ.}
+  \khainiem{phien-ban-luc-choi}
+  \luuy{Phiên bản lúc cài không đổi theo thời gian; phiên bản lúc chơi đổi khi người chơi cập nhật. Một người chơi dùng bản 2.1.0 nhiều ngày nhưng chỉ lên bản này một lần.}
+\end{nghiepvu}
+\goiy{Một dòng \code{app_version = '2.1.0'} được đếm khi ngày của dòng bằng ngày sớm nhất người chơi đó dùng bản này.}
+\goiy{\code{activity_date = (SELECT MIN(p2.activity_date) FROM player_daily p2 WHERE p2.user_id = pd.user_id AND ...)}.}
+\ghichuthietke{Trung bình: 3 bảng chỉ ký hiệu, \code{sessions} là bảng nhiễu. Wrong: đếm mọi ngày chơi bản 2.1.0 (rớt ở public); dùng \code{app_version_install} (rớt ở public). Hidden-1 bỏ 10\% người chơi.}
+\end{cauhoi}
+
+% ================================================================ Q7 · debug · Dễ
+\begin{cauhoi}[ma=jelly-q7-exists-quang-cao, dulieu=jelly, domain=marketing,
+  hinhthuc=debug, cap=easy, dang=A2, kynang={EXISTS}, bay={dao-dieu-kien},
+  tacgia={Agent gói 3}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
+\tieude{Đếm người xem quảng cáo có tặng thưởng lại ra số người không xem}
+\boicanh[Bạn Vy · Thực tập sinh phân tích]{Em đếm theo từng kênh số người chơi cài tháng 7 đã xem quảng cáo có tặng thưởng. Số em ra lại khớp với số người không xem mà đội quảng cáo gửi, em chưa hiểu vì sao.}
+\begin{yeucau}
+  \item Xét người chơi cài từ 1/7/2026 tới hết 31/7/2026.
+  \item Sửa truy vấn khởi đầu để đếm người chơi có ít nhất một lần xem quảng cáo \code{ad_type = 'rewarded'} trong tháng 7/2026, theo kênh thu hút.
+  \item Giữ nguyên cột \code{kenh}, \code{so_nguoi_xem} và thứ tự \code{so_nguoi_xem} giảm dần, bằng nhau thì \code{kenh} theo thứ tự chữ cái.
+\end{yeucau}
+\begin{erd}
+  \erdbang{users}{0,0}{user_id:PK, install_date*, channel*}
+  \erdbang{ad_events}{1,0}{ad_id:PK, user_id:FK, event_date*, ad_type*='rewarded', revenue_usd}
+  \erdnoi[kieu=1-n, tren={một người chơi, nhiều lần xem}, canhbao]{users.user_id}{ad_events.user_id}
+\end{erd}
+\begin{nghiepvu}{Ước lượng phần người chơi mới chịu xem quảng cáo có tặng thưởng để đặt thêm vị trí quảng cáo.}
+  \khainiem{doanh-thu-quang-cao}
+  \luuy{Quảng cáo có tặng thưởng là quảng cáo người chơi tự chọn xem để nhận vật phẩm. Quảng cáo xen kẽ hiện ra giữa các màn, không cần người chơi đồng ý.}
+\end{nghiepvu}
+\goiy{Điều kiện trong truy vấn khởi đầu giữ lại người chơi có hay không có lần xem phù hợp?}
+\ghichuthietke{Dễ: đường nối tô cảnh báo, giá trị mẫu \code{'rewarded'}. Starter dùng NOT EXISTS (đếm người không xem). Wrong: bỏ điều kiện loại quảng cáo (thêm người chỉ xem quảng cáo xen kẽ); JOIN rồi \code{COUNT(*)} đếm lượt xem.}
+\end{cauhoi}
+
+% ================================================================ Q8 · debug · Trung bình
+\begin{cauhoi}[ma=jelly-q8-subquery-nhieu-dong, dulieu=jelly, domain=sales,
+  hinhthuc=debug, cap=medium, dang=A1, kynang={truy vấn con tương quan, MAX}, bay={truy-van-con-khong-tuong-quan},
+  tacgia={Agent gói 3}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
+\tieude{Giao dịch gần nhất của mỗi người chơi chỉ còn một dòng}
+\boicanh[Anh Quân · Quản lý doanh thu]{Anh đang soạn ưu đãi mua lại cho người chơi trả tiền ở Việt Nam, dựa trên giao dịch gần nhất của từng người. Bảng em đưa chỉ có đúng một người.}
+\begin{yeucau}
+  \item Xét các giao dịch có \code{country = 'VN'}.
+  \item Kết quả cần mỗi người chơi trả tiền đúng một dòng, là giao dịch có \code{event_time} muộn nhất của người đó. Sửa truy vấn khởi đầu cho đúng.
+  \item Giữ nguyên cột \code{user_id}, \code{transaction_id}, \code{event_time}, \code{product_name}, \code{price_usd} và thứ tự theo \code{user_id}.
+\end{yeucau}
+\begin{erd}
+  \erdbang{purchases}{0,0}{transaction_id:PK, user_id:FK, event_time*, product_name, price_usd, country*}
+  \erdbang{users}{1,0}{user_id:PK, country, channel}
+  \erdbang{sessions}{0,1}{session_id:PK, user_id:FK, event_date}
+  \erdnoi[kieu=n-1]{purchases.user_id}{users.user_id}
+  \erdnoi[kieu=1-n]{users.user_id}{sessions.user_id}
+\end{erd}
+\begin{nghiepvu}{Gửi ưu đãi mua lại phù hợp với lần mua gần nhất của từng người chơi.}
+  \khainiem{nguoi-choi-tra-tien}
+  \luuy{Giao dịch gần nhất là giao dịch muộn nhất của từng người chơi, không phải giao dịch muộn nhất của cả thị trường.}
+\end{nghiepvu}
+\goiy{Truy vấn con trong \code{WHERE} trả về cùng một giá trị cho mọi dòng hay đổi theo người chơi của dòng đang xét?}
+\goiy{Thêm điều kiện \code{p2.user_id = p.user_id} vào truy vấn con.}
+\ghichuthietke{Trung bình: 3 bảng chỉ ký hiệu, \code{users} và \code{sessions} là bảng nhiễu. Đổi so với bản đồ: truy vấn con trả nhiều dòng sau dấu = làm MySQL báo lỗi, không dùng được làm starter (starter phải chạy được); starter là truy vấn con vô hướng không tương quan. Wrong: lấy giao dịch giá cao nhất; lấy giao dịch đầu tiên. Không có người chơi VN nào có hai giao dịch cùng thời điểm.}
+\end{cauhoi}
+
+% ================================================================ Q9 · debug · Trung bình
+\begin{cauhoi}[ma=jelly-q9-not-in-null, dulieu=jelly, domain=sales,
+  hinhthuc=debug, cap=medium, dang=A2, kynang={NOT EXISTS, NOT IN và NULL}, bay={not-in-null},
+  tacgia={Agent gói 3}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
+\tieude{Không tìm thấy màn nào chưa từng có giao dịch}
+\boicanh[Anh Khoa · Thiết kế màn chơi]{Anh muốn biết màn nào chưa từng có ai mua gói vật phẩm ngay trong màn, kèm số lượt chơi của màn đó. Em lọc ra không có màn nào, nhưng anh nhớ các màn cuối rất ít người chơi tới. Em xem lại giúp anh.}
+\begin{yeucau}
+  \item Xét mọi màn trong \code{level_metadata}, mọi giao dịch trong \code{purchases} và các lượt chơi trong cửa sổ dữ liệu (tới hết 29/8/2026).
+  \item Sửa truy vấn khởi đầu để liệt kê đúng các màn không có giao dịch nào gắn với màn đó (\code{level_id_if_relevant}).
+  \item Giữ nguyên cột \code{level_id}, \code{so_luot_choi} (số lượt chơi màn đó) và thứ tự theo \code{level_id}.
+\end{yeucau}
+\begin{erd}
+  \erdbang{level_metadata}{0,0}{level_id:PK, world_name, difficulty_tag}
+  \erdbang{purchases}{1,0}{transaction_id:PK, product_type, level_id_if_relevant*}
+  \erdbang{level_attempts}{0,1}{attempt_id:PK, level_id:FK, event_date*}
+  \erdnoi[kieu=1-n]{level_metadata.level_id}{purchases.level_id_if_relevant}
+  \erdnoi[kieu=1-n]{level_metadata.level_id}{level_attempts.level_id}
+\end{erd}
+\begin{nghiepvu}{Lập danh sách màn cần thêm ưu đãi vật phẩm ngay trong màn.}
+  \khainiem{doanh-thu-iap}
+  \luuy{Giao dịch ở cửa hàng không gắn với màn nào, nên cột màn của giao dịch đó rỗng.}
+\end{nghiepvu}
+\goiy{Tập giá trị trong \code{NOT IN (...)} có chứa \code{NULL} không? Khi đó điều kiện \code{NOT IN} cho kết quả gì?}
+\goiy{Dùng \code{NOT EXISTS} với truy vấn con tương quan theo \code{level_id}, hoặc lọc \code{IS NOT NULL} trong truy vấn con.}
+\ghichuthietke{Trung bình: 3 bảng chỉ ký hiệu. Sửa theo review C: thêm \code{so_luot_choi} để hai biến thể cho kết quả khác nhau (hidden-1 bỏ 10\% người chơi; có thêm lượt chơi màn 58 ngày 2026-09-01). Starter NOT IN gặp NULL ra 0 dòng. Wrong: chỉ xét gói thêm lượt đi (không có NULL nhưng đổi tập, rớt ở public); NOT EXISTS không tương quan (0 dòng, rớt ở public); thiếu cận trên khi đếm lượt chơi (rớt ở hidden-1).}
+\end{cauhoi}
+
+
+% ################################################################ CASE STUDY
+
+% ================================================================ C5 · case · Dễ
+\begin{cauhoi}[ma=jelly-c5-starter-pack-giu-chan, dulieu=jelly, domain=customer,
+  hinhthuc=case, cap=easy, diem=20, tacgia={Agent gói 3}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.01]
+\tieude{Người mua Starter Pack có ở lại lâu hơn?}
+\boicanh[Chị Lan · Quản lý doanh thu]{Đội sản phẩm đề xuất tặng Starter Pack miễn phí cho mọi người chơi mới, vì thấy người mua gói này chơi lâu hơn hẳn. Trước khi duyệt, chị muốn xem số liệu có ủng hộ lập luận đó không.}
+\begin{erd}
+  \erdbang{users}{0,0}{user_id:PK, install_date*}
+  \erdbang{purchases}{1,0}{transaction_id:PK, user_id:FK, event_date*, product_type*}
+  \erdbang{player_daily}{0,1}{user_id:FK, activity_date*, cohort_day*, playtime_minutes*}
+  \erdnoi[kieu=1-n, tren={một người chơi, nhiều giao dịch}]{users.user_id}{purchases.user_id}
+  \erdnoi[kieu=1-n, tren={một người chơi, nhiều ngày hoạt động}]{users.user_id}{player_daily.user_id}
+\end{erd}
+\begin{nghiepvu}{Quyết định có tặng Starter Pack cho mọi người chơi mới hay không.}
+  \khainiem{nhom-cai-dat}
+  \khainiem{doanh-thu-iap}
+  \luuy{Người mua và người không mua có thể đã khác nhau trước lần mua. So hai nhóm ở ngày cài, khi phần lớn chưa mua gói, cho biết khác biệt có sẵn từ đầu hay không.}
+\end{nghiepvu}
+\begin{buoc}[ma=b1, diem=8, hinhthuc=write, bang={users, purchases, player_daily}]{Số ngày hoạt động của người mua và người không mua}
+  \begin{yeucau}
+    \item Xét người chơi cài từ 1/7/2026 tới hết 31/7/2026; dữ liệu tới hết ngày 29/8/2026.
+    \item Xếp người chơi vào nhóm \code{'mua'} nếu có ít nhất một giao dịch \code{product_type = 'starter_pack'}, còn lại \code{'khong_mua'}.
+    \item Trả về \code{nhom}, \code{so_nguoi_choi}, \code{so_ngay_hoat_dong_tb} (số dòng \code{player_daily} bình quân mỗi người, làm tròn 2 chữ số); nhóm \code{'mua'} đứng trước.
+  \end{yeucau}
+  \goiy{Xếp nhóm bằng \code{CASE WHEN u.user_id IN (SELECT ...) THEN 'mua' ELSE 'khong_mua' END}; số ngày hoạt động của mỗi người đếm bằng truy vấn con tương quan.}
+\end{buoc}
+\begin{buoc}[ma=b2, diem=6, hinhthuc=write, bang={users, purchases, player_daily}]{Hai nhóm khác nhau từ ngày cài?}
+  \begin{yeucau}
+    \item Cùng nhóm người chơi và cách xếp nhóm như bước 1.
+    \item Tính thời gian chơi bình quân trong ngày cài (\code{cohort_day = 0}) của mỗi nhóm.
+    \item Với nhóm \code{'mua'}, tính thêm số ngày bình quân từ ngày cài tới lần mua Starter Pack đầu tiên.
+    \item Trả về \code{nhom}, \code{so_nguoi_choi}, \code{phut_choi_d0_tb} (phút, làm tròn 2 chữ số), \code{ngay_mua_sau_cai_tb} (ngày, làm tròn 2 chữ số; nhóm không mua để trống); nhóm \code{'mua'} đứng trước.
+  \end{yeucau}
+  \goiy{Gom giao dịch Starter Pack về một dòng mỗi người (\code{MIN(event_date)}) trong bảng dẫn xuất trước khi nối.}
+\end{buoc}
+\begin{buoc}[ma=b3, diem=6, hinhthuc=ketluan, bang={users, purchases, player_daily}]{Kết luận}
+  \begin{luachon}
+    \phuongan{Người mua Starter Pack có nhiều ngày hoạt động hơn, nên tặng gói cho mọi người chơi mới sẽ giúp người chơi ở lại lâu hơn.}
+      {Chưa đúng. Bước 1 chỉ cho thấy hai nhóm khác nhau; bước 2 cho thấy khác biệt đã có từ ngày cài, trước khi phần lớn người mua gói.}
+    \phuongan*{Người mua đã chơi nhiều hơn ngay từ ngày cài và bình quân mua sau gần hai tuần, nên số liệu chưa đủ để nói gói làm người chơi ở lại lâu hơn.}
+      {Đúng. Bước 2 cho thấy nhóm mua chơi lâu hơn từ ngày cài và mua khá muộn. Người ở lại lâu thì có nhiều dịp mua hơn, nên số liệu chỉ cho thấy hai việc đi cùng nhau, chưa cho biết việc nào dẫn tới việc nào.}
+    \phuongan{Người mua Starter Pack chỉ là một phần nhỏ người chơi mới, nên chênh lệch số ngày hoạt động không đáng tin và có thể bỏ qua.}
+      {Chưa đúng. Nhóm mua có vài trăm người, đủ để thấy chênh lệch; vấn đề là chênh lệch đó không chứng minh quan hệ nhân quả.}
+  \end{luachon}
+\end{buoc}
+\ghichuthietke{Case Dễ: 3 bước (2 SQL + kết luận), ERD 3 bảng có chữ trên đường nối (case dùng một ERD). Bước 1 dùng IN và truy vấn con tương quan; bước 2 dùng bảng dẫn xuất và LEFT JOIN. Wrong b1: nối thẳng giao dịch Starter Pack (người mua hai lần bị đếm hai lần); không giới hạn nhóm cài tháng 7. Wrong b2: nối thẳng giao dịch. Hidden-1 bỏ 10\% người chơi nên mọi số đổi; hidden-1 còn có người cài 5/7 mua Starter Pack ngày 1/9/2026, nên bài b1 thiếu cận trên chuyển một người sang nhóm mua (432 thay vì 431) và rớt ở hidden-1. Phương án sai: quy nhân quả từ tương quan; bác bỏ chênh lệch vì cỡ mẫu.}
+\end{cauhoi}
+
+% ================================================================ C6 · case · Trung bình
+\begin{cauhoi}[ma=jelly-c6-kenh-dang-cat, dulieu=jelly, domain=marketing,
+  hinhthuc=case, cap=medium, diem=30, tacgia={Agent gói 3}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.01]
+\tieude{Có nên cắt kênh Video Network?}
+\boicanh[Anh Tuấn · Quản lý thu hút người chơi]{Quý sau ngân sách thu hút giảm, đội đề xuất cắt hẳn kênh Video Network vì người chơi từ kênh này mua ít. Trước khi chốt, anh cần so các kênh theo cả chi phí lẫn doanh thu.}
+\begin{erd}
+  \erdbang{campaign_spend}{0,0}{date, campaign_id, channel*, spend_usd*}
+  \erdbang{users}{1,0}{user_id:PK, install_date*, channel*, campaign_id}
+  \erdbang{player_daily}{2,0}{user_id:FK, cohort_day*, iap_revenue*, ad_revenue*}
+  \erdnoi[kieu=n-n]{campaign_spend.campaign_id}{users.campaign_id}
+  \erdnoi[kieu=1-n]{users.user_id}{player_daily.user_id}
+\end{erd}
+\begin{nghiepvu}{Quyết định kênh bị cắt hoặc giảm ngân sách thu hút trong quý sau.}
+  \khainiem{cpi}
+  \khainiem{roas}
+  \khainiem{nhom-cai-dat}
+  \luuy{So các kênh bằng chỉ số trên mỗi lượt cài hoặc trên mỗi đồng chi, không bằng tổng tuyệt đối. Doanh thu D0--D6 chỉ so được khi mọi người trong nhóm đã đủ 7 ngày quan sát.}
+\end{nghiepvu}
+\begin{buoc}[ma=b1, diem=8, hinhthuc=write, bang={campaign_spend, users}]{Chi phí, lượt cài và CPI theo kênh tháng 7}
+  \begin{yeucau}
+    \item Xét chi phí quảng cáo và người chơi cài từ 1/7/2026 tới hết 31/7/2026; chỉ các kênh có chi phí.
+    \item Trả về \code{kenh}, \code{chi_phi_usd}, \code{so_luot_cai}, \code{cpi_usd} (USD, làm tròn 2 chữ số); sắp \code{cpi_usd} giảm dần.
+  \end{yeucau}
+  \goiy{Gom chi phí theo kênh và lượt cài theo kênh trong hai bảng dẫn xuất rồi nối theo \code{channel}.}
+\end{buoc}
+\begin{buoc}[ma=b2, diem=8, hinhthuc=write, bang={users, player_daily}]{Doanh thu 7 ngày đầu trên mỗi lượt cài}
+  \begin{yeucau}
+    \item Xét người chơi cài trong tháng 7/2026 ở mọi kênh, kể cả kênh tự nhiên (\code{'Organic'}).
+    \item Doanh thu 7 ngày đầu của một người chơi là tổng \code{iap_revenue + ad_revenue} ở các ngày có \code{cohort_day} từ 0 tới 6. Mẫu số là số lượt cài của kênh, gồm cả người không có doanh thu.
+    \item Trả về \code{kenh}, \code{so_luot_cai}, \code{doanh_thu_d7_moi_luot_cai_usd} (USD, làm tròn 4 chữ số); sắp \code{doanh_thu_d7_moi_luot_cai_usd} giảm dần.
+  \end{yeucau}
+\end{buoc}
+\begin{buoc}[ma=b3, diem=8, hinhthuc=write, bang={campaign_spend, users, player_daily}]{ROAS 7 ngày đầu theo kênh}
+  \begin{yeucau}
+    \item Ghép kết quả của hai bước trước cho các kênh có chi phí. ROAS D7 (doanh thu 7 ngày đầu trên chi phí quảng cáo) bằng tổng doanh thu 7 ngày đầu của người cài tháng 7 chia chi phí tháng 7.
+    \item Trả về \code{kenh}, \code{chi_phi_usd}, \code{doanh_thu_d7_usd} (USD, làm tròn 2 chữ số), \code{roas_d7_pct} (phần trăm, làm tròn 2 chữ số); sắp \code{roas_d7_pct} giảm dần.
+  \end{yeucau}
+\end{buoc}
+\begin{buoc}[ma=b4, diem=6, hinhthuc=ketluan, bang={campaign_spend, users, player_daily}]{Kết luận}
+  \begin{luachon}
+    \phuongan{Nên cắt Video Network trước, vì doanh thu 7 ngày đầu trên mỗi lượt cài của kênh này thấp nhất trong mọi kênh.}
+      {Chưa đúng. Bước 2 chỉ xét doanh thu; bước 1 cho thấy lượt cài của Video Network rẻ hơn Social Ads và Creator Campaign, nên doanh thu trên mỗi đồng chi của kênh này không phải thấp nhất.}
+    \phuongan*{Chưa nên cắt Video Network trước; ROAS D7 của kênh này gần bằng Social Ads và cao hơn Creator Campaign, nên Creator Campaign cần xem lại trước.}
+      {Đúng. Khi ghép chi phí với doanh thu ở bước 3, Creator Campaign có CPI cao nhất và ROAS D7 thấp nhất, còn Video Network gần bằng Social Ads.}
+    \phuongan{Nên cắt Social Ads trước, vì kênh này tốn tổng chi phí lớn nhất trong tháng 7 mà doanh thu không cao hơn tương ứng.}
+      {Chưa đúng. Tổng chi lớn do quy mô; bước 3 cho thấy ROAS D7 của Social Ads không thấp hơn Video Network và cao hơn Creator Campaign.}
+  \end{luachon}
+\end{buoc}
+\ghichuthietke{Case Trung bình: 4 bước, 3 bảng chỉ ký hiệu. Nhóm cài tháng 7 đều đủ 7 ngày quan sát (cài muộn nhất 31/7, D6 là 6/8). Wrong b1: nối thẳng người chơi với dòng chi phí (nhân dòng); wrong b2: mẫu số là người có doanh thu trong D0--D6 thay cho số lượt cài (sửa theo review C cho đúng tên lỗi); wrong b3: lấy doanh thu cả kỳ thay cho D0--D6. Phương án sai: chỉ nhìn doanh thu, không xét chi phí; so bằng tổng chi tuyệt đối.}
+\end{cauhoi}
+
+\end{document}

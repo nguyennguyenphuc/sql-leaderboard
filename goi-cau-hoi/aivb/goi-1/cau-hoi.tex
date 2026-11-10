@@ -1,0 +1,660 @@
+% cau-hoi.tex: gói 1 của bộ AIV Bank (dulieu=aivb), 20 câu. SQL nằm trong solution.sql, nối với câu bằng mã câu.
+% Biên dịch trên Overleaf: Menu > Compiler > XeLaTeX. Hướng dẫn: HUONG_DAN.md.
+% Phạm vi: Module 1 Retrieval (9 câu), Module 2 NULL & Expressions (9 câu), 2 case study cấp Cơ bản.
+% Bản đồ: goi-cau-hoi/aivb/BAN-DO-100-CAU.md (gói 1). Bộ chuẩn chữ: style/STYLE-aivb.md.
+\documentclass[11pt,a4paper]{article}
+\usepackage{aio-sql-cauhoi}
+% Hai dòng vá XeLaTeX (cong-cu/va-xelatex.tex), không sửa .sty:
+% 1) font chữ đơn cách có đủ chữ Việt; 2) \erdkhoa trong \begin{erd} vẽ thành node để không mất chữ.
+\setmonofont{NotoSansMono}[Extension=.ttf, UprightFont=*-Regular, BoldFont=*-Bold, Scale=0.86]
+\renewcommand{\erdkhoa}[1]{\node[font=\small, color=cqMuted, anchor=north west, align=left, text width=14cm] at ([yshift=-1mm]current bounding box.south west) {\textbf{Khoá:} #1};}
+
+% ================================================================ KHAI BÁO DÙNG CHUNG
+% Câu hỏi chỉ được dùng các mã khai báo ở đây.
+% ---------------------------------------------------------------- bộ dữ liệu
+\khaibaodulieu{aivb}{AIV Bank · ngân hàng thương mại}
+  {Ngân hàng thương mại giả lập, 12 chi nhánh ở ba miền: khách hàng cá nhân và tổ chức, tài khoản thanh toán, tiền gửi có kỳ hạn, hồ sơ vay, khoản vay và lịch trả nợ. Lệnh thanh toán, bút toán và lãi tính dồn chỉ có năm 2026. Mọi số tiền tính bằng đồng.}
+
+% ---------------------------------------------------------------- domain (6 khoá chuẩn, ánh xạ theo STYLE-aivb.md G.4)
+\khaibaodomain{sales}{Bán hàng}{Sản phẩm và phiên bản sản phẩm, huy động tiền gửi, hồ sơ vay, tỷ lệ duyệt, số tiền được duyệt, giải ngân.}
+\khaibaodomain{marketing}{Marketing}{Kênh giao dịch và phân khúc khách hàng mục tiêu; bộ dữ liệu không có bảng chiến dịch.}
+\khaibaodomain{customer}{Khách hàng}{Chủ thể, khách hàng, phân khúc, nhận biết khách hàng (KYC), đặc điểm cá nhân và tổ chức, chủ tài khoản.}
+\khaibaodomain{operations}{Vận hành}{Lệnh thanh toán, bút toán, tài khoản thanh toán, chi nhánh, lịch trả nợ.}
+\khaibaodomain{finance}{Tài chính}{Dư nợ, lãi suất, số dư tài khoản, tiền gửi có kỳ hạn, lãi dự thu và lãi dự trả.}
+\khaibaodomain{after_sales}{Hậu mãi}{Nợ quá hạn, khoản vay có vấn đề, giao dịch bị đảo hoặc bị từ chối, KYC không đạt.}
+
+% ---------------------------------------------------------------- khái niệm (từ STYLE-aivb.md mục E, chỉ các khái niệm gói này dùng; 3 khái niệm bổ sung đánh dấu "bổ sung")
+% \khaibaokhainiem{ma}{Tên}{Định nghĩa}{Công thức}{Trong bộ dữ liệu}
+
+% --- Quy ước chung
+\khaibaokhainiem{tien-va-lai-suat}{Quy ước tiền và lãi suất}
+  {Số tiền trong bộ dữ liệu tính bằng đồng Việt Nam. Lãi suất là lãi suất danh nghĩa tính theo năm.}
+  {lãi suất (\%/năm) = interest\_rate × 100}
+  {mọi cột tiền là số nguyên đồng (\code{BIGINT}); \code{interest_rate}, \code{dti} lưu dạng tỷ lệ, ví dụ \code{0.0723} là 7,23\%/năm.}
+\khaibaokhainiem{ngay-tham-chieu}{Ngày tham chiếu và cửa sổ dữ liệu}
+  {Ngày tham chiếu là ngày chốt số liệu dùng để tính số ngày quá hạn, tuổi, thâm niên và các số dư tại một thời điểm.}
+  {}
+  {lệnh thanh toán, bút toán và lãi tính dồn chỉ có năm 2026; lịch trả nợ có cả kỳ đến hạn sau năm 2026. Mỗi câu ghi ngày tham chiếu bằng giá trị cụ thể, không dùng \code{CURDATE()}.}
+
+% --- Khách hàng
+\khaibaokhainiem{chu-the-va-khach-hang}{Chủ thể và khách hàng}
+  {Chủ thể là cá nhân hoặc tổ chức có quan hệ với ngân hàng. Khách hàng là chủ thể đã thiết lập quan hệ khách hàng với ngân hàng.}
+  {}
+  {\code{core_party} (\code{party_type} = \code{'PERSON'} hoặc \code{'ORGANIZATION'}), chi tiết ở \code{core_person}, \code{core_organization}; \code{core_customer} nối qua \code{party_id}. Tên trong \code{legal_name} có thể trùng giữa các chủ thể khác nhau, nên đếm theo \code{party_id}.}
+\khaibaokhainiem{phan-khuc-khach-hang}{Phân khúc khách hàng}
+  {Phân khúc khách hàng là nhóm khách hàng có đặc điểm và nhu cầu tương tự, được ngân hàng phục vụ bằng chính sách sản phẩm riêng.}
+  {}
+  {phân khúc hiện tại ở \code{core_customer.segment_code}, tên ở \code{ref_segment.segment_name}; phân khúc theo thời gian ở \code{hist_customer_segment}.}
+\khaibaokhainiem{kyc}{Nhận biết khách hàng (KYC)}
+  {Nhận biết khách hàng là quy trình ngân hàng thu thập và xác minh thông tin của khách hàng trước và trong khi thiết lập quan hệ.}
+  {}
+  {kết quả hiện tại ở \code{core_customer.kyc_status} (\code{'PASS'}, \code{'FAIL'}); lịch sử ở \code{core_customer_kyc_event}.}
+\khaibaokhainiem{chu-tai-khoan}{Chủ tài khoản và đồng chủ tài khoản}
+  {Chủ tài khoản là chủ thể đứng tên tài khoản thanh toán. Tài khoản thanh toán chung có nhiều đồng chủ tài khoản; ngoài ra một tài khoản có thể có người được uỷ quyền ký hoặc người chỉ được xem.}
+  {}
+  {(bổ sung) \code{core_account_party}: \code{role_code} = \code{'PRIMARY_OWNER'} (chủ tài khoản), \code{'JOINT_OWNER'} (đồng chủ tài khoản), \code{'AUTHORIZED_SIGNER'}, \code{'VIEW_ONLY'}. Quan hệ có hiệu lực từ \code{valid_from}; \code{valid_to} là ngày quan hệ hết hiệu lực, để trống là quan hệ chưa kết thúc.}
+
+% --- Chi nhánh, sản phẩm, tài khoản
+\khaibaokhainiem{chi-nhanh}{Chi nhánh}
+  {Chi nhánh là đơn vị trực thuộc ngân hàng, quản lý khách hàng và hợp đồng trên một địa bàn.}
+  {}
+  {(bổ sung) \code{ref_branch}: mã chi nhánh \code{ref_branch_id} (\code{'CN01'} tới \code{'CN12'}), mã chi nhánh dạng \code{'AIVB_CN01'} (\code{branch_code}), tên, thành phố và miền (\code{region}: \code{'MIEN_BAC'}, \code{'MIEN_TRUNG'}, \code{'MIEN_NAM'}). Khách hàng và hợp đồng ghi chi nhánh quản lý ở \code{home_branch_id}, theo \code{ref_branch_id}.}
+\khaibaokhainiem{phien-ban-san-pham}{Phiên bản sản phẩm}
+  {Phiên bản sản phẩm là bộ điều kiện của một sản phẩm (quy tắc lãi suất, phí, đối tượng khách hàng) áp dụng trong một khoảng thời gian.}
+  {}
+  {(bổ sung) \code{ref_product_version}: thuộc sản phẩm \code{product_id}, hiệu lực từ \code{effective_from} tới \code{effective_to}; \code{effective_to} để trống là phiên bản đang áp dụng. Hợp đồng gắn với phiên bản, không gắn thẳng với sản phẩm.}
+\khaibaokhainiem{casa}{Tiền gửi không kỳ hạn (CASA)}
+  {Tiền gửi không kỳ hạn là tiền khách hàng gửi trên tài khoản thanh toán, rút hoặc chuyển được bất cứ lúc nào.}
+  {}
+  {tài khoản ở \code{core_account} (chỉ gồm tài khoản thanh toán); \code{close_date} để trống là tài khoản chưa đóng; số dư ở \code{core_account_balance.current_balance}.}
+
+% --- Huy động vốn
+\khaibaokhainiem{tien-gui-co-ky-han}{Tiền gửi có kỳ hạn}
+  {Tiền gửi có kỳ hạn là khoản tiền của khách hàng gửi tại tổ chức tín dụng trong một thời hạn nhất định, với nguyên tắc hoàn trả đầy đủ tiền gốc và lãi.}
+  {}
+  {\code{core_deposit_contract}: \code{principal} (số tiền gửi), \code{interest_rate}, \code{term_months} (kỳ hạn), \code{maturity_date} (ngày đến hạn), \code{deposit_status} (\code{'ACTIVE'} là đang còn hiệu lực). Sản phẩm qua \code{core_contract.product_version_id}.}
+
+% --- Thanh toán
+\khaibaokhainiem{ghi-no-ghi-co}{Ghi Nợ, ghi Có}
+  {Ghi Có là bút toán làm tăng số dư tài khoản tiền gửi của khách hàng; ghi Nợ là bút toán làm giảm số dư đó.}
+  {}
+  {\code{core_account_posting.debit_credit} = \code{'CREDIT'} hoặc \code{'DEBIT'}; \code{amount} luôn là số dương. ``Nợ'' ở đây là phía của bút toán, không phải khoản vay.}
+\khaibaokhainiem{giao-dich-bi-dao}{Giao dịch bị đảo, bị từ chối}
+  {Giao dịch bị đảo là giao dịch đã được ghi nhận rồi bị huỷ bỏ bằng bút toán ngược chiều. Giao dịch bị từ chối là lệnh không được hệ thống chấp nhận thực hiện.}
+  {tỷ lệ bị từ chối = số lệnh bị từ chối / tổng số lệnh}
+  {\code{core_payment_order.payment_status}: \code{'COMPLETED'}, \code{'REVERSED'}, \code{'REJECTED'}. Doanh số giao dịch chỉ tính lệnh \code{'COMPLETED'}.}
+\khaibaokhainiem{kenh-giao-dich}{Kênh giao dịch}
+  {Kênh giao dịch là phương tiện khách hàng dùng để gửi lệnh tới ngân hàng.}
+  {tỷ trọng kênh = số lệnh (hoặc số tiền) qua kênh / tổng của mọi kênh}
+  {\code{core_payment_order.channel_code}: \code{'MOBILE'} (ứng dụng di động), \code{'WEB'} (internet banking), \code{'BRANCH'} (tại quầy), \code{'ATM'}, \code{'POS'}, \code{'QR'}, \code{'API'} (kết nối API). Không có bảng chiến dịch tiếp thị.}
+
+% --- Cấp tín dụng
+\khaibaokhainiem{ho-so-vay-va-ty-le-duyet}{Hồ sơ vay và tỷ lệ duyệt}
+  {Tỷ lệ duyệt là phần hồ sơ vay được ngân hàng chấp thuận trong tổng số hồ sơ đã có quyết định.}
+  {số hồ sơ được duyệt / tổng số hồ sơ}
+  {\code{core_loan_application.application_status} (\code{'APPROVED'}, \code{'REJECTED'}); quyết định cấp tín dụng và số tiền được duyệt ở \code{core_credit_decision} (\code{approved_amount}).}
+\khaibaokhainiem{hang-diem-tin-dung}{Hạng điểm tín dụng}
+  {Hạng điểm tín dụng là nhóm rủi ro của người vay do ngân hàng xếp từ kết quả chấm điểm tín dụng.}
+  {}
+  {\code{core_loan_application.score_band} từ \code{'A'} tới \code{'D'}. Bộ dữ liệu không có điểm số chi tiết.}
+\khaibaokhainiem{dti}{Tỷ lệ nợ trên thu nhập (DTI)}
+  {Tỷ lệ nợ trên thu nhập phản ánh phần thu nhập của người vay dùng để trả các khoản nợ.}
+  {tổng nghĩa vụ trả nợ định kỳ / thu nhập định kỳ}
+  {có sẵn ở \code{core_loan_application.dti}, lưu dạng tỷ lệ từ 0 tới 1 (\code{0.35} là 35\%).}
+\khaibaokhainiem{du-no}{Dư nợ}
+  {Dư nợ là phần nợ gốc khách hàng chưa hoàn trả của khoản vay tại một ngày.}
+  {dư nợ = số tiền đã giải ngân - gốc đã thu}
+  {có sẵn ở \code{core_loan_contract.outstanding}, là số liệu tại ngày chốt dữ liệu; số tiền vay ban đầu ở \code{principal}.}
+\khaibaokhainiem{trang-thai-khoan-vay}{Trạng thái khoản vay}
+  {Trạng thái khoản vay cho biết khoản vay đang được trả bình thường, đang quá hạn, đã cơ cấu lại thời hạn trả nợ, đã xử lý rủi ro hay đã tất toán.}
+  {}
+  {\code{core_loan_contract.loan_status}: \code{'ACTIVE'}, \code{'DELINQUENT'} (đang quá hạn), \code{'RESTRUCTURED'} (đã cơ cấu lại), \code{'WRITTEN_OFF'} (đã xử lý rủi ro), \code{'SETTLED'} (đã tất toán). \code{'DELINQUENT'} không đồng nghĩa với nợ xấu.}
+\khaibaokhainiem{lich-tra-no}{Lịch trả nợ}
+  {Lịch trả nợ là các kỳ trả nợ của khoản vay, mỗi kỳ có ngày đến hạn, số gốc và số lãi phải trả.}
+  {}
+  {\code{core_loan_schedule}: \code{installment_no}, \code{due_date}, \code{principal_due}, \code{interest_due}, \code{principal_paid}, \code{interest_paid}, \code{schedule_status} (\code{'PAID'}, \code{'DUE'}, \code{'OVERDUE'}, \code{'CANCELLED'}).}
+\khaibaokhainiem{no-qua-han}{Nợ quá hạn}
+  {Khoản nợ quá hạn là khoản nợ mà khách hàng không trả được đúng hạn một phần hoặc toàn bộ nợ gốc hoặc lãi.}
+  {}
+  {kỳ quá hạn là dòng \code{core_loan_schedule} có \code{schedule_status = 'OVERDUE'}. Kỳ \code{'CANCELLED'} đã huỷ, kỳ \code{'DUE'} chưa tới hạn hoặc chưa xử lý, không phải kỳ quá hạn.}
+
+\begin{document}
+{\LARGE\bfseries Gói 1 · AIV Bank · Lấy dữ liệu, NULL và biểu thức\par}
+\medskip
+{\color{cqMuted}Bộ dữ liệu \texttt{aivb} · Module 1 Retrieval (9 câu) · Module 2 NULL \& Expressions (9 câu) · 2 case study Cơ bản · chuẩn \texttt{aio-sql-cauhoi} v0.4\par}
+\bigskip
+Khung xanh nét đứt (\emph{Thiết kế ERD}) là ghi chú cho người duyệt. Các khung Truy vấn khởi đầu, Lời giải và Bài sai lấy từ
+\code{solution.sql}; học viên chỉ thấy truy vấn khởi đầu.
+
+\tableofcontents
+
+% ################################################################ MODULE 1 · RETRIEVAL
+
+% ================================================================ R1 · Viết · Cơ bản · A1 · operations
+\begin{cauhoi}[ma=aivb-r1-chi-nhanh-mien-nam, dulieu=aivb, domain=operations,
+  hinhthuc=write, cap=basic, dang=A1, kynang={SELECT, WHERE, ORDER BY}, bay={sai-gia-tri-ma, nham-cot-loc},
+  tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, socot=vitri]
+\tieude{Chi nhánh nào thuộc miền Nam?}
+\boicanh[Anh Phong · Trưởng phòng vận hành thanh toán]{Quý sau anh đi kiểm tra quy trình thanh toán ở các chi nhánh miền Nam. Em gửi anh danh sách chi nhánh, kèm tên và thành phố đặt chi nhánh.}
+\begin{yeucau}
+  \item Xét các chi nhánh thuộc miền Nam theo cột \code{region}.
+  \item Trả về \code{branch_code}, \code{branch_name}, \code{city}.
+  \item Sắp \code{branch_code} tăng dần.
+\end{yeucau}
+\begin{erd}
+  \erdbang{ref_branch}{0,0}{ref_branch_id:PK, branch_code*='AIVB_CN02', branch_name*='Chi nhánh Hoàn Kiếm', region*='MIEN_BAC', city*='Hà Nội', status='ACTIVE'}
+\end{erd}
+\begin{nghiepvu}{Lập lịch đi kiểm tra quy trình thanh toán theo từng miền.}
+  \khainiem{chi-nhanh}
+  \luuy{Cột \code{region} ghi miền bằng mã không dấu, viết hoa, nối bằng dấu gạch dưới, giống giá trị mẫu trong ERD.}
+\end{nghiepvu}
+\goiy{Xem giá trị mẫu của cột \code{region} trong ERD. Miền Nam được ghi theo cùng kiểu mã đó.}
+\goiy{Lọc \code{region = 'MIEN_NAM'}.}
+\ghichuthietke{Cơ bản: 1 bảng, giá trị mẫu là miền Bắc để học viên tự suy ra mã miền Nam. Bẫy ở public: viết chữ có dấu ``Miền Nam'' ra 0 dòng; lọc theo thành phố TP. Hồ Chí Minh bỏ sót chi nhánh Biên Hòa và Cần Thơ. hidden-1 thêm chi nhánh CN13 (Quận 3, miền Nam), 7 dòng thay vì 6, nên chép kết quả Chạy thử sẽ rớt.}
+\end{cauhoi}
+
+% ================================================================ R2 · Viết · Cơ bản · A1 · sales
+\begin{cauhoi}[ma=aivb-r2-phien-ban-tien-gui-ca-nhan, dulieu=aivb, domain=sales,
+  hinhthuc=write, cap=basic, dang=A1, kynang={WHERE, ORDER BY}, bay={like-qua-rong, sap-sai-cot},
+  tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, socot=vitri]
+\tieude{Tiền gửi có kỳ hạn cá nhân có những phiên bản nào?}
+\boicanh[Chị Thu · Trưởng phòng phát triển sản phẩm]{Chị đang soạn đề xuất điều chỉnh sản phẩm tiền gửi có kỳ hạn cho khách cá nhân. Em liệt kê giúp chị các phiên bản đã áp dụng và thời gian hiệu lực của từng phiên bản.}
+\begin{yeucau}
+  \item Xét các phiên bản của sản phẩm tiền gửi có kỳ hạn cá nhân (\code{product_id = 'TD_IND'}).
+  \item Trả về \code{product_version_id}, \code{effective_from}, \code{effective_to}, \code{product_status}.
+  \item Sắp \code{effective_from} tăng dần.
+\end{yeucau}
+\begin{erd}
+  \erdbang{ref_product_version}{0,0}{product_version_id:PK*, product_id:FK*='TD_IND', effective_from*=2024-01-01, effective_to*=2024-12-31, product_status*='ACTIVE', eligible_party_type}
+\end{erd}
+\begin{nghiepvu}{Chọn mốc thời gian và điều kiện cần đổi khi ra phiên bản sản phẩm mới.}
+  \khainiem{phien-ban-san-pham}
+  \khainiem{tien-gui-co-ky-han}
+  \luuy{Ngân hàng có nhiều sản phẩm tiền gửi có kỳ hạn (cá nhân, doanh nghiệp, sản phẩm đã dừng bán); các mã này đều bắt đầu bằng \code{TD}. Phiên bản đang áp dụng có \code{effective_to} để trống.}
+\end{nghiepvu}
+\goiy{Lọc đúng một mã sản phẩm. Điều kiện ``bắt đầu bằng TD'' lấy thừa cả sản phẩm của doanh nghiệp và sản phẩm đã dừng bán.}
+\goiy{Sắp theo ngày bắt đầu hiệu lực. Nếu sắp theo \code{effective_to}, phiên bản đang áp dụng (ô trống) sẽ đứng đầu.}
+\ghichuthietke{Cơ bản: 1 bảng, giá trị mẫu cho thấy dạng mã sản phẩm và mã phiên bản. Bẫy ở public: \code{LIKE 'TD\%'} lấy cả \code{TD_BIZ}, \code{TD_LEG}; sắp theo \code{effective_to} đưa phiên bản 2026 (NULL) lên đầu. Sắp theo \code{product_version_id} trùng thứ tự đúng nên không dùng làm bài sai. hidden-1 thêm phiên bản \code{TD_IND_V2026H2} từ 1/7/2026 và cho \code{TD_IND_V2026} kết thúc 30/6/2026 (6 dòng thay vì 5), nên chép kết quả Chạy thử sẽ rớt.}
+\end{cauhoi}
+
+% ================================================================ R3 · Viết · Cơ bản · A1 · after_sales
+\begin{cauhoi}[ma=aivb-r3-kyc-khong-dat-cn01, dulieu=aivb, domain=after_sales,
+  hinhthuc=write, cap=basic, dang=A1, kynang={WHERE, AND, ORDER BY}, bay={sai-gia-tri-ma, nham-ma-chi-nhanh},
+  tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, socot=vitri]
+\tieude{Khách hàng nào của chi nhánh CN01 không đạt KYC?}
+\boicanh[Chị Mai · Chuyên viên tuân thủ (KYC)]{Cuối tuần này chị gọi lại cho các khách hàng của Hội sở chính có kết quả nhận biết khách hàng (KYC) không đạt. Em gửi chị danh sách khách kèm phân khúc và trạng thái quan hệ.}
+\begin{yeucau}
+  \item Xét khách hàng do chi nhánh CN01 (Hội sở chính) quản lý, theo cột \code{home_branch_id}.
+  \item Chỉ lấy khách có kết quả KYC không đạt (\code{kyc_status = 'FAIL'}).
+  \item Trả về \code{customer_id}, \code{segment_code}, \code{customer_status}.
+  \item Sắp \code{customer_id} tăng dần.
+\end{yeucau}
+\begin{erd}
+  \erdbang{core_customer}{0,0}{customer_id:PK, party_id:FK, segment_code*='MASS', customer_status*='ACTIVE', home_branch_id:FK*='CN05', kyc_status*='PASS'}
+\end{erd}
+\begin{nghiepvu}{Lập danh sách khách cần bổ sung hồ sơ KYC trước kỳ kiểm tra tuân thủ.}
+  \khainiem{kyc}
+  \khainiem{chi-nhanh}
+  \luuy{Chi nhánh quản lý ghi theo mã \code{ref_branch_id} như giá trị mẫu, không theo mã chi nhánh dạng \code{'AIVB_CN01'} (\code{branch_code}). Kết quả KYC chỉ có hai giá trị, viết bằng tiếng Anh in hoa.}
+\end{nghiepvu}
+\goiy{Hai điều kiện phải cùng đúng. So giá trị lọc của cột chi nhánh với giá trị mẫu trong ERD.}
+\ghichuthietke{Cơ bản: 1 bảng, giá trị mẫu cho thấy dạng mã chi nhánh và dạng kết quả KYC. Bẫy ở public: \code{home_branch_id = 'AIVB_CN01'} (lấy nhầm dạng \code{branch_code}) ra 0 dòng; \code{kyc_status = 'FAILED'} ra 0 dòng. hidden-1 thêm khách giả \code{SYN_CUS_H000003} ở CN01 không đạt KYC (37 dòng thay vì 36), nên chép kết quả Chạy thử sẽ rớt.}
+\end{cauhoi}
+
+% ================================================================ R4 · Viết · Dễ · A1 · finance
+\begin{cauhoi}[ma=aivb-r4-top-5-khoan-vay-du-no, dulieu=aivb, domain=finance,
+  hinhthuc=write, cap=easy, dang=A1, kynang={WHERE, ORDER BY, LIMIT}, bay={thieu-quy-tac-hoa, chep-nguong},
+  tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, socot=vitri]
+\tieude{Năm khoản vay nào đang có dư nợ lớn nhất?}
+\boicanh[Anh Tuấn · Trưởng phòng quản lý rủi ro tín dụng]{Hội đồng rủi ro tháng này rà các khoản vay lớn đang trả nợ bình thường. Em gửi anh năm khoản vay có dư nợ lớn nhất, kèm lãi suất cho vay.}
+\begin{yeucau}
+  \item Xét các khoản vay đang trả nợ bình thường (\code{loan_status = 'ACTIVE'}).
+  \item Trả về \code{loan_id}, \code{outstanding} (dư nợ, đồng), \code{interest_rate} (lãi suất cho vay, dạng tỷ lệ theo năm, không đổi sang phần trăm).
+  \item Sắp \code{outstanding} giảm dần; dư nợ bằng nhau thì \code{loan_id} nhỏ hơn đứng trước.
+  \item Trả về đúng 5 dòng đầu.
+\end{yeucau}
+\begin{erd}
+  \erdbang{core_loan_contract}{0,0}{loan_id:PK, contract_id:FK, principal, outstanding*, interest_rate*, loan_status*}
+  \erdbang{core_contract}{2,0}{contract_id:PK, home_branch_id, contract_status}
+  \erdnoi[kieu=1-1, tren={nối theo \code{contract_id}}]{core_loan_contract.contract_id}{core_contract.contract_id}
+\end{erd}
+\begin{nghiepvu}{Chọn các khoản vay lớn cần đưa vào danh sách theo dõi của Hội đồng rủi ro.}
+  \khainiem{du-no}
+  \khainiem{trang-thai-khoan-vay}
+  \khainiem{tien-va-lai-suat}
+  \luuy{Dư nợ là số liệu tại ngày chốt dữ liệu. Hội đồng rủi ro cần một danh sách cố định qua các kỳ họp, kể cả khi hai khoản vay có dư nợ bằng nhau.}
+\end{nghiepvu}
+\goiy{Danh sách phải ra cùng kết quả trên mọi lần chạy, kể cả khi hai khoản vay có dư nợ bằng nhau ở vị trí thứ năm.}
+\goiy{Sắp theo hai cột: \code{outstanding} giảm dần rồi \code{loan_id} tăng dần, sau đó lấy \code{LIMIT 5}.}
+\ghichuthietke{Dễ: 2 bảng, chữ trên đường nối; câu chỉ cần \code{core_loan_contract}. Bẫy H(c): ở hidden-1 ba khoản hạng 5 tới 7 bằng dư nợ. Bài sai: khoá phụ \code{loan_id} giảm dần lấy nhầm khoản hạng 6 (rớt hidden-1); lọc bằng ngưỡng dư nợ chép từ lần Chạy thử public ra 7 dòng ở hidden-1; quên \code{DESC} ra 5 khoản nhỏ nhất (rớt public). hidden-1 thêm khoản vay \code{SYN_LON_0000000} có cùng dư nợ hạng 5 (ba khoản hoà), quy tắc hoà đưa khoản này vào hạng 5 thay \code{SYN_LON_0000675}, nên chép 5 dòng Chạy thử rớt; hai bài sai khoá phụ giảm dần và chép ngưỡng qua public nhưng rớt ở hidden-1. \code{core_contract} trên ERD chỉ để đủ 2 bảng cấp Dễ, chờ giảng viên chốt (DA-SUA.md).}
+\end{cauhoi}
+
+% ================================================================ R5 · Viết · Dễ · A1 · marketing
+\begin{cauhoi}[ma=aivb-r5-lenh-web-bi-tu-choi, dulieu=aivb, domain=marketing,
+  hinhthuc=write, cap=easy, dang=A1, kynang={WHERE, AND, ORDER BY}, bay={nham-trang-thai, quen-desc},
+  tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, socot=vitri]
+\tieude{Lệnh nào qua internet banking bị từ chối trong tháng 12/2026?}
+\boicanh[Chị Hạnh · Trưởng phòng phát triển sản phẩm]{Cuối năm có khách phản ánh lệnh chuyển tiền trên internet banking không thực hiện được. Chị cần danh sách các lệnh bị từ chối trong tháng 12 để làm việc với nhóm sản phẩm số.}
+\begin{yeucau}
+  \item Xét lệnh thanh toán qua kênh internet banking (\code{channel_code = 'WEB'}) bị từ chối (\code{payment_status = 'REJECTED'}).
+  \item Chỉ lấy lệnh có ngày giao dịch (\code{transaction_date}) từ ngày 01/12/2026 tới hết ngày 31/12/2026.
+  \item Trả về \code{payment_order_id}, \code{transaction_type}, \code{amount} (đồng).
+  \item Sắp \code{amount} giảm dần; bằng nhau thì \code{payment_order_id} nhỏ hơn đứng trước.
+\end{yeucau}
+\begin{erd}
+  \erdbang{core_payment_order}{0,0}{payment_order_id:PK, transaction_type*, channel_code*, transaction_date*, amount*, payment_status*}
+  \erdbang{core_account_posting}{2,0}{posting_id:PK, payment_order_id:FK, account_id:FK, debit_credit, amount}
+  \erdnoi[kieu=1-n, tren={nối theo \code{payment_order_id}}]{core_payment_order.payment_order_id}{core_account_posting.payment_order_id}
+\end{erd}
+\begin{nghiepvu}{Chọn các lỗi cần ưu tiên xử lý trên kênh internet banking.}
+  \khainiem{giao-dich-bi-dao}
+  \khainiem{kenh-giao-dich}
+  \luuy{Lệnh bị từ chối không được thực hiện; lệnh bị đảo đã thực hiện rồi bị huỷ bằng bút toán ngược chiều.}
+\end{nghiepvu}
+\goiy{Khách phản ánh lệnh không thực hiện được, nên chỉ xét một trong hai trạng thái lỗi. Đối chiếu tên trạng thái trong tab Nghiệp vụ trước khi lọc.}
+\goiy{Lọc ngày bằng hai cận: \code{transaction_date >= '2026-12-01'} và \code{transaction_date < '2027-01-01'}.}
+\ghichuthietke{Dễ: 2 bảng, chữ trên đường nối; câu chỉ cần \code{core_payment_order}. Bẫy ở public: nhầm \code{'REVERSED'} hoặc lấy cả hai trạng thái lỗi; quên \code{DESC}. Hidden-1 bỏ 10\% lệnh nên số dòng khác public. Thiếu cận trên không rớt ở hidden-1 vì lệnh thêm ngày 2027-01-01 là lệnh MOBILE thành công, nên không dùng làm bài sai; cận trên vẫn ghi trong đề để học viên quen.}
+\end{cauhoi}
+
+% ================================================================ R6 · Viết · Dễ · A1 · sales
+\begin{cauhoi}[ma=aivb-r6-ho-so-vay-nha-hang-a-2025, dulieu=aivb, domain=sales,
+  hinhthuc=write, cap=easy, dang=A1, kynang={WHERE, AND, ORDER BY}, bay={thieu-can-tren, thieu-dieu-kien},
+  tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, socot=vitri]
+\tieude{Hồ sơ vay mua nhà hạng A nộp năm 2025 nào được duyệt?}
+\boicanh[Anh Khánh · Chuyên viên thẩm định tín dụng]{Anh đang rà lại các hồ sơ vay mua nhà nộp năm ngoái của người vay hạng điểm A đã được duyệt. Em gửi anh danh sách kèm ngày nộp hồ sơ và số tiền đề nghị vay.}
+\begin{yeucau}
+  \item Xét hồ sơ vay mua nhà (\code{product_id = 'MORT'}) có hạng điểm tín dụng A (\code{score_band = 'A'}) và được duyệt (\code{application_status = 'APPROVED'}).
+  \item Chỉ lấy hồ sơ có ngày nộp (\code{application_date}) trong năm 2025, không xét ngày ra quyết định.
+  \item Trả về \code{application_id}, \code{application_date}, \code{requested_amount} (đồng).
+  \item Sắp \code{application_date} tăng dần; bằng nhau thì \code{application_id} nhỏ hơn đứng trước.
+\end{yeucau}
+\begin{erd}
+  \erdbang{core_loan_application}{0,0}{application_id:PK, party_id:FK, product_id:FK*, application_date*, requested_amount*, score_band*, application_status*}
+  \erdbang{ref_product}{2,0}{product_id:PK, product_family, product_name}
+  \erdnoi[kieu=n-1, tren={nối theo \code{product_id}}]{core_loan_application.product_id}{ref_product.product_id}
+\end{erd}
+\begin{nghiepvu}{Đánh giá lại tiêu chí duyệt hồ sơ vay mua nhà trước khi ban hành chính sách năm sau.}
+  \khainiem{ho-so-vay-va-ty-le-duyet}
+  \khainiem{hang-diem-tin-dung}
+  \luuy{Dữ liệu hồ sơ vay có tới cuối năm 2026, nên điều kiện ``năm 2025'' cần cả ngày bắt đầu và ngày kết thúc.}
+\end{nghiepvu}
+\goiy{Có bốn điều kiện cùng đúng: sản phẩm, hạng điểm, trạng thái và khoảng ngày nộp.}
+\goiy{Lọc \code{application_date >= '2025-01-01'} và \code{application_date < '2026-01-01'}.}
+\ghichuthietke{Dễ: 2 bảng, chữ trên đường nối; câu chỉ cần \code{core_loan_application}, mã sản phẩm cho sẵn. Bẫy ở public: thiếu cận trên lấy thêm hồ sơ năm 2026; quên lọc trạng thái lấy cả hồ sơ bị từ chối. Bản v2 thống nhất mốc ``nộp năm 2025'' ở tiêu đề, bối cảnh, yêu cầu: hồ sơ \code{SYN_LNA_0001598} nộp 27/12/2024, quyết định 11/02/2025, trước đây có thể bị hiểu là ``duyệt năm 2025''. hidden-1 thêm hồ sơ giả \code{SYN_LNA_H000001} (vay mua nhà hạng A, nộp 10/4/2025, được duyệt), 6 dòng thay vì 5, nên chép kết quả Chạy thử sẽ rớt.}
+\end{cauhoi}
+
+% ================================================================ R7 · Sửa lỗi · Cơ bản · A1 · customer
+\begin{cauhoi}[ma=aivb-r7-khach-uu-tien-hoat-dong, dulieu=aivb, domain=customer,
+  hinhthuc=debug, cap=basic, dang=A1, kynang={AND/OR, IN}, bay={thu-tu-and-or},
+  tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, socot=vitri]
+\tieude{Danh sách khách ưu tiên còn lẫn khách đã đóng}
+\boicanh[Bạn Vy · Thực tập sinh]{Em lọc khách hàng ưu tiên và khách hàng giàu có đang hoạt động để mời dự hội thảo, mà danh sách vẫn có khách đã đóng quan hệ. Em chưa tìm ra mình lọc sai chỗ nào.}
+\begin{yeucau}
+  \item Truy vấn dưới đây cần liệt kê khách hàng thuộc phân khúc ưu tiên (\code{'PRIORITY'}) hoặc giàu có (\code{'AFFLUENT'}) và đang hoạt động (\code{customer_status = 'ACTIVE'}), nhưng kết quả còn lẫn khách không hoạt động hoặc đã đóng.
+  \item Sửa để danh sách chỉ còn khách đang hoạt động của hai phân khúc này. Giữ nguyên cột \code{customer_id}, \code{segment_code}, \code{customer_status} và thứ tự \code{customer_id} tăng dần.
+\end{yeucau}
+\begin{erd}
+  \erdbang{core_customer}{0,0}{customer_id:PK, segment_code*='PRIORITY', customer_status*='CLOSED', home_branch_id, kyc_status}
+\end{erd}
+\begin{nghiepvu}{Mời đúng khách hàng đang hoạt động của hai phân khúc cao nhất dự hội thảo.}
+  \khainiem{phan-khuc-khach-hang}
+  \luuy{Khách không hoạt động hoặc đã đóng quan hệ không thuộc danh sách mời, dù ở phân khúc nào.}
+\end{nghiepvu}
+\goiy{Trong \code{WHERE}, \code{AND} được tính trước \code{OR}. Điều kiện trạng thái đang gắn với phân khúc nào?}
+\goiy{Đặt hai điều kiện phân khúc trong ngoặc, hoặc dùng \code{segment_code IN ('PRIORITY', 'AFFLUENT')}.}
+\ghichuthietke{Cơ bản: 1 bảng, giá trị mẫu là một khách ưu tiên đã đóng, đúng loại dòng bị lọt. Bẫy ở public: thiếu ngoặc lấy mọi khách ưu tiên; sửa bằng \code{customer_status <> 'CLOSED'} còn giữ khách không hoạt động; \code{AND} giữa hai phân khúc ra 0 dòng. hidden-1 thêm khách ưu tiên đang hoạt động \code{SYN_CUS_H000002} (573 dòng thay vì 572), nên chép kết quả Chạy thử sẽ rớt.}
+\end{cauhoi}
+
+% ================================================================ R8 · Sửa lỗi · Dễ · A1 · finance
+\begin{cauhoi}[ma=aivb-r8-tien-gui-lai-suat-tren-6, dulieu=aivb, domain=finance,
+  hinhthuc=debug, cap=basic, dang=A1, kynang={WHERE, BETWEEN}, bay={lai-suat-ty-le, bien-khoang},
+  tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, socot=vitri]
+\tieude{Danh sách tiền gửi kỳ hạn 6--12 tháng có lãi suất trên 5\%/năm bị trống}
+\boicanh[Bạn Long · Thực tập sinh]{Chị trưởng phòng cần danh sách tiền gửi kỳ hạn từ 6 tới 12 tháng có lãi suất trên 5\%/năm để so với mặt bằng thị trường. Em lọc đi lọc lại mà danh sách vẫn trống trơn.}
+\begin{yeucau}
+  \item Truy vấn dưới đây cần liệt kê tiền gửi có kỳ hạn đang còn hiệu lực (\code{deposit_status = 'ACTIVE'}), kỳ hạn từ 6 tới 12 tháng (tính cả 6 và 12 tháng), lãi suất trên 5\%/năm, nhưng ra 0 dòng.
+  \item Sửa để danh sách có đủ các khoản thoả điều kiện. Giữ nguyên cột \code{deposit_id}, \code{term_months}, \code{interest_rate}, \code{principal} và thứ tự \code{deposit_id} tăng dần.
+\end{yeucau}
+\begin{erd}
+  \erdbang{core_deposit_contract}{0,0}{deposit_id:PK, contract_id:FK, principal*, interest_rate*=0.0520, term_months*=12, deposit_status*='ACTIVE'}
+\end{erd}
+\begin{nghiepvu}{Rà các khoản tiền gửi đang trả lãi cao để chuẩn bị điều chỉnh biểu lãi suất.}
+  \khainiem{tien-gui-co-ky-han}
+  \khainiem{tien-va-lai-suat}
+  \luuy{Lãi suất lưu dạng tỷ lệ theo năm. Muốn so với một mức ghi bằng phần trăm thì đổi mức đó về dạng tỷ lệ trước.}
+\end{nghiepvu}
+\goiy{Xem giá trị mẫu của \code{interest_rate} trong ERD. Có lãi suất nào lớn hơn 5 không?}
+\goiy{Đổi 5\%/năm về dạng tỷ lệ, tức \code{0.05}. Phần kỳ hạn giữ cả hai biên.}
+\ghichuthietke{Bản v2 hạ từ Dễ xuống Cơ bản: truy vấn khởi đầu chỉ có một lỗi dễ thấy (sai thang giá trị lọc); ERD còn 1 bảng có giá trị mẫu thật (\code{0.0520}). Trên dữ liệu, mọi khoản thoả điều kiện đều kỳ hạn 12 tháng, lãi suất 5,20\%/năm, nên ``6--12 tháng'' thực chất là 12 tháng và hai bài sai cùng ra 0 dòng như truy vấn khởi đầu. hidden-1 thêm tiền gửi giả \code{SYN_DEP_H000001} (12 tháng, lãi 5,7\%), 480 dòng thay vì 479, nên chép kết quả Chạy thử sẽ rớt. Mã câu giữ theo bản đồ (``tren-6'') nhưng ngưỡng đổi thành 5\%/năm: trên dữ liệu không có tiền gửi \code{'ACTIVE'} kỳ hạn 6--12 tháng nào lãi suất trên 6\%/năm. Bẫy ở public: \code{interest_rate > 0.5} vẫn ra 0 dòng; bỏ hai biên kỳ hạn (\code{> 6 AND < 12}) ra 0 dòng vì mọi khoản thoả điều kiện đều kỳ hạn 12 tháng.}
+\end{cauhoi}
+
+% ================================================================ R9 · Sửa lỗi · Dễ · A1 · operations
+\begin{cauhoi}[ma=aivb-r9-but-toan-co-lon-nhat, dulieu=aivb, domain=operations,
+  hinhthuc=debug, cap=easy, dang=A1, kynang={WHERE, ORDER BY DESC, LIMIT}, bay={chieu-but-toan, chieu-sap-xep},
+  tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, socot=vitri]
+\tieude{Bút toán ghi Có lớn nhất ngày 30/06 ra toàn số nhỏ}
+\boicanh[Chị Oanh · Kế toán giao dịch]{Chị cần 25 bút toán ghi Có lớn nhất ngày 30/06/2026 để đối chiếu với chứng từ cuối quý. Bạn thực tập lấy ra toàn khoản mười nghìn đồng, em sửa giúp chị.}
+\begin{yeucau}
+  \item Truy vấn dưới đây cần trả về 25 bút toán ghi Có (\code{debit_credit = 'CREDIT'}) có số tiền lớn nhất trong ngày giao dịch 30/06/2026 (\code{transaction_date}).
+  \item Sửa để lấy đúng 25 bút toán đó. Giữ nguyên cột \code{posting_id}, \code{account_id}, \code{amount} (đồng).
+  \item Sắp \code{amount} giảm dần; bằng nhau thì \code{posting_id} nhỏ hơn đứng trước.
+\end{yeucau}
+\begin{erd}
+  \erdbang{core_account_posting}{0,0}{posting_id:PK, payment_order_id:FK, account_id:FK, debit_credit*='DEBIT', amount*, transaction_date*=2026-06-30}
+  \erdbang{core_payment_order}{2,0}{payment_order_id:PK, channel_code, payment_status}
+  \erdnoi[kieu=n-1, tren={nối theo \code{payment_order_id}}]{core_account_posting.payment_order_id}{core_payment_order.payment_order_id}
+\end{erd}
+\begin{nghiepvu}{Chọn các bút toán ghi Có lớn cần đối chiếu chứng từ trước khi khoá sổ cuối quý.}
+  \khainiem{ghi-no-ghi-co}
+  \luuy{Số tiền của bút toán luôn dương; chiều tăng hay giảm số dư nằm ở cột \code{debit_credit}.}
+\end{nghiepvu}
+\goiy{Truy vấn đang lấy cả bút toán ghi Nợ, và đang sắp theo chiều nào?}
+\goiy{Thêm điều kiện \code{debit_credit = 'CREDIT'} và sắp \code{amount DESC}, rồi \code{posting_id}.}
+\ghichuthietke{Dễ: 2 bảng, chữ trên đường nối, giá trị mẫu cho thấy cột chiều bút toán. Truy vấn khởi đầu có hai lỗi cùng loại ``thiếu chỉ dẫn'': không lọc chiều, sắp tăng dần. Bài sai chỉ sửa một trong hai lỗi đều rớt public. Bản v2 đổi 20 thành 25 bút toán: với 20 dòng, không bút toán nào trong kết quả thuộc lệnh bị bỏ ở hidden-1 (lệnh đầu tiên bị bỏ đứng hạng 21), nên hai biến thể giống hệt; với 25 dòng, hidden-1 mất hạng 21 và 23, kết quả khác public.}
+\end{cauhoi}
+
+% ################################################################ MODULE 2 · NULL & EXPRESSIONS
+
+% ================================================================ N1 · Viết · Cơ bản · A1 · customer
+\begin{cauhoi}[ma=aivb-n1-ca-nhan-thieu-nghe-nghiep, dulieu=aivb, domain=customer,
+  hinhthuc=write, cap=basic, dang=A1, kynang={IS NULL, WHERE}, bay={bang-null},
+  tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, socot=vitri]
+\tieude{Khách cá nhân nào ở Huế chưa có mã nghề nghiệp?}
+\boicanh[Anh Bảo · Chuyên viên quan hệ khách hàng]{Anh đang lên danh sách khách hàng cá nhân ở Huế chưa đi làm hoặc đã nghỉ hưu để giới thiệu sản phẩm tiền gửi tiết kiệm. Anh cần những người chưa có mã nghề nghiệp, kèm tình trạng việc làm và khoảng thu nhập.}
+\begin{yeucau}
+  \item Xét cá nhân có tỉnh cư trú là Huế (\code{residence_province = 'HUE'}).
+  \item Chỉ lấy người chưa có mã nghề nghiệp (\code{occupation_code} để trống).
+  \item Trả về \code{party_id}, \code{employment_status}, \code{income_band}.
+  \item Sắp \code{party_id} tăng dần.
+\end{yeucau}
+\begin{erd}
+  \erdbang{core_person}{0,0}{party_id:PK, residence_province*='HUE', occupation_code*=NULL, employment_status*='RETIRED', income_band*='10M_20M'}
+\end{erd}
+\begin{nghiepvu}{Chọn khách hàng cá nhân để giới thiệu sản phẩm cho người chưa đi làm hoặc đã nghỉ hưu.}
+  \khainiem{chu-the-va-khach-hang}
+  \luuy{Mã nghề nghiệp chỉ ghi cho người đang đi làm; người nghỉ hưu, học sinh, sinh viên để trống ô này.}
+\end{nghiepvu}
+\goiy{Phép so sánh bằng với NULL không bao giờ đúng.}
+\goiy{Dùng \code{occupation_code IS NULL}.}
+\ghichuthietke{Cơ bản: 1 bảng, giá trị mẫu NULL ở cột cần lọc. Bẫy ở public: \code{= NULL} và \code{= ''} đều ra 0 dòng. Bản v2 đổi khung nghiệp vụ: trên toàn bảng \code{occupation_code} NULL trùng đúng nhóm \code{'RETIRED'} và \code{'STUDENT'}, nên ô trống nghĩa là ``không áp dụng'', không phải hồ sơ thiếu. hidden-1 thêm cá nhân giả \code{SYN_PTY_PH00001} (nghỉ hưu, không có nghề nghiệp), 75 dòng thay vì 74, nên chép kết quả Chạy thử sẽ rớt.}
+\end{cauhoi}
+
+% ================================================================ N2 · Viết · Cơ bản · C4 · customer
+\begin{cauhoi}[ma=aivb-n2-nhom-thu-nhap, dulieu=aivb, domain=customer,
+  hinhthuc=write, cap=basic, dang=C4, kynang={CASE WHEN, IN}, bay={case-thieu-nhanh, thieu-can-tren},
+  tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, socot=vitri]
+\tieude{Khách cá nhân sinh năm 1990 thuộc nhóm thu nhập nào?}
+\boicanh[Chị Trang · Trưởng phòng khách hàng cá nhân]{Chị chuẩn bị chương trình ưu đãi cho khách cá nhân sinh năm 1990 và cần biết từng người thuộc nhóm thu nhập thấp, trung bình hay cao.}
+\begin{yeucau}
+  \item Xét cá nhân sinh trong năm 1990 (\code{date_of_birth}).
+  \item Gắn \code{nhom_thu_nhap}: \code{'Thấp'} khi \code{income_band} là \code{'UNDER_10M'} hoặc \code{'10M_20M'}; \code{'Trung bình'} khi là \code{'20M_40M'}; \code{'Cao'} khi là \code{'40M_80M'} hoặc \code{'OVER_80M'}.
+  \item Trả về \code{party_id}, \code{income_band}, \code{nhom_thu_nhap}.
+  \item Sắp \code{party_id} tăng dần.
+\end{yeucau}
+\begin{erd}
+  \erdbang{core_person}{0,0}{party_id:PK, date_of_birth*=1990-05-17, income_band*='20M_40M', gender, residence_province}
+\end{erd}
+\begin{nghiepvu}{Chọn mức ưu đãi phù hợp cho từng nhóm thu nhập.}
+  \khainiem{chu-the-va-khach-hang}
+  \luuy{\code{income_band} ghi khoảng thu nhập mỗi tháng dưới dạng mã. Mỗi khoảng thu nhập thuộc đúng một nhóm.}
+\end{nghiepvu}
+\goiy{Mỗi nhóm là một nhánh \code{WHEN}; dùng \code{IN} khi một nhóm gồm hai khoảng.}
+\goiy{Lọc năm sinh bằng hai cận: từ \code{'1990-01-01'} tới trước \code{'1991-01-01'}.}
+\ghichuthietke{Cơ bản: 1 bảng, giá trị mẫu cho thấy dạng mã khoảng thu nhập. Bẫy ở public: \code{CASE} thiếu \code{'OVER_80M'} ra NULL; lọc năm sinh thiếu cận trên lấy mọi người sinh từ 1990 trở về sau. hidden-1 thêm cá nhân giả \code{SYN_PTY_PH00002} (sinh năm 1990, thu nhập 40--80 triệu), 198 dòng thay vì 197, nên chép kết quả Chạy thử sẽ rớt.}
+\end{cauhoi}
+
+% ================================================================ N3 · Viết · Dễ · A1 · after_sales
+\begin{cauhoi}[ma=aivb-n3-so-tien-con-thieu-ky-qua-han, dulieu=aivb, domain=after_sales,
+  hinhthuc=write, cap=easy, dang=A1, kynang={phép tính trên cột, WHERE}, bay={thieu-thanh-phan, lan-trang-thai},
+  tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, socot=vitri]
+\tieude{Mỗi kỳ quá hạn còn thiếu bao nhiêu tiền?}
+\boicanh[Chị Dung · Chuyên viên xử lý nợ]{Tuần này chị gọi nhắc các khách hàng đang có kỳ trả nợ quá hạn. Em tính giúp chị mỗi kỳ khách còn phải trả bao nhiêu, cả gốc lẫn lãi.}
+\begin{yeucau}
+  \item Xét các kỳ trả nợ quá hạn (\code{schedule_status = 'OVERDUE'}).
+  \item Tính \code{so_tien_con_thieu} (đồng) = gốc đến hạn + lãi đến hạn - gốc đã trả - lãi đã trả.
+  \item Trả về \code{loan_id}, \code{installment_no}, \code{due_date}, \code{so_tien_con_thieu}.
+  \item Sắp \code{due_date} tăng dần, rồi \code{loan_id} tăng dần, rồi \code{installment_no} tăng dần.
+\end{yeucau}
+\begin{erd}
+  \erdbang{core_loan_schedule}{0,0}{schedule_id:PK, loan_id:FK, installment_no*, due_date*, principal_due*, interest_due*, principal_paid*, interest_paid*, schedule_status*}
+  \erdbang{core_loan_contract}{2,0}{loan_id:PK, outstanding, loan_status}
+  \erdnoi[kieu=n-1, tren={nối theo \code{loan_id}}]{core_loan_schedule.loan_id}{core_loan_contract.loan_id}
+\end{erd}
+\begin{nghiepvu}{Lập danh sách gọi nhắc nợ kèm số tiền khách cần trả cho từng kỳ.}
+  \quytrinh{Trạng thái kỳ trả nợ}{đến hạn, đã trả đủ}{quá hạn, đã huỷ}
+  \khainiem{lich-tra-no}
+  \khainiem{no-qua-han}
+  \luuy{Một kỳ có thể đã được trả một phần, nên số còn thiếu phải trừ phần đã trả. Kỳ đã huỷ thì khách không còn phải trả.}
+\end{nghiepvu}
+\goiy{Số còn thiếu gồm cả gốc và lãi. Kỳ ``chưa trả đủ'' không đồng nghĩa với kỳ quá hạn.}
+\goiy{Viết phép tính \code{principal_due + interest_due - principal_paid - interest_paid} và lọc đúng một trạng thái.}
+\ghichuthietke{Dễ: 2 bảng, chữ trên đường nối; câu chỉ cần \code{core_loan_schedule}. Trên public kỳ quá hạn chưa có khoản trả nào, nên bài quên trừ phần đã trả chỉ rớt ở hidden-1. Bài sai rớt public: chỉ tính gốc; lọc \code{schedule_status <> 'PAID'} lẫn kỳ \code{'DUE'} và \code{'CANCELLED'}. hidden-1 thêm khoản vay giả \code{SYN_LON_H000003} có kỳ 10 quá hạn đã trả một phần (còn thiếu 5.250.000 đồng) và kỳ 11 quá hạn chưa trả (376 dòng thay vì 374), nên bài quên trừ phần đã trả và bài chép kết quả Chạy thử đều rớt ở hidden-1.}
+\end{cauhoi}
+
+% ================================================================ N4 · Viết · Dễ · C4 · finance
+\begin{cauhoi}[ma=aivb-n4-ty-le-du-no-con-lai, dulieu=aivb, domain=finance,
+  hinhthuc=write, cap=easy, dang=C4, kynang={CASE WHEN, ROUND, NULLIF}, bay={thu-tu-when, lan-khoan-tat-toan},
+  tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, socot=vitri, saiso=0.0001]
+\tieude{Khoản vay đang ở giai đoạn nào của vòng đời?}
+\boicanh[Anh Hải · Giám đốc khối nguồn vốn]{Anh đang rà mức thu hồi nợ gốc của danh mục cho vay. Em chia giúp anh các khoản vay đang trả nợ bình thường theo phần dư nợ còn lại so với số tiền vay ban đầu.}
+\begin{yeucau}
+  \item Xét các khoản vay đang trả nợ bình thường (\code{loan_status = 'ACTIVE'}).
+  \item Tính \code{ty_le_con_lai} = dư nợ / số tiền vay ban đầu (\code{outstanding / principal}), dạng tỷ lệ, làm tròn 4 chữ số.
+  \item Gắn \code{giai_doan} theo tỷ lệ chưa làm tròn: \code{'Mới giải ngân'} khi từ 0,8 trở lên; \code{'Giữa kỳ'} khi từ 0,2 tới dưới 0,8; \code{'Sắp tất toán'} khi dưới 0,2.
+  \item Trả về \code{loan_id}, \code{principal}, \code{outstanding}, \code{ty_le_con_lai}, \code{giai_doan}. Sắp \code{loan_id} tăng dần.
+\end{yeucau}
+\begin{erd}
+  \erdbang{core_loan_contract}{0,0}{loan_id:PK, contract_id:FK, disbursement_date, principal*, outstanding*, loan_status*}
+  \erdbang{core_contract}{2,0}{contract_id:PK, home_branch_id, maturity_date}
+  \erdnoi[kieu=1-1, tren={nối theo \code{contract_id}}]{core_loan_contract.contract_id}{core_contract.contract_id}
+\end{erd}
+\begin{nghiepvu}{Đánh giá mức thu hồi nợ gốc của danh mục cho vay khi lập kế hoạch nguồn vốn.}
+  \khainiem{du-no}
+  \khainiem{trang-thai-khoan-vay}
+  \luuy{Khoản vay đã tất toán có dư nợ bằng 0 và không thuộc danh mục đang trả nợ. Tỷ lệ còn lại so dư nợ hiện tại với số tiền vay ban đầu của chính khoản vay đó.}
+\end{nghiepvu}
+\goiy{\code{CASE} dừng ở nhánh đúng đầu tiên. Nhánh có ngưỡng cao hơn phải đứng trước.}
+\goiy{Viết \code{outstanding / NULLIF(principal, 0)} để không lỗi khi mẫu số bằng 0; làm tròn bằng \code{ROUND(..., 4)}.}
+\ghichuthietke{Dễ: 2 bảng, chữ trên đường nối; câu chỉ cần \code{core_loan_contract}. Đặt \code{saiso=0.0001} cho cột tỷ lệ 4 chữ số. Bẫy ở public: đặt \code{>= 0.2} trước \code{>= 0.8} làm mất nhóm ``Mới giải ngân''; bỏ lọc trạng thái lẫn khoản tất toán dư nợ 0. Trên dữ liệu không có \code{principal} bằng 0; \code{NULLIF} chỉ là thói quen an toàn. Ở hidden-1 dư nợ \code{SYN_LON_0001621} đổi (H(c)) và có thêm hai khoản vay giả \code{SYN_LON_0000000}, \code{SYN_LON_H000004} (716 dòng thay vì 714). Phép chia BIGINT trong MySQL ra 4 chữ số thập phân, nên \code{CASE} thực chất so trên tỷ lệ 4 chữ số; đã quét biên 0,2 và 0,8, không khoản nào bị xếp khác. Tên nhãn ``Mới giải ngân'' chờ giảng viên chốt (vay mua nhà giải ngân từ 2020 vẫn còn trên 80\% dư nợ), xem DA-SUA.md.}
+\end{cauhoi}
+
+% ================================================================ N5 · Viết · Dễ · A1 · operations
+\begin{cauhoi}[ma=aivb-n5-so-ngay-tai-khoan-mo, dulieu=aivb, domain=operations,
+  hinhthuc=write, cap=easy, dang=A1, kynang={COALESCE, DATEDIFF}, bay={null-trong-phep-tinh, bo-qua-ngay-dong},
+  tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, socot=vitri]
+\tieude{Tài khoản mở năm 2024 đã duy trì được bao nhiêu ngày?}
+\boicanh[Chị Hoa · Giám đốc chi nhánh]{Chị muốn xem các tài khoản thanh toán mở năm 2024 đã duy trì được bao lâu, kể cả tài khoản đã đóng. Chị cần số ngày của từng tài khoản.}
+\begin{yeucau}
+  \item Lấy ngày tham chiếu \code{'2026-12-31'}. Xét tài khoản thanh toán mở trong năm 2024 (\code{open_date}).
+  \item Tính \code{so_ngay} = số ngày từ \code{open_date} tới \code{close_date}; tài khoản chưa đóng (\code{close_date} để trống) tính tới ngày tham chiếu.
+  \item Trả về \code{account_id}, \code{open_date}, \code{close_date}, \code{so_ngay}.
+  \item Sắp \code{account_id} tăng dần.
+\end{yeucau}
+\begin{erd}
+  \erdbang{core_account}{0,0}{account_id:PK, contract_id:FK, open_date*, close_date*, account_status}
+  \erdbang{core_account_balance}{2,0}{account_id:PK, current_balance, as_of_business_date}
+  \erdnoi[kieu=1-1, tren={nối theo \code{account_id}}]{core_account.account_id}{core_account_balance.account_id}
+\end{erd}
+\begin{nghiepvu}{Đánh giá thời gian khách giữ tài khoản thanh toán mở mới trong năm 2024.}
+  \khainiem{casa}
+  \khainiem{ngay-tham-chieu}
+  \luuy{Phần lớn tài khoản chưa đóng nên \code{close_date} để trống. Tài khoản chưa đóng vẫn được duy trì tới ngày tham chiếu.}
+\end{nghiepvu}
+\goiy{Ngày kết thúc của tài khoản là ngày đóng nếu có, nếu không thì là ngày tham chiếu.}
+\goiy{Dùng \code{DATEDIFF(COALESCE(close_date, '2026-12-31'), open_date)}.}
+\ghichuthietke{Dễ: 2 bảng, chữ trên đường nối; câu chỉ cần \code{core_account}. Bẫy ở public: không dùng \code{COALESCE} ra NULL cho tài khoản chưa đóng; tính mọi tài khoản tới ngày tham chiếu sai ở các tài khoản đã đóng. hidden-1 thêm hai tài khoản giả đang mở \code{SYN_ACC_H000001}, \code{SYN_ACC_H000003} (746 dòng thay vì 744), nên chép kết quả Chạy thử sẽ rớt.}
+\end{cauhoi}
+
+% ================================================================ N6 · Viết · Dễ · C4 · marketing
+\begin{cauhoi}[ma=aivb-n6-nhan-kenh-so, dulieu=aivb, domain=marketing,
+  hinhthuc=write, cap=easy, dang=C4, kynang={CASE WHEN, IN}, bay={thieu-gia-tri-in, sai-don-vi-tien},
+  tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, socot=vitri]
+\tieude{Lệnh lớn ngày cuối năm đi qua kênh số hay kênh vật lý?}
+\boicanh[Chị Yến · Trưởng phòng phát triển sản phẩm]{Ngày cuối năm có nhiều lệnh giá trị lớn. Chị muốn biết lệnh từ 100 triệu đồng trở lên đi qua kênh số hay qua quầy, ATM, POS, để cân nhắc nâng hạn mức trên kênh số.}
+\begin{yeucau}
+  \item Xét lệnh thanh toán thành công (\code{payment_status = 'COMPLETED'}) có ngày giao dịch 31/12/2026 và số tiền từ 100 triệu đồng trở lên.
+  \item Gắn \code{nhom_kenh}: \code{'Kênh số'} khi \code{channel_code} là \code{'MOBILE'}, \code{'WEB'}, \code{'QR'} hoặc \code{'API'}; \code{'Kênh vật lý'} khi là \code{'BRANCH'}, \code{'ATM'} hoặc \code{'POS'}.
+  \item Trả về \code{payment_order_id}, \code{channel_code}, \code{amount} (đồng), \code{nhom_kenh}.
+  \item Sắp \code{amount} giảm dần; bằng nhau thì \code{payment_order_id} nhỏ hơn đứng trước.
+\end{yeucau}
+\begin{erd}
+  \erdbang{core_payment_order}{0,0}{payment_order_id:PK, transaction_type, channel_code*, transaction_date*, amount*, payment_status*}
+  \erdbang{core_account_posting}{2,0}{posting_id:PK, payment_order_id:FK, debit_credit, amount}
+  \erdnoi[kieu=1-n, tren={nối theo \code{payment_order_id}}]{core_payment_order.payment_order_id}{core_account_posting.payment_order_id}
+\end{erd}
+\begin{nghiepvu}{Cân nhắc nâng hạn mức giao dịch trên kênh số cho khách hàng chuyển tiền giá trị lớn.}
+  \khainiem{kenh-giao-dich}
+  \khainiem{tien-va-lai-suat}
+  \luuy{Số tiền lưu bằng đồng, không quy đổi sang triệu đồng.}
+\end{nghiepvu}
+\goiy{Đếm số chữ số 0 của ngưỡng tiền. Danh sách kênh số có bốn mã.}
+\goiy{Viết \code{CASE WHEN channel_code IN ('MOBILE', 'WEB', 'QR', 'API') THEN 'Kênh số' ELSE 'Kênh vật lý' END}.}
+\ghichuthietke{Dễ: 2 bảng, chữ trên đường nối; câu chỉ cần \code{core_payment_order}. Ngưỡng 100 triệu chọn để kết quả public khoảng 27 dòng. Bẫy ở public: danh sách kênh số thiếu \code{'QR'}, \code{'API'} gắn sai lệnh API; ngưỡng thiếu một số 0 (10 triệu) lấy thừa lệnh. Hidden-1 bỏ 10\% lệnh nên kết quả khác public. Trên dữ liệu không có lệnh lớn bị đảo hoặc bị từ chối ngày này, nên quên lọc trạng thái không rớt và không dùng làm bài sai. Cách gọi ``kênh vật lý'' chờ giảng viên chốt (DA-SUA.md).}
+\end{cauhoi}
+
+% ================================================================ N7 · Sửa lỗi · Cơ bản · A1 · sales
+\begin{cauhoi}[ma=aivb-n7-quyet-dinh-thieu-so-tien-duyet, dulieu=aivb, domain=sales,
+  hinhthuc=debug, cap=basic, dang=A1, kynang={IS NULL}, bay={bang-null},
+  tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, socot=vitri]
+\tieude{Lọc quyết định thiếu số tiền được duyệt không ra dòng nào}
+\boicanh[Bạn Nam · Thực tập sinh]{Em cần danh sách quyết định cấp tín dụng tháng 12/2026 không có số tiền được duyệt để đối chiếu với hồ sơ giấy. Em lọc thì không ra dòng nào, mà tháng nào cũng phải có vài quyết định như vậy.}
+\begin{yeucau}
+  \item Truy vấn dưới đây cần liệt kê quyết định cấp tín dụng có ngày quyết định trong tháng 12/2026 và số tiền được duyệt (\code{approved_amount}) để trống, nhưng ra 0 dòng.
+  \item Sửa để lấy được các quyết định đó. Giữ nguyên cột \code{credit_decision_id}, \code{application_id}, \code{decision_date}, \code{decision_status} và thứ tự \code{credit_decision_id} tăng dần.
+\end{yeucau}
+\begin{erd}
+  \erdbang{core_credit_decision}{0,0}{credit_decision_id:PK, application_id:FK, decision_date*=2026-12-15, decision_status*='REJECTED', approved_amount*=NULL}
+\end{erd}
+\begin{nghiepvu}{Đối chiếu các quyết định từ chối cấp tín dụng tháng 12/2026 với hồ sơ giấy.}
+  \khainiem{ho-so-vay-va-ty-le-duyet}
+  \luuy{Quyết định từ chối không có số tiền được duyệt, nên ô này để trống (NULL).}
+\end{nghiepvu}
+\goiy{Xem giá trị mẫu của \code{approved_amount} trong ERD.}
+\goiy{Đổi \code{approved_amount = NULL} thành \code{approved_amount IS NULL}.}
+\ghichuthietke{Cơ bản: 1 bảng, giá trị mẫu NULL. Bẫy ở public: \code{= 0} ra 0 dòng; \code{IS NOT NULL} lấy ngược. Trên dữ liệu mọi quyết định \code{'REJECTED'} đều có \code{approved_amount} NULL, nên lọc theo trạng thái cho cùng kết quả và không dùng làm bài sai. Bản v2 sửa khung nghiệp vụ cho khớp dữ liệu: ô trống là của quyết định từ chối, không phải thông tin bị thiếu. hidden-1 thêm quyết định từ chối \code{SYN_CRD_H000002} ngày 3/12/2026 không có số tiền duyệt (29 dòng thay vì 28), nên chép kết quả Chạy thử sẽ rớt.}
+\end{cauhoi}
+
+% ================================================================ N8 · Sửa lỗi · Dễ · C4 · customer
+\begin{cauhoi}[ma=aivb-n8-nhom-tuoi, dulieu=aivb, domain=customer,
+  hinhthuc=debug, cap=easy, dang=C4, kynang={CASE WHEN, TIMESTAMPDIFF}, bay={thu-tu-when, bien-nhom},
+  tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, socot=vitri]
+\tieude{Khách từ 40 tuổi bị xếp vào nhóm 25--39}
+\boicanh[Anh Khoa · Chuyên viên quan hệ khách hàng]{Anh chia khách cá nhân ở Đà Nẵng theo nhóm tuổi để chọn sản phẩm giới thiệu, mà ai từ 25 tuổi trở lên cũng nằm trong nhóm 25--39. Em xem lại cách chia giúp anh.}
+\begin{yeucau}
+  \item Lấy ngày tham chiếu \code{'2026-12-31'}; tuổi là số năm tròn từ \code{date_of_birth} tới ngày tham chiếu.
+  \item Truy vấn dưới đây cần xếp cá nhân cư trú ở Đà Nẵng (\code{residence_province = 'DA_NANG'}) vào bốn nhóm: \code{'Dưới 25'} (dưới 25 tuổi), \code{'25-39'}, \code{'40-59'}, \code{'Từ 60'} (từ 60 tuổi trở lên), nhưng chỉ ra hai nhóm.
+  \item Sửa để mỗi người vào đúng nhóm tuổi của mình. Giữ nguyên cột \code{party_id}, \code{tuoi}, \code{nhom_tuoi} và thứ tự \code{party_id} tăng dần.
+\end{yeucau}
+\begin{erd}
+  \erdbang{core_person}{0,0}{party_id:PK, date_of_birth*, residence_province*='DA_NANG', income_band}
+  \erdbang{core_party}{2,0}{party_id:PK, party_type, legal_name}
+  \erdnoi[kieu=1-1, tren={nối theo \code{party_id}}]{core_person.party_id}{core_party.party_id}
+\end{erd}
+\begin{nghiepvu}{Chọn sản phẩm giới thiệu theo nhóm tuổi của khách cá nhân.}
+  \khainiem{ngay-tham-chieu}
+  \luuy{Mỗi người phải vào đúng một nhóm. Hai biên 25 và 60 thuộc nhóm phía trên.}
+\end{nghiepvu}
+\goiy{\code{CASE} trả về nhánh đúng đầu tiên. Người 45 tuổi thoả nhánh nào trước?}
+\goiy{Đặt các nhánh theo ngưỡng giảm dần: \code{>= 60}, \code{>= 40}, \code{>= 25}, còn lại là \code{'Dưới 25'}.}
+\ghichuthietke{Dễ: 2 bảng, chữ trên đường nối; câu chỉ cần \code{core_person}. Truy vấn khởi đầu đặt \code{>= 25} trước \code{>= 40} và \code{>= 60}. Bài sai rớt public: sửa thứ tự nhưng biên 25 viết \code{<= 25}, hoặc biên 60 viết \code{> 60} (có người đúng 25 và đúng 60 tuổi). Ngày tham chiếu là 31/12 nên \code{2026 - YEAR(date_of_birth)} cho cùng tuổi và không dùng làm bài sai. hidden-1 thêm cá nhân giả \code{SYN_PTY_PH00002} (36 tuổi, nhóm 25--39), 465 dòng thay vì 464, nên chép kết quả Chạy thử sẽ rớt.}
+\end{cauhoi}
+
+% ================================================================ N9 · Sửa lỗi · Dễ · B4 · customer
+\begin{cauhoi}[ma=aivb-n9-dong-so-huu-con-hieu-luc, dulieu=aivb, domain=customer,
+  hinhthuc=debug, cap=easy, dang=B4, kynang={IS NULL, OR}, bay={null-loai-dong, quen-can-duoi},
+  tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, socot=vitri]
+\tieude{Danh sách đồng chủ tài khoản ngày 30/06/2026 bị thiếu}
+\boicanh[Anh Sơn · Chuyên viên tuân thủ (KYC)]{Anh cần danh sách đồng chủ tài khoản còn hiệu lực tại ngày 30/06/2026 để gửi kiểm toán. Danh sách bạn thực tập làm chỉ có vài dòng, mà tài khoản chung của mình nhiều hơn thế nhiều.}
+\begin{yeucau}
+  \item Lấy ngày tham chiếu \code{'2026-06-30'}. Quan hệ còn hiệu lực tại ngày tham chiếu khi \code{valid_from} không muộn hơn ngày tham chiếu, và \code{valid_to} để trống hoặc sau ngày tham chiếu.
+  \item Truy vấn dưới đây cần liệt kê quan hệ đồng chủ tài khoản (\code{role_code = 'JOINT_OWNER'}) còn hiệu lực, nhưng bị thiếu dòng.
+  \item Sửa để danh sách có đủ mọi quan hệ còn hiệu lực. Giữ nguyên cột \code{account_party_id}, \code{account_id}, \code{party_id}, \code{valid_from}, \code{valid_to} và thứ tự \code{account_party_id} tăng dần.
+\end{yeucau}
+\begin{erd}
+  \erdbang{core_account_party}{0,0}{account_party_id:PK, account_id:FK, party_id:FK, role_code*='JOINT_OWNER', valid_from*=2021-03-15, valid_to*=NULL}
+  \erdbang{core_account}{2,0}{account_id:PK, open_date, close_date, account_status}
+  \erdnoi[kieu=n-1, tren={nối theo \code{account_id}}]{core_account_party.account_id}{core_account.account_id}
+\end{erd}
+\begin{nghiepvu}{Gửi kiểm toán danh sách người cùng đứng tên tài khoản thanh toán tại một ngày chốt.}
+  \khainiem{chu-tai-khoan}
+  \luuy{\code{valid_to} để trống nghĩa là quan hệ chưa kết thúc, tức vẫn còn hiệu lực. Quan hệ bắt đầu sau ngày tham chiếu thì chưa có hiệu lực tại ngày đó.}
+\end{nghiepvu}
+\goiy{Với dòng có \code{valid_to} trống, phép so sánh \code{valid_to > '2026-06-30'} cho kết quả gì?}
+\goiy{Viết \code{(valid_to IS NULL OR valid_to > '2026-06-30')} trong ngoặc, giữ điều kiện \code{valid_from}.}
+\ghichuthietke{Dễ: 2 bảng, chữ trên đường nối, giá trị mẫu \code{valid_to} NULL. Đổi ngày tham chiếu so với bản đồ (31/12/2026 thành 30/06/2026): tại 31/12/2026 không quan hệ nào có \code{valid_to} sau ngày đó và mọi \code{valid_from} đều trước, nên bài sai không phân biệt được. Bài sai rớt public: chỉ lấy \code{valid_to IS NULL} bỏ sót quan hệ kết thúc sau giữa năm; bỏ điều kiện \code{valid_from} lấy cả quan hệ bắt đầu sau ngày tham chiếu. hidden-1 thêm quan hệ đồng chủ tài khoản giả (\code{SYN_PTY_PH00001} từ 2/3/2026), 225 dòng thay vì 224, nên chép kết quả Chạy thử sẽ rớt; quan hệ đúng biên \code{valid_to = '2026-06-30'} hoặc \code{valid_from = '2026-06-30'} vẫn chưa có (DA-SUA.md).}
+\end{cauhoi}
+
+% ################################################################ CASE STUDY
+
+% ================================================================ C1 · Case · Cơ bản · sales
+\begin{cauhoi}[ma=aivb-c1-ho-so-doanh-nghiep-bi-tu-choi, dulieu=aivb, domain=sales,
+  hinhthuc=case, cap=basic, diem=10, tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.01]
+\tieude{Hồ sơ vay doanh nghiệp bị từ chối năm 2026 có điểm chung gì?}
+\boicanh[Chị Ngọc · Trưởng phòng khách hàng doanh nghiệp]{Năm nay phòng chị có khá nhiều hồ sơ vay bị từ chối. Chị muốn biết các hồ sơ này có cùng hạng điểm tín dụng hay cùng mức tỷ lệ nợ trên thu nhập (DTI) không.}
+\begin{erd}
+  \erdbang[hl]{core_loan_application}{0,0}{application_id:PK, party_id:FK, product_id*='OD_BIZ', application_date*=2025-08-12, customer_type*='BUSINESS', application_status*='APPROVED', score_band*='C', dti*=0.312040, requested_amount*}
+\end{erd}
+\begin{nghiepvu}{Chọn tiêu chí cần xem lại trong quy trình thẩm định hồ sơ vay doanh nghiệp.}
+  \khainiem{hang-diem-tin-dung}
+  \khainiem{dti}
+  \luuy{Hồ sơ vay doanh nghiệp có \code{customer_type = 'BUSINESS'}. DTI lưu dạng tỷ lệ, đổi sang phần trăm thì nhân 100.}
+\end{nghiepvu}
+\begin{buoc}[ma=b1, diem=5, hinhthuc=write, bang={core_loan_application}]{Hồ sơ doanh nghiệp bị từ chối}
+  \begin{yeucau}
+    \item Xét hồ sơ vay doanh nghiệp (\code{customer_type = 'BUSINESS'}) bị từ chối (\code{application_status = 'REJECTED'}), nộp trong năm 2026.
+    \item Trả về \code{application_id}, \code{product_id}, \code{score_band}, \code{dti_pct} (DTI theo phần trăm, làm tròn 2 chữ số), \code{requested_amount} (đồng).
+    \item Sắp \code{application_id} tăng dần.
+  \end{yeucau}
+  \goiy{Tính \code{ROUND(dti * 100, 2)}; lọc ngày nộp từ \code{'2026-01-01'} tới trước \code{'2027-01-01'}.}
+\end{buoc}
+\begin{buoc}[ma=b2, diem=5, hinhthuc=ketluan, bang={core_loan_application}]{Kết luận}
+  \begin{luachon}
+    \phuongan*{Phần lớn hồ sơ bị từ chối có hạng điểm A hoặc B và DTI dưới 50\%, tức không có hạng điểm thấp hay DTI cao.}
+      {Đúng. Ở bước 1 chỉ hai hồ sơ có hạng C, không hồ sơ nào hạng D, và chỉ hai hồ sơ có DTI trên 50\%.}
+    \phuongan{Phần lớn hồ sơ bị từ chối có DTI trên 50\%, nên phòng cần siết trần DTI cho khách hàng doanh nghiệp.}
+      {Chưa đúng. Ở bước 1 chỉ hai hồ sơ có DTI trên 50\%; phần lớn hồ sơ có DTI thấp hơn nhiều.}
+    \phuongan{Phần lớn hồ sơ bị từ chối có hạng điểm C hoặc D, nên hạng điểm thấp là lý do chính bị từ chối.}
+      {Chưa đúng. Ở bước 1 không hồ sơ nào hạng D và chỉ hai hồ sơ hạng C; phần lớn là hạng A, B.}
+    \phuongan{Mọi hồ sơ bị từ chối có DTI dưới 1\%, nên người vay doanh nghiệp gần như không có nợ khác.}
+      {Chưa đúng. Phương án này đọc nhầm thang vì DTI lưu dạng tỷ lệ; \code{0.28} là 28\%, gấp 100 lần 0,28\%.}
+  \end{luachon}
+\end{buoc}
+\ghichuthietke{Case Cơ bản: 1 bảng, 1 bước SQL, 1 bước kết luận đọc từ kết quả. Trên dữ liệu, hồ sơ cá nhân bị từ chối đều có DTI trên 60\%, còn hồ sơ doanh nghiệp bị từ chối không theo DTI hay hạng điểm; kết luận đúng chỉ mô tả hồ sơ bị từ chối (không có hạng điểm thấp hay DTI cao), không gán nguyên nhân vì học viên không thấy nhóm hồ sơ được duyệt để so sánh. Bản v2 đổi giá trị mẫu ERD sang một hồ sơ được duyệt năm 2025 (bản v1 dùng đúng dòng \code{SYN_LNA_0003125} của đáp án). Việc dùng DTI cho hồ sơ doanh nghiệp chờ giảng viên chốt (DA-SUA.md). hidden-1 thêm hồ sơ doanh nghiệp bị từ chối \code{SYN_LNA_H000002} (WC\_LOAN 5 tỷ đồng), bước 1 ra 18 dòng thay vì 17, nên chép kết quả Chạy thử sẽ rớt. Bài sai bước 1: quên lọc \code{customer_type}; để DTI dạng tỷ lệ. Dữ liệu hồ sơ vay chỉ tới 27/12/2026 nên thiếu cận trên không rớt.}
+\end{cauhoi}
+
+% ================================================================ C2 · Case · Cơ bản · finance
+\begin{cauhoi}[ma=aivb-c2-tien-gui-sap-dao-han, dulieu=aivb, domain=finance,
+  hinhthuc=case, cap=basic, diem=10, tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.01]
+\tieude{Tiền gửi đến hạn tháng 1/2027 có lãi suất cao nhất bao nhiêu?}
+\boicanh[Anh Minh · Giám đốc khối nguồn vốn]{Tháng 1/2027 có nhiều khoản tiền gửi có kỳ hạn đến hạn. Anh cần danh sách các khoản này để chuẩn bị mức lãi suất chào tái tục cho từng khách.}
+\begin{erd}
+  \erdbang[hl]{core_deposit_contract}{0,0}{deposit_id:PK, contract_id:FK, principal*, interest_rate*=0.0490, term_months*=12, maturity_date*=2027-01-15, deposit_status*='ACTIVE'}
+\end{erd}
+\begin{nghiepvu}{Chuẩn bị mức lãi suất chào tái tục cho các khoản tiền gửi sắp đến hạn.}
+  \khainiem{tien-gui-co-ky-han}
+  \khainiem{tien-va-lai-suat}
+  \luuy{Hợp đồng đã tái tục hoặc đã tất toán không còn ở trạng thái \code{'ACTIVE'}, dù ngày đến hạn ghi trên hợp đồng cũ có thể nằm trong cùng tháng.}
+\end{nghiepvu}
+\begin{buoc}[ma=b1, diem=5, hinhthuc=write, bang={core_deposit_contract}]{Tiền gửi đến hạn tháng 1/2027}
+  \begin{yeucau}
+    \item Dữ liệu tiền gửi chốt ngày 04/01/2027: hợp đồng đến hạn từ 01 tới 04/01/2027 đã tái tục hoặc tất toán xong, không xét.
+    \item Xét tiền gửi có kỳ hạn đang còn hiệu lực (\code{deposit_status = 'ACTIVE'}) có ngày đến hạn (\code{maturity_date}) trong tháng 1/2027.
+    \item Trả về \code{deposit_id}, \code{term_months}, \code{principal} (đồng), \code{lai_suat_pct} (phần trăm/năm, làm tròn 2 chữ số), \code{maturity_date}.
+    \item Sắp \code{lai_suat_pct} giảm dần; bằng nhau thì \code{deposit_id} nhỏ hơn đứng trước.
+  \end{yeucau}
+  \goiy{Tính \code{ROUND(interest_rate * 100, 2)}; lọc ngày đến hạn từ \code{'2027-01-01'} tới trước \code{'2027-02-01'}.}
+\end{buoc}
+\begin{buoc}[ma=b2, diem=5, hinhthuc=ketluan, bang={core_deposit_contract}]{Kết luận}
+  \begin{luachon}
+    \phuongan*{Lãi suất cao nhất trong số tiền gửi đến hạn là 7,50\%/năm, thuộc một hợp đồng kỳ hạn 60 tháng; các hợp đồng còn lại đều dưới 5,5\%/năm.}
+      {Đúng. Dòng đầu ở bước 1 là hợp đồng kỳ hạn 60 tháng; từ dòng thứ hai, lãi suất không quá 5,30\%/năm.}
+    \phuongan{Lãi suất cao nhất trong số tiền gửi đến hạn chỉ khoảng 0,08\%/năm, nên tiền lãi phải chi trả không đáng kể.}
+      {Chưa đúng. Phương án này đọc nhầm thang vì lãi suất lưu dạng tỷ lệ; \code{0.075} là 7,50\%/năm.}
+    \phuongan{Nhóm kỳ hạn 12 tháng có lãi suất cao nhất vì nhóm này có nhiều hợp đồng đến hạn nhất.}
+      {Chưa đúng. Số hợp đồng không quyết định lãi suất; ở bước 1 hợp đồng kỳ hạn 12 tháng có lãi suất không quá 5,20\%/năm.}
+  \end{luachon}
+\end{buoc}
+\ghichuthietke{Case Cơ bản: 1 bảng, 1 bước SQL, 1 bước kết luận đọc từ dòng đầu kết quả. Bài sai bước 1: quên lọc \code{'ACTIVE'} lấy thêm hợp đồng \code{'RENEWED'}, \code{'CLOSED'} có ngày đến hạn đầu tháng 1/2027; để lãi suất dạng tỷ lệ. Bản v2 ghi rõ mốc chốt 04/01/2027: mọi hợp đồng \code{'ACTIVE'} đến hạn từ 05/01/2027, 19 hợp đồng \code{'RENEWED'}/\code{'CLOSED'} đến hạn 01--04/01/2027 không xét; mốc ``hiện tại'' của câu chờ giảng viên chốt (DA-SUA.md). hidden-1 thêm tiền gửi giả \code{SYN_DEP_H000001} đến hạn 20/1/2027 (bước 1 ra 161 dòng thay vì 160), nên chép kết quả Chạy thử sẽ rớt.}
+\end{cauhoi}
+
+\end{document}

@@ -1,0 +1,4556 @@
+{
+  "goi": "goi-cau-hoi/aivb/goi-5",
+  "thoi_gian": "2026-11-10T15:14:22",
+  "may_chu": "sqllb-mysql:3306 (user sql_runner)",
+  "chi_phan_tich": false,
+  "khai_bao": {
+    "dulieu": [
+      "aivb"
+    ],
+    "domain": [
+      "after_sales",
+      "customer",
+      "finance",
+      "marketing",
+      "operations",
+      "sales"
+    ],
+    "khainiem": [
+      "chu-the-va-khach-hang",
+      "cohort-khach-hang",
+      "dieu-kien-dung-chi-muc",
+      "doi-soat-du-lieu",
+      "dong-trung-gian",
+      "du-no",
+      "ghi-no-ghi-co",
+      "giao-dich-bi-dao",
+      "ho-so-vay-va-ty-le-duyet",
+      "kenh-giao-dich",
+      "kyc",
+      "lai-du-thu-du-tra",
+      "lan-quet-bang",
+      "lich-tra-no",
+      "ngay-tham-chieu",
+      "nhom-no",
+      "no-qua-han",
+      "phien-ban-chinh-sach",
+      "tien-gui-co-ky-han",
+      "tien-va-lai-suat",
+      "trang-thai-khoan-vay",
+      "ty-le-no-xau"
+    ]
+  },
+  "so_khoi_sql": 78,
+  "loi_goi": [],
+  "canh_bao_goi": [
+    {
+      "ma_loi": "GOI_FILE_LA",
+      "thong_diep": "thư mục gói có file ngoài 4 file chuẩn (không đưa vào zip): BANG-PHAN-CONG.md, DA-SUA.md, REVIEW-B.md, REVIEW-C.md",
+      "file": "goi-cau-hoi/aivb/goi-5",
+      "dong": null
+    }
+  ],
+  "cau": [
+    {
+      "ma": "aivb-k1-ten-phap-ly-dung-chung",
+      "dong": 126,
+      "tieu_de": "Tên pháp lý nào dùng chung cho nhiều chủ thể?",
+      "hinhthuc": "write",
+      "cap": "medium",
+      "dang": "E1",
+      "domain": "customer",
+      "dulieu": "aivb",
+      "diem": 30,
+      "trangthai": "review",
+      "bo_qua": false,
+      "cham": {
+        "bokiemtra": [
+          "public",
+          "hidden-1"
+        ],
+        "thutu": "co",
+        "socot": "vitri",
+        "saiso": 0.01,
+        "quettoida": {},
+        "ngansach": null
+      },
+      "buoc": [],
+      "khoi_sql": {
+        "aivb-k1-ten-phap-ly-dung-chung": {
+          "solution": [
+            "solution"
+          ],
+          "wrong": [
+            "inner_join_mat_chu_the",
+            "dem_dong_thay_khach"
+          ]
+        }
+      },
+      "loi": [],
+      "canh_bao": [],
+      "kiem_tra": [
+        {
+          "phep": "kiem_tinh (khoá, phần bắt buộc theo hình thức, khối SQL, khái niệm, bước case)",
+          "ket_qua": "dat",
+          "chi_tiet": "0 lỗi"
+        },
+        {
+          "phep": "solution_chay_moi_bien_the",
+          "ket_qua": "dat",
+          "chi_tiet": "[aivb-k1-ten-phap-ly-dung-chung]: public, hidden-1; chạy 2 lần cùng kết quả"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "inner_join_mat_chu_the: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "dem_dong_thay_khach: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "nghiepvu_khong_lo_so",
+          "ket_qua": "dat",
+          "chi_tiet": ""
+        }
+      ],
+      "solution": {
+        "aivb-k1-ten-phap-ly-dung-chung": {
+          "public": {
+            "so_dong": 2512,
+            "cot": [
+              "ten_phap_ly",
+              "so_chu_the",
+              "so_khach_hang"
+            ],
+            "giay": 0.105,
+            "dong_dau": [
+              [
+                "Bui Thanh Dung",
+                6,
+                6
+              ],
+              [
+                "Chu Ngoc Quyen",
+                6,
+                6
+              ],
+              [
+                "Chu Van Tuan",
+                6,
+                6
+              ],
+              [
+                "Duong Minh Cuong",
+                6,
+                6
+              ],
+              [
+                "Le Huu Cuong",
+                6,
+                6
+              ]
+            ]
+          },
+          "hidden-1": {
+            "so_dong": 2512,
+            "cot": [
+              "ten_phap_ly",
+              "so_chu_the",
+              "so_khach_hang"
+            ],
+            "giay": 0.087,
+            "dong_dau": [
+              [
+                "Bui Thanh Dung",
+                6,
+                6
+              ],
+              [
+                "Chu Ngoc Quyen",
+                6,
+                6
+              ],
+              [
+                "Chu Van Tuan",
+                6,
+                6
+              ],
+              [
+                "Duong Minh Cuong",
+                6,
+                6
+              ],
+              [
+                "Le Huu Cuong",
+                6,
+                6
+              ]
+            ]
+          }
+        }
+      },
+      "starter": {},
+      "wrong": {
+        "inner_join_mat_chu_the": {
+          "bien_the": {
+            "public": "rot (khác số dòng (2476 so với 2512))",
+            "hidden-1": "rot (khác số dòng (2476 so với 2512))"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        },
+        "dem_dong_thay_khach": {
+          "bien_the": {
+            "public": "rot (khác giá trị ở dòng 264, cột 3)",
+            "hidden-1": "rot (khác giá trị ở dòng 265, cột 3)"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        }
+      },
+      "optimize": null,
+      "buoc_wrong": {},
+      "bien_the": {
+        "public": "aivb",
+        "hidden-1": "aivb_hidden_1"
+      }
+    },
+    {
+      "ma": "aivb-k2-phan-bo-thu-no-khong-co-lenh",
+      "dong": 156,
+      "tieu_de": "Mỗi năm bao nhiêu khoản trả nợ không dò ra lệnh thanh toán?",
+      "hinhthuc": "write",
+      "cap": "medium",
+      "dang": "E2",
+      "domain": "operations",
+      "dulieu": "aivb",
+      "diem": 30,
+      "trangthai": "review",
+      "bo_qua": false,
+      "cham": {
+        "bokiemtra": [
+          "public",
+          "hidden-1"
+        ],
+        "thutu": "co",
+        "socot": "vitri",
+        "saiso": 0.01,
+        "quettoida": {},
+        "ngansach": null
+      },
+      "buoc": [],
+      "khoi_sql": {
+        "aivb-k2-phan-bo-thu-no-khong-co-lenh": {
+          "solution": [
+            "solution"
+          ],
+          "wrong": [
+            "loc_null_truoc_khi_gom",
+            "inner_join"
+          ]
+        }
+      },
+      "loi": [],
+      "canh_bao": [],
+      "kiem_tra": [
+        {
+          "phep": "kiem_tinh (khoá, phần bắt buộc theo hình thức, khối SQL, khái niệm, bước case)",
+          "ket_qua": "dat",
+          "chi_tiet": "0 lỗi"
+        },
+        {
+          "phep": "solution_chay_moi_bien_the",
+          "ket_qua": "dat",
+          "chi_tiet": "[aivb-k2-phan-bo-thu-no-khong-co-lenh]: public, hidden-1; chạy 2 lần cùng kết quả"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "loc_null_truoc_khi_gom: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "inner_join: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "nghiepvu_khong_lo_so",
+          "ket_qua": "dat",
+          "chi_tiet": ""
+        }
+      ],
+      "solution": {
+        "aivb-k2-phan-bo-thu-no-khong-co-lenh": {
+          "public": {
+            "so_dong": 5,
+            "cot": [
+              "nam",
+              "so_phan_bo",
+              "so_khong_co_lenh",
+              "ty_le_pct"
+            ],
+            "giay": 0.257,
+            "dong_dau": [
+              [
+                2022,
+                419,
+                419,
+                100
+              ],
+              [
+                2023,
+                5571,
+                5571,
+                100
+              ],
+              [
+                2024,
+                7533,
+                7533,
+                100
+              ],
+              [
+                2025,
+                8912,
+                8912,
+                100
+              ],
+              [
+                2026,
+                9515,
+                0,
+                0
+              ]
+            ]
+          },
+          "hidden-1": {
+            "so_dong": 5,
+            "cot": [
+              "nam",
+              "so_phan_bo",
+              "so_khong_co_lenh",
+              "ty_le_pct"
+            ],
+            "giay": 0.259,
+            "dong_dau": [
+              [
+                2022,
+                419,
+                419,
+                100
+              ],
+              [
+                2023,
+                5571,
+                5571,
+                100
+              ],
+              [
+                2024,
+                7533,
+                7533,
+                100
+              ],
+              [
+                2025,
+                8920,
+                8920,
+                100
+              ],
+              [
+                2026,
+                9546,
+                975,
+                10.21
+              ]
+            ]
+          }
+        }
+      },
+      "starter": {},
+      "wrong": {
+        "loc_null_truoc_khi_gom": {
+          "bien_the": {
+            "public": "rot (khác số dòng (4 so với 5))",
+            "hidden-1": "rot (khác giá trị ở dòng 5, cột 2)"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        },
+        "inner_join": {
+          "bien_the": {
+            "public": "rot (khác số dòng (1 so với 5))",
+            "hidden-1": "rot (khác số dòng (1 so với 5))"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        }
+      },
+      "optimize": null,
+      "buoc_wrong": {},
+      "bien_the": {
+        "public": "aivb",
+        "hidden-1": "aivb_hidden_1"
+      }
+    },
+    {
+      "ma": "aivb-k3-doi-soat-lai-du-thu-tien-gui",
+      "dong": 187,
+      "tieu_de": "Lãi dự trả tháng 12/2026 có khớp lãi theo hợp đồng?",
+      "hinhthuc": "write",
+      "cap": "hard",
+      "dang": "E2",
+      "domain": "finance",
+      "dulieu": "aivb",
+      "diem": 50,
+      "trangthai": "review",
+      "bo_qua": false,
+      "cham": {
+        "bokiemtra": [
+          "public",
+          "hidden-1"
+        ],
+        "thutu": "co",
+        "socot": "vitri",
+        "saiso": 0.01,
+        "quettoida": {},
+        "ngansach": null
+      },
+      "buoc": [],
+      "khoi_sql": {
+        "aivb-k3-doi-soat-lai-du-thu-tien-gui": {
+          "solution": [
+            "solution"
+          ],
+          "wrong": [
+            "so_ngay_bang_so_dong",
+            "khong_loc_du_thang"
+          ]
+        }
+      },
+      "loi": [],
+      "canh_bao": [],
+      "kiem_tra": [
+        {
+          "phep": "kiem_tinh (khoá, phần bắt buộc theo hình thức, khối SQL, khái niệm, bước case)",
+          "ket_qua": "dat",
+          "chi_tiet": "0 lỗi"
+        },
+        {
+          "phep": "solution_chay_moi_bien_the",
+          "ket_qua": "dat",
+          "chi_tiet": "[aivb-k3-doi-soat-lai-du-thu-tien-gui]: public, hidden-1; chạy 2 lần cùng kết quả"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "so_ngay_bang_so_dong: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "khong_loc_du_thang: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "nghiepvu_khong_lo_so",
+          "ket_qua": "dat",
+          "chi_tiet": ""
+        }
+      ],
+      "solution": {
+        "aivb-k3-doi-soat-lai-du-thu-tien-gui": {
+          "public": {
+            "so_dong": 1,
+            "cot": [
+              "so_hop_dong",
+              "so_dong_du_tra",
+              "tong_lai_du_tra",
+              "tong_lai_hop_dong",
+              "so_hd_khong_co_lai"
+            ],
+            "giay": 2.077,
+            "dong_dau": [
+              [
+                1607,
+                36961,
+                2298964702,
+                2298964678,
+                15
+              ]
+            ]
+          },
+          "hidden-1": {
+            "so_dong": 1,
+            "cot": [
+              "so_hop_dong",
+              "so_dong_du_tra",
+              "tong_lai_du_tra",
+              "tong_lai_hop_dong",
+              "so_hd_khong_co_lai"
+            ],
+            "giay": 2.068,
+            "dong_dau": [
+              [
+                1254,
+                26172,
+                1540123893,
+                1716581014,
+                17
+              ]
+            ]
+          }
+        }
+      },
+      "starter": {},
+      "wrong": {
+        "so_ngay_bang_so_dong": {
+          "bien_the": {
+            "public": "rot (khác giá trị ở dòng 1, cột 4)",
+            "hidden-1": "rot (khác giá trị ở dòng 1, cột 4)"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        },
+        "khong_loc_du_thang": {
+          "bien_the": {
+            "public": "rot (khác giá trị ở dòng 1, cột 1)",
+            "hidden-1": "rot (khác giá trị ở dòng 1, cột 1)"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        }
+      },
+      "optimize": null,
+      "buoc_wrong": {},
+      "bien_the": {
+        "public": "aivb",
+        "hidden-1": "aivb_hidden_1"
+      }
+    },
+    {
+      "ma": "aivb-k4-tinh-thieu-nghe-nghiep",
+      "dong": 220,
+      "tieu_de": "Tỉnh nào có tỷ lệ khách thiếu nghề nghiệp cao hơn mức chung?",
+      "hinhthuc": "write",
+      "cap": "medium",
+      "dang": "C3",
+      "domain": "customer",
+      "dulieu": "aivb",
+      "diem": 30,
+      "trangthai": "review",
+      "bo_qua": false,
+      "cham": {
+        "bokiemtra": [
+          "public",
+          "hidden-1"
+        ],
+        "thutu": "co",
+        "socot": "vitri",
+        "saiso": 0.01,
+        "quettoida": {},
+        "ngansach": null
+      },
+      "buoc": [],
+      "khoi_sql": {
+        "aivb-k4-tinh-thieu-nghe-nghiep": {
+          "solution": [
+            "solution"
+          ],
+          "wrong": [
+            "binh_quan_cac_tinh",
+            "count_cot_bo_null"
+          ]
+        }
+      },
+      "loi": [],
+      "canh_bao": [],
+      "kiem_tra": [
+        {
+          "phep": "kiem_tinh (khoá, phần bắt buộc theo hình thức, khối SQL, khái niệm, bước case)",
+          "ket_qua": "dat",
+          "chi_tiet": "0 lỗi"
+        },
+        {
+          "phep": "solution_chay_moi_bien_the",
+          "ket_qua": "dat",
+          "chi_tiet": "[aivb-k4-tinh-thieu-nghe-nghiep]: public, hidden-1; chạy 2 lần cùng kết quả"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "binh_quan_cac_tinh: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "count_cot_bo_null: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "nghiepvu_khong_lo_so",
+          "ket_qua": "dat",
+          "chi_tiet": ""
+        }
+      ],
+      "solution": {
+        "aivb-k4-tinh-thieu-nghe-nghiep": {
+          "public": {
+            "so_dong": 3,
+            "cot": [
+              "residence_province",
+              "so_ca_nhan",
+              "so_thieu",
+              "ty_le_thieu_pct",
+              "ty_le_chung_pct"
+            ],
+            "giay": 0.011,
+            "dong_dau": [
+              [
+                "TP_HCM",
+                3004,
+                797,
+                26.53,
+                25.03
+              ],
+              [
+                "HUE",
+                285,
+                74,
+                25.96,
+                25.03
+              ],
+              [
+                "KHAC",
+                1354,
+                342,
+                25.26,
+                25.03
+              ]
+            ]
+          },
+          "hidden-1": {
+            "so_dong": 3,
+            "cot": [
+              "residence_province",
+              "so_ca_nhan",
+              "so_thieu",
+              "ty_le_thieu_pct",
+              "ty_le_chung_pct"
+            ],
+            "giay": 0.007,
+            "dong_dau": [
+              [
+                "TP_HCM",
+                3004,
+                797,
+                26.53,
+                25.04
+              ],
+              [
+                "HUE",
+                286,
+                75,
+                26.22,
+                25.04
+              ],
+              [
+                "KHAC",
+                1354,
+                342,
+                25.26,
+                25.04
+              ]
+            ]
+          }
+        }
+      },
+      "starter": {},
+      "wrong": {
+        "binh_quan_cac_tinh": {
+          "bien_the": {
+            "public": "rot (khác giá trị ở dòng 1, cột 5)",
+            "hidden-1": "rot (khác giá trị ở dòng 1, cột 5)"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        },
+        "count_cot_bo_null": {
+          "bien_the": {
+            "public": "rot (khác số dòng (5 so với 3))",
+            "hidden-1": "rot (khác số dòng (5 so với 3))"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        }
+      },
+      "optimize": null,
+      "buoc_wrong": {},
+      "bien_the": {
+        "public": "aivb",
+        "hidden-1": "aivb_hidden_1"
+      }
+    },
+    {
+      "ma": "aivb-k5-trang-thai-khoan-vay-mau-thuan",
+      "dong": 250,
+      "tieu_de": "Trạng thái khoản vay có khớp với dư nợ và lịch trả nợ?",
+      "hinhthuc": "write",
+      "cap": "hard",
+      "dang": "E1",
+      "domain": "after_sales",
+      "dulieu": "aivb",
+      "diem": 50,
+      "trangthai": "review",
+      "bo_qua": false,
+      "cham": {
+        "bokiemtra": [
+          "public",
+          "hidden-1"
+        ],
+        "thutu": "co",
+        "socot": "vitri",
+        "saiso": 0.01,
+        "quettoida": {},
+        "ngansach": null
+      },
+      "buoc": [],
+      "khoi_sql": {
+        "aivb-k5-trang-thai-khoan-vay-mau-thuan": {
+          "solution": [
+            "solution"
+          ],
+          "wrong": [
+            "dem_ky_thay_vi_khoan",
+            "inner_join_mat_trang_thai"
+          ]
+        }
+      },
+      "loi": [],
+      "canh_bao": [],
+      "kiem_tra": [
+        {
+          "phep": "kiem_tinh (khoá, phần bắt buộc theo hình thức, khối SQL, khái niệm, bước case)",
+          "ket_qua": "dat",
+          "chi_tiet": "0 lỗi"
+        },
+        {
+          "phep": "solution_chay_moi_bien_the",
+          "ket_qua": "dat",
+          "chi_tiet": "[aivb-k5-trang-thai-khoan-vay-mau-thuan]: public, hidden-1; chạy 2 lần cùng kết quả"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "dem_ky_thay_vi_khoan: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "inner_join_mat_trang_thai: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "nghiepvu_khong_lo_so",
+          "ket_qua": "dat",
+          "chi_tiet": ""
+        }
+      ],
+      "solution": {
+        "aivb-k5-trang-thai-khoan-vay-mau-thuan": {
+          "public": {
+            "so_dong": 5,
+            "cot": [
+              "loan_status",
+              "so_khoan_vay",
+              "so_co_ky_qua_han",
+              "so_du_no_bang_0"
+            ],
+            "giay": 0.77,
+            "dong_dau": [
+              [
+                "ACTIVE",
+                714,
+                0,
+                0
+              ],
+              [
+                "DELINQUENT",
+                63,
+                63,
+                0
+              ],
+              [
+                "RESTRUCTURED",
+                24,
+                13,
+                0
+              ],
+              [
+                "SETTLED",
+                1271,
+                0,
+                1271
+              ],
+              [
+                "WRITTEN_OFF",
+                17,
+                17,
+                17
+              ]
+            ]
+          },
+          "hidden-1": {
+            "so_dong": 5,
+            "cot": [
+              "loan_status",
+              "so_khoan_vay",
+              "so_co_ky_qua_han",
+              "so_du_no_bang_0"
+            ],
+            "giay": 0.616,
+            "dong_dau": [
+              [
+                "ACTIVE",
+                716,
+                0,
+                0
+              ],
+              [
+                "DELINQUENT",
+                63,
+                63,
+                0
+              ],
+              [
+                "RESTRUCTURED",
+                25,
+                14,
+                0
+              ],
+              [
+                "SETTLED",
+                1271,
+                0,
+                1271
+              ],
+              [
+                "WRITTEN_OFF",
+                17,
+                17,
+                17
+              ]
+            ]
+          }
+        }
+      },
+      "starter": {},
+      "wrong": {
+        "dem_ky_thay_vi_khoan": {
+          "bien_the": {
+            "public": "rot (khác giá trị ở dòng 2, cột 3)",
+            "hidden-1": "rot (khác giá trị ở dòng 2, cột 3)"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        },
+        "inner_join_mat_trang_thai": {
+          "bien_the": {
+            "public": "rot (khác số dòng (3 so với 5))",
+            "hidden-1": "rot (khác số dòng (3 so với 5))"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        }
+      },
+      "optimize": null,
+      "buoc_wrong": {},
+      "bien_the": {
+        "public": "aivb",
+        "hidden-1": "aivb_hidden_1"
+      }
+    },
+    {
+      "ma": "aivb-k6-ho-so-ngoai-hieu-luc-chinh-sach",
+      "dong": 282,
+      "tieu_de": "Bao nhiêu hồ sơ vay gắn phiên bản chính sách chưa có hiệu lực?",
+      "hinhthuc": "write",
+      "cap": "hard",
+      "dang": "B4",
+      "domain": "sales",
+      "dulieu": "aivb",
+      "diem": 50,
+      "trangthai": "review",
+      "bo_qua": false,
+      "cham": {
+        "bokiemtra": [
+          "public",
+          "hidden-1"
+        ],
+        "thutu": "co",
+        "socot": "vitri",
+        "saiso": 0.01,
+        "quettoida": {},
+        "ngansach": null
+      },
+      "buoc": [],
+      "khoi_sql": {
+        "aivb-k6-ho-so-ngoai-hieu-luc-chinh-sach": {
+          "solution": [
+            "solution"
+          ],
+          "wrong": [
+            "inner_join_mat_ho_so",
+            "bo_ngay_het_hieu_luc"
+          ]
+        }
+      },
+      "loi": [],
+      "canh_bao": [],
+      "kiem_tra": [
+        {
+          "phep": "kiem_tinh (khoá, phần bắt buộc theo hình thức, khối SQL, khái niệm, bước case)",
+          "ket_qua": "dat",
+          "chi_tiet": "0 lỗi"
+        },
+        {
+          "phep": "solution_chay_moi_bien_the",
+          "ket_qua": "dat",
+          "chi_tiet": "[aivb-k6-ho-so-ngoai-hieu-luc-chinh-sach]: public, hidden-1; chạy 2 lần cùng kết quả"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "inner_join_mat_ho_so: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "bo_ngay_het_hieu_luc: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "nghiepvu_khong_lo_so",
+          "ket_qua": "dat",
+          "chi_tiet": ""
+        }
+      ],
+      "solution": {
+        "aivb-k6-ho-so-ngoai-hieu-luc-chinh-sach": {
+          "public": {
+            "so_dong": 5,
+            "cot": [
+              "chinh_sach_gan",
+              "chinh_sach_hieu_luc",
+              "so_ho_so"
+            ],
+            "giay": 0.006,
+            "dong_dau": [
+              [
+                "PV_2023_LOOSE",
+                "PV_2023_LOOSE",
+                157
+              ],
+              [
+                "PV_2023_STD",
+                "KHONG_CO",
+                450
+              ],
+              [
+                "PV_2023_STD",
+                "PV_2023_STD",
+                295
+              ],
+              [
+                "PV_2023_STD2",
+                "PV_2023_STD2",
+                481
+              ],
+              [
+                "PV_2024_STD",
+                "PV_2024_STD",
+                1745
+              ]
+            ]
+          },
+          "hidden-1": {
+            "so_dong": 5,
+            "cot": [
+              "chinh_sach_gan",
+              "chinh_sach_hieu_luc",
+              "so_ho_so"
+            ],
+            "giay": 0.008,
+            "dong_dau": [
+              [
+                "PV_2023_LOOSE",
+                "PV_2023_LOOSE",
+                157
+              ],
+              [
+                "PV_2023_STD",
+                "KHONG_CO",
+                450
+              ],
+              [
+                "PV_2023_STD",
+                "PV_2023_STD",
+                295
+              ],
+              [
+                "PV_2023_STD2",
+                "PV_2023_STD2",
+                481
+              ],
+              [
+                "PV_2024_STD",
+                "PV_2024_STD",
+                1750
+              ]
+            ]
+          }
+        }
+      },
+      "starter": {},
+      "wrong": {
+        "inner_join_mat_ho_so": {
+          "bien_the": {
+            "public": "rot (khác số dòng (4 so với 5))",
+            "hidden-1": "rot (khác số dòng (4 so với 5))"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        },
+        "bo_ngay_het_hieu_luc": {
+          "bien_the": {
+            "public": "rot (khác số dòng (6 so với 5))",
+            "hidden-1": "rot (khác số dòng (6 so với 5))"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        }
+      },
+      "optimize": null,
+      "buoc_wrong": {},
+      "bien_the": {
+        "public": "aivb",
+        "hidden-1": "aivb_hidden_1"
+      }
+    },
+    {
+      "ma": "aivb-k7-ngay-tu-choi-bat-thuong",
+      "dong": 313,
+      "tieu_de": "Ngày từ chối bất thường chỉ ra toàn ngày đông giao dịch",
+      "hinhthuc": "debug",
+      "cap": "medium",
+      "dang": "E1",
+      "domain": "after_sales",
+      "dulieu": "aivb",
+      "diem": 30,
+      "trangthai": "review",
+      "bo_qua": false,
+      "cham": {
+        "bokiemtra": [
+          "public",
+          "hidden-1"
+        ],
+        "thutu": "co",
+        "socot": "vitri",
+        "saiso": 0.01,
+        "quettoida": {},
+        "ngansach": null
+      },
+      "buoc": [],
+      "khoi_sql": {
+        "aivb-k7-ngay-tu-choi-bat-thuong": {
+          "solution": [
+            "solution"
+          ],
+          "starter": [
+            "starter"
+          ],
+          "wrong": [
+            "chia_365_ngay",
+            "quen_loc_tu_choi"
+          ]
+        }
+      },
+      "loi": [],
+      "canh_bao": [],
+      "kiem_tra": [
+        {
+          "phep": "kiem_tinh (khoá, phần bắt buộc theo hình thức, khối SQL, khái niệm, bước case)",
+          "ket_qua": "dat",
+          "chi_tiet": "0 lỗi"
+        },
+        {
+          "phep": "solution_chay_moi_bien_the",
+          "ket_qua": "dat",
+          "chi_tiet": "[aivb-k7-ngay-tu-choi-bat-thuong]: public, hidden-1; chạy 2 lần cùng kết quả"
+        },
+        {
+          "phep": "starter_debug_sai",
+          "ket_qua": "dat",
+          "chi_tiet": "public: khác số dòng (10 so với 3), hidden-1: khác số dòng (10 so với 3)"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "chia_365_ngay: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "quen_loc_tu_choi: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "nghiepvu_khong_lo_so",
+          "ket_qua": "dat",
+          "chi_tiet": ""
+        }
+      ],
+      "solution": {
+        "aivb-k7-ngay-tu-choi-bat-thuong": {
+          "public": {
+            "so_dong": 3,
+            "cot": [
+              "channel_code",
+              "transaction_date",
+              "so_lenh_tu_choi",
+              "bq_ngay_kenh"
+            ],
+            "giay": 0.918,
+            "dong_dau": [
+              [
+                "API",
+                "2026-03-27",
+                5,
+                1.55
+              ],
+              [
+                "POS",
+                "2026-02-12",
+                12,
+                3.36
+              ],
+              [
+                "QR",
+                "2026-02-09",
+                23,
+                7.16
+              ]
+            ]
+          },
+          "hidden-1": {
+            "so_dong": 3,
+            "cot": [
+              "channel_code",
+              "transaction_date",
+              "so_lenh_tu_choi",
+              "bq_ngay_kenh"
+            ],
+            "giay": 0.789,
+            "dong_dau": [
+              [
+                "API",
+                "2026-03-27",
+                5,
+                1.49
+              ],
+              [
+                "POS",
+                "2026-02-12",
+                10,
+                3.03
+              ],
+              [
+                "QR",
+                "2026-02-09",
+                21,
+                6.45
+              ]
+            ]
+          }
+        }
+      },
+      "starter": {
+        "public": "khác số dòng (10 so với 3)",
+        "hidden-1": "khác số dòng (10 so với 3)"
+      },
+      "wrong": {
+        "chia_365_ngay": {
+          "bien_the": {
+            "public": "rot (khác số dòng (191 so với 3))",
+            "hidden-1": "rot (khác số dòng (175 so với 3))"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        },
+        "quen_loc_tu_choi": {
+          "bien_the": {
+            "public": "rot (khác số dòng (2 so với 3))",
+            "hidden-1": "rot (khác số dòng (2 so với 3))"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        }
+      },
+      "optimize": null,
+      "buoc_wrong": {},
+      "bien_the": {
+        "public": "aivb",
+        "hidden-1": "aivb_hidden_1"
+      }
+    },
+    {
+      "ma": "aivb-k8-thoi-gian-xu-ly-kyc",
+      "dong": 342,
+      "tieu_de": "Thời gian xử lý KYC có số âm",
+      "hinhthuc": "debug",
+      "cap": "hard",
+      "dang": "E1",
+      "domain": "customer",
+      "dulieu": "aivb",
+      "diem": 50,
+      "trangthai": "review",
+      "bo_qua": false,
+      "cham": {
+        "bokiemtra": [
+          "public",
+          "hidden-1"
+        ],
+        "thutu": "co",
+        "socot": "vitri",
+        "saiso": 0.01,
+        "quettoida": {},
+        "ngansach": null
+      },
+      "buoc": [],
+      "khoi_sql": {
+        "aivb-k8-thoi-gian-xu-ly-kyc": {
+          "solution": [
+            "solution"
+          ],
+          "starter": [
+            "starter"
+          ],
+          "wrong": [
+            "bo_moc_144_gio",
+            "lag_theo_thoi_gian_toan_bang"
+          ]
+        }
+      },
+      "loi": [],
+      "canh_bao": [],
+      "kiem_tra": [
+        {
+          "phep": "kiem_tinh (khoá, phần bắt buộc theo hình thức, khối SQL, khái niệm, bước case)",
+          "ket_qua": "dat",
+          "chi_tiet": "0 lỗi"
+        },
+        {
+          "phep": "solution_chay_moi_bien_the",
+          "ket_qua": "dat",
+          "chi_tiet": "[aivb-k8-thoi-gian-xu-ly-kyc]: public, hidden-1; chạy 2 lần cùng kết quả"
+        },
+        {
+          "phep": "starter_debug_sai",
+          "ket_qua": "dat",
+          "chi_tiet": "public: khác số dòng (4098 so với 188), hidden-1: khác số dòng (4101 so với 189)"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "bo_moc_144_gio: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "lag_theo_thoi_gian_toan_bang: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "nghiepvu_khong_lo_so",
+          "ket_qua": "dat",
+          "chi_tiet": ""
+        }
+      ],
+      "solution": {
+        "aivb-k8-thoi-gian-xu-ly-kyc": {
+          "public": {
+            "so_dong": 188,
+            "cot": [
+              "customer_id",
+              "thoi_diem_nop",
+              "thoi_diem_quyet_dinh",
+              "ket_qua",
+              "so_gio_xu_ly"
+            ],
+            "giay": 0.116,
+            "dong_dau": [
+              [
+                "SYN_CUS_0000095",
+                "2022-01-28T10:00:01",
+                "2022-02-07T10:00:02",
+                "KYC_APPROVED",
+                240
+              ],
+              [
+                "SYN_CUS_0000112",
+                "2022-01-28T10:00:01",
+                "2022-02-07T10:00:02",
+                "KYC_APPROVED",
+                240
+              ],
+              [
+                "SYN_CUS_0000123",
+                "2022-01-28T10:00:01",
+                "2022-02-07T10:00:02",
+                "KYC_APPROVED",
+                240
+              ],
+              [
+                "SYN_CUS_0000243",
+                "2022-01-28T10:00:01",
+                "2022-02-07T10:00:02",
+                "KYC_APPROVED",
+                240
+              ],
+              [
+                "SYN_CUS_0000275",
+                "2019-02-01T10:00:01",
+                "2019-02-11T10:00:02",
+                "KYC_APPROVED",
+                240
+              ]
+            ]
+          },
+          "hidden-1": {
+            "so_dong": 189,
+            "cot": [
+              "customer_id",
+              "thoi_diem_nop",
+              "thoi_diem_quyet_dinh",
+              "ket_qua",
+              "so_gio_xu_ly"
+            ],
+            "giay": 0.091,
+            "dong_dau": [
+              [
+                "SYN_CUS_0000095",
+                "2022-01-28T10:00:01",
+                "2022-02-07T10:00:02",
+                "KYC_APPROVED",
+                240
+              ],
+              [
+                "SYN_CUS_0000112",
+                "2022-01-28T10:00:01",
+                "2022-02-07T10:00:02",
+                "KYC_APPROVED",
+                240
+              ],
+              [
+                "SYN_CUS_0000123",
+                "2022-01-28T10:00:01",
+                "2022-02-07T10:00:02",
+                "KYC_APPROVED",
+                240
+              ],
+              [
+                "SYN_CUS_0000243",
+                "2022-01-28T10:00:01",
+                "2022-02-07T10:00:02",
+                "KYC_APPROVED",
+                240
+              ],
+              [
+                "SYN_CUS_0000275",
+                "2019-02-01T10:00:01",
+                "2019-02-11T10:00:02",
+                "KYC_APPROVED",
+                240
+              ]
+            ]
+          }
+        }
+      },
+      "starter": {
+        "public": "khác số dòng (4098 so với 188)",
+        "hidden-1": "khác số dòng (4101 so với 189)"
+      },
+      "wrong": {
+        "bo_moc_144_gio": {
+          "bien_the": {
+            "public": "rot (khác số dòng (182 so với 188))",
+            "hidden-1": "rot (khác số dòng (183 so với 189))"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        },
+        "lag_theo_thoi_gian_toan_bang": {
+          "bien_the": {
+            "public": "rot (khác số dòng (0 so với 188))",
+            "hidden-1": "rot (khác số dòng (0 so với 189))"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        }
+      },
+      "optimize": null,
+      "buoc_wrong": {},
+      "bien_the": {
+        "public": "aivb",
+        "hidden-1": "aivb_hidden_1"
+      }
+    },
+    {
+      "ma": "aivb-k9-ho-so-duyet-khong-co-khoan-vay",
+      "dong": 372,
+      "tieu_de": "Hồ sơ duyệt chưa có khoản vay ra 0 dòng",
+      "hinhthuc": "debug",
+      "cap": "medium",
+      "dang": "E2",
+      "domain": "sales",
+      "dulieu": "aivb",
+      "diem": 30,
+      "trangthai": "review",
+      "bo_qua": false,
+      "cham": {
+        "bokiemtra": [
+          "public",
+          "hidden-1"
+        ],
+        "thutu": "co",
+        "socot": "vitri",
+        "saiso": 0.01,
+        "quettoida": {},
+        "ngansach": null
+      },
+      "buoc": [],
+      "khoi_sql": {
+        "aivb-k9-ho-so-duyet-khong-co-khoan-vay": {
+          "solution": [
+            "solution"
+          ],
+          "starter": [
+            "starter"
+          ],
+          "wrong": [
+            "dieu_kien_trang_thai_vao_on"
+          ]
+        }
+      },
+      "loi": [],
+      "canh_bao": [],
+      "kiem_tra": [
+        {
+          "phep": "kiem_tinh (khoá, phần bắt buộc theo hình thức, khối SQL, khái niệm, bước case)",
+          "ket_qua": "dat",
+          "chi_tiet": "0 lỗi"
+        },
+        {
+          "phep": "solution_chay_moi_bien_the",
+          "ket_qua": "dat",
+          "chi_tiet": "[aivb-k9-ho-so-duyet-khong-co-khoan-vay]: public, hidden-1; chạy 2 lần cùng kết quả"
+        },
+        {
+          "phep": "starter_debug_sai",
+          "ket_qua": "dat",
+          "chi_tiet": "public: khác số dòng (0 so với 30), hidden-1: khác số dòng (0 so với 31)"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "dieu_kien_trang_thai_vao_on: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "nghiepvu_khong_lo_so",
+          "ket_qua": "dat",
+          "chi_tiet": ""
+        }
+      ],
+      "solution": {
+        "aivb-k9-ho-so-duyet-khong-co-khoan-vay": {
+          "public": {
+            "so_dong": 30,
+            "cot": [
+              "application_id",
+              "application_date",
+              "product_id",
+              "requested_amount"
+            ],
+            "giay": 0.02,
+            "dong_dau": [
+              [
+                "SYN_LNA_0000548",
+                "2023-03-27",
+                "PLEDGE",
+                16791664
+              ],
+              [
+                "SYN_LNA_0000696",
+                "2023-06-13",
+                "PLEDGE",
+                62768508
+              ],
+              [
+                "SYN_LNA_0001077",
+                "2024-01-21",
+                "PLEDGE",
+                9234336
+              ],
+              [
+                "SYN_LNA_0001157",
+                "2024-03-06",
+                "PLEDGE",
+                39758249
+              ],
+              [
+                "SYN_LNA_0001152",
+                "2024-03-31",
+                "AUTO",
+                1897853258
+              ]
+            ]
+          },
+          "hidden-1": {
+            "so_dong": 31,
+            "cot": [
+              "application_id",
+              "application_date",
+              "product_id",
+              "requested_amount"
+            ],
+            "giay": 0.031,
+            "dong_dau": [
+              [
+                "SYN_LNA_0000548",
+                "2023-03-27",
+                "PLEDGE",
+                16791664
+              ],
+              [
+                "SYN_LNA_0000696",
+                "2023-06-13",
+                "PLEDGE",
+                62768508
+              ],
+              [
+                "SYN_LNA_0001077",
+                "2024-01-21",
+                "PLEDGE",
+                9234336
+              ],
+              [
+                "SYN_LNA_0001157",
+                "2024-03-06",
+                "PLEDGE",
+                39758249
+              ],
+              [
+                "SYN_LNA_0001152",
+                "2024-03-31",
+                "AUTO",
+                1897853258
+              ]
+            ]
+          }
+        }
+      },
+      "starter": {
+        "public": "khác số dòng (0 so với 30)",
+        "hidden-1": "khác số dòng (0 so với 31)"
+      },
+      "wrong": {
+        "dieu_kien_trang_thai_vao_on": {
+          "bien_the": {
+            "public": "rot (khác số dòng (1301 so với 30))",
+            "hidden-1": "rot (khác số dòng (1302 so với 31))"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        }
+      },
+      "optimize": null,
+      "buoc_wrong": {},
+      "bien_the": {
+        "public": "aivb",
+        "hidden-1": "aivb_hidden_1"
+      }
+    },
+    {
+      "ma": "aivb-p1-qr-thang-12-sargable",
+      "dong": 404,
+      "tieu_de": "Đếm lệnh QR tuần cuối năm không quét cả bảng",
+      "hinhthuc": "optimize",
+      "cap": "medium",
+      "dang": "A2",
+      "domain": "marketing",
+      "dulieu": "aivb",
+      "diem": 30,
+      "trangthai": "review",
+      "bo_qua": false,
+      "cham": {
+        "bokiemtra": [
+          "public",
+          "hidden-1"
+        ],
+        "thutu": "co",
+        "socot": "vitri",
+        "saiso": 0.01,
+        "quettoida": {
+          "core_payment_order": 1
+        },
+        "ngansach": 2.0
+      },
+      "buoc": [],
+      "khoi_sql": {
+        "aivb-p1-qr-thang-12-sargable": {
+          "solution": [
+            "solution"
+          ],
+          "starter": [
+            "starter"
+          ],
+          "wrong": [
+            "date_format_van_boc_cot",
+            "thieu_ngay_31"
+          ]
+        }
+      },
+      "loi": [],
+      "canh_bao": [],
+      "kiem_tra": [
+        {
+          "phep": "kiem_tinh (khoá, phần bắt buộc theo hình thức, khối SQL, khái niệm, bước case)",
+          "ket_qua": "dat",
+          "chi_tiet": "0 lỗi"
+        },
+        {
+          "phep": "solution_chay_moi_bien_the",
+          "ket_qua": "dat",
+          "chi_tiet": "[aivb-p1-qr-thang-12-sargable]: public, hidden-1; chạy 2 lần cùng kết quả"
+        },
+        {
+          "phep": "solution_thoa_rang_buoc",
+          "ket_qua": "dat",
+          "chi_tiet": "{\"core_payment_order\": 1}, dòng trung gian 46844"
+        },
+        {
+          "phep": "starter_opt_dung_ket_qua",
+          "ket_qua": "dat",
+          "chi_tiet": "khớp mọi biến thể"
+        },
+        {
+          "phep": "starter_opt_vi_pham",
+          "ket_qua": "dat",
+          "chi_tiet": "dòng trung gian 2008516 > 2 × 46844"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "date_format_van_boc_cot: rớt ở -; vi phạm dòng trung gian 2008516 > 2 × 46844"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "thieu_ngay_31: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "nghiepvu_khong_lo_so",
+          "ket_qua": "dat",
+          "chi_tiet": ""
+        }
+      ],
+      "solution": {
+        "aivb-p1-qr-thang-12-sargable": {
+          "public": {
+            "so_dong": 1,
+            "cot": [
+              "so_lenh",
+              "tong_tien"
+            ],
+            "giay": 0.427,
+            "dong_dau": [
+              [
+                8515,
+                5367290341
+              ]
+            ]
+          },
+          "hidden-1": {
+            "so_dong": 1,
+            "cot": [
+              "so_lenh",
+              "tong_tien"
+            ],
+            "giay": 0.419,
+            "dong_dau": [
+              [
+                7708,
+                4827681341
+              ]
+            ]
+          }
+        }
+      },
+      "starter": {
+        "public": "khớp",
+        "hidden-1": "khớp"
+      },
+      "wrong": {
+        "date_format_van_boc_cot": {
+          "bien_the": {
+            "public": "qua",
+            "hidden-1": "qua"
+          },
+          "rot_o": [],
+          "vi_pham_rang_buoc": [
+            "dòng trung gian 2008516 > 2 × 46844"
+          ]
+        },
+        "thieu_ngay_31": {
+          "bien_the": {
+            "public": "rot (khác giá trị ở dòng 1, cột 1)",
+            "hidden-1": "rot (khác giá trị ở dòng 1, cột 1)"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        }
+      },
+      "optimize": {
+        "rang_buoc": {
+          "quettoida": {
+            "core_payment_order": 1
+          },
+          "ngansach": 2.0
+        },
+        "solution": {
+          "quet": {
+            "core_payment_order": 1
+          },
+          "dong_trung_gian": 46844,
+          "khong_ro": []
+        },
+        "starter": {
+          "quet": {
+            "core_payment_order": 1
+          },
+          "dong_trung_gian": 2008516,
+          "khong_ro": [],
+          "vi_pham": [
+            "dòng trung gian 2008516 > 2 × 46844"
+          ]
+        },
+        "wrong": {
+          "date_format_van_boc_cot": {
+            "quet": {
+              "core_payment_order": 1
+            },
+            "dong_trung_gian": 2008516,
+            "khong_ro": [],
+            "vi_pham": [
+              "dòng trung gian 2008516 > 2 × 46844"
+            ]
+          }
+        }
+      },
+      "buoc_wrong": {},
+      "bien_the": {
+        "public": "aivb",
+        "hidden-1": "aivb_hidden_1"
+      }
+    },
+    {
+      "ma": "aivb-p2-so-but-toan-moi-tai-khoan",
+      "dong": 433,
+      "tieu_de": "Đếm bút toán từng tài khoản bằng truy vấn con",
+      "hinhthuc": "optimize",
+      "cap": "medium",
+      "dang": "A3",
+      "domain": "operations",
+      "dulieu": "aivb",
+      "diem": 30,
+      "trangthai": "review",
+      "bo_qua": false,
+      "cham": {
+        "bokiemtra": [
+          "public",
+          "hidden-1"
+        ],
+        "thutu": "co",
+        "socot": "vitri",
+        "saiso": 0.01,
+        "quettoida": {
+          "core_account_posting": 1
+        },
+        "ngansach": 2.0
+      },
+      "buoc": [],
+      "khoi_sql": {
+        "aivb-p2-so-but-toan-moi-tai-khoan": {
+          "solution": [
+            "solution"
+          ],
+          "starter": [
+            "starter"
+          ],
+          "wrong": [
+            "inner_join_mat_tai_khoan"
+          ]
+        }
+      },
+      "loi": [],
+      "canh_bao": [],
+      "kiem_tra": [
+        {
+          "phep": "kiem_tinh (khoá, phần bắt buộc theo hình thức, khối SQL, khái niệm, bước case)",
+          "ket_qua": "dat",
+          "chi_tiet": "0 lỗi"
+        },
+        {
+          "phep": "solution_chay_moi_bien_the",
+          "ket_qua": "dat",
+          "chi_tiet": "[aivb-p2-so-but-toan-moi-tai-khoan]: public, hidden-1; chạy 2 lần cùng kết quả"
+        },
+        {
+          "phep": "solution_thoa_rang_buoc",
+          "ket_qua": "dat",
+          "chi_tiet": "{\"core_account\": 1, \"core_account_posting\": 1}, dòng trung gian 32023"
+        },
+        {
+          "phep": "starter_opt_dung_ket_qua",
+          "ket_qua": "dat",
+          "chi_tiet": "khớp mọi biến thể"
+        },
+        {
+          "phep": "starter_opt_vi_pham",
+          "ket_qua": "dat",
+          "chi_tiet": "core_account_posting quét 2 lần > 1"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "inner_join_mat_tai_khoan: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "nghiepvu_khong_lo_so",
+          "ket_qua": "dat",
+          "chi_tiet": ""
+        }
+      ],
+      "solution": {
+        "aivb-p2-so-but-toan-moi-tai-khoan": {
+          "public": {
+            "so_dong": 917,
+            "cot": [
+              "account_id",
+              "so_ghi_no",
+              "so_ghi_co"
+            ],
+            "giay": 0.106,
+            "dong_dau": [
+              [
+                "SYN_ACC_0000011",
+                0,
+                0
+              ],
+              [
+                "SYN_ACC_0000042",
+                0,
+                0
+              ],
+              [
+                "SYN_ACC_0000043",
+                1,
+                1
+              ],
+              [
+                "SYN_ACC_0000050",
+                0,
+                0
+              ],
+              [
+                "SYN_ACC_0000053",
+                1,
+                1
+              ]
+            ]
+          },
+          "hidden-1": {
+            "so_dong": 917,
+            "cot": [
+              "account_id",
+              "so_ghi_no",
+              "so_ghi_co"
+            ],
+            "giay": 0.07,
+            "dong_dau": [
+              [
+                "SYN_ACC_0000011",
+                0,
+                0
+              ],
+              [
+                "SYN_ACC_0000042",
+                0,
+                0
+              ],
+              [
+                "SYN_ACC_0000043",
+                1,
+                1
+              ],
+              [
+                "SYN_ACC_0000050",
+                0,
+                0
+              ],
+              [
+                "SYN_ACC_0000053",
+                1,
+                1
+              ]
+            ]
+          }
+        }
+      },
+      "starter": {
+        "public": "khớp",
+        "hidden-1": "khớp"
+      },
+      "wrong": {
+        "inner_join_mat_tai_khoan": {
+          "bien_the": {
+            "public": "rot (khác số dòng (365 so với 917))",
+            "hidden-1": "rot (khác số dòng (346 so với 917))"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        }
+      },
+      "optimize": {
+        "rang_buoc": {
+          "quettoida": {
+            "core_account_posting": 1
+          },
+          "ngansach": 2.0
+        },
+        "solution": {
+          "quet": {
+            "core_account": 1,
+            "core_account_posting": 1
+          },
+          "dong_trung_gian": 32023,
+          "khong_ro": []
+        },
+        "starter": {
+          "quet": {
+            "core_account": 1,
+            "core_account_posting": 2
+          },
+          "dong_trung_gian": 42662,
+          "khong_ro": [],
+          "vi_pham": [
+            "core_account_posting quét 2 lần > 1"
+          ]
+        },
+        "wrong": {}
+      },
+      "buoc_wrong": {},
+      "bien_the": {
+        "public": "aivb",
+        "hidden-1": "aivb_hidden_1"
+      }
+    },
+    {
+      "ma": "aivb-p3-tien-gui-lon-nhat-moi-chi-nhanh",
+      "dong": 464,
+      "tieu_de": "Tiền gửi lớn nhất mỗi chi nhánh quét một lần",
+      "hinhthuc": "optimize",
+      "cap": "hard",
+      "dang": "C1",
+      "domain": "finance",
+      "dulieu": "aivb",
+      "diem": 50,
+      "trangthai": "review",
+      "bo_qua": false,
+      "cham": {
+        "bokiemtra": [
+          "public",
+          "hidden-1"
+        ],
+        "thutu": "co",
+        "socot": "vitri",
+        "saiso": 0.01,
+        "quettoida": {
+          "core_deposit_contract": 1,
+          "core_contract": 1
+        },
+        "ngansach": 2.0
+      },
+      "buoc": [],
+      "khoi_sql": {
+        "aivb-p3-tien-gui-lon-nhat-moi-chi-nhanh": {
+          "solution": [
+            "solution"
+          ],
+          "starter": [
+            "starter"
+          ],
+          "wrong": [
+            "loc_trang_thai_sau_cua_so",
+            "cua_so_khong_chia_chi_nhanh"
+          ]
+        }
+      },
+      "loi": [],
+      "canh_bao": [],
+      "kiem_tra": [
+        {
+          "phep": "kiem_tinh (khoá, phần bắt buộc theo hình thức, khối SQL, khái niệm, bước case)",
+          "ket_qua": "dat",
+          "chi_tiet": "0 lỗi"
+        },
+        {
+          "phep": "solution_chay_moi_bien_the",
+          "ket_qua": "dat",
+          "chi_tiet": "[aivb-p3-tien-gui-lon-nhat-moi-chi-nhanh]: public, hidden-1; chạy 2 lần cùng kết quả"
+        },
+        {
+          "phep": "solution_thoa_rang_buoc",
+          "ket_qua": "dat",
+          "chi_tiet": "{\"core_deposit_contract\": 1, \"core_contract\": 1}, dòng trung gian 22645"
+        },
+        {
+          "phep": "starter_opt_dung_ket_qua",
+          "ket_qua": "dat",
+          "chi_tiet": "khớp mọi biến thể"
+        },
+        {
+          "phep": "starter_opt_vi_pham",
+          "ket_qua": "dat",
+          "chi_tiet": "core_deposit_contract quét 2 lần > 1; core_contract quét 2 lần > 1; dòng trung gian 5249852 > 2 × 22645"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "loc_trang_thai_sau_cua_so: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "cua_so_khong_chia_chi_nhanh: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "nghiepvu_khong_lo_so",
+          "ket_qua": "dat",
+          "chi_tiet": ""
+        }
+      ],
+      "solution": {
+        "aivb-p3-tien-gui-lon-nhat-moi-chi-nhanh": {
+          "public": {
+            "so_dong": 12,
+            "cot": [
+              "home_branch_id",
+              "deposit_id",
+              "principal"
+            ],
+            "giay": 0.017,
+            "dong_dau": [
+              [
+                "CN01",
+                "SYN_DEP_0007374",
+                4944818762
+              ],
+              [
+                "CN02",
+                "SYN_DEP_0008038",
+                3043691869
+              ],
+              [
+                "CN03",
+                "SYN_DEP_0005714",
+                2528555790
+              ],
+              [
+                "CN04",
+                "SYN_DEP_0008659",
+                2070351057
+              ],
+              [
+                "CN05",
+                "SYN_DEP_0006243",
+                2588579756
+              ]
+            ]
+          },
+          "hidden-1": {
+            "so_dong": 13,
+            "cot": [
+              "home_branch_id",
+              "deposit_id",
+              "principal"
+            ],
+            "giay": 0.019,
+            "dong_dau": [
+              [
+                "CN01",
+                "SYN_DEP_0007374",
+                4944818762
+              ],
+              [
+                "CN02",
+                "SYN_DEP_0008038",
+                3043691869
+              ],
+              [
+                "CN03",
+                "SYN_DEP_0005714",
+                2528555790
+              ],
+              [
+                "CN04",
+                "SYN_DEP_0008659",
+                2070351057
+              ],
+              [
+                "CN05",
+                "SYN_DEP_0006243",
+                2588579756
+              ]
+            ]
+          }
+        }
+      },
+      "starter": {
+        "public": "khớp",
+        "hidden-1": "khớp"
+      },
+      "wrong": {
+        "loc_trang_thai_sau_cua_so": {
+          "bien_the": {
+            "public": "rot (khác số dòng (3 so với 12))",
+            "hidden-1": "rot (khác số dòng (4 so với 13))"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        },
+        "cua_so_khong_chia_chi_nhanh": {
+          "bien_the": {
+            "public": "rot (khác số dòng (1 so với 12))",
+            "hidden-1": "rot (khác số dòng (1 so với 13))"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        }
+      },
+      "optimize": {
+        "rang_buoc": {
+          "quettoida": {
+            "core_deposit_contract": 1,
+            "core_contract": 1
+          },
+          "ngansach": 2.0
+        },
+        "solution": {
+          "quet": {
+            "core_deposit_contract": 1,
+            "core_contract": 1
+          },
+          "dong_trung_gian": 22645,
+          "khong_ro": []
+        },
+        "starter": {
+          "quet": {
+            "core_deposit_contract": 2,
+            "core_contract": 2
+          },
+          "dong_trung_gian": 5249852,
+          "khong_ro": [],
+          "vi_pham": [
+            "core_deposit_contract quét 2 lần > 1",
+            "core_contract quét 2 lần > 1",
+            "dòng trung gian 5249852 > 2 × 22645"
+          ]
+        },
+        "wrong": {}
+      },
+      "buoc_wrong": {},
+      "bien_the": {
+        "public": "aivb",
+        "hidden-1": "aivb_hidden_1"
+      }
+    },
+    {
+      "ma": "aivb-p4-mom-tu-noi",
+      "dong": 497,
+      "tieu_de": "Tăng trưởng tháng theo kênh tính tổng hai lần",
+      "hinhthuc": "optimize",
+      "cap": "hard",
+      "dang": "B2",
+      "domain": "marketing",
+      "dulieu": "aivb",
+      "diem": 50,
+      "trangthai": "review",
+      "bo_qua": false,
+      "cham": {
+        "bokiemtra": [
+          "public",
+          "hidden-1"
+        ],
+        "thutu": "co",
+        "socot": "vitri",
+        "saiso": 0.1,
+        "quettoida": {
+          "core_payment_order": 1
+        },
+        "ngansach": 2.0
+      },
+      "buoc": [],
+      "khoi_sql": {
+        "aivb-p4-mom-tu-noi": {
+          "solution": [
+            "solution"
+          ],
+          "starter": [
+            "starter"
+          ],
+          "wrong": [
+            "thieu_can_tren_nam",
+            "lag_khong_chia_kenh"
+          ]
+        }
+      },
+      "loi": [],
+      "canh_bao": [],
+      "kiem_tra": [
+        {
+          "phep": "kiem_tinh (khoá, phần bắt buộc theo hình thức, khối SQL, khái niệm, bước case)",
+          "ket_qua": "dat",
+          "chi_tiet": "0 lỗi"
+        },
+        {
+          "phep": "solution_chay_moi_bien_the",
+          "ket_qua": "dat",
+          "chi_tiet": "[aivb-p4-mom-tu-noi]: public, hidden-1; chạy 2 lần cùng kết quả"
+        },
+        {
+          "phep": "solution_thoa_rang_buoc",
+          "ket_qua": "dat",
+          "chi_tiet": "{\"core_payment_order\": 1}, dòng trung gian 3980756"
+        },
+        {
+          "phep": "starter_opt_dung_ket_qua",
+          "ket_qua": "dat",
+          "chi_tiet": "khớp mọi biến thể"
+        },
+        {
+          "phep": "starter_opt_vi_pham",
+          "ket_qua": "dat",
+          "chi_tiet": "core_payment_order quét 2 lần > 1"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "thieu_can_tren_nam: rớt ở hidden-1"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "lag_khong_chia_kenh: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "nghiepvu_khong_lo_so",
+          "ket_qua": "dat",
+          "chi_tiet": ""
+        }
+      ],
+      "solution": {
+        "aivb-p4-mom-tu-noi": {
+          "public": {
+            "so_dong": 84,
+            "cot": [
+              "channel_code",
+              "thang",
+              "so_lenh",
+              "so_lenh_thang_truoc",
+              "thay_doi_pct"
+            ],
+            "giay": 2.889,
+            "dong_dau": [
+              [
+                "API",
+                1,
+                10223,
+                null,
+                null
+              ],
+              [
+                "API",
+                2,
+                11661,
+                10223,
+                14.1
+              ],
+              [
+                "API",
+                3,
+                10719,
+                11661,
+                -8.1
+              ],
+              [
+                "API",
+                4,
+                10296,
+                10719,
+                -3.9
+              ],
+              [
+                "API",
+                5,
+                10041,
+                10296,
+                -2.5
+              ]
+            ]
+          },
+          "hidden-1": {
+            "so_dong": 84,
+            "cot": [
+              "channel_code",
+              "thang",
+              "so_lenh",
+              "so_lenh_thang_truoc",
+              "thay_doi_pct"
+            ],
+            "giay": 2.332,
+            "dong_dau": [
+              [
+                "API",
+                1,
+                9228,
+                null,
+                null
+              ],
+              [
+                "API",
+                2,
+                10472,
+                9228,
+                13.5
+              ],
+              [
+                "API",
+                3,
+                9597,
+                10472,
+                -8.4
+              ],
+              [
+                "API",
+                4,
+                9277,
+                9597,
+                -3.3
+              ],
+              [
+                "API",
+                5,
+                9048,
+                9277,
+                -2.5
+              ]
+            ]
+          }
+        }
+      },
+      "starter": {
+        "public": "khớp",
+        "hidden-1": "khớp"
+      },
+      "wrong": {
+        "thieu_can_tren_nam": {
+          "bien_the": {
+            "public": "qua",
+            "hidden-1": "rot (khác giá trị ở dòng 37, cột 3)"
+          },
+          "rot_o": [
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        },
+        "lag_khong_chia_kenh": {
+          "bien_the": {
+            "public": "rot (khác kiểu giá trị ở dòng 13, cột 4 (so so với null))",
+            "hidden-1": "rot (khác kiểu giá trị ở dòng 13, cột 4 (so so với null))"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        }
+      },
+      "optimize": {
+        "rang_buoc": {
+          "quettoida": {
+            "core_payment_order": 1
+          },
+          "ngansach": 2.0
+        },
+        "solution": {
+          "quet": {
+            "core_payment_order": 1
+          },
+          "dong_trung_gian": 3980756,
+          "khong_ro": []
+        },
+        "starter": {
+          "quet": {
+            "core_payment_order": 2
+          },
+          "dong_trung_gian": 7960910,
+          "khong_ro": [],
+          "vi_pham": [
+            "core_payment_order quét 2 lần > 1"
+          ]
+        },
+        "wrong": {}
+      },
+      "buoc_wrong": {},
+      "bien_the": {
+        "public": "aivb",
+        "hidden-1": "aivb_hidden_1"
+      }
+    },
+    {
+      "ma": "aivb-p5-ho-so-chua-co-khoan-vay",
+      "dong": 531,
+      "tieu_de": "Hồ sơ duyệt chưa có khoản vay chỉ đọc bảng hồ sơ một lần",
+      "hinhthuc": "optimize",
+      "cap": "medium",
+      "dang": "E2",
+      "domain": "sales",
+      "dulieu": "aivb",
+      "diem": 30,
+      "trangthai": "review",
+      "bo_qua": false,
+      "cham": {
+        "bokiemtra": [
+          "public",
+          "hidden-1"
+        ],
+        "thutu": "co",
+        "socot": "vitri",
+        "saiso": 0.01,
+        "quettoida": {
+          "core_loan_application": 1
+        },
+        "ngansach": null
+      },
+      "buoc": [],
+      "khoi_sql": {
+        "aivb-p5-ho-so-chua-co-khoan-vay": {
+          "solution": [
+            "solution"
+          ],
+          "starter": [
+            "starter"
+          ],
+          "wrong": [
+            "quen_dieu_kien_duyet",
+            "not_exists_khong_tuong_quan"
+          ]
+        }
+      },
+      "loi": [],
+      "canh_bao": [],
+      "kiem_tra": [
+        {
+          "phep": "kiem_tinh (khoá, phần bắt buộc theo hình thức, khối SQL, khái niệm, bước case)",
+          "ket_qua": "dat",
+          "chi_tiet": "0 lỗi"
+        },
+        {
+          "phep": "solution_chay_moi_bien_the",
+          "ket_qua": "dat",
+          "chi_tiet": "[aivb-p5-ho-so-chua-co-khoan-vay]: public, hidden-1; chạy 2 lần cùng kết quả"
+        },
+        {
+          "phep": "solution_thoa_rang_buoc",
+          "ket_qua": "dat",
+          "chi_tiet": "{\"core_loan_application\": 1, \"core_credit_decision\": 1, \"core_loan_contract\": 1}, dòng trung gian 11613"
+        },
+        {
+          "phep": "starter_opt_dung_ket_qua",
+          "ket_qua": "dat",
+          "chi_tiet": "khớp mọi biến thể"
+        },
+        {
+          "phep": "starter_opt_vi_pham",
+          "ket_qua": "dat",
+          "chi_tiet": "core_loan_application quét 2 lần > 1"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "quen_dieu_kien_duyet: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "not_exists_khong_tuong_quan: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "nghiepvu_khong_lo_so",
+          "ket_qua": "dat",
+          "chi_tiet": ""
+        }
+      ],
+      "solution": {
+        "aivb-p5-ho-so-chua-co-khoan-vay": {
+          "public": {
+            "so_dong": 3,
+            "cot": [
+              "product_id",
+              "so_ho_so",
+              "tong_duoc_duyet"
+            ],
+            "giay": 0.044,
+            "dong_dau": [
+              [
+                "AUTO",
+                4,
+                5462480704
+              ],
+              [
+                "CONS",
+                3,
+                87508217
+              ],
+              [
+                "PLEDGE",
+                23,
+                1162104459
+              ]
+            ]
+          },
+          "hidden-1": {
+            "so_dong": 3,
+            "cot": [
+              "product_id",
+              "so_ho_so",
+              "tong_duoc_duyet"
+            ],
+            "giay": 0.029,
+            "dong_dau": [
+              [
+                "AUTO",
+                4,
+                5462480704
+              ],
+              [
+                "CONS",
+                4,
+                287508217
+              ],
+              [
+                "PLEDGE",
+                23,
+                1162104459
+              ]
+            ]
+          }
+        }
+      },
+      "starter": {
+        "public": "khớp",
+        "hidden-1": "khớp"
+      },
+      "wrong": {
+        "quen_dieu_kien_duyet": {
+          "bien_the": {
+            "public": "rot (khác số dòng (7 so với 3))",
+            "hidden-1": "rot (khác số dòng (7 so với 3))"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        },
+        "not_exists_khong_tuong_quan": {
+          "bien_the": {
+            "public": "rot (khác số dòng (0 so với 3))",
+            "hidden-1": "rot (khác số dòng (0 so với 3))"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        }
+      },
+      "optimize": {
+        "rang_buoc": {
+          "quettoida": {
+            "core_loan_application": 1
+          },
+          "ngansach": null
+        },
+        "solution": {
+          "quet": {
+            "core_loan_application": 1,
+            "core_credit_decision": 1,
+            "core_loan_contract": 1
+          },
+          "dong_trung_gian": 11613,
+          "khong_ro": []
+        },
+        "starter": {
+          "quet": {
+            "core_loan_application": 2,
+            "core_credit_decision": 1,
+            "core_loan_contract": 1
+          },
+          "dong_trung_gian": 15792,
+          "khong_ro": [],
+          "vi_pham": [
+            "core_loan_application quét 2 lần > 1"
+          ]
+        },
+        "wrong": {}
+      },
+      "buoc_wrong": {},
+      "bien_the": {
+        "public": "aivb",
+        "hidden-1": "aivb_hidden_1"
+      }
+    },
+    {
+      "ma": "aivb-p6-lich-tra-no-mot-lan-quet",
+      "dong": 561,
+      "tieu_de": "Kỳ trả nợ theo trạng thái quét bảng bốn lần",
+      "hinhthuc": "optimize",
+      "cap": "hard",
+      "dang": "A4",
+      "domain": "after_sales",
+      "dulieu": "aivb",
+      "diem": 50,
+      "trangthai": "review",
+      "bo_qua": false,
+      "cham": {
+        "bokiemtra": [
+          "public",
+          "hidden-1"
+        ],
+        "thutu": "co",
+        "socot": "vitri",
+        "saiso": 0.01,
+        "quettoida": {
+          "core_loan_schedule": 1
+        },
+        "ngansach": 2.0
+      },
+      "buoc": [],
+      "khoi_sql": {
+        "aivb-p6-lich-tra-no-mot-lan-quet": {
+          "solution": [
+            "solution"
+          ],
+          "starter": [
+            "starter"
+          ],
+          "wrong": [
+            "dem_khong_dieu_kien",
+            "dem_khoan_vay_thay_ky"
+          ]
+        }
+      },
+      "loi": [],
+      "canh_bao": [],
+      "kiem_tra": [
+        {
+          "phep": "kiem_tinh (khoá, phần bắt buộc theo hình thức, khối SQL, khái niệm, bước case)",
+          "ket_qua": "dat",
+          "chi_tiet": "0 lỗi"
+        },
+        {
+          "phep": "solution_chay_moi_bien_the",
+          "ket_qua": "dat",
+          "chi_tiet": "[aivb-p6-lich-tra-no-mot-lan-quet]: public, hidden-1; chạy 2 lần cùng kết quả"
+        },
+        {
+          "phep": "solution_thoa_rang_buoc",
+          "ket_qua": "dat",
+          "chi_tiet": "{\"core_loan_contract\": 1, \"core_contract\": 1, \"ref_product_version\": 1, \"core_loan_schedule\": 1}, dòng trung gian 198553"
+        },
+        {
+          "phep": "starter_opt_dung_ket_qua",
+          "ket_qua": "dat",
+          "chi_tiet": "khớp mọi biến thể"
+        },
+        {
+          "phep": "starter_opt_vi_pham",
+          "ket_qua": "dat",
+          "chi_tiet": "core_loan_schedule quét 4 lần > 1; dòng trung gian 766864 > 2 × 198553"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "dem_khong_dieu_kien: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "dem_khoan_vay_thay_ky: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "nghiepvu_khong_lo_so",
+          "ket_qua": "dat",
+          "chi_tiet": ""
+        }
+      ],
+      "solution": {
+        "aivb-p6-lich-tra-no-mot-lan-quet": {
+          "public": {
+            "so_dong": 7,
+            "cot": [
+              "product_id",
+              "so_ky_da_tra",
+              "so_ky_den_han",
+              "so_ky_qua_han",
+              "so_ky_da_huy"
+            ],
+            "giay": 0.75,
+            "dong_dau": [
+              [
+                "AUTO",
+                10898,
+                8375,
+                49,
+                0
+              ],
+              [
+                "CONS",
+                22397,
+                8443,
+                316,
+                0
+              ],
+              [
+                "MORT",
+                17896,
+                21978,
+                9,
+                0
+              ],
+              [
+                "OD_BIZ",
+                704,
+                0,
+                0,
+                64
+              ],
+              [
+                "OD_IND",
+                2343,
+                0,
+                0,
+                213
+              ]
+            ]
+          },
+          "hidden-1": {
+            "so_dong": 7,
+            "cot": [
+              "product_id",
+              "so_ky_da_tra",
+              "so_ky_den_han",
+              "so_ky_qua_han",
+              "so_ky_da_huy"
+            ],
+            "giay": 0.807,
+            "dong_dau": [
+              [
+                "AUTO",
+                10898,
+                8375,
+                49,
+                0
+              ],
+              [
+                "CONS",
+                22406,
+                8456,
+                318,
+                0
+              ],
+              [
+                "MORT",
+                17916,
+                21979,
+                9,
+                0
+              ],
+              [
+                "OD_BIZ",
+                704,
+                0,
+                0,
+                64
+              ],
+              [
+                "OD_IND",
+                2343,
+                0,
+                0,
+                213
+              ]
+            ]
+          }
+        }
+      },
+      "starter": {
+        "public": "khớp",
+        "hidden-1": "khớp"
+      },
+      "wrong": {
+        "dem_khong_dieu_kien": {
+          "bien_the": {
+            "public": "rot (khác giá trị ở dòng 1, cột 2)",
+            "hidden-1": "rot (khác giá trị ở dòng 1, cột 2)"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        },
+        "dem_khoan_vay_thay_ky": {
+          "bien_the": {
+            "public": "rot (khác giá trị ở dòng 1, cột 2)",
+            "hidden-1": "rot (khác giá trị ở dòng 1, cột 2)"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        }
+      },
+      "optimize": {
+        "rang_buoc": {
+          "quettoida": {
+            "core_loan_schedule": 1
+          },
+          "ngansach": 2.0
+        },
+        "solution": {
+          "quet": {
+            "core_loan_contract": 1,
+            "core_contract": 1,
+            "ref_product_version": 1,
+            "core_loan_schedule": 1
+          },
+          "dong_trung_gian": 198553,
+          "khong_ro": []
+        },
+        "starter": {
+          "quet": {
+            "ref_product": 1,
+            "core_loan_contract": 5,
+            "core_contract": 5,
+            "ref_product_version": 5,
+            "core_loan_schedule": 4
+          },
+          "dong_trung_gian": 766864,
+          "khong_ro": [],
+          "vi_pham": [
+            "core_loan_schedule quét 4 lần > 1",
+            "dòng trung gian 766864 > 2 × 198553"
+          ]
+        },
+        "wrong": {}
+      },
+      "buoc_wrong": {},
+      "bien_the": {
+        "public": "aivb",
+        "hidden-1": "aivb_hidden_1"
+      }
+    },
+    {
+      "ma": "aivb-p7-but-toan-tuan-cuoi-nam",
+      "dong": 595,
+      "tieu_de": "Mỗi ngày tuần cuối năm có bao nhiêu bút toán?",
+      "hinhthuc": "write",
+      "cap": "easy",
+      "dang": "B1",
+      "domain": "operations",
+      "dulieu": "aivb",
+      "diem": 20,
+      "trangthai": "review",
+      "bo_qua": false,
+      "cham": {
+        "bokiemtra": [
+          "public",
+          "hidden-1"
+        ],
+        "thutu": "co",
+        "socot": "vitri",
+        "saiso": 0.01,
+        "quettoida": {},
+        "ngansach": null
+      },
+      "buoc": [],
+      "khoi_sql": {
+        "aivb-p7-but-toan-tuan-cuoi-nam": {
+          "solution": [
+            "solution"
+          ],
+          "wrong": [
+            "thieu_can_tren",
+            "nham_ngay_gia_tri"
+          ]
+        }
+      },
+      "loi": [],
+      "canh_bao": [],
+      "kiem_tra": [
+        {
+          "phep": "kiem_tinh (khoá, phần bắt buộc theo hình thức, khối SQL, khái niệm, bước case)",
+          "ket_qua": "dat",
+          "chi_tiet": "0 lỗi"
+        },
+        {
+          "phep": "solution_chay_moi_bien_the",
+          "ket_qua": "dat",
+          "chi_tiet": "[aivb-p7-but-toan-tuan-cuoi-nam]: public, hidden-1; chạy 2 lần cùng kết quả"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "thieu_can_tren: rớt ở hidden-1"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "nham_ngay_gia_tri: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "nghiepvu_khong_lo_so",
+          "ket_qua": "dat",
+          "chi_tiet": ""
+        }
+      ],
+      "solution": {
+        "aivb-p7-but-toan-tuan-cuoi-nam": {
+          "public": {
+            "so_dong": 5,
+            "cot": [
+              "ngay_lam_viec",
+              "so_but_toan",
+              "tong_so_tien"
+            ],
+            "giay": 0.827,
+            "dong_dau": [
+              [
+                "2026-12-25",
+                10249,
+                60317705292
+              ],
+              [
+                "2026-12-28",
+                7931,
+                20281358019
+              ],
+              [
+                "2026-12-29",
+                7924,
+                16413865210
+              ],
+              [
+                "2026-12-30",
+                8052,
+                20475855860
+              ],
+              [
+                "2026-12-31",
+                7570,
+                29090316456
+              ]
+            ]
+          },
+          "hidden-1": {
+            "so_dong": 5,
+            "cot": [
+              "ngay_lam_viec",
+              "so_but_toan",
+              "tong_so_tien"
+            ],
+            "giay": 0.699,
+            "dong_dau": [
+              [
+                "2026-12-25",
+                9232,
+                54793594475
+              ],
+              [
+                "2026-12-28",
+                7150,
+                18289207358
+              ],
+              [
+                "2026-12-29",
+                7129,
+                14931624717
+              ],
+              [
+                "2026-12-30",
+                7260,
+                19012457541
+              ],
+              [
+                "2026-12-31",
+                6769,
+                25727587089
+              ]
+            ]
+          }
+        }
+      },
+      "starter": {},
+      "wrong": {
+        "thieu_can_tren": {
+          "bien_the": {
+            "public": "qua",
+            "hidden-1": "rot (khác số dòng (6 so với 5))"
+          },
+          "rot_o": [
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        },
+        "nham_ngay_gia_tri": {
+          "bien_the": {
+            "public": "rot (khác giá trị ở dòng 1, cột 2)",
+            "hidden-1": "rot (khác giá trị ở dòng 1, cột 2)"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        }
+      },
+      "optimize": null,
+      "buoc_wrong": {},
+      "bien_the": {
+        "public": "aivb",
+        "hidden-1": "aivb_hidden_1"
+      }
+    },
+    {
+      "ma": "aivb-p8-cohort-toi-uu-sai",
+      "dong": 622,
+      "tieu_de": "Bản cohort tối ưu làm mất cohort 2018",
+      "hinhthuc": "debug",
+      "cap": "hard",
+      "dang": "D2",
+      "domain": "customer",
+      "dulieu": "aivb",
+      "diem": 50,
+      "trangthai": "review",
+      "bo_qua": false,
+      "cham": {
+        "bokiemtra": [
+          "public",
+          "hidden-1"
+        ],
+        "thutu": "co",
+        "socot": "vitri",
+        "saiso": 0.01,
+        "quettoida": {},
+        "ngansach": null
+      },
+      "buoc": [],
+      "khoi_sql": {
+        "aivb-p8-cohort-toi-uu-sai": {
+          "solution": [
+            "solution"
+          ],
+          "starter": [
+            "starter"
+          ],
+          "wrong": [
+            "dieu_kien_ngay_o_where",
+            "dem_ho_so_thay_khach"
+          ]
+        }
+      },
+      "loi": [],
+      "canh_bao": [
+        {
+          "ma_loi": "NGHIEPVU_LO_SO",
+          "thong_diep": "tab Nghiệp vụ có số trùng kết quả lời giải: 2018, 2019, 2020, 2025, 2026",
+          "file": "cau-hoi.tex",
+          "dong": 622
+        }
+      ],
+      "kiem_tra": [
+        {
+          "phep": "kiem_tinh (khoá, phần bắt buộc theo hình thức, khối SQL, khái niệm, bước case)",
+          "ket_qua": "dat",
+          "chi_tiet": "0 lỗi"
+        },
+        {
+          "phep": "solution_chay_moi_bien_the",
+          "ket_qua": "dat",
+          "chi_tiet": "[aivb-p8-cohort-toi-uu-sai]: public, hidden-1; chạy 2 lần cùng kết quả"
+        },
+        {
+          "phep": "starter_debug_sai",
+          "ket_qua": "dat",
+          "chi_tiet": "public: khác số dòng (8 so với 9), hidden-1: khác số dòng (8 so với 9)"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "dieu_kien_ngay_o_where: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "dem_ho_so_thay_khach: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "NGHIEPVU_LO_SO",
+          "ket_qua": "canh_bao",
+          "chi_tiet": "tab Nghiệp vụ có số trùng kết quả lời giải: 2018, 2019, 2020, 2025, 2026"
+        }
+      ],
+      "solution": {
+        "aivb-p8-cohort-toi-uu-sai": {
+          "public": {
+            "so_dong": 9,
+            "cot": [
+              "nam_cohort",
+              "so_khach",
+              "so_khach_vay_nam_dau",
+              "ty_le_pct"
+            ],
+            "giay": 0.135,
+            "dong_dau": [
+              [
+                2018,
+                1228,
+                0,
+                0
+              ],
+              [
+                2019,
+                1248,
+                17,
+                1.36
+              ],
+              [
+                2020,
+                1235,
+                50,
+                4.05
+              ],
+              [
+                2021,
+                1187,
+                75,
+                6.32
+              ],
+              [
+                2022,
+                1262,
+                140,
+                11.09
+              ]
+            ]
+          },
+          "hidden-1": {
+            "so_dong": 9,
+            "cot": [
+              "nam_cohort",
+              "so_khach",
+              "so_khach_vay_nam_dau",
+              "ty_le_pct"
+            ],
+            "giay": 0.102,
+            "dong_dau": [
+              [
+                2018,
+                1228,
+                0,
+                0
+              ],
+              [
+                2019,
+                1248,
+                17,
+                1.36
+              ],
+              [
+                2020,
+                1235,
+                50,
+                4.05
+              ],
+              [
+                2021,
+                1187,
+                75,
+                6.32
+              ],
+              [
+                2022,
+                1262,
+                140,
+                11.09
+              ]
+            ]
+          }
+        }
+      },
+      "starter": {
+        "public": "khác số dòng (8 so với 9)",
+        "hidden-1": "khác số dòng (8 so với 9)"
+      },
+      "wrong": {
+        "dieu_kien_ngay_o_where": {
+          "bien_the": {
+            "public": "rot (khác số dòng (8 so với 9))",
+            "hidden-1": "rot (khác số dòng (8 so với 9))"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        },
+        "dem_ho_so_thay_khach": {
+          "bien_the": {
+            "public": "rot (khác giá trị ở dòng 5, cột 3)",
+            "hidden-1": "rot (khác giá trị ở dòng 5, cột 3)"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        }
+      },
+      "optimize": null,
+      "buoc_wrong": {},
+      "bien_the": {
+        "public": "aivb",
+        "hidden-1": "aivb_hidden_1"
+      }
+    },
+    {
+      "ma": "aivb-p9-tong-hop-truoc-loc-sau",
+      "dong": 651,
+      "tieu_de": "Lãi dự thu cho vay bị cộng cả lãi tiền gửi",
+      "hinhthuc": "debug",
+      "cap": "medium",
+      "dang": "A2",
+      "domain": "finance",
+      "dulieu": "aivb",
+      "diem": 30,
+      "trangthai": "review",
+      "bo_qua": false,
+      "cham": {
+        "bokiemtra": [
+          "public",
+          "hidden-1"
+        ],
+        "thutu": "co",
+        "socot": "vitri",
+        "saiso": 0.01,
+        "quettoida": {},
+        "ngansach": null
+      },
+      "buoc": [],
+      "khoi_sql": {
+        "aivb-p9-tong-hop-truoc-loc-sau": {
+          "solution": [
+            "solution"
+          ],
+          "starter": [
+            "starter"
+          ],
+          "wrong": [
+            "chi_sua_bang_noi"
+          ]
+        }
+      },
+      "loi": [],
+      "canh_bao": [],
+      "kiem_tra": [
+        {
+          "phep": "kiem_tinh (khoá, phần bắt buộc theo hình thức, khối SQL, khái niệm, bước case)",
+          "ket_qua": "dat",
+          "chi_tiet": "0 lỗi"
+        },
+        {
+          "phep": "solution_chay_moi_bien_the",
+          "ket_qua": "dat",
+          "chi_tiet": "[aivb-p9-tong-hop-truoc-loc-sau]: public, hidden-1; chạy 2 lần cùng kết quả"
+        },
+        {
+          "phep": "starter_debug_sai",
+          "ket_qua": "dat",
+          "chi_tiet": "public: khác giá trị ở dòng 1, cột 2, hidden-1: khác giá trị ở dòng 1, cột 2"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "chi_sua_bang_noi: rớt ở hidden-1"
+        },
+        {
+          "phep": "nghiepvu_khong_lo_so",
+          "ket_qua": "dat",
+          "chi_tiet": ""
+        }
+      ],
+      "solution": {
+        "aivb-p9-tong-hop-truoc-loc-sau": {
+          "public": {
+            "so_dong": 12,
+            "cot": [
+              "thang",
+              "lai_du_thu"
+            ],
+            "giay": 0.705,
+            "dong_dau": [
+              [
+                1,
+                4257963876
+              ],
+              [
+                2,
+                4351330667
+              ],
+              [
+                3,
+                3924127324
+              ],
+              [
+                4,
+                4329695352
+              ],
+              [
+                5,
+                4255621578
+              ]
+            ]
+          },
+          "hidden-1": {
+            "so_dong": 12,
+            "cot": [
+              "thang",
+              "lai_du_thu"
+            ],
+            "giay": 0.713,
+            "dong_dau": [
+              [
+                1,
+                3721621196
+              ],
+              [
+                2,
+                3842168563
+              ],
+              [
+                3,
+                3603022154
+              ],
+              [
+                4,
+                3835492138
+              ],
+              [
+                5,
+                3915431293
+              ]
+            ]
+          }
+        }
+      },
+      "starter": {
+        "public": "khác giá trị ở dòng 1, cột 2",
+        "hidden-1": "khác giá trị ở dòng 1, cột 2"
+      },
+      "wrong": {
+        "chi_sua_bang_noi": {
+          "bien_the": {
+            "public": "qua",
+            "hidden-1": "rot (khác giá trị ở dòng 1, cột 2)"
+          },
+          "rot_o": [
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        }
+      },
+      "optimize": null,
+      "buoc_wrong": {},
+      "bien_the": {
+        "public": "aivb",
+        "hidden-1": "aivb_hidden_1"
+      }
+    },
+    {
+      "ma": "aivb-c9-ra-soat-no-xau-2026",
+      "dong": 684,
+      "tieu_de": "Cuối năm 2026 nợ xấu đang ở mức nào?",
+      "hinhthuc": "case",
+      "cap": "hard",
+      "dang": null,
+      "domain": "after_sales",
+      "dulieu": "aivb",
+      "diem": 50.0,
+      "trangthai": "review",
+      "bo_qua": false,
+      "cham": {
+        "bokiemtra": [
+          "public",
+          "hidden-1"
+        ],
+        "thutu": "co",
+        "socot": "vitri",
+        "saiso": 0.01,
+        "quettoida": {},
+        "ngansach": null
+      },
+      "buoc": [
+        {
+          "ma": "b1",
+          "hinhthuc": "write",
+          "diem": 10.0,
+          "bang": [
+            "core_loan_schedule",
+            "core_loan_contract"
+          ],
+          "so_phuongan": 0,
+          "phuongan_dung": []
+        },
+        {
+          "ma": "b2",
+          "hinhthuc": "write",
+          "diem": 10.0,
+          "bang": [
+            "core_loan_schedule",
+            "core_loan_contract"
+          ],
+          "so_phuongan": 0,
+          "phuongan_dung": []
+        },
+        {
+          "ma": "b3",
+          "hinhthuc": "write",
+          "diem": 10.0,
+          "bang": [
+            "core_loan_contract",
+            "core_contract",
+            "ref_product_version"
+          ],
+          "so_phuongan": 0,
+          "phuongan_dung": []
+        },
+        {
+          "ma": "b4",
+          "hinhthuc": "write",
+          "diem": 10.0,
+          "bang": [
+            "core_loan_contract",
+            "core_contract",
+            "ref_branch"
+          ],
+          "so_phuongan": 0,
+          "phuongan_dung": []
+        },
+        {
+          "ma": "b5",
+          "hinhthuc": "ketluan",
+          "diem": 10.0,
+          "bang": [
+            "core_loan_contract",
+            "ref_product_version",
+            "ref_branch"
+          ],
+          "so_phuongan": 3,
+          "phuongan_dung": [
+            1
+          ]
+        }
+      ],
+      "khoi_sql": {
+        "aivb-c9-ra-soat-no-xau-2026.b1": {
+          "solution": [
+            "solution"
+          ],
+          "wrong": [
+            "ky_qua_han_muon_nhat"
+          ]
+        },
+        "aivb-c9-ra-soat-no-xau-2026.b2": {
+          "solution": [
+            "solution"
+          ],
+          "wrong": [
+            "inner_join_mat_nhom_1"
+          ]
+        },
+        "aivb-c9-ra-soat-no-xau-2026.b3": {
+          "solution": [
+            "solution"
+          ],
+          "wrong": [
+            "ty_le_theo_so_khoan"
+          ]
+        },
+        "aivb-c9-ra-soat-no-xau-2026.b4": {
+          "solution": [
+            "solution"
+          ],
+          "wrong": [
+            "chia_tong_du_no_toan_hang"
+          ]
+        }
+      },
+      "loi": [],
+      "canh_bao": [],
+      "kiem_tra": [
+        {
+          "phep": "kiem_tinh (khoá, phần bắt buộc theo hình thức, khối SQL, khái niệm, bước case)",
+          "ket_qua": "dat",
+          "chi_tiet": "0 lỗi"
+        },
+        {
+          "phep": "solution_chay_moi_bien_the",
+          "ket_qua": "dat",
+          "chi_tiet": "[aivb-c9-ra-soat-no-xau-2026.b1]: public, hidden-1; chạy 2 lần cùng kết quả"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "b1/ky_qua_han_muon_nhat: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "solution_chay_moi_bien_the",
+          "ket_qua": "dat",
+          "chi_tiet": "[aivb-c9-ra-soat-no-xau-2026.b2]: public, hidden-1; chạy 2 lần cùng kết quả"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "b2/inner_join_mat_nhom_1: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "solution_chay_moi_bien_the",
+          "ket_qua": "dat",
+          "chi_tiet": "[aivb-c9-ra-soat-no-xau-2026.b3]: public, hidden-1; chạy 2 lần cùng kết quả"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "b3/ty_le_theo_so_khoan: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "solution_chay_moi_bien_the",
+          "ket_qua": "dat",
+          "chi_tiet": "[aivb-c9-ra-soat-no-xau-2026.b4]: public, hidden-1; chạy 2 lần cùng kết quả"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "b4/chia_tong_du_no_toan_hang: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "nghiepvu_khong_lo_so",
+          "ket_qua": "dat",
+          "chi_tiet": ""
+        }
+      ],
+      "solution": {
+        "aivb-c9-ra-soat-no-xau-2026.b1": {
+          "public": {
+            "so_dong": 93,
+            "cot": [
+              "loan_id",
+              "loan_status",
+              "so_ngay_qua_han"
+            ],
+            "giay": 0.05,
+            "dong_dau": [
+              [
+                "SYN_LON_0000097",
+                "WRITTEN_OFF",
+                1149
+              ],
+              [
+                "SYN_LON_0000246",
+                "WRITTEN_OFF",
+                934
+              ],
+              [
+                "SYN_LON_0000572",
+                "WRITTEN_OFF",
+                919
+              ],
+              [
+                "SYN_LON_0000233",
+                "WRITTEN_OFF",
+                906
+              ],
+              [
+                "SYN_LON_0000684",
+                "WRITTEN_OFF",
+                897
+              ]
+            ]
+          },
+          "hidden-1": {
+            "so_dong": 94,
+            "cot": [
+              "loan_id",
+              "loan_status",
+              "so_ngay_qua_han"
+            ],
+            "giay": 0.058,
+            "dong_dau": [
+              [
+                "SYN_LON_0000097",
+                "WRITTEN_OFF",
+                1149
+              ],
+              [
+                "SYN_LON_0000246",
+                "WRITTEN_OFF",
+                934
+              ],
+              [
+                "SYN_LON_0000572",
+                "WRITTEN_OFF",
+                919
+              ],
+              [
+                "SYN_LON_0000233",
+                "WRITTEN_OFF",
+                906
+              ],
+              [
+                "SYN_LON_0000684",
+                "WRITTEN_OFF",
+                897
+              ]
+            ]
+          }
+        },
+        "aivb-c9-ra-soat-no-xau-2026.b2": {
+          "public": {
+            "so_dong": 4,
+            "cot": [
+              "nhom_no",
+              "so_khoan_vay",
+              "du_no"
+            ],
+            "giay": 0.569,
+            "dong_dau": [
+              [
+                1,
+                734,
+                660723703835
+              ],
+              [
+                2,
+                28,
+                14183107821
+              ],
+              [
+                3,
+                31,
+                10128878054
+              ],
+              [
+                4,
+                8,
+                824761495
+              ]
+            ]
+          },
+          "hidden-1": {
+            "so_dong": 4,
+            "cot": [
+              "nhom_no",
+              "so_khoan_vay",
+              "du_no"
+            ],
+            "giay": 0.584,
+            "dong_dau": [
+              [
+                1,
+                736,
+                672201352587
+              ],
+              [
+                2,
+                29,
+                14274857821
+              ],
+              [
+                3,
+                31,
+                10128878054
+              ],
+              [
+                4,
+                8,
+                824761495
+              ]
+            ]
+          }
+        },
+        "aivb-c9-ra-soat-no-xau-2026.b3": {
+          "public": {
+            "so_dong": 5,
+            "cot": [
+              "product_id",
+              "du_no",
+              "du_no_xau",
+              "ty_le_no_xau_pct"
+            ],
+            "giay": 0.618,
+            "dong_dau": [
+              [
+                "CONS",
+                14454053333,
+                853008624,
+                5.9
+              ],
+              [
+                "AUTO",
+                203964896193,
+                4524351578,
+                2.22
+              ],
+              [
+                "MORT",
+                437197138978,
+                5576279347,
+                1.28
+              ],
+              [
+                "PLEDGE",
+                959706001,
+                0,
+                0
+              ],
+              [
+                "WC_LOAN",
+                29284656700,
+                0,
+                0
+              ]
+            ]
+          },
+          "hidden-1": {
+            "so_dong": 5,
+            "cot": [
+              "product_id",
+              "du_no",
+              "du_no_xau",
+              "ty_le_no_xau_pct"
+            ],
+            "giay": 0.64,
+            "dong_dau": [
+              [
+                "CONS",
+                14545803333,
+                853008624,
+                5.86
+              ],
+              [
+                "AUTO",
+                203964896193,
+                4524351578,
+                2.22
+              ],
+              [
+                "MORT",
+                447174787730,
+                5576279347,
+                1.25
+              ],
+              [
+                "PLEDGE",
+                959706001,
+                0,
+                0
+              ],
+              [
+                "WC_LOAN",
+                30784656700,
+                0,
+                0
+              ]
+            ]
+          }
+        },
+        "aivb-c9-ra-soat-no-xau-2026.b4": {
+          "public": {
+            "so_dong": 3,
+            "cot": [
+              "region",
+              "du_no",
+              "du_no_xau",
+              "ty_le_no_xau_pct"
+            ],
+            "giay": 0.577,
+            "dong_dau": [
+              [
+                "MIEN_NAM",
+                400127815960,
+                9380803114,
+                2.34
+              ],
+              [
+                "MIEN_TRUNG",
+                63101453537,
+                1338322742,
+                2.12
+              ],
+              [
+                "MIEN_BAC",
+                222631181708,
+                234513693,
+                0.11
+              ]
+            ]
+          },
+          "hidden-1": {
+            "so_dong": 3,
+            "cot": [
+              "region",
+              "du_no",
+              "du_no_xau",
+              "ty_le_no_xau_pct"
+            ],
+            "giay": 0.71,
+            "dong_dau": [
+              [
+                "MIEN_NAM",
+                411605464712,
+                9380803114,
+                2.28
+              ],
+              [
+                "MIEN_TRUNG",
+                63101453537,
+                1338322742,
+                2.12
+              ],
+              [
+                "MIEN_BAC",
+                222722931708,
+                234513693,
+                0.11
+              ]
+            ]
+          }
+        }
+      },
+      "starter": {},
+      "wrong": {},
+      "optimize": null,
+      "buoc_wrong": {
+        "b1": {
+          "wrong": {
+            "ky_qua_han_muon_nhat": {
+              "bien_the": {
+                "public": "rot (khác giá trị ở dòng 1, cột 3)",
+                "hidden-1": "rot (khác giá trị ở dòng 1, cột 3)"
+              },
+              "rot_o": [
+                "public",
+                "hidden-1"
+              ]
+            }
+          }
+        },
+        "b2": {
+          "wrong": {
+            "inner_join_mat_nhom_1": {
+              "bien_the": {
+                "public": "rot (khác giá trị ở dòng 1, cột 2)",
+                "hidden-1": "rot (khác giá trị ở dòng 1, cột 2)"
+              },
+              "rot_o": [
+                "public",
+                "hidden-1"
+              ]
+            }
+          }
+        },
+        "b3": {
+          "wrong": {
+            "ty_le_theo_so_khoan": {
+              "bien_the": {
+                "public": "rot (khác giá trị ở dòng 1, cột 4)",
+                "hidden-1": "rot (khác giá trị ở dòng 1, cột 4)"
+              },
+              "rot_o": [
+                "public",
+                "hidden-1"
+              ]
+            }
+          }
+        },
+        "b4": {
+          "wrong": {
+            "chia_tong_du_no_toan_hang": {
+              "bien_the": {
+                "public": "rot (khác giá trị ở dòng 1, cột 4)",
+                "hidden-1": "rot (khác giá trị ở dòng 1, cột 4)"
+              },
+              "rot_o": [
+                "public",
+                "hidden-1"
+              ]
+            }
+          }
+        }
+      },
+      "bien_the": {
+        "public": "aivb",
+        "hidden-1": "aivb_hidden_1"
+      }
+    },
+    {
+      "ma": "aivb-c10-doi-soat-dong-tien-2026",
+      "dong": 750,
+      "tieu_de": "Dòng tiền ròng năm 2026 có dùng được cho kế hoạch vốn không?",
+      "hinhthuc": "case",
+      "cap": "hard",
+      "dang": null,
+      "domain": "operations",
+      "dulieu": "aivb",
+      "diem": 50.0,
+      "trangthai": "review",
+      "bo_qua": false,
+      "cham": {
+        "bokiemtra": [
+          "public",
+          "hidden-1"
+        ],
+        "thutu": "co",
+        "socot": "vitri",
+        "saiso": 0.01,
+        "quettoida": {},
+        "ngansach": null
+      },
+      "buoc": [
+        {
+          "ma": "b1",
+          "hinhthuc": "write",
+          "diem": 10.0,
+          "bang": [
+            "core_payment_order",
+            "core_account_posting"
+          ],
+          "so_phuongan": 0,
+          "phuongan_dung": []
+        },
+        {
+          "ma": "b2",
+          "hinhthuc": "write",
+          "diem": 10.0,
+          "bang": [
+            "core_account_posting"
+          ],
+          "so_phuongan": 0,
+          "phuongan_dung": []
+        },
+        {
+          "ma": "b3",
+          "hinhthuc": "write",
+          "diem": 10.0,
+          "bang": [
+            "core_account_posting",
+            "core_payment_order"
+          ],
+          "so_phuongan": 0,
+          "phuongan_dung": []
+        },
+        {
+          "ma": "b4",
+          "hinhthuc": "write",
+          "diem": 10.0,
+          "bang": [
+            "core_account_posting",
+            "core_account",
+            "core_contract",
+            "ref_branch"
+          ],
+          "so_phuongan": 0,
+          "phuongan_dung": []
+        },
+        {
+          "ma": "b5",
+          "hinhthuc": "ketluan",
+          "diem": 10.0,
+          "bang": [
+            "core_payment_order",
+            "core_account_posting"
+          ],
+          "so_phuongan": 3,
+          "phuongan_dung": [
+            1
+          ]
+        }
+      ],
+      "khoi_sql": {
+        "aivb-c10-doi-soat-dong-tien-2026.b1": {
+          "solution": [
+            "solution"
+          ],
+          "wrong": [
+            "chi_do_but_toan_ghi_no"
+          ]
+        },
+        "aivb-c10-doi-soat-dong-tien-2026.b2": {
+          "solution": [
+            "solution"
+          ],
+          "wrong": [
+            "thieu_can_tren"
+          ]
+        },
+        "aivb-c10-doi-soat-dong-tien-2026.b3": {
+          "solution": [
+            "solution"
+          ],
+          "wrong": [
+            "cong_tran_so_tien"
+          ]
+        },
+        "aivb-c10-doi-soat-dong-tien-2026.b4": {
+          "solution": [
+            "solution"
+          ],
+          "wrong": [
+            "cong_tran_so_tien"
+          ]
+        }
+      },
+      "loi": [],
+      "canh_bao": [],
+      "kiem_tra": [
+        {
+          "phep": "kiem_tinh (khoá, phần bắt buộc theo hình thức, khối SQL, khái niệm, bước case)",
+          "ket_qua": "dat",
+          "chi_tiet": "0 lỗi"
+        },
+        {
+          "phep": "solution_chay_moi_bien_the",
+          "ket_qua": "dat",
+          "chi_tiet": "[aivb-c10-doi-soat-dong-tien-2026.b1]: public, hidden-1; chạy 2 lần cùng kết quả"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "b1/chi_do_but_toan_ghi_no: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "solution_chay_moi_bien_the",
+          "ket_qua": "dat",
+          "chi_tiet": "[aivb-c10-doi-soat-dong-tien-2026.b2]: public, hidden-1; chạy 2 lần cùng kết quả"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "b2/thieu_can_tren: rớt ở hidden-1"
+        },
+        {
+          "phep": "solution_chay_moi_bien_the",
+          "ket_qua": "dat",
+          "chi_tiet": "[aivb-c10-doi-soat-dong-tien-2026.b3]: public, hidden-1; chạy 2 lần cùng kết quả"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "b3/cong_tran_so_tien: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "solution_chay_moi_bien_the",
+          "ket_qua": "dat",
+          "chi_tiet": "[aivb-c10-doi-soat-dong-tien-2026.b4]: public, hidden-1; chạy 2 lần cùng kết quả"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "b4/cong_tran_so_tien: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "nghiepvu_khong_lo_so",
+          "ket_qua": "dat",
+          "chi_tiet": ""
+        }
+      ],
+      "solution": {
+        "aivb-c10-doi-soat-dong-tien-2026.b1": {
+          "public": {
+            "so_dong": 8,
+            "cot": [
+              "payment_order_id",
+              "transaction_date",
+              "transaction_type",
+              "channel_code",
+              "amount"
+            ],
+            "giay": 19.439,
+            "dong_dau": [
+              [
+                "SYN_PMO_L00008955",
+                "2026-02-27",
+                "LOAN_WRITE_OFF",
+                "BRANCH",
+                4712371
+              ],
+              [
+                "SYN_PMO_L00012986",
+                "2026-03-31",
+                "LOAN_WRITE_OFF",
+                "BRANCH",
+                6940456
+              ],
+              [
+                "SYN_PMO_L00014099",
+                "2026-09-30",
+                "LOAN_WRITE_OFF",
+                "BRANCH",
+                22399431
+              ],
+              [
+                "SYN_PMO_L00014551",
+                "2026-01-30",
+                "LOAN_WRITE_OFF",
+                "BRANCH",
+                17387601
+              ],
+              [
+                "SYN_PMO_L00017653",
+                "2026-01-30",
+                "LOAN_WRITE_OFF",
+                "BRANCH",
+                5398751
+              ]
+            ]
+          },
+          "hidden-1": {
+            "so_dong": 10,
+            "cot": [
+              "payment_order_id",
+              "transaction_date",
+              "transaction_type",
+              "channel_code",
+              "amount"
+            ],
+            "giay": 17.518,
+            "dong_dau": [
+              [
+                "SYN_PMO_H0000003",
+                "2026-03-31",
+                "LOAN_DISBURSEMENT",
+                "BRANCH",
+                1000000000
+              ],
+              [
+                "SYN_PMO_H0000004",
+                "2026-06-30",
+                "LOAN_DISBURSEMENT",
+                "BRANCH",
+                500000000
+              ],
+              [
+                "SYN_PMO_L00008955",
+                "2026-02-27",
+                "LOAN_WRITE_OFF",
+                "BRANCH",
+                4712371
+              ],
+              [
+                "SYN_PMO_L00012986",
+                "2026-03-31",
+                "LOAN_WRITE_OFF",
+                "BRANCH",
+                6940456
+              ],
+              [
+                "SYN_PMO_L00014099",
+                "2026-09-30",
+                "LOAN_WRITE_OFF",
+                "BRANCH",
+                22399431
+              ]
+            ]
+          }
+        },
+        "aivb-c10-doi-soat-dong-tien-2026.b2": {
+          "public": {
+            "so_dong": 12,
+            "cot": [
+              "thang",
+              "tong_ghi_co",
+              "tong_ghi_no",
+              "dong_tien_rong"
+            ],
+            "giay": 2.998,
+            "dong_dau": [
+              [
+                1,
+                335276716965,
+                326620263269,
+                8656453696
+              ],
+              [
+                2,
+                366094196180,
+                359234180864,
+                6860015316
+              ],
+              [
+                3,
+                328550403993,
+                327743252097,
+                807151896
+              ],
+              [
+                4,
+                332478447964,
+                330937502813,
+                1540945151
+              ],
+              [
+                5,
+                297248186817,
+                297010659967,
+                237526850
+              ]
+            ]
+          },
+          "hidden-1": {
+            "so_dong": 12,
+            "cot": [
+              "thang",
+              "tong_ghi_co",
+              "tong_ghi_no",
+              "dong_tien_rong"
+            ],
+            "giay": 2.666,
+            "dong_dau": [
+              [
+                1,
+                299899493704,
+                299449331985,
+                450161719
+              ],
+              [
+                2,
+                329239667928,
+                313133242811,
+                16106425117
+              ],
+              [
+                3,
+                294758820162,
+                281453670140,
+                13305150022
+              ],
+              [
+                4,
+                297368471691,
+                298738057351,
+                -1369585660
+              ],
+              [
+                5,
+                267045494288,
+                267918425734,
+                -872931446
+              ]
+            ]
+          }
+        },
+        "aivb-c10-doi-soat-dong-tien-2026.b3": {
+          "public": {
+            "so_dong": 3,
+            "cot": [
+              "payment_status",
+              "so_but_toan",
+              "dong_tien_rong"
+            ],
+            "giay": 23.336,
+            "dong_dau": [
+              [
+                "COMPLETED",
+                2123233,
+                -2838778704
+              ],
+              [
+                "REJECTED",
+                5439,
+                -8945454000
+              ],
+              [
+                "REVERSED",
+                13346,
+                21291950657
+              ]
+            ]
+          },
+          "hidden-1": {
+            "so_dong": 3,
+            "cot": [
+              "payment_status",
+              "so_but_toan",
+              "dong_tien_rong"
+            ],
+            "giay": 21.377,
+            "dong_dau": [
+              [
+                "COMPLETED",
+                1910946,
+                -2309264470
+              ],
+              [
+                "REJECTED",
+                4855,
+                -7693518000
+              ],
+              [
+                "REVERSED",
+                12011,
+                19195458657
+              ]
+            ]
+          }
+        },
+        "aivb-c10-doi-soat-dong-tien-2026.b4": {
+          "public": {
+            "so_dong": 12,
+            "cot": [
+              "region",
+              "home_branch_id",
+              "dong_tien_rong_trieu"
+            ],
+            "giay": 17.284,
+            "dong_dau": [
+              [
+                "MIEN_NAM",
+                "CN08",
+                8675
+              ],
+              [
+                "MIEN_NAM",
+                "CN07",
+                6211
+              ],
+              [
+                "MIEN_BAC",
+                "CN03",
+                5776
+              ],
+              [
+                "MIEN_NAM",
+                "CN10",
+                2465
+              ],
+              [
+                "MIEN_NAM",
+                "CN11",
+                1075
+              ]
+            ]
+          },
+          "hidden-1": {
+            "so_dong": 12,
+            "cot": [
+              "region",
+              "home_branch_id",
+              "dong_tien_rong_trieu"
+            ],
+            "giay": 12.633,
+            "dong_dau": [
+              [
+                "MIEN_NAM",
+                "CN08",
+                20107
+              ],
+              [
+                "MIEN_NAM",
+                "CN07",
+                8183
+              ],
+              [
+                "MIEN_NAM",
+                "CN10",
+                8030
+              ],
+              [
+                "MIEN_NAM",
+                "CN11",
+                6184
+              ],
+              [
+                "MIEN_TRUNG",
+                "CN06",
+                4532
+              ]
+            ]
+          }
+        }
+      },
+      "starter": {},
+      "wrong": {},
+      "optimize": null,
+      "buoc_wrong": {
+        "b1": {
+          "wrong": {
+            "chi_do_but_toan_ghi_no": {
+              "bien_the": {
+                "public": "rot (khác số dòng (563147 so với 8))",
+                "hidden-1": "rot (khác số dòng (506662 so với 10))"
+              },
+              "rot_o": [
+                "public",
+                "hidden-1"
+              ]
+            }
+          }
+        },
+        "b2": {
+          "wrong": {
+            "thieu_can_tren": {
+              "bien_the": {
+                "public": "qua",
+                "hidden-1": "rot (khác giá trị ở dòng 1, cột 3)"
+              },
+              "rot_o": [
+                "hidden-1"
+              ]
+            }
+          }
+        },
+        "b3": {
+          "wrong": {
+            "cong_tran_so_tien": {
+              "bien_the": {
+                "public": "rot (khác giá trị ở dòng 1, cột 3)",
+                "hidden-1": "rot (khác giá trị ở dòng 1, cột 3)"
+              },
+              "rot_o": [
+                "public",
+                "hidden-1"
+              ]
+            }
+          }
+        },
+        "b4": {
+          "wrong": {
+            "cong_tran_so_tien": {
+              "bien_the": {
+                "public": "rot (khác giá trị ở dòng 1, cột 1)",
+                "hidden-1": "rot (khác giá trị ở dòng 1, cột 1)"
+              },
+              "rot_o": [
+                "public",
+                "hidden-1"
+              ]
+            }
+          }
+        }
+      },
+      "bien_the": {
+        "public": "aivb",
+        "hidden-1": "aivb_hidden_1"
+      }
+    }
+  ],
+  "tong": {
+    "so_cau": 20,
+    "so_cau_bo_qua": 0,
+    "so_loi": 0,
+    "so_canh_bao": 2
+  }
+}

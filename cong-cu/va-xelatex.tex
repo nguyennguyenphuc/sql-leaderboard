@@ -1,0 +1,5 @@
+% va-xelatex.tex: 2 dòng vá đặt NGAY SAU \usepackage{aio-sql-cauhoi} trong cau-hoi.tex (không sửa .sty).
+% 1) DejaVu Sans Mono thiếu một số chữ Việt dựng sẵn (ở ả ẩ ỷ ủ...): đổi font chữ đơn cách sang Noto Sans Mono.
+\setmonofont{NotoSansMono}[Extension=.ttf, UprightFont=*-Regular, BoldFont=*-Bold, Scale=0.86]
+% 2) \erdkhoa đặt trong \begin{erd} (tikzpicture) bị mất chữ (nullfont): vẽ lại thành một node dưới ERD.
+\renewcommand{\erdkhoa}[1]{\node[font=\small, color=cqMuted, anchor=north west, align=left, text width=14cm] at ([yshift=-1mm]current bounding box.south west) {\textbf{Khoá:} #1};}

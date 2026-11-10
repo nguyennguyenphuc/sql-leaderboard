@@ -1,0 +1,56 @@
+# MySQL 8.0 cho SQL Leaderboard + image công cụ kiểm gói.
+# Cấu hình sao từ container sqllb-mysql đang chạy (docker inspect, 10/11/2026).
+#
+#   docker compose up -d mysql                 # máy chủ MySQL, 127.0.0.1:3307
+#   docker compose build tools                 # image sqllb-tools
+#   docker compose run --rm tools python cong-cu/kiem_tra_goi.py --goi ... --host sqllb-mysql --port 3306
+#
+# Mật khẩu đọc từ mysql/.env (mẫu: mysql/.env.example). Tên project "sqllb" để không đụng project "docker" của lớp.
+# Trên máy đã có container sqllb-mysql dựng bằng `docker run` thì KHÔNG chạy `up`: trùng tên container.
+name: sqllb
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: sqllb-mysql          # các script mysql/**/02_nap_*.sh gọi đúng tên này
+    restart: unless-stopped
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_0900_ai_ci
+      - --local-infile=1
+      - --secure-file-priv=
+      - --innodb-buffer-pool-size=${SQLLB_BUFFER_POOL:-1G}
+    env_file:
+      - ./mysql/.env                     # MYSQL_ROOT_PASSWORD, SQL_RUNNER_PASSWORD
+    ports:
+      - "127.0.0.1:${SQLLB_PORT:-3307}:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./mysql:/sqllb:ro                # script dựng + CSV, các file .sql gọi SOURCE /sqllb/...
+    networks:
+      - sqllb
+    healthcheck:
+      # qua TCP: máy chủ tạm lúc khởi tạo chạy --skip-networking nên không báo sẵn sàng quá sớm
+      test: ["CMD-SHELL", "MYSQL_PWD=\"$$MYSQL_ROOT_PASSWORD\" mysql -uroot -h127.0.0.1 -e 'SELECT 1' >/dev/null"]
+      interval: 5s
+      timeout: 5s
+      retries: 60
+      start_period: 30s
+
+  tools:
+    build: ./cong-cu
+    image: sqllb-tools
+    profiles: ["tools"]                  # không chạy khi `up`; dùng `docker compose run --rm tools ...`
+    working_dir: /w
+    volumes:
+      - .:/w
+    networks:
+      - sqllb
+
+volumes:
+  mysql-data:
+    name: sqllb-mysql-data
+
+networks:
+  sqllb:
+    name: sqllb

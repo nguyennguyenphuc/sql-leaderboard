@@ -1,0 +1,766 @@
+% cau-hoi.tex: gói 4 của bộ Marketing (dulieu=mkt), 20 câu. SQL nằm trong solution.sql, nối với câu bằng mã câu.
+% Biên dịch trên Overleaf: Menu > Compiler > XeLaTeX. Hướng dẫn: HUONG_DAN.md.
+% Phạm vi: Module 7 CTE & Set Operations (9 câu), Module 8 Window Functions (9 câu), case c7 (Trung bình), c8 (Khó).
+% Bản đồ: goi-cau-hoi/mkt/BAN-DO-100-CAU.md (gói 4). Thuật ngữ, giọng văn: style/STYLE-mkt.md.
+\documentclass[11pt,a4paper]{article}
+\usepackage{aio-sql-cauhoi}
+% Hai dòng vá XeLaTeX (cong-cu/va-xelatex.tex), không sửa .sty:
+% 1) font chữ đơn cách có đủ chữ Việt; 2) \erdkhoa trong \begin{erd} vẽ thành node để không mất chữ.
+\setmonofont{NotoSansMono}[Extension=.ttf, UprightFont=*-Regular, BoldFont=*-Bold, Scale=0.86]
+\renewcommand{\erdkhoa}[1]{\node[font=\small, color=cqMuted, anchor=north west, align=left, text width=14cm] at ([yshift=-1mm]current bounding box.south west) {\textbf{Khoá:} #1};}
+
+% ================================================================ KHAI BÁO DÙNG CHUNG
+% Câu hỏi chỉ được dùng các mã khai báo ở đây.
+% ---------------------------------------------------------------- bộ dữ liệu
+\khaibaodulieu{mkt}{Marketing · chiến dịch số của ba thương hiệu mỹ phẩm}
+  {Chiến dịch marketing số của ba thương hiệu mỹ phẩm Nykaa, Purplle và Tira Beauty, dữ liệu tổng hợp. Ngày bắt đầu chiến dịch từ 1/7/2024 tới 24/6/2025. Bản sạch \code{campaigns} kèm các danh mục; bản thô \code{campaigns_raw} giữ nguyên ba file có nhiễu.}
+
+% ---------------------------------------------------------------- domain (6 khoá chuẩn, ánh xạ theo STYLE-mkt.md mục G)
+\khaibaodomain{marketing}{Marketing}{Loại chiến dịch, kênh, phễu marketing (CTR, tỷ lệ rơi), điểm tương tác, số chiến dịch mở theo thời gian.}
+\khaibaodomain{customer}{Khách hàng}{Đối tượng mục tiêu, phân khúc khách hàng, ngôn ngữ của chiến dịch, giá trị đơn theo phân khúc.}
+\khaibaodomain{finance}{Tài chính}{Chi phí chiến dịch, CPA, ROI, ROAS, tỷ trọng doanh thu.}
+\khaibaodomain{sales}{Bán hàng}{Doanh thu, lượt chuyển đổi, tăng trưởng doanh thu theo tháng, chiến dịch doanh thu cao nhất.}
+\khaibaodomain{operations}{Vận hành}{Lịch và thời lượng chiến dịch, chiến dịch đang chạy mỗi ngày; vận hành dữ liệu chiến dịch (ô trống, dòng trùng, ngày không hợp lệ, đối soát nhật ký nhiễu).}
+\khaibaodomain{after_sales}{Hậu mãi}{Bộ Marketing không có dữ liệu hậu mãi (trả hàng, đánh giá, chăm sóc sau mua); không câu nào dùng mảng này.}
+
+% ---------------------------------------------------------------- khái niệm (từ STYLE-mkt.md mục E, chỉ các khái niệm gói này dùng)
+% \khaibaokhainiem{ma}{Tên}{Định nghĩa}{Công thức}{Trong bộ dữ liệu}
+
+% --- Chiến dịch, đối tượng, thời gian
+\khaibaokhainiem{chien-dich}{Chiến dịch marketing}
+  {Chiến dịch marketing là một đợt truyền thông có mục tiêu, thời hạn và ngân sách xác định.}
+  {}
+  {bảng \code{campaigns}: mỗi dòng là một chiến dịch; \code{start_date} là ngày bắt đầu, \code{duration_days} là thời lượng (ngày). Ba thương hiệu trong \code{brands}.}
+\khaibaokhainiem{chien-dich-dang-chay}{Chiến dịch đang chạy}
+  {Chiến dịch đang chạy vào một ngày là chiến dịch đã bắt đầu và chưa qua ngày cuối.}
+  {ngày xét nằm từ start\_date tới start\_date + duration\_days - 1, tính cả hai đầu}
+  {dữ liệu không có ngày kết thúc; ngày cuối tính từ \code{start_date} và \code{duration_days}. Lịch ngày ở \code{calendar}.}
+\khaibaokhainiem{doi-tuong-va-phan-khuc}{Đối tượng mục tiêu và phân khúc khách hàng}
+  {Đối tượng mục tiêu là nhóm người mà chiến dịch nhắm tới. Phân khúc khách hàng là nhóm khách được ghi nhận cho chiến dịch.}
+  {}
+  {\code{campaigns.target_audience_id} và \code{campaigns.segment_id} cùng tham chiếu bảng \code{audiences} (5 nhóm). Hai cột độc lập nhau; muốn có cả hai tên thì nối \code{audiences} hai lần.}
+\khaibaokhainiem{ky-va-thang-du}{Kỳ dữ liệu và tháng đủ}
+  {Kỳ dữ liệu là khoảng thời gian có ghi nhận chiến dịch. Tháng đủ là tháng có dữ liệu cho mọi ngày.}
+  {}
+  {\code{start_date} từ 1/7/2024 tới 24/6/2025; tháng 6/2025 chưa đủ. Lịch \code{calendar} phủ 1/7/2024 tới 30/6/2025.}
+
+% --- Phễu và chỉ số
+\khaibaokhainiem{pheu-marketing}{Phễu marketing}
+  {Phễu marketing mô tả hành trình khách hàng qua bốn tầng nhận biết, quan tâm, cân nhắc và chuyển đổi; số người giảm dần qua từng tầng.}
+  {}
+  {bốn cột \code{impressions}, \code{clicks}, \code{leads}, \code{conversions} của \code{campaigns} ứng với bốn tầng.}
+\khaibaokhainiem{ty-le-roi-pheu}{Tỷ lệ rơi giữa hai tầng}
+  {Tỷ lệ rơi là phần người không đi tiếp từ một tầng của phễu sang tầng kế tiếp.}
+  {1 - số lượng tầng sau / số lượng tầng trước}
+  {tính trên tổng của nhóm chiến dịch; mẫu số là tầng ngay trước, không phải lượt hiển thị.}
+\khaibaokhainiem{ctr}{CTR (tỷ lệ nhấp)}
+  {CTR đo phần lượt hiển thị dẫn tới một lượt nhấp vào quảng cáo.}
+  {lượt nhấp / lượt hiển thị × 100\%}
+  {\code{clicks} / \code{impressions}. CTR của một nhóm tính từ tổng lượt nhấp chia tổng lượt hiển thị.}
+\khaibaokhainiem{binh-quan-gia-quyen}{Tỷ lệ của tổng và bình quân giản đơn}
+  {Tỷ lệ của tổng là tỷ số giữa hai tổng của cả nhóm; bình quân giản đơn là trung bình cộng tỷ lệ của từng chiến dịch. Tỷ lệ của tổng là bình quân gia quyền theo mẫu số.}
+  {tổng tử số / tổng mẫu số}
+  {với ROI, CPA hai cách cho kết quả khác xa nhau; đề nào không ghi khác thì dùng tỷ lệ của tổng.}
+\khaibaokhainiem{diem-tuong-tac}{Điểm tương tác}
+  {Điểm tương tác là điểm tổng hợp phản ánh mức người xem tương tác với nội dung của chiến dịch.}
+  {}
+  {\code{engagement_score}, thang điểm từ khoảng 2,5 tới 31; không phải tỷ lệ phần trăm và không cộng dồn giữa các chiến dịch.}
+
+% --- Chi phí, doanh thu, hiệu quả đầu tư
+\khaibaokhainiem{chi-phi-chien-dich}{Chi phí chiến dịch}
+  {Chi phí chiến dịch là toàn bộ số tiền đã chi cho một chiến dịch.}
+  {acquisition\_cost × conversions}
+  {dữ liệu không có cột tổng chi phí; \code{acquisition_cost} là chi phí trên một lượt chuyển đổi. Đơn vị tiền không được ghi.}
+\khaibaokhainiem{cpa}{CPA (chi phí trên mỗi chuyển đổi)}
+  {CPA là số tiền bình quân phải chi để có một lượt chuyển đổi.}
+  {tổng chi phí / tổng lượt chuyển đổi}
+  {cột \code{acquisition_cost} là CPA của từng chiến dịch. CPA của một nhóm tính lại từ tổng, không lấy bình quân \code{acquisition_cost}.}
+\khaibaokhainiem{roi}{ROI (lợi tức đầu tư)}
+  {ROI phản ánh phần lợi nhuận thu về trên mỗi đơn vị chi phí marketing. ROI dương là có lãi, bằng 0 là hoà vốn, âm là lỗ.}
+  {(doanh thu - chi phí) / chi phí}
+  {cột \code{roi} của \code{campaigns} đã tính sẵn và làm tròn 2 chữ số. ROI của một nhóm tính từ tổng doanh thu và tổng chi phí, không lấy bình quân \code{roi}.}
+\khaibaokhainiem{roas}{ROAS}
+  {ROAS đo doanh thu thu về trên mỗi đơn vị chi phí quảng cáo.}
+  {doanh thu / chi phí}
+  {chi phí tính như khái niệm chi phí chiến dịch; với cách tính này ROAS bằng ROI cộng 1.}
+\khaibaokhainiem{gia-tri-don-bq}{Giá trị đơn bình quân}
+  {Giá trị đơn bình quân là doanh thu bình quân của một lượt chuyển đổi.}
+  {doanh thu / lượt chuyển đổi}
+  {\code{revenue} / \code{conversions}; mỗi lượt chuyển đổi được coi là một đơn hàng.}
+
+% --- Dữ liệu thô
+\khaibaokhainiem{du-lieu-tho}{Dữ liệu thô và bản sạch}
+  {Dữ liệu thô là dữ liệu đúng như khi nhận từ nguồn, chưa kiểm tra hay sửa. Bản sạch là dữ liệu đã loại lỗi.}
+  {}
+  {\code{campaigns_raw} giữ nguyên ba file có nhiễu (chuỗi gốc, ô trống thành NULL, có dòng trùng); \code{campaigns} là bản sạch. Khoá dòng của bản thô là (\code{brand_id}, \code{row_index}).}
+\khaibaokhainiem{nhat-ky-nhieu}{Nhật ký nhiễu}
+  {Nhật ký nhiễu ghi lại từng lỗi đã được chèn vào dữ liệu thô để luyện làm sạch.}
+  {}
+  {\code{noise_log}: \code{noise_type} là chuỗi (\code{'NULL'}, \code{'FUNNEL_ERROR'}, \code{'DUPLICATE'}, \code{'INVALID_DATE'}, \code{'NEGATIVE'}, \code{'WHITESPACE'}); \code{old_value}, \code{new_value} là chuỗi. Nối với bản thô theo \code{brand_id} và \code{row_index}.}
+\khaibaokhainiem{dong-trung}{Dòng trùng hoàn toàn}
+  {Dòng trùng hoàn toàn là dòng giống một dòng khác ở mọi cột nghiệp vụ.}
+  {}
+  {so mọi cột của \code{campaigns_raw} trừ \code{raw_id} và \code{row_index} (hai cột vị trí luôn khác nhau).}
+\khaibaokhainiem{ngay-khong-hop-le}{Ngày không hợp lệ}
+  {Ngày không hợp lệ là giá trị ngày trống, sai định dạng, không tồn tại trên lịch hoặc nằm ngoài kỳ dữ liệu.}
+  {}
+  {\code{campaigns_raw.date_raw} là chuỗi dạng \code{'DD-MM-YYYY'}; đọc bằng \code{STR\_TO\_DATE(date\_raw, '\%d-\%m-\%Y')}.}
+
+\begin{document}
+{\LARGE\bfseries Gói câu hỏi SQL · Marketing · gói 4\par}
+\medskip
+{\color{cqMuted}Bộ dữ liệu \texttt{mkt} · Module 7 CTE \& Set Operations (9 câu) · Module 8 Window Functions (9 câu) · case study Trung bình và Khó · chuẩn \texttt{aio-sql-cauhoi} v0.4\par}
+\bigskip
+Lô soạn chờ kiểm và chờ giảng viên duyệt. Khung xanh nét đứt (\emph{Thiết kế ERD}) là ghi chú cho người duyệt. Các khung Truy vấn khởi đầu, Lời giải và Bài sai lấy từ \code{solution.sql}; học viên chỉ thấy truy vấn khởi đầu.
+
+Mã danh mục dùng trong đề: thương hiệu \code{brand_id} 1 Nykaa, 2 Purplle, 3 Tira Beauty; loại chiến dịch \code{type_id} 1 Email, 2 Influencer, 3 Paid Ads, 4 SEO, 5 Social Media; nhóm khách \code{audience_id} 1 College Students, 2 Premium Shoppers, 3 Tier 2 City Customers, 4 Working Women, 5 Youth; ngôn ngữ \code{language_id} 1 Bengali, 2 English, 3 Hindi, 4 Tamil.
+
+\tableofcontents
+
+
+% ################################################################ MODULE 7 · CTE & SET OPERATIONS
+
+% ================================================================ T1 · Viết · Trung bình · A2 · finance
+\begin{cauhoi}[ma=mkt-t1-roas-nua-dau-2025, dulieu=mkt, domain=finance,
+  hinhthuc=write, cap=medium, dang=A2, kynang={CTE, JOIN, tỷ lệ của tổng}, bay={thieu-can-tren, binh-quan-ty-le, nham-roi-voi-roas},
+  tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.01]
+\tieude{ROAS của từng thương hiệu nửa đầu 2025 là bao nhiêu?}
+\boicanh[Anh Phong · Giám đốc tài chính]{Tháng sau công ty chia lại ngân sách marketing cho ba thương hiệu. Anh cần biết sáu tháng đầu năm nay mỗi thương hiệu thu về bao nhiêu doanh thu trên mỗi đơn vị chi phí.}
+\begin{yeucau}
+  \item Xét các chiến dịch bắt đầu từ ngày 1/1/2025 tới hết ngày 30/6/2025.
+  \item Tính tổng doanh thu, tổng chi phí chiến dịch, ROI (lợi tức đầu tư) và ROAS (doanh thu trên chi phí quảng cáo) của từng thương hiệu; ROI và ROAS tính theo tỷ lệ của tổng như ở tab Nghiệp vụ.
+  \item Trả về \code{brand_name}, \code{doanh_thu}, \code{chi_phi} (đơn vị tiền, làm tròn 2 chữ số), \code{roi}, \code{roas} (hệ số, làm tròn 4 chữ số).
+  \item Sắp theo \code{brand_id} tăng dần.
+\end{yeucau}
+\begin{erd}
+  \erdbang{campaigns}{0,0}{campaign_id:PK, brand_id:FK*, type_id:FK, start_date*, conversions*, revenue*, acquisition_cost*, roi}
+  \erdbang{brands}{2,0}{brand_id:PK, brand_name*}
+  \erdbang{campaign_types}{0,1}{type_id:PK, type_name}
+  \erdnoi[kieu=n-1]{campaigns.brand_id}{brands.brand_id}
+  \erdnoi[kieu=n-1]{campaigns.type_id}{campaign_types.type_id}
+\end{erd}
+\begin{nghiepvu}{Chia ngân sách marketing nửa cuối năm giữa ba thương hiệu.}
+  \khainiem{chi-phi-chien-dich}
+  \khainiem{roi}
+  \khainiem{roas}
+  \khainiem{binh-quan-gia-quyen}
+  \luuy{ROI đo phần lợi nhuận trên chi phí, ROAS đo doanh thu trên chi phí; hai chỉ số khác nhau đúng 1 nên không dùng thay nhau. Sáu tháng đầu năm kết thúc hết ngày 30/6, nên điều kiện ngày cần cả cận dưới và cận trên.}
+\end{nghiepvu}
+\goiy{Bình quân cột \code{roi} của các chiến dịch có bằng ROI của cả thương hiệu không? Chiến dịch chi nhiều có nên được tính trọng số lớn hơn chiến dịch chi ít không?}
+\goiy{Trong một CTE, gom theo \code{brand_id} lấy \code{SUM(revenue)} và \code{SUM(acquisition_cost * conversions)}; truy vấn ngoài nối \code{brands} rồi tính hai tỷ số.}
+\ghichuthietke{Trung bình: 3 bảng, chỉ ký hiệu n-1, \code{campaign_types} là bảng không cần. Bẫy ở public: lấy \code{AVG(roi)} (cao hơn ROI tổng khoảng 0,75) và cộng 1 làm ROAS. Bẫy ở hidden-1: thiếu cận trên lấy cả \code{NY-CMP-56555} (Nykaa, 1/7/2025), doanh thu và chi phí Nykaa lệch. Ba thương hiệu có ROAS gần nhau (chênh dưới 0,03), câu chỉ hỏi số, không hỏi kết luận.}
+\end{cauhoi}
+
+% ================================================================ T2 · Viết · Trung bình · D1 · marketing
+\begin{cauhoi}[ma=mkt-t2-pheu-dang-dai, dulieu=mkt, domain=marketing,
+  hinhthuc=write, cap=medium, dang=D1, kynang={CTE, UNION ALL, dạng dài}, bay={thu-tu-tang, mau-so-tang-truoc},
+  tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.01]
+\tieude{Phễu bốn tầng của từng thương hiệu quý 1/2025}
+\boicanh[Chị Hạnh · Trưởng phòng marketing số]{Báo cáo quý tới chị muốn đặt phễu marketing quý 1 của ba thương hiệu cạnh nhau. Chị cần số liệu từng tầng của mỗi thương hiệu để vẽ.}
+\begin{yeucau}
+  \item Xét các chiến dịch bắt đầu từ ngày 1/1/2025 tới hết ngày 31/3/2025.
+  \item Tính, theo thương hiệu, tổng số lượng ở bốn tầng của phễu marketing và tỷ lệ đi tiếp của mỗi tầng so với tầng ngay trước (tầng sau chia tầng trước).
+  \item Trả về mỗi thương hiệu bốn dòng, mỗi tầng một dòng: \code{brand_id}, \code{thu_tu} (1 tới 4), \code{tang} (lần lượt \code{'nhan_biet'}, \code{'quan_tam'}, \code{'can_nhac'}, \code{'chuyen_doi'}), \code{so_luong}, \code{ty_le_di_tiep_pct} (phần trăm, làm tròn 2 chữ số; tầng nhận biết để trống).
+  \item Sắp \code{brand_id} tăng dần, rồi theo thứ tự tầng trong phễu.
+\end{yeucau}
+\begin{erd}
+  \erdbang{campaigns}{0,0}{campaign_id:PK, brand_id:FK*, start_date*, impressions*, clicks*, leads*, conversions*}
+  \erdbang{brands}{2,0}{brand_id:PK, brand_name}
+  \erdbang{calendar}{0,1}{cal_date:PK, quarter}
+  \erdnoi[kieu=n-1]{campaigns.brand_id}{brands.brand_id}
+  \erdnoi[kieu=n-1]{campaigns.start_date}{calendar.cal_date}
+\end{erd}
+\begin{nghiepvu}{So hình dạng phễu của ba thương hiệu để chọn tầng cần cải thiện nội dung.}
+  \quytrinh{Phễu marketing}{nhận biết, quan tâm, cân nhắc, chuyển đổi}{}
+  \khainiem{pheu-marketing}
+  \khainiem{ty-le-roi-pheu}
+  \luuy{Bảng vẽ phễu cần dạng dài: mỗi tầng nằm trên một dòng riêng thay vì một cột. Tỷ lệ đi tiếp so với tầng ngay trước và bằng 1 trừ tỷ lệ rơi, nên tầng đầu không có tỷ lệ.}
+\end{nghiepvu}
+\goiy{Tên tầng là chuỗi. Sắp theo tên tầng thì \code{'can_nhac'} đứng trước \code{'nhan_biet'}; thứ tự phễu cần một cột số riêng.}
+\goiy{Tính bốn tổng trong một CTE, rồi ghép bốn nhánh \code{SELECT} bằng \code{UNION ALL}, mỗi nhánh một tầng với hằng số \code{thu_tu}.}
+\ghichuthietke{Trung bình: 3 bảng, ký hiệu n-1; \code{calendar} là bảng không cần; lọc quý trực tiếp trên \code{start_date}. Bẫy ở public: sắp theo tên tầng; chia mọi tầng cho lượt hiển thị. Không có hai dòng giống hệt nhau giữa các nhánh, nên \code{UNION} và \code{UNION ALL} cho cùng kết quả ở câu này (bẫy \code{UNION} nằm ở t7). hidden-1 bỏ chiến dịch đuôi 7.}
+\end{cauhoi}
+
+% ================================================================ T3 · Viết · Trung bình · A3 · customer
+\begin{cauhoi}[ma=mkt-t3-nhom-khach-hai-vai, dulieu=mkt, domain=customer,
+  hinhthuc=write, cap=medium, dang=A3, kynang={CTE, UNION ALL, COUNT DISTINCT}, bay={dem-doi-hai-vai, thieu-can-tren},
+  tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
+\tieude{Mỗi nhóm khách hàng có mặt trong bao nhiêu chiến dịch?}
+\boicanh[Chị Thảo · Chuyên viên phân tích marketing]{Ban giám đốc hỏi quý 1 nhóm khách hàng nào xuất hiện trong nhiều chiến dịch nhất, tính cả vai đối tượng mục tiêu lẫn vai phân khúc khách hàng. Chị cần số đếm của từng nhóm trước chiều thứ Năm.}
+\begin{yeucau}
+  \item Xét các chiến dịch bắt đầu từ ngày 1/1/2025 tới hết ngày 31/3/2025.
+  \item Ở mỗi nhóm khách của \code{audiences}, đếm số chiến dịch có nhóm này là đối tượng mục tiêu, số chiến dịch có nhóm này là phân khúc khách hàng, và số chiến dịch có nhóm này ở ít nhất một trong hai vai (mỗi chiến dịch chỉ đếm một lần).
+  \item Trả về \code{audience_id}, \code{audience_name}, \code{so_cd_doi_tuong}, \code{so_cd_phan_khuc}, \code{so_chien_dich}.
+  \item Sắp \code{audience_id} tăng dần.
+\end{yeucau}
+\begin{erd}
+  \erdbang{campaigns}{0,0}{campaign_id:PK, target_audience_id:FK*, segment_id:FK*, language_id:FK, start_date*}
+  \erdbang{audiences}{2,0}{audience_id:PK, audience_name*}
+  \erdbang{languages}{0,1}{language_id:PK, language_name}
+  \erdnoi[kieu=n-1]{campaigns.target_audience_id}{audiences.audience_id}
+  \erdnoi[kieu=n-1]{campaigns.segment_id}{audiences.audience_id}
+  \erdnoi[kieu=n-1]{campaigns.language_id}{languages.language_id}
+\end{erd}
+\begin{nghiepvu}{Biết nhóm khách hàng nào có mặt trong nhiều chiến dịch quý 1 nhất để cân đối nội dung quý sau.}
+  \khainiem{doi-tuong-va-phan-khuc}
+  \luuy{Một chiến dịch có thể có cùng một nhóm ở cả hai vai. Khi xếp hai vai thành một danh sách chung, chiến dịch đó xuất hiện hai lần cho cùng nhóm nhưng chỉ là một chiến dịch.}
+\end{nghiepvu}
+\goiy{Lấy số chiến dịch theo đối tượng cộng số chiến dịch theo phân khúc thì có bằng số chiến dịch khác nhau của nhóm không? Chiến dịch nào bị tính hai lần?}
+\goiy{Trong một CTE, ghép hai danh sách (\code{campaign_id}, mã nhóm, vai) bằng \code{UNION ALL}; ngoài CTE đếm có điều kiện theo vai và \code{COUNT(DISTINCT campaign_id)}.}
+\ghichuthietke{Trung bình: 3 bảng, ký hiệu n-1, một danh mục hai vai; \code{languages} là bảng không cần. Bẫy ở public: \code{COUNT(*)} sau khi ghép đếm đôi khoảng một phần năm chiến dịch (đối tượng trùng phân khúc); thiếu cận trên lấy cả quý 2. Ghép bằng \code{UNION} có \code{campaign_id} cũng ra đúng cột cuối, nên không dùng làm bài sai. hidden-1 bỏ chiến dịch đuôi 7.}
+\end{cauhoi}
+
+% ================================================================ T4 · Viết · Khó · E2 · operations
+\begin{cauhoi}[ma=mkt-t4-luat-phat-hien-so-nhat-ky, dulieu=mkt, domain=operations,
+  hinhthuc=write, cap=hard, dang=E2, kynang={nhiều CTE, UNION ALL, EXISTS, LEFT JOIN}, bay={khoa-kep, ngay-ngoai-ky, pheu-bat-ca-so-am},
+  tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
+\tieude{Quy tắc kiểm tra bắt được bao nhiêu nhiễu đã ghi?}
+\boicanh[Anh Bảo · Chuyên viên phân tích marketing]{Anh vừa viết bộ quy tắc kiểm tra file chiến dịch thô trước khi nạp. Anh cần biết mỗi quy tắc bắt được bao nhiêu dòng và có khớp với nhật ký nhiễu gửi kèm file không.}
+\begin{yeucau}
+  \item Xét mọi dòng của dữ liệu thô và mọi dòng của nhật ký nhiễu.
+  \item Đánh dấu các dòng của dữ liệu thô theo sáu quy tắc kiểm tra, mỗi quy tắc mang tên một loại nhiễu: \code{'NULL'} (trống ít nhất một trong sáu cột số \code{impressions}, \code{clicks}, \code{leads}, \code{conversions}, \code{revenue}, \code{acquisition_cost}); \code{'NEGATIVE'} (lượt hiển thị hoặc doanh thu âm); \code{'FUNNEL_ERROR'} (tầng sau lớn hơn tầng trước ở một trong ba cặp tầng kề nhau của phễu); \code{'INVALID_DATE'} (ngày không hợp lệ, kỳ dữ liệu từ 1/7/2024 tới hết 30/6/2025); \code{'WHITESPACE'} (khoảng trắng thừa ở loại chiến dịch, ngôn ngữ, đối tượng hoặc phân khúc); \code{'DUPLICATE'} (phía sau dòng đó trong cùng file còn một dòng khác cùng thương hiệu, cùng mã chiến dịch).
+  \item Ở mỗi loại nhiễu có trong nhật ký, tính số dòng quy tắc đánh dấu, số dòng nhật ký ghi, và số dòng vừa được quy tắc đánh dấu vừa có trong nhật ký với cùng loại.
+  \item Trả về \code{loai_nhieu}, \code{so_dong_luat}, \code{so_dong_nhat_ky}, \code{so_dong_khop}; sắp \code{loai_nhieu} tăng dần.
+\end{yeucau}
+\begin{erd}
+  \erdbang{campaigns_raw}{0,0}{raw_id:PK, brand_id:FK, row_index}
+  \erdbang{noise_log}{1,0}{log_id:PK, brand_id:FK, row_index}
+  \erdbang{brands}{2,0}{brand_id:PK}
+  \erdbang{campaigns}{0,1}{campaign_id:PK, brand_id:FK}
+  \erdbang{calendar}{1,1}{cal_date:PK}
+  \erdkhoa{Dòng thô và dòng nhật ký khớp nhau theo cặp (\code{brand_id}, \code{row_index}); \code{row_index} lặp lại ở ba file. \code{campaigns}, \code{calendar} không cần.}
+\end{erd}
+\begin{nghiepvu}{Quyết định bộ quy tắc kiểm tra đã đủ tin cậy để chạy tự động trước mỗi lần nạp file hay chưa.}
+  \quytrinh{Làm sạch dữ liệu}{nạp, kiểm tra, sửa, đối soát}{}
+  \khainiem{du-lieu-tho}
+  \khainiem{nhat-ky-nhieu}
+  \khainiem{ngay-khong-hop-le}
+  \khainiem{dong-trung}
+  \luuy{Một dòng của dữ liệu thô có thể bị một quy tắc bắt dù nhật ký xếp dòng đó vào loại khác, ví dụ dòng có lượt hiển thị âm cũng có lượt nhấp lớn hơn lượt hiển thị. Với dòng trùng, nhật ký ghi theo vị trí của dòng gốc; vị trí của dòng chép thêm không có trong nhật ký.}
+\end{nghiepvu}
+\goiy{Ngày \code{'01-01-1999'} đọc được thành ngày hợp lệ trên lịch. Quy tắc kiểm tra ngày của em có bắt dòng đó không?}
+\goiy{Viết mỗi quy tắc thành một nhánh \code{SELECT} tên loại, \code{brand_id}, \code{row_index}, ghép bằng \code{UNION ALL} trong một CTE; đếm theo quy tắc, đếm nhật ký và đếm phần khớp trong ba CTE riêng rồi nối theo loại.}
+\ghichuthietke{Khó: 5 bảng chỉ khoá, 2 bảng nhiễu, quan hệ mở bằng \code{erdkhoa}. Trên public năm loại khớp đủ; \code{'FUNNEL_ERROR'} quy tắc bắt nhiều hơn nhật ký vì dòng có lượt hiển thị âm cũng có lượt nhấp lớn hơn lượt hiển thị (số đo ở README-mkt). Bài sai: quy tắc ngày chỉ kiểm \code{STR_TO_DATE} trống, bỏ sót ngày đọc được mà ngoài kỳ; đối chiếu chỉ theo \code{row_index} làm số khớp nhân lên. Cả hai rớt ở public. hidden-1: dòng \code{NY-CMP-56555} ngày 1/7/2025 nằm ngoài kỳ khai báo trong đề nên quy tắc ngày bắt thêm một dòng không có trong nhật ký. Quy tắc dòng trùng so theo mã chiến dịch (bản thô có đúng một mã cho mỗi chiến dịch, trừ dòng chép); so đủ mọi cột nghiệp vụ cũng ra cùng kết quả.}
+\end{cauhoi}
+
+% ================================================================ T5 · Viết · Khó · B4 · operations
+\begin{cauhoi}[ma=mkt-t5-dang-chay-binh-quan-theo-tuan, dulieu=mkt, domain=operations,
+  hinhthuc=write, cap=hard, dang=B4, kynang={CTE, LEFT JOIN khoảng ngày, AVG}, bay={ngay-trong, lech-bien-ngay-cuoi, thieu-can-tren, tuan-chua-du},
+  tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.1]
+\tieude{Bình quân mỗi ngày có bao nhiêu chiến dịch đang chạy?}
+\boicanh[Chị Hạnh · Trưởng phòng marketing số]{Chị đang xếp người theo dõi chiến dịch cho quý 3. Chị cần biết quý 2 vừa rồi bình quân mỗi ngày phòng mình có bao nhiêu chiến dịch đang chạy, tính theo từng tuần.}
+\begin{yeucau}
+  \item Xét mọi ngày trong lịch từ ngày 1/4/2025 tới hết ngày 30/6/2025, kể cả ngày không có chiến dịch nào đang chạy.
+  \item Đếm cho mỗi ngày số chiến dịch đang chạy (cả ba thương hiệu) như định nghĩa ở tab Nghiệp vụ, rồi gom các ngày theo tuần.
+  \item Trả về \code{week_start}, \code{so_ngay} (số ngày của tuần nằm trong khoảng xét), \code{bq_dang_chay_moi_ngay} (làm tròn 1 chữ số).
+  \item Sắp \code{week_start} tăng dần.
+\end{yeucau}
+\begin{erd}
+  \erdbang{calendar}{0,0}{cal_date:PK, week_start}
+  \erdbang{campaigns}{1,0}{campaign_id:PK, brand_id:FK, start_date:FK}
+  \erdbang{brands}{2,0}{brand_id:PK}
+  \erdbang{campaign_channels}{1,1}{campaign_id:FK, channel_id:FK}
+  \erdbang{channels}{2,1}{channel_id:PK}
+  \erdkhoa{Một ngày lịch ứng với mọi chiến dịch có ngày bắt đầu không sau ngày đó và ngày cuối không trước ngày đó (điều kiện khoảng, không so bằng). \code{campaign_channels}, \code{channels}, \code{brands} không cần.}
+\end{erd}
+\begin{nghiepvu}{Xếp số người theo dõi chiến dịch mỗi tuần cho quý tới.}
+  \quytrinh{Vòng đời chiến dịch}{lên kế hoạch, khởi chạy, đang chạy, kết thúc, đánh giá}{}
+  \khainiem{chien-dich-dang-chay}
+  \khainiem{ky-va-thang-du}
+  \luuy{Tuần trong lịch bắt đầu thứ Hai, nên tuần đầu và tuần cuối của quý có thể không đủ bảy ngày. Ngày không có chiến dịch nào đang chạy vẫn là một ngày của tuần và phải tính vào bình quân. Dữ liệu chỉ có chiến dịch bắt đầu tới 24/6/2025, nên các tuần cuối tháng 6 thấp hơn thực tế; khi xếp người, chỉ nên dựa vào các tuần trước đó.}
+\end{nghiepvu}
+\goiy{Cuối tháng 6 có những ngày không còn chiến dịch nào chạy. Cách nối của em có giữ được các ngày đó với số 0 không?}
+\goiy{Trong CTE, lấy \code{calendar} \code{LEFT JOIN campaigns} với điều kiện \code{start_date <= cal_date} và \code{cal_date <= start_date + INTERVAL duration_days - 1 DAY}, đếm \code{COUNT(campaign_id)} theo ngày; ngoài CTE gom theo \code{week_start}.}
+\ghichuthietke{Khó: 5 bảng chỉ khoá, 3 bảng nhiễu, quan hệ mở bằng \code{erdkhoa}. Bẫy ở public: nối trong bỏ mất ngày 29/6, 30/6 (không chiến dịch nào chạy, ngày cuối muộn nhất là 28/6), tuần cuối mất hẳn và tuần 23/6 sai bình quân; lấy ngày cuối bằng ngày bắt đầu cộng thời lượng (thừa một ngày). Bẫy ở hidden-1: thiếu cận trên của lịch lấy thêm ngày 1/7/2025 vào tuần bắt đầu 30/6. Tuần đầu (31/3) chỉ có 6 ngày trong khoảng xét, tuần cuối 1 ngày.}
+\end{cauhoi}
+
+% ================================================================ T6 · Viết · Khó · C4 · customer
+\begin{cauhoi}[ma=mkt-t6-phan-nhom-roi-ctr, dulieu=mkt, domain=finance,
+  hinhthuc=write, cap=hard, dang=C4, kynang={CTE, CROSS JOIN, CASE WHEN}, bay={nguong-binh-quan-gian-don, pham-vi-nguong},
+  tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
+\tieude{Chiến dịch Purplle chia bốn nhóm theo ROI và CTR}
+\boicanh[Chị Ngân · Quản lý thương hiệu Purplle]{Chị muốn chia chiến dịch Purplle thành bốn nhóm, kiểu CTR cao mà ROI thấp hay CTR thấp mà ROI cao, để mỗi nhóm có cách xử lý riêng. Mỗi nhóm có bao nhiêu chiến dịch và bao nhiêu doanh thu?}
+\begin{yeucau}
+  \item Xét mọi chiến dịch của Purplle trong kỳ dữ liệu.
+  \item Lấy mức chung của Purplle làm ngưỡng: ROI chung và CTR chung tính theo tỷ lệ của tổng trên mọi chiến dịch của Purplle.
+  \item Gắn nhãn mỗi chiến dịch: \code{nhom_roi} là \code{'cao'} khi cột \code{roi} của chiến dịch lớn hơn ROI chung, ngược lại là \code{'thap'}; \code{nhom_ctr} là \code{'cao'} khi CTR của chiến dịch lớn hơn CTR chung, ngược lại là \code{'thap'}. CTR của chiến dịch và CTR chung tính theo phần trăm, làm tròn 2 chữ số rồi mới so.
+  \item Trả về \code{nhom_roi}, \code{nhom_ctr}, \code{so_chien_dich}, \code{doanh_thu}; sắp \code{nhom_roi}, rồi \code{nhom_ctr} tăng dần.
+\end{yeucau}
+\begin{erd}
+  \erdbang{campaigns}{0,0}{campaign_id:PK, brand_id:FK, type_id:FK, segment_id:FK}
+  \erdbang{brands}{1,0}{brand_id:PK}
+  \erdbang{campaign_types}{2,0}{type_id:PK}
+  \erdbang{audiences}{1,1}{audience_id:PK}
+  \erdbang{campaign_channels}{0,1}{campaign_id:FK, channel_id:FK}
+  \erdkhoa{Mọi số liệu cần đều nằm ở \code{campaigns}; Purplle là \code{brand_id = 2}. Các bảng danh mục và bảng kênh không cần.}
+\end{erd}
+\begin{nghiepvu}{Chọn cách xử lý riêng cho từng nhóm chiến dịch: giữ, sửa nội dung, sửa giá thầu hay dừng.}
+  \khainiem{roi}
+  \khainiem{ctr}
+  \khainiem{binh-quan-gia-quyen}
+  \luuy{Ngưỡng là mức chung của cả Purplle, tính một lần rồi so với từng chiến dịch. Bình quân giản đơn của cột \code{roi} cao hơn hẳn ROI chung, lấy bình quân này làm ngưỡng thì các nhóm bị lệch.}
+\end{nghiepvu}
+\goiy{Ngưỡng ROI là bình quân cột \code{roi} hay tổng doanh thu trừ tổng chi phí, chia tổng chi phí? Ở Purplle, hai số đó chênh nhau bao nhiêu?}
+\goiy{Một CTE tính hai ngưỡng (một dòng, CTR theo phần trăm đã làm tròn), một CTE gắn nhãn từng chiến dịch bằng \code{CROSS JOIN} với CTE ngưỡng và \code{CASE WHEN}; truy vấn ngoài gom theo hai nhãn.}
+\ghichuthietke{Khó: 5 bảng chỉ khoá, 4 bảng nhiễu. Bẫy ở public: ngưỡng là bình quân giản đơn (ROI khoảng 2,7 so với khoảng 1,94) làm nhóm ROI cao nhỏ đi nhiều; ngưỡng tính trên cả ba thương hiệu. Nhãn ROI theo cột \code{roi} (đã làm tròn 2 chữ số) so với ngưỡng chưa làm tròn, không lệch ở biên. v2: CTR so theo phần trăm làm tròn 2 chữ số ở cả hai vế, vì MySQL chỉ giữ 4 chữ số thập phân khi chia nên so tỷ lệ thô lệch nhãn 15 chiến dịch giữa các cách viết (người kiểm C); ba cách viết (DECIMAL, DOUBLE, chia rồi nhân 100) nay cho cùng kết quả. Mảng đổi từ customer (bản đồ) sang finance vì câu phân nhóm theo ROI, không dùng đối tượng hay phân khúc. hidden-1 bỏ chiến dịch đuôi 7.}
+\end{cauhoi}
+
+% ================================================================ T7 · Sửa lỗi · Trung bình · A3 · sales
+\begin{cauhoi}[ma=mkt-t7-union-mat-doanh-thu, dulieu=mkt, domain=sales,
+  hinhthuc=debug, cap=medium, dang=A3, kynang={UNION, UNION ALL, CTE}, bay={union-bo-trung},
+  tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
+\tieude{Doanh thu gộp quý 4/2024 và quý 1/2025 bị thiếu}
+\boicanh[Chị Mai · Kế toán quản trị]{Chị gộp doanh thu hai quý gần nhất của ba thương hiệu để lập báo cáo nửa năm, mà tổng thấp hơn hẳn so với khi cộng tay hai báo cáo quý. Em tìm giúp chị phần doanh thu bị hụt nằm ở đâu.}
+\begin{yeucau}
+  \item Sửa truy vấn dưới đây để mỗi thương hiệu có đúng số chiến dịch và tổng doanh thu của các chiến dịch bắt đầu trong quý 4/2024 và quý 1/2025.
+  \item Giữ nguyên các cột \code{brand_id}, \code{so_chien_dich}, \code{doanh_thu} và thứ tự sắp.
+\end{yeucau}
+\begin{erd}
+  \erdbang{campaigns}{0,0}{campaign_id:PK, brand_id:FK*, type_id:FK, start_date*, revenue*}
+  \erdbang{brands}{2,0}{brand_id:PK, brand_name}
+  \erdbang{campaign_types}{0,1}{type_id:PK, type_name}
+  \erdnoi[kieu=n-1]{campaigns.brand_id}{brands.brand_id}
+  \erdnoi[kieu=n-1]{campaigns.type_id}{campaign_types.type_id}
+\end{erd}
+\begin{nghiepvu}{Lập báo cáo doanh thu sáu tháng gần nhất để so với kế hoạch.}
+  \khainiem{chien-dich}
+  \luuy{Hai chiến dịch khác nhau có thể có cùng doanh thu. Khi ghép hai danh sách chỉ gồm thương hiệu và doanh thu, các dòng giống hệt nhau vẫn là những chiến dịch khác nhau.}
+\end{nghiepvu}
+\goiy{Hai chiến dịch Nykaa cùng doanh thu, một ở quý 4 và một ở quý 1, còn lại mấy dòng sau phép ghép hiện tại?}
+\goiy{Phép ghép bỏ dòng trùng là \code{UNION}; phép ghép giữ mọi dòng là \code{UNION ALL}.}
+\ghichuthietke{Trung bình: 3 bảng, ký hiệu n-1. Starter ghép bằng \code{UNION} trên (\code{brand_id}, \code{revenue}) nên mất khoảng 1.800 dòng mỗi thương hiệu có doanh thu trùng. Bài sai: bỏ ghép, lọc một khoảng tới trước 31/3 (mất ngày 31/3); đổi sang \code{UNION ALL} nhưng đếm và cộng giá trị khác nhau. Cả hai rớt ở public. Thêm \code{campaign_id} vào hai nhánh \code{UNION} cũng sửa đúng. v2: bài sai đếm và cộng giá trị khác nhau (lỗi ít gặp) thay bằng bài sai giữ \code{UNION} và thêm \code{start_date} vào hai nhánh (vẫn mất chiến dịch cùng ngày, cùng doanh thu). Cấp: cách sửa chỉ đổi một từ khoá, người duyệt cân nhắc hạ Dễ. hidden-1 bỏ chiến dịch đuôi 7.}
+\end{cauhoi}
+
+% ================================================================ T8 · Sửa lỗi · Trung bình · D1 · marketing
+\begin{cauhoi}[ma=mkt-t8-ty-le-roi-pheu-sai-mau, dulieu=mkt, domain=marketing,
+  hinhthuc=debug, cap=medium, dang=D1, kynang={CTE, phép chia}, bay={mau-so-tang-dau, binh-quan-ty-le},
+  tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.01]
+\tieude{Tỷ lệ rơi ở tầng cuối của phễu gần 100\%}
+\boicanh[Chị Hạnh · Trưởng phòng marketing số]{Bảng tỷ lệ rơi tháng 5 ghi gần như mọi khách hàng tiềm năng đều bỏ đi trước khi mua. Đội bán hàng báo số khác hẳn. Em kiểm lại cách tính rồi báo chị.}
+\begin{yeucau}
+  \item Sửa truy vấn khởi đầu để tính đúng tỷ lệ rơi giữa hai tầng kề nhau của phễu marketing (khái niệm ở tab Nghiệp vụ) ở mỗi loại chiến dịch bắt đầu trong tháng 5/2025.
+  \item Tính mỗi tỷ lệ theo tỷ lệ của tổng trong từng loại.
+  \item Giữ nguyên các cột \code{type_id}, \code{ty_le_roi_tang_2_pct}, \code{ty_le_roi_tang_3_pct}, \code{ty_le_roi_tang_4_pct} (phần trăm, làm tròn 2 chữ số) và thứ tự sắp.
+\end{yeucau}
+\begin{erd}
+  \erdbang{campaigns}{0,0}{campaign_id:PK, type_id:FK, start_date*, impressions*, clicks*, leads*, conversions*}
+  \erdbang{campaign_types}{2,0}{type_id:PK, type_name}
+  \erdbang{brands}{0,1}{brand_id:PK, brand_name}
+  \erdnoi[kieu=n-1]{campaigns.type_id}{campaign_types.type_id}
+\end{erd}
+\begin{nghiepvu}{Chọn tầng của phễu cần ưu tiên cải thiện nội dung cho từng loại chiến dịch.}
+  \quytrinh{Phễu marketing}{nhận biết, quan tâm, cân nhắc, chuyển đổi}{}
+  \khainiem{pheu-marketing}
+  \khainiem{ty-le-roi-pheu}
+  \luuy{Tầng 2 là quan tâm (lượt nhấp), tầng 3 là cân nhắc (khách hàng tiềm năng), tầng 4 là chuyển đổi. Tỷ lệ rơi của một tầng tính so với tầng liền trước, không so với tầng đầu.}
+\end{nghiepvu}
+\goiy{Tỷ lệ rơi vào tầng chuyển đổi đo phần khách hàng tiềm năng không mua. Mẫu số hiện tại có phải khách hàng tiềm năng không?}
+\goiy{Đổi mẫu số của tầng 3 thành \code{nhap}, của tầng 4 thành \code{khtn}; tầng 2 giữ nguyên.}
+\ghichuthietke{Trung bình: 3 bảng, ký hiệu n-1; \code{brands} là bảng không cần. Starter chia mọi tầng cho lượt hiển thị nên tầng 3, 4 ra gần 100\%. Tiêu đề đổi so với bản đồ để nêu triệu chứng. Bài sai: sửa mẫu số nhưng quên lấy 1 trừ (ra tỷ lệ đi tiếp); bình quân tỷ lệ rơi của từng chiến dịch. Cả hai rớt ở public. hidden-1 bỏ chiến dịch đuôi 7.}
+\end{cauhoi}
+
+% ================================================================ T9 · Sửa lỗi · Khó · E1 · operations
+\begin{cauhoi}[ma=mkt-t9-bo-trung-khong-het, dulieu=mkt, domain=operations,
+  hinhthuc=debug, cap=hard, dang=E1, kynang={CTE, DISTINCT, cột vị trí}, bay={cot-ky-thuat, cat-cung-vi-tri},
+  tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
+\tieude{Bỏ dòng trùng xong số dòng dữ liệu thô vẫn không đổi}
+\boicanh[Anh Bảo · Chuyên viên phân tích marketing]{Anh đã bỏ dòng trùng trong file chiến dịch thô trước khi cộng doanh thu, mà số dòng và tổng doanh thu mỗi thương hiệu vẫn như cũ. Em xem bước bỏ trùng của anh hỏng ở đâu.}
+\begin{yeucau}
+  \item Sửa truy vấn dưới đây để bỏ đúng các dòng trùng hoàn toàn của dữ liệu thô (mỗi nhóm dòng trùng giữ lại một dòng), rồi đếm số dòng và cộng doanh thu theo thương hiệu.
+  \item Cộng doanh thu như ghi trong file, bỏ qua ô trống.
+  \item Giữ nguyên các cột \code{brand_id}, \code{so_dong}, \code{doanh_thu} và thứ tự sắp.
+\end{yeucau}
+\begin{erd}
+  \erdbang{campaigns_raw}{0,0}{raw_id:PK, brand_id:FK, row_index}
+  \erdbang{brands}{1,0}{brand_id:PK}
+  \erdbang{noise_log}{2,0}{log_id:PK, brand_id:FK, row_index}
+  \erdbang{campaigns}{0,1}{campaign_id:PK, brand_id:FK}
+  \erdbang{calendar}{1,1}{cal_date:PK}
+  \erdkhoa{Câu chỉ cần \code{campaigns_raw}. \code{raw_id} là thứ tự nạp, \code{row_index} là vị trí trong file; hai cột này chỉ ghi vị trí, không thuộc nội dung của dòng.}
+\end{erd}
+\begin{nghiepvu}{Chuẩn bị bản thô đã bỏ dòng trùng để đối soát doanh thu với bản sạch.}
+  \quytrinh{Làm sạch dữ liệu}{nạp, kiểm tra, sửa, đối soát}{}
+  \khainiem{du-lieu-tho}
+  \khainiem{dong-trung}
+  \luuy{Hai dòng trùng hoàn toàn giống nhau ở mọi cột nghiệp vụ nhưng luôn khác nhau ở cột vị trí. Bỏ trùng phải so trên các cột nghiệp vụ, không dựa vào vị trí dòng trong file.}
+\end{nghiepvu}
+\goiy{\code{SELECT DISTINCT *} so cả những cột nào? Có hai dòng nào của bản thô giống nhau ở mọi cột đó không?}
+\goiy{Liệt kê các cột nghiệp vụ sau \code{SELECT DISTINCT}, bỏ \code{raw_id} và \code{row_index}.}
+\ghichuthietke{Khó: 5 bảng chỉ khoá, 4 bảng nhiễu. Starter \code{DISTINCT *} giữ \code{raw_id} nên không bỏ được dòng nào. Bài sai: không bỏ dòng mà đếm mã khác nhau và cộng doanh thu khác nhau (số dòng đúng, doanh thu mất các chiến dịch khác nhau có cùng doanh thu, rớt ở public); cắt cứng \code{row_index < 55555} vì thấy dòng chép nằm cuối file (qua public, rớt ở hidden-1: dòng thật \code{NY-CMP-56555} ở vị trí 55605 bị bỏ). Dòng trùng ở bản thô chép nguyên mọi cột, kể cả ô trống, nên \code{DISTINCT} gộp đúng. v2: vai đổi từ Thực tập sinh sang Chuyên viên phân tích (STYLE B.2, câu Khó); bài sai cũ (bỏ \code{raw_id}, giữ \code{row_index}) trùng kết quả starter nên đã thay. Cấp Khó do có bẫy ẩn ở hidden-1 và phải tự chọn cột nghiệp vụ; người duyệt cân nhắc hạ Trung bình.}
+\end{cauhoi}
+
+
+% ################################################################ MODULE 8 · WINDOW FUNCTIONS
+
+% ================================================================ F1 · Viết · Trung bình · C1 · sales
+\begin{cauhoi}[ma=mkt-f1-top-3-doanh-thu-moi-thuong-hieu, dulieu=mkt, domain=sales,
+  hinhthuc=write, cap=medium, dang=C1, kynang={ROW_NUMBER, PARTITION BY, CTE}, bay={trung-hang, quy-tac-hoa, thieu-partition},
+  tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
+\tieude{Ba chiến dịch doanh thu cao nhất của mỗi thương hiệu}
+\boicanh[Chị Hạnh · Trưởng phòng marketing số]{Cuối năm phòng mình trao giải cho đội làm chiến dịch giỏi nhất. Chị cần đúng ba chiến dịch doanh thu cao nhất của mỗi thương hiệu trong cả kỳ.}
+\begin{yeucau}
+  \item Xét mọi chiến dịch trong kỳ dữ liệu.
+  \item Xếp hạng chiến dịch trong từng thương hiệu theo doanh thu giảm dần; hai chiến dịch bằng doanh thu thì \code{campaign_id} nhỏ hơn (so theo chuỗi) đứng trước. Mỗi thương hiệu lấy đúng 3 chiến dịch.
+  \item Trả về \code{brand_id}, \code{hang} (1 tới 3), \code{campaign_id}, \code{revenue}.
+  \item Sắp \code{brand_id}, rồi \code{hang} tăng dần.
+\end{yeucau}
+\begin{erd}
+  \erdbang{campaigns}{0,0}{campaign_id:PK, brand_id:FK*, type_id:FK, revenue*}
+  \erdbang{brands}{2,0}{brand_id:PK, brand_name}
+  \erdbang{campaign_types}{0,1}{type_id:PK, type_name}
+  \erdnoi[kieu=n-1]{campaigns.brand_id}{brands.brand_id}
+  \erdnoi[kieu=n-1]{campaigns.type_id}{campaign_types.type_id}
+\end{erd}
+\begin{nghiepvu}{Chọn chiến dịch được trao giải cuối năm của mỗi thương hiệu.}
+  \khainiem{chien-dich}
+  \luuy{Giải chỉ có ba suất mỗi thương hiệu. Khi hai chiến dịch bằng doanh thu ở hạng cuối, quy tắc hoà quyết định chiến dịch nào được chọn; \code{campaign_id} so theo chuỗi nên \code{'NY-CMP-10000'} đứng trước \code{'NY-CMP-9999'}.}
+\end{nghiepvu}
+\goiy{Hai chiến dịch cùng doanh thu ở hạng 3 thì cách xếp hạng của em ra mấy dòng cho thương hiệu đó?}
+\goiy{\code{ROW_NUMBER() OVER (PARTITION BY brand_id ORDER BY revenue DESC, campaign_id)} trong CTE, lọc \code{hang <= 3} ở truy vấn ngoài.}
+\ghichuthietke{Trung bình: 3 bảng, ký hiệu n-1. Public không có hoà ở top 3; hidden-1 có \code{NY-CMP-53612} = \code{NY-CMP-56543} = 4.119.654 ở hạng 3 Nykaa. Bài sai: \code{RANK()} ra 4 dòng cho Nykaa và hoà lấy mã lớn hơn (cả hai rớt ở hidden-1); không chia theo thương hiệu (rớt ở public).}
+\end{cauhoi}
+
+% ================================================================ F2 · Viết · Trung bình · B2 · sales
+\begin{cauhoi}[ma=mkt-f2-mom-purplle, dulieu=mkt, domain=sales,
+  hinhthuc=write, cap=medium, dang=B2, kynang={LAG, CTE, DATE_FORMAT}, bay={thang-chua-du, mau-so-thang-truoc},
+  tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.01]
+\tieude{Doanh thu Purplle tăng giảm bao nhiêu so với tháng trước?}
+\boicanh[Chị Ngân · Quản lý thương hiệu Purplle]{Chị chuẩn bị báo cáo năm cho Purplle. Chị cần doanh thu từng tháng và mức tăng giảm so với tháng liền trước để trình bày với ban giám đốc.}
+\begin{yeucau}
+  \item Xét các chiến dịch của Purplle (\code{brand_id = 2}) bắt đầu từ ngày 1/7/2024 tới hết ngày 31/5/2025 (các tháng đủ).
+  \item Tính doanh thu theo tháng của ngày bắt đầu chiến dịch, và tăng trưởng so với tháng trước như định nghĩa ở tab Nghiệp vụ.
+  \item Trả về \code{thang} (chuỗi \code{'YYYY-MM'}), \code{doanh_thu}, \code{doanh_thu_thang_truoc}, \code{thay_doi_pct} (phần trăm, làm tròn 2 chữ số); tháng đầu để trống hai cột cuối.
+  \item Sắp \code{thang} tăng dần.
+\end{yeucau}
+\begin{erd}
+  \erdbang{campaigns}{0,0}{campaign_id:PK, brand_id:FK*, start_date:FK*, revenue*}
+  \erdbang{brands}{2,0}{brand_id:PK, brand_name}
+  \erdbang{calendar}{0,1}{cal_date:PK, month}
+  \erdnoi[kieu=n-1]{campaigns.brand_id}{brands.brand_id}
+  \erdnoi[kieu=n-1]{campaigns.start_date}{calendar.cal_date}
+\end{erd}
+\begin{nghiepvu}{Đánh giá biến động doanh thu của Purplle qua từng tháng trong năm.}
+  \khainiem{ky-va-thang-du}
+  \luuy{Tăng trưởng so với tháng trước bằng doanh thu tháng này trừ tháng trước, chia doanh thu tháng trước. Tháng 6/2025 chưa đủ ngày nên đặt cạnh tháng 5 sẽ thấy giảm rất mạnh dù số chiến dịch mở mỗi ngày không đổi.}
+\end{nghiepvu}
+\goiy{Mẫu số của phần trăm thay đổi là tháng này hay tháng trước?}
+\goiy{Gom doanh thu theo \code{DATE_FORMAT(start_date, '\%Y-\%m')} trong CTE, rồi lấy tháng trước bằng \code{LAG(doanh_thu) OVER (ORDER BY thang)}.}
+\ghichuthietke{Trung bình: 3 bảng, ký hiệu n-1. Bẫy ở public: tính cả tháng 6/2025 chưa đủ; chia cho tháng này. Purplle không có dòng 1/7/2025 ở hidden-1 nên bẫy thiếu cận trên của bản đồ không lộ ở câu này; đề chọn kỳ tới hết tháng 5 để bẫy tháng chưa đủ lộ ở public. hidden-1 bỏ chiến dịch đuôi 7.}
+\end{cauhoi}
+
+% ================================================================ F3 · Viết · Khó · B3 · marketing
+\begin{cauhoi}[ma=mkt-f3-truot-7-ngay-tira, dulieu=mkt, domain=marketing,
+  hinhthuc=write, cap=hard, dang=B3, kynang={LEFT JOIN lịch, SUM OVER, ROWS BETWEEN}, bay={loc-truoc-khi-truot, khung-cua-so},
+  tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
+\tieude{Số chiến dịch Tira Beauty trượt 7 ngày tháng 3/2025}
+\boicanh[Anh Quân · Quản lý thương hiệu Tira Beauty]{Anh muốn xem số chiến dịch Tira Beauty mở trong tháng 3 cho đều, đỡ rối vì ngày cao ngày thấp. Anh cần số mở mỗi ngày và tổng của bảy ngày gần nhất.}
+\begin{yeucau}
+  \item Xét các ngày từ 1/3/2025 tới hết 31/3/2025 và các chiến dịch của Tira Beauty.
+  \item Tính cho mỗi ngày số chiến dịch bắt đầu trong ngày và số chiến dịch trượt 7 ngày: tổng số chiến dịch bắt đầu trong ngày đó và sáu ngày liền trước, kể cả các ngày cuối tháng 2.
+  \item Trả về \code{cal_date}, \code{so_chien_dich_moi}, \code{so_chien_dich_7_ngay}.
+  \item Sắp \code{cal_date} tăng dần.
+\end{yeucau}
+\begin{erd}
+  \erdbang{calendar}{0,0}{cal_date:PK}
+  \erdbang{campaigns}{1,0}{campaign_id:PK, brand_id:FK, start_date:FK}
+  \erdbang{brands}{2,0}{brand_id:PK}
+  \erdbang{campaign_types}{1,1}{type_id:PK}
+  \erdbang{languages}{2,1}{language_id:PK}
+  \erdkhoa{\code{campaigns.start_date} nối \code{calendar.cal_date}; Tira Beauty là \code{brand_id = 3}. \code{campaign_types}, \code{languages} không cần.}
+\end{erd}
+\begin{nghiepvu}{Theo dõi số chiến dịch mở trượt 7 ngày để phát hiện giai đoạn mở quá dày hoặc quá thưa.}
+  \khainiem{chien-dich}
+  \luuy{Số trượt 7 ngày của ngày 1/3 gồm sáu ngày cuối tháng 2. Nếu chỉ giữ dữ liệu tháng 3 trước khi cộng, sáu ngày đầu tháng sẽ thiếu số. Ngày không mở chiến dịch nào vẫn chiếm một chỗ trong bảy ngày.}
+\end{nghiepvu}
+\goiy{Khung \code{ROWS BETWEEN 6 PRECEDING AND CURRENT ROW} của ngày 1/3 lấy những ngày nào, nếu dữ liệu chỉ có tháng 3?}
+\goiy{Đếm theo ngày trên \code{calendar LEFT JOIN campaigns} từ ngày 23/2/2025, cộng trượt bằng \code{SUM(...) OVER (ORDER BY cal_date ROWS BETWEEN 6 PRECEDING AND CURRENT ROW)}, rồi mới lọc tháng 3.}
+\ghichuthietke{Khó: 5 bảng chỉ khoá, 3 bảng nhiễu. Bẫy ở public: lọc tháng 3 trước khi tính cửa sổ (sáu ngày đầu thiếu số); khung 7 PRECEDING lấy 8 ngày. Tira Beauty ngày nào cũng mở chiến dịch trong khoảng này, nên \code{RANGE} theo ngày và \code{ROWS} cho cùng kết quả và nối trong không làm mất ngày; \code{LEFT JOIN} lịch vẫn là cách viết đúng. hidden-1 bỏ chiến dịch đuôi 7.}
+\end{cauhoi}
+
+% ================================================================ F4 · Viết · Khó · C2 · finance
+\begin{cauhoi}[ma=mkt-f4-pareto-tira, dulieu=mkt, domain=finance,
+  hinhthuc=write, cap=hard, dang=C2, kynang={SUM OVER, ROW_NUMBER, luỹ kế}, bay={dem-thieu-mot, chieu-sap-xep},
+  tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.01]
+\tieude{Bao nhiêu chiến dịch tạo 80\% doanh thu Tira Beauty?}
+\boicanh[Chị Mai · Kế toán quản trị]{Ban giám đốc hỏi doanh thu Tira Beauty có dồn vào một số ít chiến dịch không. Chị cần biết phải gom bao nhiêu chiến dịch lớn nhất mới đủ 80\% doanh thu cả kỳ.}
+\begin{yeucau}
+  \item Xét mọi chiến dịch của Tira Beauty trong kỳ dữ liệu.
+  \item Xếp chiến dịch theo doanh thu giảm dần; bằng nhau thì \code{campaign_id} nhỏ hơn (so theo chuỗi) đứng trước. Cộng dồn doanh thu theo thứ tự đó.
+  \item Tìm số chiến dịch ít nhất tính từ đầu danh sách để doanh thu cộng dồn đạt từ 80\% tổng doanh thu trở lên.
+  \item Trả về đúng một dòng: \code{so_chien_dich_80}, \code{tong_so_chien_dich}, \code{ty_le_chien_dich_pct} (phần trăm số chiến dịch, làm tròn 2 chữ số).
+\end{yeucau}
+\begin{erd}
+  \erdbang{campaigns}{0,0}{campaign_id:PK, brand_id:FK, type_id:FK}
+  \erdbang{brands}{1,0}{brand_id:PK}
+  \erdbang{campaign_types}{2,0}{type_id:PK}
+  \erdbang{campaign_channels}{0,1}{campaign_id:FK, channel_id:FK}
+  \erdbang{channels}{1,1}{channel_id:PK}
+  \erdkhoa{Mọi số liệu cần đều nằm ở \code{campaigns}; Tira Beauty là \code{brand_id = 3}. Các bảng khác không cần.}
+\end{erd}
+\begin{nghiepvu}{Đánh giá doanh thu có phụ thuộc vào một nhóm nhỏ chiến dịch lớn hay không.}
+  \khainiem{chien-dich}
+  \luuy{Nguyên tắc Pareto (80/20) nói phần lớn kết quả thường đến từ một phần nhỏ nguyên nhân. Chiến dịch làm doanh thu cộng dồn vượt mốc 80\% cũng được tính vào số chiến dịch cần gom.}
+\end{nghiepvu}
+\goiy{Chiến dịch đầu tiên có doanh thu cộng dồn từ 80\% trở lên có nằm trong nhóm cần đếm không?}
+\goiy{Trong CTE, tính \code{ROW_NUMBER()} và \code{SUM(revenue) OVER (ORDER BY revenue DESC, campaign_id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)} cùng tổng \code{SUM(revenue) OVER ()}; lấy thứ tự nhỏ nhất có luỹ kế đạt 80\% tổng.}
+\ghichuthietke{Khó: 5 bảng chỉ khoá, 4 bảng nhiễu. Bẫy ở public: đếm chiến dịch có luỹ kế dưới 80\% (thiếu đúng một); cộng dồn tăng dần. Tira Beauty không có hai chiến dịch bằng doanh thu ngay tại mốc 80\%, nên bỏ \code{campaign_id} trong \code{ORDER BY} (khung mặc định \code{RANGE}) vẫn ra cùng số; đề vẫn ghi quy tắc hoà để kết quả xác định. Dữ liệu tổng hợp nên doanh thu không dồn mạnh như quy luật 80/20 thường gặp. hidden-1 bỏ chiến dịch đuôi 7.}
+\end{cauhoi}
+
+% ================================================================ F5 · Viết · Khó · D3 · marketing
+\begin{cauhoi}[ma=mkt-f5-chuoi-ngay-lien-tiep, dulieu=mkt, domain=marketing,
+  hinhthuc=write, cap=hard, dang=D3, kynang={DISTINCT, ROW_NUMBER, gaps-and-islands}, bay={ngay-trung, quy-tac-hoa},
+  tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
+\tieude{Đợt mở chiến dịch liền mạch dài nhất của Nykaa}
+\boicanh[Chị Thảo · Chuyên viên phân tích marketing]{Đội phụ trách chiến dịch Influencer của Nykaa báo từng có đợt ngày nào cũng mở chiến dịch tiếng Bengali cho giới trẻ, kéo dài nhiều ngày liền. Chị cần biết đợt liền mạch dài nhất từ ngày nào tới ngày nào.}
+\begin{yeucau}
+  \item Xét các chiến dịch của Nykaa, loại Influencer (marketing người ảnh hưởng), ngôn ngữ Bengali, đối tượng mục tiêu Youth (giới trẻ) trong kỳ dữ liệu.
+  \item Tìm chuỗi ngày liên tiếp dài nhất mà ngày nào cũng có ít nhất một chiến dịch như trên bắt đầu.
+  \item Trả về đúng một dòng: \code{ngay_dau}, \code{ngay_cuoi}, \code{so_ngay}. Hai chuỗi dài bằng nhau thì lấy chuỗi bắt đầu sớm hơn.
+\end{yeucau}
+\begin{erd}
+  \erdbang{campaigns}{0,0}{campaign_id:PK, brand_id:FK, type_id:FK, target_audience_id:FK, language_id:FK}
+  \erdbang{brands}{1,0}{brand_id:PK}
+  \erdbang{campaign_types}{2,0}{type_id:PK}
+  \erdbang{audiences}{1,1}{audience_id:PK}
+  \erdbang{languages}{2,1}{language_id:PK}
+  \erdbang{calendar}{0,1}{cal_date:PK}
+  \erdkhoa{Dùng mã ở đầu gói: Nykaa 1, Influencer 2, Bengali 1, Youth 5 (mã đối tượng mục tiêu; phân khúc không dùng). \code{calendar} không cần.}
+\end{erd}
+\begin{nghiepvu}{Đánh giá đội phụ trách chiến dịch Influencer có mở chiến dịch đều đặn như báo cáo hay không.}
+  \khainiem{chien-dich}
+  \khainiem{doi-tuong-va-phan-khuc}
+  \luuy{Chuỗi ngày liên tiếp xét theo ngày có chiến dịch bắt đầu, không theo số chiến dịch; một ngày có hai chiến dịch vẫn chỉ là một ngày của chuỗi.}
+\end{nghiepvu}
+\goiy{Trong một chuỗi ngày liền nhau, ngày trừ đi số thứ tự của ngày đó cho ra giá trị gì? Ngày có hai chiến dịch làm số thứ tự thay đổi thế nào?}
+\goiy{Lấy các ngày khác nhau trong CTE; tính \code{DATE_SUB(start_date, INTERVAL ROW_NUMBER() OVER (ORDER BY start_date) DAY)} làm mốc nhóm; gom theo mốc, sắp \code{so_ngay DESC, ngay_dau} rồi lấy dòng đầu.}
+\ghichuthietke{Khó: 6 bảng chỉ khoá, 5 bảng không cần (bốn danh mục đã có mã ở đầu gói và \code{calendar}). Bẫy ở public: đánh số trên từng chiến dịch, không bỏ ngày trùng (chuỗi bị đứt, ra chuỗi khác). Bẫy ở hidden-1: sau khi bỏ chiến dịch đuôi 7 có hai chuỗi cùng dài nhất, lấy chuỗi muộn hơn thì rớt. Tiêu đề rút gọn so với bản đồ (bản đồ nêu đủ bốn điều kiện nhóm, quá 10 tiếng); bốn điều kiện nằm trong yêu cầu.}
+\end{cauhoi}
+
+% ================================================================ F6 · Viết · Trung bình · C4 · customer
+\begin{cauhoi}[ma=mkt-f6-nhom-gia-tri-don-theo-phan-khuc, dulieu=mkt, domain=customer,
+  hinhthuc=write, cap=medium, dang=C4, kynang={NTILE, PARTITION BY, CTE}, bay={thieu-partition, ntile-nhom-le},
+  tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.01]
+\tieude{Nhóm chiến dịch giá trị đơn cao nhất của từng phân khúc}
+\boicanh[Anh Bảo · Chuyên viên phân tích marketing]{Anh đang tìm chiến dịch bán được đơn giá trị cao trong từng phân khúc khách hàng quý 1 để làm mẫu. Anh cần một phần tư chiến dịch đứng đầu của mỗi phân khúc.}
+\begin{yeucau}
+  \item Xét các chiến dịch bắt đầu từ ngày 1/1/2025 tới hết ngày 31/3/2025.
+  \item Chia chiến dịch của từng phân khúc khách hàng thành bốn nhóm có số chiến dịch gần bằng nhau theo giá trị đơn bình quân giảm dần; bằng nhau thì \code{campaign_id} nhỏ hơn (so theo chuỗi) đứng trước. Nhóm 1 là nhóm giá trị đơn cao nhất; khi không chia đều, nhóm đầu nhận thêm chiến dịch.
+  \item Tính cho nhóm 1 của từng phân khúc: số chiến dịch, giá trị đơn bình quân thấp nhất trong nhóm, tổng doanh thu.
+  \item Trả về \code{segment_id}, \code{so_chien_dich}, \code{gia_tri_don_thap_nhat} (làm tròn 2 chữ số), \code{doanh_thu}; sắp \code{segment_id} tăng dần.
+\end{yeucau}
+\begin{erd}
+  \erdbang{campaigns}{0,0}{campaign_id:PK, segment_id:FK*, target_audience_id:FK, start_date*, conversions*, revenue*}
+  \erdbang{audiences}{2,0}{audience_id:PK, audience_name}
+  \erdbang{brands}{0,1}{brand_id:PK, brand_name}
+  \erdnoi[kieu=n-1]{campaigns.segment_id}{audiences.audience_id}
+  \erdnoi[kieu=n-1]{campaigns.target_audience_id}{audiences.audience_id}
+\end{erd}
+\begin{nghiepvu}{Chọn chiến dịch làm mẫu cho cách bán đơn giá trị cao ở từng phân khúc.}
+  \khainiem{gia-tri-don-bq}
+  \khainiem{doi-tuong-va-phan-khuc}
+  \luuy{Mỗi phân khúc chia nhóm riêng, nên ngưỡng vào nhóm cao của các phân khúc khác nhau. Phân khúc khách hàng nằm ở cột \code{segment_id}; đối tượng mục tiêu là cột khác.}
+\end{nghiepvu}
+\goiy{Chia bốn nhóm trên toàn bộ chiến dịch rồi mới tách phân khúc thì nhóm 1 của mỗi phân khúc có còn là một phần tư của phân khúc đó không?}
+\goiy{\code{NTILE(4) OVER (PARTITION BY segment_id ORDER BY revenue / NULLIF(conversions, 0) DESC, campaign_id)} trong CTE, lọc nhóm 1 ở truy vấn ngoài.}
+\ghichuthietke{Trung bình: 3 bảng, ký hiệu n-1, \code{audiences} hai vai; \code{brands} là bảng không cần. Bẫy ở public: không chia theo phân khúc; sắp tăng dần rồi lấy nhóm 4 (ba phân khúc có số chiến dịch không chia hết cho 4 nên nhóm 4 ít hơn nhóm 1). Giá trị đơn có nhiều chiến dịch bằng nhau, đề ghi quy tắc hoà để chia nhóm xác định. hidden-1 bỏ chiến dịch đuôi 7.}
+\end{cauhoi}
+
+% ================================================================ F7 · Sửa lỗi · Trung bình · B3 · finance
+\begin{cauhoi}[ma=mkt-f7-chi-phi-luy-ke-nhay-bac, dulieu=mkt, domain=finance,
+  hinhthuc=debug, cap=medium, dang=B3, kynang={SUM OVER, gom trước khi cộng dồn}, bay={luy-ke-tung-dong, thieu-can-tren},
+  tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.01]
+\tieude{Chi phí luỹ kế của Nykaa lặp nhiều dòng mỗi ngày}
+\boicanh[Chị Mai · Kế toán quản trị]{Chị cần chi phí marketing cộng dồn theo ngày của Nykaa quý 2, mỗi ngày một dòng. Bảng em gửi có ngày lặp lại tới hơn trăm dòng, mỗi dòng một số khác nhau.}
+\begin{yeucau}
+  \item Cần chi phí chiến dịch cộng dồn từ ngày 1/4/2025 tới hết 30/6/2025, mỗi ngày có chiến dịch Nykaa bắt đầu là một dòng. Sửa truy vấn khởi đầu để ra bảng này.
+  \item Lấy giá trị của mỗi ngày bằng tổng chi phí của mọi chiến dịch Nykaa bắt đầu từ ngày 1/4/2025 tới hết ngày đó.
+  \item Giữ nguyên các cột \code{start_date}, \code{chi_phi_luy_ke} (đơn vị tiền, làm tròn 2 chữ số); sắp \code{start_date} tăng dần.
+\end{yeucau}
+\begin{erd}
+  \erdbang{campaigns}{0,0}{campaign_id:PK, brand_id:FK*, start_date:FK*, conversions*, acquisition_cost*}
+  \erdbang{brands}{2,0}{brand_id:PK, brand_name}
+  \erdbang{calendar}{0,1}{cal_date:PK}
+  \erdnoi[kieu=n-1]{campaigns.brand_id}{brands.brand_id}
+  \erdnoi[kieu=n-1]{campaigns.start_date}{calendar.cal_date}
+\end{erd}
+\begin{nghiepvu}{Theo dõi tiến độ chi ngân sách marketing quý 2 của Nykaa theo ngày.}
+  \khainiem{chi-phi-chien-dich}
+  \luuy{Một ngày có nhiều chiến dịch bắt đầu. Cộng dồn trên từng chiến dịch cho ra nhiều giá trị trong cùng một ngày; báo cáo theo ngày cần gom chi phí của ngày trước rồi mới cộng dồn.}
+\end{nghiepvu}
+\goiy{Truy vấn hiện tại cho mỗi chiến dịch một dòng. Báo cáo cần mỗi ngày một dòng; phép gom nào phải làm trước khi cộng dồn?}
+\goiy{Gom \code{SUM(acquisition_cost * conversions)} theo \code{start_date} trong CTE, rồi cộng dồn \code{SUM(chi_phi_ngay) OVER (ORDER BY start_date)} trên kết quả đã gom.}
+\ghichuthietke{Trung bình: 3 bảng, ký hiệu n-1. Starter cộng dồn trên từng chiến dịch (khung \code{ROWS}, sắp thêm \code{campaign_id}), mỗi ngày lặp nhiều dòng với số tăng dần. Mã giữ chữ ``nhảy bậc'' của bản đồ. Bài sai: cộng dồn từ đầu kỳ dữ liệu rồi mới lọc quý 2 (ngày 1/4 mang theo chi phí từ tháng 7/2024, rớt ở public); \code{PARTITION BY start_date} (ra chi phí trong ngày, rớt ở public); bỏ cận trên (rớt ở hidden-1 vì có \code{NY-CMP-56555} ngày 1/7/2025). Thêm \code{DISTINCT} vào truy vấn dùng khung mặc định \code{RANGE} cũng ra đúng. v2: bài sai cũ (thêm \code{DISTINCT} vào starter) trùng kết quả starter nên đã thay.}
+\end{cauhoi}
+
+% ================================================================ F8 · Sửa lỗi · Khó · B2 · sales
+\begin{cauhoi}[ma=mkt-f8-lag-khong-chia-thuong-hieu, dulieu=mkt, domain=sales,
+  hinhthuc=debug, cap=hard, dang=B2, kynang={LAG, PARTITION BY, tháng đủ}, bay={thieu-partition, thang-chua-du},
+  tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.01]
+\tieude{Tăng trưởng tháng đầu của Purplle lấy số Nykaa}
+\boicanh[Anh Phong · Giám đốc tài chính]{Báo cáo tăng trưởng doanh thu theo tháng có tháng 7/2024 của Purplle tăng gần gấp ba, dù đó là tháng đầu có số liệu. Tháng cuối của cả ba thương hiệu lại giảm bất thường. Anh cần bản đúng trước kỳ họp.}
+\begin{yeucau}
+  \item Truy vấn khởi đầu có hai lỗi chồng nhau. Sửa cả hai để ra doanh thu theo tháng bắt đầu và tăng trưởng so với tháng trước của từng thương hiệu, chỉ gồm các tháng đủ trong kỳ dữ liệu.
+  \item Để trống cột tăng trưởng ở tháng đầu của mỗi thương hiệu.
+  \item Giữ nguyên các cột \code{brand_id}, \code{thang}, \code{doanh_thu}, \code{thay_doi_pct} và thứ tự sắp.
+\end{yeucau}
+\begin{erd}
+  \erdbang{campaigns}{0,0}{campaign_id:PK, brand_id:FK, start_date:FK}
+  \erdbang{brands}{1,0}{brand_id:PK}
+  \erdbang{calendar}{2,0}{cal_date:PK}
+  \erdbang{campaign_types}{0,1}{type_id:PK}
+  \erdbang{audiences}{1,1}{audience_id:PK}
+  \erdkhoa{Câu chỉ cần \code{campaigns}. \code{brands}, \code{calendar}, \code{campaign_types}, \code{audiences} không cần.}
+\end{erd}
+\begin{nghiepvu}{Báo cáo biến động doanh thu theo tháng của từng thương hiệu cho hội đồng quản trị.}
+  \khainiem{ky-va-thang-du}
+  \luuy{Mỗi thương hiệu có chuỗi tháng riêng; tháng đầu của mỗi thương hiệu không có tháng trước, nên không được lấy số tháng cuối của thương hiệu khác. Tháng 6/2025 chưa đủ ngày nên không đưa vào so sánh.}
+\end{nghiepvu}
+\goiy{Dòng ngay trước tháng 7/2024 của Purplle trong thứ tự hiện tại là dòng nào? Tháng cuối trong kết quả có đủ ngày không?}
+\goiy{Thêm \code{PARTITION BY brand_id} vào cả hai \code{LAG}, và thêm cận trên \code{start_date < '2025-06-01'}.}
+\ghichuthietke{Khó: 5 bảng chỉ khoá, 4 bảng nhiễu. Starter có hai lỗi: \code{LAG} không chia theo thương hiệu và thiếu cận trên (lấy cả tháng 6/2025 chưa đủ; ở hidden-1 thêm tháng 2025-07 của Nykaa). Bài sai: chỉ sửa \code{PARTITION BY}; chỉ sửa kỳ. Cả hai rớt ở public.}
+\end{cauhoi}
+
+% ================================================================ F9 · Sửa lỗi · Trung bình · C1 · marketing
+\begin{cauhoi}[ma=mkt-f9-tuong-tac-cao-nhat-moi-loai, dulieu=mkt, domain=marketing,
+  hinhthuc=debug, cap=medium, dang=C1, kynang={ROW_NUMBER, PARTITION BY}, bay={thieu-partition, gom-lay-ma-roi},
+  tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.01]
+\tieude{Chiến dịch điểm tương tác cao nhất mỗi loại chỉ ra một dòng}
+\boicanh[Bạn Vy · Thực tập sinh]{Chị Hạnh cần chiến dịch có điểm tương tác cao nhất của từng loại chiến dịch Tira Beauty quý 1. Bảng em làm chỉ ra đúng một dòng, trong khi Tira Beauty có đủ năm loại chiến dịch.}
+\begin{yeucau}
+  \item Sửa truy vấn dưới đây để mỗi loại chiến dịch chỉ còn đúng một chiến dịch Tira Beauty bắt đầu trong quý 1/2025 có điểm tương tác cao nhất; bằng điểm thì \code{campaign_id} nhỏ hơn (so theo chuỗi) được chọn.
+  \item Giữ nguyên các cột \code{type_id}, \code{campaign_id}, \code{engagement_score} và thứ tự sắp.
+\end{yeucau}
+\begin{erd}
+  \erdbang{campaigns}{0,0}{campaign_id:PK, brand_id:FK*, type_id:FK*, start_date*, engagement_score*}
+  \erdbang{campaign_types}{2,0}{type_id:PK, type_name}
+  \erdbang{brands}{0,1}{brand_id:PK, brand_name}
+  \erdnoi[kieu=n-1]{campaigns.type_id}{campaign_types.type_id}
+  \erdnoi[kieu=n-1]{campaigns.brand_id}{brands.brand_id}
+\end{erd}
+\begin{nghiepvu}{Chọn nội dung tiêu biểu của từng loại chiến dịch để chia sẻ trong buổi họp nội dung.}
+  \khainiem{diem-tuong-tac}
+  \luuy{``Cao nhất mỗi loại'' nghĩa là xếp hạng lại từ đầu trong từng loại chiến dịch, không xếp chung rồi lấy hạng 1.}
+\end{nghiepvu}
+\goiy{Số thứ tự hiện tại được đánh lại từ 1 ở mỗi loại hay chạy liền trên mọi chiến dịch?}
+\goiy{Thêm \code{PARTITION BY type_id} vào \code{OVER (...)}.}
+\ghichuthietke{Trung bình: 3 bảng, ký hiệu n-1. Starter không chia theo loại nên chỉ ra một dòng. Bài sai: bỏ hàm cửa sổ, gom theo loại lấy \code{MAX(engagement_score)} và \code{MIN(campaign_id)} (mã không đi cùng điểm); thêm \code{PARTITION BY type_id} nhưng sắp điểm tăng dần (lấy chiến dịch điểm thấp nhất). v2: bài sai cũ (chia theo \code{brand_id}) trùng kết quả starter nên đã thay. Cả hai rớt ở public. Public không có hoà ở hạng 1 của loại nào, đề vẫn ghi quy tắc hoà. hidden-1 bỏ chiến dịch đuôi 7.}
+\end{cauhoi}
+
+
+% ################################################################ CASE STUDY
+
+% ================================================================ C7 · Case · Trung bình · sales
+\begin{cauhoi}[ma=mkt-c7-doanh-thu-nykaa-co-giam, dulieu=mkt, domain=sales,
+  hinhthuc=case, cap=medium, diem=30, tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.01]
+\tieude{Doanh thu Nykaa có giảm trong nửa đầu 2025?}
+\boicanh[Anh Duy · Giám đốc marketing]{Báo cáo nhanh cho thấy doanh thu Nykaa tháng 2 và tháng 6 năm nay giảm. Trước khi họp với đội Nykaa, anh cần biết doanh thu giảm thật hay chỉ do tháng đó ít ngày, ít chiến dịch.}
+\begin{erd}
+  \erdbang[hl]{campaigns}{0,0}{campaign_id:PK, brand_id:FK*, start_date:FK*, revenue*}
+  \erdbang{brands}{2,0}{brand_id:PK, brand_name}
+  \erdbang{calendar}{0,1}{cal_date:PK, month}
+  \erdnoi[kieu=n-1]{campaigns.brand_id}{brands.brand_id}
+  \erdnoi[kieu=n-1]{campaigns.start_date}{calendar.cal_date}
+\end{erd}
+\begin{nghiepvu}{Quyết định có cần làm việc riêng với đội Nykaa về hiệu quả chiến dịch hay không.}
+  \khainiem{ky-va-thang-du}
+  \khainiem{chien-dich}
+  \luuy{Doanh thu tháng bằng số chiến dịch nhân doanh thu bình quân mỗi chiến dịch; số chiến dịch lại phụ thuộc số ngày có dữ liệu. Tách các thành phần này trước khi kết luận.}
+\end{nghiepvu}
+\begin{buoc}[ma=b1, diem=5, hinhthuc=write, bang={campaigns}]{Doanh thu Nykaa theo tháng}
+  \begin{yeucau}
+    \item Xét các chiến dịch của Nykaa (\code{brand_id = 1}) bắt đầu từ ngày 1/1/2025 tới hết ngày 30/6/2025.
+    \item Trả về \code{thang} (chuỗi \code{'YYYY-MM'}), \code{so_chien_dich}, \code{doanh_thu}; sắp \code{thang} tăng dần.
+  \end{yeucau}
+  \goiy{Sáu tháng đầu năm kết thúc hết ngày 30/6; điều kiện ngày cần cả cận trên.}
+\end{buoc}
+\begin{buoc}[ma=b2, diem=10, hinhthuc=write, bang={campaigns}]{Tăng trưởng so với tháng trước}
+  \begin{yeucau}
+    \item Tính, trên cùng phạm vi bước 1, tăng trưởng doanh thu so với tháng trước (phần trăm, làm tròn 2 chữ số); tháng đầu để trống.
+    \item Trả về \code{thang}, \code{doanh_thu}, \code{thay_doi_pct}; sắp \code{thang} tăng dần.
+  \end{yeucau}
+  \goiy{\code{LAG(doanh_thu) OVER (ORDER BY thang)} trên kết quả gom theo tháng; mẫu số là tháng trước.}
+\end{buoc}
+\begin{buoc}[ma=b3, diem=10, hinhthuc=write, bang={campaigns}]{Số ngày, số chiến dịch mỗi ngày và doanh thu mỗi chiến dịch}
+  \begin{yeucau}
+    \item Cùng phạm vi bước 1, mỗi tháng tính ba số: số ngày có chiến dịch bắt đầu, số chiến dịch bình quân của mỗi ngày có chiến dịch bắt đầu (làm tròn 1 chữ số), doanh thu bình quân mỗi chiến dịch (làm tròn 0 chữ số).
+    \item Trả về \code{thang}, \code{so_ngay}, \code{so_chien_dich_moi_ngay}, \code{doanh_thu_moi_chien_dich}; sắp \code{thang} tăng dần.
+  \end{yeucau}
+  \goiy{Số ngày có chiến dịch đếm bằng \code{COUNT(DISTINCT start_date)}; số ngày theo lịch của tháng là con số khác.}
+\end{buoc}
+\begin{buoc}[ma=b4, diem=5, hinhthuc=ketluan, bang={campaigns}]{Kết luận}
+  \begin{luachon}
+    \phuongan*{Doanh thu tháng 2 và tháng 6 thấp vì ít chiến dịch hơn, do tháng 2 ít ngày còn tháng 6 thiếu ngày và mở thưa; doanh thu mỗi chiến dịch gần như không đổi.}
+      {Đúng. Bước 3 cho thấy số chiến dịch mỗi ngày tháng 2 ngang các tháng khác, tháng 6 thiếu ngày và thưa chiến dịch, còn doanh thu mỗi chiến dịch chỉ chênh vài phần trăm.}
+    \phuongan{Doanh thu tháng 6 giảm gần hai phần ba so với tháng 5, nên hiệu quả chiến dịch Nykaa đang sụt mạnh. Cần làm việc ngay với đội Nykaa trước quý 3.}
+      {Chưa đúng. Tháng 6 chưa đủ ngày và có ít chiến dịch hơn; bước 3 cho thấy doanh thu mỗi chiến dịch tháng 6 gần bằng các tháng trước.}
+    \phuongan{Doanh thu tháng 2 giảm so với tháng 1 rồi tăng lại ở tháng 3, nên chiến dịch tháng 2 của Nykaa kém hiệu quả hơn hẳn hai tháng bên cạnh.}
+      {Chưa đúng. Tháng 2 có 28 ngày; bước 3 cho thấy số chiến dịch mỗi ngày tháng 2 không thấp hơn tháng 1 và tháng 3, còn doanh thu mỗi chiến dịch gần bằng hai tháng đó.}
+  \end{luachon}
+\end{buoc}
+\ghichuthietke{Case Trung bình: 3 bảng, ký hiệu n-1, \code{[hl]} bảng đang dùng. Bài sai: bước 1 thiếu cận trên (rớt ở hidden-1, thêm tháng 2025-07); bước 2 chia cho tháng này (rớt ở public); bước 3 lấy số ngày theo lịch (tháng 6 thành 30 ngày, rớt ở public). Trên public doanh thu tháng 2 giảm khoảng 7\%, tháng 6 giảm khoảng 65\%; số chiến dịch mỗi ngày tháng 6 khoảng một nửa các tháng khác; doanh thu mỗi chiến dịch các tháng chênh dưới 5\%. Kết luận đúng không khẳng định nguyên nhân vì sao tháng 6 thưa chiến dịch (dữ liệu tổng hợp). Ở hidden-1 các nhận xét trên vẫn giữ. v2: cân độ dài ba phương án, sửa lời giải thích phương án 3 (doanh thu mỗi chiến dịch tháng 2 thấp hơn tháng 3 một chút, nên chỉ so số chiến dịch mỗi ngày), đổi người hỏi thành Anh Khánh để không trùng Anh Quân ở f3.}
+\end{cauhoi}
+
+% ================================================================ C8 · Case · Khó · customer
+\begin{cauhoi}[ma=mkt-c8-doi-tuong-dang-tang-ngan-sach, dulieu=mkt, domain=customer,
+  hinhthuc=case, cap=hard, diem=50, tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.01]
+\tieude{Nhóm đối tượng nào đáng tăng ngân sách?}
+\boicanh[Anh Duy · Giám đốc marketing]{Kế hoạch năm sau có đề xuất dồn thêm ngân sách cho một nhóm đối tượng mục tiêu. Trước buổi duyệt kế hoạch, anh cần biết có nhóm nào thật sự hiệu quả hơn hẳn các nhóm còn lại không.}
+\begin{erd}
+  \erdbang[hl]{campaigns}{0,0}{campaign_id:PK, brand_id:FK, type_id:FK, target_audience_id:FK, segment_id:FK}
+  \erdbang[hl]{audiences}{1,0}{audience_id:PK}
+  \erdbang{brands}{2,0}{brand_id:PK}
+  \erdbang{campaign_types}{0,1}{type_id:PK}
+  \erdbang{campaign_channels}{1,1}{campaign_id:FK, channel_id:FK}
+  \erdbang{calendar}{2,1}{cal_date:PK}
+  \erdkhoa{Đối tượng mục tiêu là \code{campaigns.target_audience_id} nối \code{audiences}; \code{segment_id} là vai phân khúc, không dùng. \code{campaign_channels} không cần.}
+\end{erd}
+\begin{nghiepvu}{Quyết định có dồn thêm ngân sách năm sau cho một nhóm đối tượng mục tiêu hay không.}
+  \khainiem{roi}
+  \khainiem{cpa}
+  \khainiem{binh-quan-gia-quyen}
+  \khainiem{doi-tuong-va-phan-khuc}
+  \luuy{Dữ liệu là dữ liệu tổng hợp, các nhóm thường chênh nhau rất ít. Một nhóm chỉ đáng ưu tiên khi hơn mức chung rõ rệt và giữ được vị trí đó ở các thương hiệu và các tháng.}
+\end{nghiepvu}
+\begin{buoc}[ma=b1, diem=10, hinhthuc=write, bang={campaigns, audiences}]{ROI của từng nhóm đối tượng}
+  \begin{yeucau}
+    \item Xét mọi chiến dịch trong kỳ dữ liệu, theo đối tượng mục tiêu.
+    \item Trả về \code{audience_id}, \code{audience_name}, \code{so_chien_dich}, \code{roi} (tỷ lệ của tổng, làm tròn 4 chữ số); sắp \code{roi} giảm dần, bằng nhau thì \code{audience_id} nhỏ hơn đứng trước.
+  \end{yeucau}
+  \goiy{ROI của một nhóm bằng (tổng doanh thu - tổng chi phí) / tổng chi phí; không lấy bình quân cột \code{roi}.}
+\end{buoc}
+\begin{buoc}[ma=b2, diem=10, hinhthuc=write, bang={campaigns, campaign_types}]{CPA theo đối tượng và loại chiến dịch}
+  \begin{yeucau}
+    \item Tính CPA (chi phí trên mỗi chuyển đổi) cho từng cặp đối tượng mục tiêu × loại chiến dịch, theo tỷ lệ của tổng.
+    \item Trả về \code{audience_id}, \code{type_id}, \code{cpa} (đơn vị tiền, làm tròn 2 chữ số); sắp \code{audience_id}, rồi \code{type_id} tăng dần.
+  \end{yeucau}
+  \goiy{CPA của nhóm tính bằng tổng chi phí chia tổng lượt chuyển đổi; không lấy bình quân \code{acquisition_cost}.}
+\end{buoc}
+\begin{buoc}[ma=b3, diem=10, hinhthuc=write, bang={campaigns, brands}]{Thứ hạng ROI của đối tượng trong từng thương hiệu}
+  \begin{yeucau}
+    \item Tính ROI (tỷ lệ của tổng) của từng cặp thương hiệu × đối tượng mục tiêu, rồi xếp hạng các đối tượng trong từng thương hiệu theo ROI giảm dần (bằng nhau thì cùng hạng).
+    \item Trả về \code{brand_id}, \code{audience_id}, \code{roi} (làm tròn 4 chữ số), \code{hang}; sắp \code{brand_id}, \code{hang}, rồi \code{audience_id} tăng dần.
+  \end{yeucau}
+  \goiy{\code{RANK() OVER (PARTITION BY brand_id ORDER BY roi DESC)} trên kết quả đã gom theo cặp.}
+\end{buoc}
+\begin{buoc}[ma=b4, diem=10, hinhthuc=write, bang={campaigns, calendar}]{Độ ổn định theo tháng}
+  \begin{yeucau}
+    \item Xét các tháng đủ, chiến dịch bắt đầu từ ngày 1/7/2024 tới hết ngày 31/5/2025.
+    \item Tính ROI (tỷ lệ của tổng) của từng đối tượng mục tiêu trong từng tháng và ROI chung của cả tháng. Đếm cho mỗi đối tượng số tháng có ROI lớn hơn ROI chung của tháng đó (so trên ROI chưa làm tròn); lấy ROI tháng thấp nhất và cao nhất.
+    \item Trả về \code{audience_id}, \code{so_thang_tren_muc_chung}, \code{roi_thap_nhat}, \code{roi_cao_nhat} (làm tròn 4 chữ số); sắp \code{audience_id} tăng dần.
+  \end{yeucau}
+  \goiy{Tính hai CTE theo tháng (theo đối tượng và chung), nối theo tháng, rồi đếm có điều kiện.}
+\end{buoc}
+\begin{buoc}[ma=b5, diem=10, hinhthuc=ketluan, bang={campaigns, audiences}]{Kết luận}
+  \begin{luachon}
+    \phuongan{Premium Shoppers có ROI cao hơn mức chung khoảng 0,8, một khoảng cách rất lớn, nên là nhóm đáng dồn thêm ngân sách năm sau cho cả ba thương hiệu.}
+      {Chưa đúng. Mức 0,8 đến từ bình quân cột \code{roi}; bước 1 tính theo tỷ lệ của tổng cho thấy Premium Shoppers chỉ hơn mức chung chưa tới 0,02.}
+    \phuongan*{Premium Shoppers có ROI tổng cao nhất nhưng hơn nhóm thứ hai chưa tới 0,02, đổi hạng theo thương hiệu, vượt mức chung khoảng nửa số tháng, nên chưa hơn hẳn.}
+      {Đúng. Bước 1 cho khoảng cách nhỏ, bước 3 cho thấy thứ hạng đổi theo thương hiệu, bước 4 cho thấy nhóm này không vượt mức chung đều đặn.}
+    \phuongan{Premium Shoppers có ROI tổng cao nhất và CPA thấp nhất trong năm nhóm, vì vậy nhóm này hiệu quả hơn hẳn và cần được thêm ngân sách ở mọi thương hiệu.}
+      {Chưa đúng. Chênh lệch ROI và CPA giữa các nhóm rất nhỏ; bước 3 cho thấy Premium Shoppers xếp gần cuối ở Purplle.}
+  \end{luachon}
+\end{buoc}
+\ghichuthietke{Case Khó: 6 bảng chỉ khoá, 2 bảng nhiễu, \code{[hl]} hai bảng chính, quan hệ mở bằng \code{erdkhoa}. Trên public ROI tổng theo đối tượng từ khoảng 1,93 tới 1,96 (Premium Shoppers cao nhất), bình quân cột \code{roi} khoảng 2,67 tới 2,71. Premium Shoppers hạng 1 ở Nykaa và Tira Beauty nhưng hạng 5 ở Purplle (hidden-1: hạng 2, 4, 2); vượt mức chung 6 trên 11 tháng ở cả hai biến thể. Bài sai: bước 1 bình quân cột \code{roi}, nối \code{audiences} qua \code{segment_id}; bước 2 bình quân \code{acquisition_cost}; bước 3 xếp hạng chung không chia theo thương hiệu; bước 4 tính cả tháng 6/2025. Tất cả rớt ở public. Kết luận không khẳng định nguyên nhân (dữ liệu tổng hợp, STYLE-mkt B.6). v2: ba phương án cân độ dài, cả hai phương án sai cũng nêu số và mức độ; người hỏi thống nhất là Anh Khánh · Giám đốc marketing như c7; b4 ghi so trên ROI chưa làm tròn vì ở hidden-1 Youth có một tháng chỉ hơn mức chung khoảng 0,00005.}
+\end{cauhoi}
+
+\end{document}

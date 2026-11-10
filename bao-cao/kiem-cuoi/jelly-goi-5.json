@@ -1,0 +1,4438 @@
+{
+  "goi": "goi-cau-hoi/jelly/goi-5",
+  "thoi_gian": "2026-11-10T15:13:09",
+  "may_chu": "sqllb-mysql:3306 (user sql_runner)",
+  "chi_phan_tich": false,
+  "khai_bao": {
+    "dulieu": [
+      "jelly"
+    ],
+    "domain": [
+      "after_sales",
+      "customer",
+      "finance",
+      "marketing",
+      "operations",
+      "sales"
+    ],
+    "khainiem": [
+      "chi-muc",
+      "dau",
+      "doanh-thu-iap",
+      "doanh-thu-quang-cao",
+      "doi-soat-tong-hop",
+      "dong-mo-coi",
+      "dong-trung-gian",
+      "khoa-hat-du-lieu",
+      "lan-quet-bang",
+      "mau",
+      "ngoai-lai",
+      "nguoi-choi-tra-tien",
+      "nhom-cai-dat",
+      "nhom-du-ngay",
+      "phien-ban-luc-choi",
+      "phien-choi",
+      "thu-nghiem-ab",
+      "ty-le-bo-cuoc",
+      "ty-le-giu-chan",
+      "ty-le-thang-man",
+      "ty-le-thua"
+    ]
+  },
+  "so_khoi_sql": 80,
+  "loi_goi": [],
+  "canh_bao_goi": [
+    {
+      "ma_loi": "GOI_FILE_LA",
+      "thong_diep": "thư mục gói có file ngoài 4 file chuẩn (không đưa vào zip): BANG-PHAN-CONG.md, DA-SUA.md, REVIEW-B.md, REVIEW-C.md",
+      "file": "goi-cau-hoi/jelly/goi-5",
+      "dong": null
+    }
+  ],
+  "cau": [
+    {
+      "ma": "jelly-k1-trung-khoa",
+      "dong": 122,
+      "tieu_de": "Hai bảng nguồn của báo cáo giữ chân có dòng ghi trùng không?",
+      "hinhthuc": "write",
+      "cap": "medium",
+      "dang": "E1",
+      "domain": "customer",
+      "dulieu": "jelly",
+      "diem": 30,
+      "trangthai": "review",
+      "bo_qua": false,
+      "cham": {
+        "bokiemtra": [
+          "public",
+          "hidden-1"
+        ],
+        "thutu": "co",
+        "socot": "vitri",
+        "saiso": 0.01,
+        "quettoida": {},
+        "ngansach": null
+      },
+      "buoc": [],
+      "khoi_sql": {
+        "jelly-k1-trung-khoa": {
+          "solution": [
+            "solution"
+          ],
+          "wrong": [
+            "khoa_thieu_cot_ngay"
+          ]
+        }
+      },
+      "loi": [],
+      "canh_bao": [],
+      "kiem_tra": [
+        {
+          "phep": "kiem_tinh (khoá, phần bắt buộc theo hình thức, khối SQL, khái niệm, bước case)",
+          "ket_qua": "dat",
+          "chi_tiet": "0 lỗi"
+        },
+        {
+          "phep": "solution_chay_moi_bien_the",
+          "ket_qua": "dat",
+          "chi_tiet": "[jelly-k1-trung-khoa]: public, hidden-1; chạy 2 lần cùng kết quả"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "khoa_thieu_cot_ngay: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "nghiepvu_khong_lo_so",
+          "ket_qua": "dat",
+          "chi_tiet": ""
+        }
+      ],
+      "solution": {
+        "jelly-k1-trung-khoa": {
+          "public": {
+            "so_dong": 2,
+            "cot": [
+              "bang",
+              "so_dong",
+              "so_khoa_khac_nhau",
+              "so_dong_thua"
+            ],
+            "giay": 1.16,
+            "dong_dau": [
+              [
+                "player_daily",
+                79628,
+                79628,
+                0
+              ],
+              [
+                "tutorial_steps",
+                62782,
+                62782,
+                0
+              ]
+            ]
+          },
+          "hidden-1": {
+            "so_dong": 2,
+            "cot": [
+              "bang",
+              "so_dong",
+              "so_khoa_khac_nhau",
+              "so_dong_thua"
+            ],
+            "giay": 1.013,
+            "dong_dau": [
+              [
+                "player_daily",
+                71595,
+                71595,
+                0
+              ],
+              [
+                "tutorial_steps",
+                56534,
+                56534,
+                0
+              ]
+            ]
+          }
+        }
+      },
+      "starter": {},
+      "wrong": {
+        "khoa_thieu_cot_ngay": {
+          "bien_the": {
+            "public": "rot (khác giá trị ở dòng 1, cột 3)",
+            "hidden-1": "rot (khác giá trị ở dòng 1, cột 3)"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        }
+      },
+      "optimize": null,
+      "buoc_wrong": {},
+      "bien_the": {
+        "public": "jelly",
+        "hidden-1": "jelly_hidden_1"
+      }
+    },
+    {
+      "ma": "jelly-k2-mo-coi",
+      "dong": 150,
+      "tieu_de": "Giao dịch mua trong màn nào không có lượt chơi màn đó?",
+      "hinhthuc": "write",
+      "cap": "medium",
+      "dang": "E2",
+      "domain": "operations",
+      "dulieu": "jelly",
+      "diem": 30,
+      "trangthai": "review",
+      "bo_qua": false,
+      "cham": {
+        "bokiemtra": [
+          "public",
+          "hidden-1"
+        ],
+        "thutu": "co",
+        "socot": "vitri",
+        "saiso": 0.01,
+        "quettoida": {},
+        "ngansach": null
+      },
+      "buoc": [],
+      "khoi_sql": {
+        "jelly-k2-mo-coi": {
+          "solution": [
+            "solution"
+          ],
+          "wrong": [
+            "noi_thang_nhan_dong",
+            "noi_thieu_cot_man",
+            "inner_join_mat_dong_thieu"
+          ]
+        }
+      },
+      "loi": [],
+      "canh_bao": [],
+      "kiem_tra": [
+        {
+          "phep": "kiem_tinh (khoá, phần bắt buộc theo hình thức, khối SQL, khái niệm, bước case)",
+          "ket_qua": "dat",
+          "chi_tiet": "0 lỗi"
+        },
+        {
+          "phep": "solution_chay_moi_bien_the",
+          "ket_qua": "dat",
+          "chi_tiet": "[jelly-k2-mo-coi]: public, hidden-1; chạy 2 lần cùng kết quả"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "noi_thang_nhan_dong: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "noi_thieu_cot_man: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "inner_join_mat_dong_thieu: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "nghiepvu_khong_lo_so",
+          "ket_qua": "dat",
+          "chi_tiet": ""
+        }
+      ],
+      "solution": {
+        "jelly-k2-mo-coi": {
+          "public": {
+            "so_dong": 2,
+            "cot": [
+              "product_type",
+              "so_giao_dich_gan_man",
+              "so_thieu_luot_choi",
+              "ty_le_thieu_pct"
+            ],
+            "giay": 2.168,
+            "dong_dau": [
+              [
+                "booster_bundle",
+                630,
+                464,
+                73.65
+              ],
+              [
+                "extra_moves_pack",
+                645,
+                486,
+                75.35
+              ]
+            ]
+          },
+          "hidden-1": {
+            "so_dong": 2,
+            "cot": [
+              "product_type",
+              "so_giao_dich_gan_man",
+              "so_thieu_luot_choi",
+              "ty_le_thieu_pct"
+            ],
+            "giay": 1.986,
+            "dong_dau": [
+              [
+                "booster_bundle",
+                562,
+                408,
+                72.6
+              ],
+              [
+                "extra_moves_pack",
+                572,
+                427,
+                74.65
+              ]
+            ]
+          }
+        }
+      },
+      "starter": {},
+      "wrong": {
+        "noi_thang_nhan_dong": {
+          "bien_the": {
+            "public": "rot (khác giá trị ở dòng 1, cột 2)",
+            "hidden-1": "rot (khác giá trị ở dòng 1, cột 2)"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        },
+        "noi_thieu_cot_man": {
+          "bien_the": {
+            "public": "rot (khác giá trị ở dòng 1, cột 3)",
+            "hidden-1": "rot (khác giá trị ở dòng 1, cột 3)"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        },
+        "inner_join_mat_dong_thieu": {
+          "bien_the": {
+            "public": "rot (khác giá trị ở dòng 1, cột 2)",
+            "hidden-1": "rot (khác giá trị ở dòng 1, cột 2)"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        }
+      },
+      "optimize": null,
+      "buoc_wrong": {},
+      "bien_the": {
+        "public": "jelly",
+        "hidden-1": "jelly_hidden_1"
+      }
+    },
+    {
+      "ma": "jelly-k3-cohort-day-kiem",
+      "dong": 178,
+      "tieu_de": "Số ngày kể từ lúc cài có được tính đúng?",
+      "hinhthuc": "write",
+      "cap": "medium",
+      "dang": "E2",
+      "domain": "customer",
+      "dulieu": "jelly",
+      "diem": 30,
+      "trangthai": "review",
+      "bo_qua": false,
+      "cham": {
+        "bokiemtra": [
+          "public",
+          "hidden-1"
+        ],
+        "thutu": "co",
+        "socot": "vitri",
+        "saiso": 0.01,
+        "quettoida": {},
+        "ngansach": null
+      },
+      "buoc": [],
+      "khoi_sql": {
+        "jelly-k3-cohort-day-kiem": {
+          "solution": [
+            "solution"
+          ],
+          "wrong": [
+            "datediff_dao_doi_so"
+          ]
+        }
+      },
+      "loi": [],
+      "canh_bao": [],
+      "kiem_tra": [
+        {
+          "phep": "kiem_tinh (khoá, phần bắt buộc theo hình thức, khối SQL, khái niệm, bước case)",
+          "ket_qua": "dat",
+          "chi_tiet": "0 lỗi"
+        },
+        {
+          "phep": "solution_chay_moi_bien_the",
+          "ket_qua": "dat",
+          "chi_tiet": "[jelly-k3-cohort-day-kiem]: public, hidden-1; chạy 2 lần cùng kết quả"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "datediff_dao_doi_so: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "nghiepvu_khong_lo_so",
+          "ket_qua": "dat",
+          "chi_tiet": ""
+        }
+      ],
+      "solution": {
+        "jelly-k3-cohort-day-kiem": {
+          "public": {
+            "so_dong": 1,
+            "cot": [
+              "so_dong_kiem",
+              "so_lech_cohort_day",
+              "so_lech_ngay_cai",
+              "so_hoat_dong_truoc_ngay_cai"
+            ],
+            "giay": 0.168,
+            "dong_dau": [
+              [
+                79628,
+                0,
+                0,
+                0
+              ]
+            ]
+          },
+          "hidden-1": {
+            "so_dong": 1,
+            "cot": [
+              "so_dong_kiem",
+              "so_lech_cohort_day",
+              "so_lech_ngay_cai",
+              "so_hoat_dong_truoc_ngay_cai"
+            ],
+            "giay": 0.152,
+            "dong_dau": [
+              [
+                71595,
+                1,
+                1,
+                0
+              ]
+            ]
+          }
+        }
+      },
+      "starter": {},
+      "wrong": {
+        "datediff_dao_doi_so": {
+          "bien_the": {
+            "public": "rot (khác giá trị ở dòng 1, cột 2)",
+            "hidden-1": "rot (khác giá trị ở dòng 1, cột 2)"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        }
+      },
+      "optimize": null,
+      "buoc_wrong": {},
+      "bien_the": {
+        "public": "jelly",
+        "hidden-1": "jelly_hidden_1"
+      }
+    },
+    {
+      "ma": "jelly-k4-max-level-giam",
+      "dong": 204,
+      "tieu_de": "Màn cao nhất trong ngày có lúc giảm không?",
+      "hinhthuc": "write",
+      "cap": "medium",
+      "dang": "E1",
+      "domain": "operations",
+      "dulieu": "jelly",
+      "diem": 30,
+      "trangthai": "review",
+      "bo_qua": false,
+      "cham": {
+        "bokiemtra": [
+          "public",
+          "hidden-1"
+        ],
+        "thutu": "co",
+        "socot": "vitri",
+        "saiso": 0.01,
+        "quettoida": {},
+        "ngansach": null
+      },
+      "buoc": [],
+      "khoi_sql": {
+        "jelly-k4-max-level-giam": {
+          "solution": [
+            "solution"
+          ],
+          "wrong": [
+            "coi_max_level_la_luy_ke",
+            "lag_thieu_partition"
+          ]
+        }
+      },
+      "loi": [],
+      "canh_bao": [],
+      "kiem_tra": [
+        {
+          "phep": "kiem_tinh (khoá, phần bắt buộc theo hình thức, khối SQL, khái niệm, bước case)",
+          "ket_qua": "dat",
+          "chi_tiet": "0 lỗi"
+        },
+        {
+          "phep": "solution_chay_moi_bien_the",
+          "ket_qua": "dat",
+          "chi_tiet": "[jelly-k4-max-level-giam]: public, hidden-1; chạy 2 lần cùng kết quả"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "coi_max_level_la_luy_ke: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "lag_thieu_partition: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "nghiepvu_khong_lo_so",
+          "ket_qua": "dat",
+          "chi_tiet": ""
+        }
+      ],
+      "solution": {
+        "jelly-k4-max-level-giam": {
+          "public": {
+            "so_dong": 1,
+            "cot": [
+              "so_ngay_nguoi_giam",
+              "so_nguoi_choi",
+              "muc_giam_binh_quan"
+            ],
+            "giay": 0.301,
+            "dong_dau": [
+              [
+                2675,
+                2394,
+                1.16
+              ]
+            ]
+          },
+          "hidden-1": {
+            "so_dong": 1,
+            "cot": [
+              "so_ngay_nguoi_giam",
+              "so_nguoi_choi",
+              "muc_giam_binh_quan"
+            ],
+            "giay": 0.269,
+            "dong_dau": [
+              [
+                2384,
+                2138,
+                1.16
+              ]
+            ]
+          }
+        }
+      },
+      "starter": {},
+      "wrong": {
+        "coi_max_level_la_luy_ke": {
+          "bien_the": {
+            "public": "rot (khác giá trị ở dòng 1, cột 1)",
+            "hidden-1": "rot (khác giá trị ở dòng 1, cột 1)"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        },
+        "lag_thieu_partition": {
+          "bien_the": {
+            "public": "rot (khác giá trị ở dòng 1, cột 1)",
+            "hidden-1": "rot (khác giá trị ở dòng 1, cột 1)"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        }
+      },
+      "optimize": null,
+      "buoc_wrong": {},
+      "bien_the": {
+        "public": "jelly",
+        "hidden-1": "jelly_hidden_1"
+      }
+    },
+    {
+      "ma": "jelly-k5-extra-moves-doi-soat",
+      "dong": 230,
+      "tieu_de": "Mua thêm lượt đi ở ba nguồn có khớp nhau?",
+      "hinhthuc": "write",
+      "cap": "hard",
+      "dang": "E2",
+      "domain": "sales",
+      "dulieu": "jelly",
+      "diem": 50,
+      "trangthai": "review",
+      "bo_qua": false,
+      "cham": {
+        "bokiemtra": [
+          "public",
+          "hidden-1"
+        ],
+        "thutu": "co",
+        "socot": "vitri",
+        "saiso": 0.01,
+        "quettoida": {},
+        "ngansach": null
+      },
+      "buoc": [],
+      "khoi_sql": {
+        "jelly-k5-extra-moves-doi-soat": {
+          "solution": [
+            "solution"
+          ],
+          "wrong": [
+            "quen_can_tren",
+            "noi_truc_tiep_nhan_dong"
+          ]
+        }
+      },
+      "loi": [],
+      "canh_bao": [],
+      "kiem_tra": [
+        {
+          "phep": "kiem_tinh (khoá, phần bắt buộc theo hình thức, khối SQL, khái niệm, bước case)",
+          "ket_qua": "dat",
+          "chi_tiet": "0 lỗi"
+        },
+        {
+          "phep": "solution_chay_moi_bien_the",
+          "ket_qua": "dat",
+          "chi_tiet": "[jelly-k5-extra-moves-doi-soat]: public, hidden-1; chạy 2 lần cùng kết quả"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "quen_can_tren: rớt ở hidden-1"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "noi_truc_tiep_nhan_dong: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "nghiepvu_khong_lo_so",
+          "ket_qua": "dat",
+          "chi_tiet": ""
+        }
+      ],
+      "solution": {
+        "jelly-k5-extra-moves-doi-soat": {
+          "public": {
+            "so_dong": 29,
+            "cot": [
+              "ngay",
+              "so_luot_nhan_them",
+              "so_luot_bang_ngay",
+              "so_giao_dich_goi"
+            ],
+            "giay": 2.595,
+            "dong_dau": [
+              [
+                "2026-08-01",
+                54,
+                56,
+                9
+              ],
+              [
+                "2026-08-02",
+                40,
+                42,
+                9
+              ],
+              [
+                "2026-08-03",
+                56,
+                56,
+                12
+              ],
+              [
+                "2026-08-04",
+                41,
+                43,
+                14
+              ],
+              [
+                "2026-08-05",
+                45,
+                48,
+                15
+              ]
+            ]
+          },
+          "hidden-1": {
+            "so_dong": 29,
+            "cot": [
+              "ngay",
+              "so_luot_nhan_them",
+              "so_luot_bang_ngay",
+              "so_giao_dich_goi"
+            ],
+            "giay": 2.633,
+            "dong_dau": [
+              [
+                "2026-08-01",
+                50,
+                52,
+                9
+              ],
+              [
+                "2026-08-02",
+                34,
+                36,
+                9
+              ],
+              [
+                "2026-08-03",
+                49,
+                49,
+                12
+              ],
+              [
+                "2026-08-04",
+                39,
+                41,
+                11
+              ],
+              [
+                "2026-08-05",
+                40,
+                43,
+                15
+              ]
+            ]
+          }
+        }
+      },
+      "starter": {},
+      "wrong": {
+        "quen_can_tren": {
+          "bien_the": {
+            "public": "qua",
+            "hidden-1": "rot (khác số dòng (31 so với 29))"
+          },
+          "rot_o": [
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        },
+        "noi_truc_tiep_nhan_dong": {
+          "bien_the": {
+            "public": "rot (khác giá trị ở dòng 1, cột 3)",
+            "hidden-1": "rot (khác giá trị ở dòng 1, cột 3)"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        }
+      },
+      "optimize": null,
+      "buoc_wrong": {},
+      "bien_the": {
+        "public": "jelly",
+        "hidden-1": "jelly_hidden_1"
+      }
+    },
+    {
+      "ma": "jelly-k6-ad-revenue-lam-tron",
+      "dong": 260,
+      "tieu_de": "Doanh thu quảng cáo ở hai nguồn lệch nhau bao nhiêu?",
+      "hinhthuc": "write",
+      "cap": "hard",
+      "dang": "E2",
+      "domain": "finance",
+      "dulieu": "jelly",
+      "diem": 50,
+      "trangthai": "review",
+      "bo_qua": false,
+      "cham": {
+        "bokiemtra": [
+          "public",
+          "hidden-1"
+        ],
+        "thutu": "co",
+        "socot": "vitri",
+        "saiso": 1e-05,
+        "quettoida": {},
+        "ngansach": null
+      },
+      "buoc": [],
+      "khoi_sql": {
+        "jelly-k6-ad-revenue-lam-tron": {
+          "solution": [
+            "solution"
+          ],
+          "wrong": [
+            "so_bang_dau_khac",
+            "lam_tron_roi_so_bang"
+          ]
+        }
+      },
+      "loi": [],
+      "canh_bao": [],
+      "kiem_tra": [
+        {
+          "phep": "kiem_tinh (khoá, phần bắt buộc theo hình thức, khối SQL, khái niệm, bước case)",
+          "ket_qua": "dat",
+          "chi_tiet": "0 lỗi"
+        },
+        {
+          "phep": "solution_chay_moi_bien_the",
+          "ket_qua": "dat",
+          "chi_tiet": "[jelly-k6-ad-revenue-lam-tron]: public, hidden-1; chạy 2 lần cùng kết quả"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "so_bang_dau_khac: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "lam_tron_roi_so_bang: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "nghiepvu_khong_lo_so",
+          "ket_qua": "dat",
+          "chi_tiet": ""
+        }
+      ],
+      "solution": {
+        "jelly-k6-ad-revenue-lam-tron": {
+          "public": {
+            "so_dong": 1,
+            "cot": [
+              "so_ngay_nguoi_doi_soat",
+              "so_ngay_nguoi_lech",
+              "tong_chenh_lech_usd",
+              "chenh_lech_lon_nhat_usd"
+            ],
+            "giay": 2.011,
+            "dong_dau": [
+              [
+                64098,
+                243,
+                -0.008,
+                7e-05
+              ]
+            ]
+          },
+          "hidden-1": {
+            "so_dong": 1,
+            "cot": [
+              "so_ngay_nguoi_doi_soat",
+              "so_ngay_nguoi_lech",
+              "tong_chenh_lech_usd",
+              "chenh_lech_lon_nhat_usd"
+            ],
+            "giay": 1.611,
+            "dong_dau": [
+              [
+                57622,
+                219,
+                -0.00788,
+                6e-05
+              ]
+            ]
+          }
+        }
+      },
+      "starter": {},
+      "wrong": {
+        "so_bang_dau_khac": {
+          "bien_the": {
+            "public": "rot (khác giá trị ở dòng 1, cột 2)",
+            "hidden-1": "rot (khác giá trị ở dòng 1, cột 2)"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        },
+        "lam_tron_roi_so_bang": {
+          "bien_the": {
+            "public": "rot (khác giá trị ở dòng 1, cột 2)",
+            "hidden-1": "rot (khác giá trị ở dòng 1, cột 2)"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        }
+      },
+      "optimize": null,
+      "buoc_wrong": {},
+      "bien_the": {
+        "public": "jelly",
+        "hidden-1": "jelly_hidden_1"
+      }
+    },
+    {
+      "ma": "jelly-k7-bat-thuong-chi",
+      "dong": 288,
+      "tieu_de": "Ngày chi quảng cáo bất thường không hiện ra",
+      "hinhthuc": "debug",
+      "cap": "medium",
+      "dang": "E1",
+      "domain": "marketing",
+      "dulieu": "jelly",
+      "diem": 30,
+      "trangthai": "review",
+      "bo_qua": false,
+      "cham": {
+        "bokiemtra": [
+          "public",
+          "hidden-1"
+        ],
+        "thutu": "co",
+        "socot": "vitri",
+        "saiso": 0.01,
+        "quettoida": {},
+        "ngansach": null
+      },
+      "buoc": [],
+      "khoi_sql": {
+        "jelly-k7-bat-thuong-chi": {
+          "solution": [
+            "solution"
+          ],
+          "starter": [
+            "starter"
+          ],
+          "wrong": [
+            "chuan_tren_dong_quoc_gia",
+            "quen_can_tren"
+          ]
+        }
+      },
+      "loi": [],
+      "canh_bao": [],
+      "kiem_tra": [
+        {
+          "phep": "kiem_tinh (khoá, phần bắt buộc theo hình thức, khối SQL, khái niệm, bước case)",
+          "ket_qua": "dat",
+          "chi_tiet": "0 lỗi"
+        },
+        {
+          "phep": "solution_chay_moi_bien_the",
+          "ket_qua": "dat",
+          "chi_tiet": "[jelly-k7-bat-thuong-chi]: public, hidden-1; chạy 2 lần cùng kết quả"
+        },
+        {
+          "phep": "starter_debug_sai",
+          "ket_qua": "dat",
+          "chi_tiet": "public: khác số dòng (2 so với 4), hidden-1: khác số dòng (2 so với 6)"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "chuan_tren_dong_quoc_gia: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "quen_can_tren: rớt ở hidden-1"
+        },
+        {
+          "phep": "nghiepvu_khong_lo_so",
+          "ket_qua": "dat",
+          "chi_tiet": ""
+        }
+      ],
+      "solution": {
+        "jelly-k7-bat-thuong-chi": {
+          "public": {
+            "so_dong": 4,
+            "cot": [
+              "campaign_id",
+              "ngay",
+              "chi_ngay",
+              "chi_tb_chien_dich"
+            ],
+            "giay": 0.003,
+            "dong_dau": [
+              [
+                "JTA-CREATOR-077",
+                "2026-07-01",
+                271.12,
+                230.28
+              ],
+              [
+                "JTA-SEA-SEARCH-101",
+                "2026-07-11",
+                658.23,
+                535.11
+              ],
+              [
+                "JTA-SOCIAL-204",
+                "2026-07-29",
+                843.27,
+                711.84
+              ],
+              [
+                "JTA-SOCIAL-204",
+                "2026-08-18",
+                847.27,
+                711.84
+              ]
+            ]
+          },
+          "hidden-1": {
+            "so_dong": 6,
+            "cot": [
+              "campaign_id",
+              "ngay",
+              "chi_ngay",
+              "chi_tb_chien_dich"
+            ],
+            "giay": 0.003,
+            "dong_dau": [
+              [
+                "JTA-CREATOR-077",
+                "2026-07-01",
+                271.12,
+                230.28
+              ],
+              [
+                "JTA-SEA-SEARCH-101",
+                "2026-07-11",
+                658.23,
+                535.11
+              ],
+              [
+                "JTA-SOCIAL-204",
+                "2026-07-29",
+                843.27,
+                711.84
+              ],
+              [
+                "JTA-SOCIAL-204",
+                "2026-08-18",
+                847.27,
+                711.84
+              ],
+              [
+                "JTA-VIDEO-330",
+                "2026-07-11",
+                521.72,
+                396.45
+              ]
+            ]
+          }
+        }
+      },
+      "starter": {
+        "public": "khác số dòng (2 so với 4)",
+        "hidden-1": "khác số dòng (2 so với 6)"
+      },
+      "wrong": {
+        "chuan_tren_dong_quoc_gia": {
+          "bien_the": {
+            "public": "rot (khác số dòng (240 so với 4))",
+            "hidden-1": "rot (khác số dòng (240 so với 6))"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        },
+        "quen_can_tren": {
+          "bien_the": {
+            "public": "qua",
+            "hidden-1": "rot (khác số dòng (4 so với 6))"
+          },
+          "rot_o": [
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        }
+      },
+      "optimize": null,
+      "buoc_wrong": {},
+      "bien_the": {
+        "public": "jelly",
+        "hidden-1": "jelly_hidden_1"
+      }
+    },
+    {
+      "ma": "jelly-k8-hoan-tien",
+      "dong": 314,
+      "tieu_de": "Doanh thu thuần của các gói vật phẩm ra số âm",
+      "hinhthuc": "debug",
+      "cap": "medium",
+      "dang": "E2",
+      "domain": "after_sales",
+      "dulieu": "jelly",
+      "diem": 30,
+      "trangthai": "review",
+      "bo_qua": false,
+      "cham": {
+        "bokiemtra": [
+          "public",
+          "hidden-1"
+        ],
+        "thutu": "co",
+        "socot": "vitri",
+        "saiso": 0.01,
+        "quettoida": {},
+        "ngansach": null
+      },
+      "buoc": [],
+      "khoi_sql": {
+        "jelly-k8-hoan-tien": {
+          "solution": [
+            "solution"
+          ],
+          "starter": [
+            "starter"
+          ],
+          "wrong": [
+            "chi_sua_cot_thuan",
+            "case_thieu_else"
+          ]
+        }
+      },
+      "loi": [],
+      "canh_bao": [],
+      "kiem_tra": [
+        {
+          "phep": "kiem_tinh (khoá, phần bắt buộc theo hình thức, khối SQL, khái niệm, bước case)",
+          "ket_qua": "dat",
+          "chi_tiet": "0 lỗi"
+        },
+        {
+          "phep": "solution_chay_moi_bien_the",
+          "ket_qua": "dat",
+          "chi_tiet": "[jelly-k8-hoan-tien]: public, hidden-1; chạy 2 lần cùng kết quả"
+        },
+        {
+          "phep": "starter_debug_sai",
+          "ket_qua": "dat",
+          "chi_tiet": "public: khác giá trị ở dòng 1, cột 1, hidden-1: khác giá trị ở dòng 1, cột 1"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "chi_sua_cot_thuan: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "case_thieu_else: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "nghiepvu_khong_lo_so",
+          "ket_qua": "dat",
+          "chi_tiet": ""
+        }
+      ],
+      "solution": {
+        "jelly-k8-hoan-tien": {
+          "public": {
+            "so_dong": 5,
+            "cot": [
+              "product_type",
+              "so_giao_dich",
+              "doanh_thu_gop",
+              "tien_hoan",
+              "doanh_thu_thuan"
+            ],
+            "giay": 0.003,
+            "dong_dau": [
+              [
+                "booster_bundle",
+                256,
+                1277.44,
+                0,
+                1277.44
+              ],
+              [
+                "season_pass",
+                86,
+                859.14,
+                0,
+                859.14
+              ],
+              [
+                "extra_moves_pack",
+                261,
+                519.39,
+                0,
+                519.39
+              ],
+              [
+                "piggy_bank",
+                145,
+                433.55,
+                0,
+                433.55
+              ],
+              [
+                "starter_pack",
+                302,
+                298.98,
+                0,
+                298.98
+              ]
+            ]
+          },
+          "hidden-1": {
+            "so_dong": 5,
+            "cot": [
+              "product_type",
+              "so_giao_dich",
+              "doanh_thu_gop",
+              "tien_hoan",
+              "doanh_thu_thuan"
+            ],
+            "giay": 0.002,
+            "dong_dau": [
+              [
+                "booster_bundle",
+                231,
+                1152.69,
+                0,
+                1152.69
+              ],
+              [
+                "season_pass",
+                77,
+                769.23,
+                0,
+                769.23
+              ],
+              [
+                "extra_moves_pack",
+                234,
+                465.66,
+                0,
+                465.66
+              ],
+              [
+                "piggy_bank",
+                131,
+                391.69,
+                0,
+                391.69
+              ],
+              [
+                "starter_pack",
+                273,
+                270.27,
+                0,
+                270.27
+              ]
+            ]
+          }
+        }
+      },
+      "starter": {
+        "public": "khác giá trị ở dòng 1, cột 1",
+        "hidden-1": "khác giá trị ở dòng 1, cột 1"
+      },
+      "wrong": {
+        "chi_sua_cot_thuan": {
+          "bien_the": {
+            "public": "rot (khác giá trị ở dòng 1, cột 4)",
+            "hidden-1": "rot (khác giá trị ở dòng 1, cột 4)"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        },
+        "case_thieu_else": {
+          "bien_the": {
+            "public": "rot (khác kiểu giá trị ở dòng 1, cột 4 (null so với so))",
+            "hidden-1": "rot (khác kiểu giá trị ở dòng 1, cột 4 (null so với so))"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        }
+      },
+      "optimize": null,
+      "buoc_wrong": {},
+      "bien_the": {
+        "public": "jelly",
+        "hidden-1": "jelly_hidden_1"
+      }
+    },
+    {
+      "ma": "jelly-k9-phien-hai-dang-ma",
+      "dong": 339,
+      "tieu_de": "Không người chơi mới nào bắt đầu bằng phần hướng dẫn?",
+      "hinhthuc": "debug",
+      "cap": "hard",
+      "dang": "E1",
+      "domain": "operations",
+      "dulieu": "jelly",
+      "diem": 50,
+      "trangthai": "review",
+      "bo_qua": false,
+      "cham": {
+        "bokiemtra": [
+          "public",
+          "hidden-1"
+        ],
+        "thutu": "co",
+        "socot": "vitri",
+        "saiso": 0.01,
+        "quettoida": {},
+        "ngansach": null
+      },
+      "buoc": [],
+      "khoi_sql": {
+        "jelly-k9-phien-hai-dang-ma": {
+          "solution": [
+            "solution"
+          ],
+          "starter": [
+            "starter"
+          ],
+          "wrong": [
+            "chi_sua_can_tren",
+            "chi_sua_thu_tu_phien"
+          ]
+        }
+      },
+      "loi": [],
+      "canh_bao": [],
+      "kiem_tra": [
+        {
+          "phep": "kiem_tinh (khoá, phần bắt buộc theo hình thức, khối SQL, khái niệm, bước case)",
+          "ket_qua": "dat",
+          "chi_tiet": "0 lỗi"
+        },
+        {
+          "phep": "solution_chay_moi_bien_the",
+          "ket_qua": "dat",
+          "chi_tiet": "[jelly-k9-phien-hai-dang-ma]: public, hidden-1; chạy 2 lần cùng kết quả"
+        },
+        {
+          "phep": "starter_debug_sai",
+          "ket_qua": "dat",
+          "chi_tiet": "public: khác giá trị ở dòng 1, cột 2, hidden-1: khác giá trị ở dòng 1, cột 2"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "chi_sua_can_tren: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "chi_sua_thu_tu_phien: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "nghiepvu_khong_lo_so",
+          "ket_qua": "dat",
+          "chi_tiet": ""
+        }
+      ],
+      "solution": {
+        "jelly-k9-phien-hai-dang-ma": {
+          "public": {
+            "so_dong": 2,
+            "cot": [
+              "platform",
+              "so_nguoi_cai",
+              "so_nguoi_vao_huong_dan",
+              "ty_le_pct"
+            ],
+            "giay": 1.699,
+            "dong_dau": [
+              [
+                "Android",
+                5236,
+                1429,
+                27.29
+              ],
+              [
+                "iOS",
+                2218,
+                570,
+                25.7
+              ]
+            ]
+          },
+          "hidden-1": {
+            "so_dong": 2,
+            "cot": [
+              "platform",
+              "so_nguoi_cai",
+              "so_nguoi_vao_huong_dan",
+              "ty_le_pct"
+            ],
+            "giay": 1.455,
+            "dong_dau": [
+              [
+                "Android",
+                4705,
+                1283,
+                27.27
+              ],
+              [
+                "iOS",
+                2004,
+                519,
+                25.9
+              ]
+            ]
+          }
+        }
+      },
+      "starter": {
+        "public": "khác giá trị ở dòng 1, cột 2",
+        "hidden-1": "khác giá trị ở dòng 1, cột 2"
+      },
+      "wrong": {
+        "chi_sua_can_tren": {
+          "bien_the": {
+            "public": "rot (khác giá trị ở dòng 1, cột 3)",
+            "hidden-1": "rot (khác giá trị ở dòng 1, cột 3)"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        },
+        "chi_sua_thu_tu_phien": {
+          "bien_the": {
+            "public": "rot (khác giá trị ở dòng 1, cột 2)",
+            "hidden-1": "rot (khác giá trị ở dòng 1, cột 2)"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        }
+      },
+      "optimize": null,
+      "buoc_wrong": {},
+      "bien_the": {
+        "public": "jelly",
+        "hidden-1": "jelly_hidden_1"
+      }
+    },
+    {
+      "ma": "jelly-p1-dem-ket-qua-mot-lan",
+      "dong": 370,
+      "tieu_de": "Kết quả lượt chơi màn 28--30 trong tháng 8",
+      "hinhthuc": "optimize",
+      "cap": "easy",
+      "dang": "A3",
+      "domain": "operations",
+      "dulieu": "jelly",
+      "diem": 20,
+      "trangthai": "review",
+      "bo_qua": false,
+      "cham": {
+        "bokiemtra": [
+          "public",
+          "hidden-1"
+        ],
+        "thutu": "co",
+        "socot": "vitri",
+        "saiso": 0.01,
+        "quettoida": {
+          "level_attempts": 1
+        },
+        "ngansach": null
+      },
+      "buoc": [],
+      "khoi_sql": {
+        "jelly-p1-dem-ket-qua-mot-lan": {
+          "solution": [
+            "solution"
+          ],
+          "starter": [
+            "starter"
+          ],
+          "wrong": [
+            "group_by_ra_dang_doc",
+            "dem_count_cot_ket_qua"
+          ]
+        }
+      },
+      "loi": [],
+      "canh_bao": [],
+      "kiem_tra": [
+        {
+          "phep": "kiem_tinh (khoá, phần bắt buộc theo hình thức, khối SQL, khái niệm, bước case)",
+          "ket_qua": "dat",
+          "chi_tiet": "0 lỗi"
+        },
+        {
+          "phep": "solution_chay_moi_bien_the",
+          "ket_qua": "dat",
+          "chi_tiet": "[jelly-p1-dem-ket-qua-mot-lan]: public, hidden-1; chạy 2 lần cùng kết quả"
+        },
+        {
+          "phep": "solution_thoa_rang_buoc",
+          "ket_qua": "dat",
+          "chi_tiet": "{\"level_attempts\": 1}, dòng trung gian 12649"
+        },
+        {
+          "phep": "starter_opt_dung_ket_qua",
+          "ket_qua": "dat",
+          "chi_tiet": "khớp mọi biến thể"
+        },
+        {
+          "phep": "starter_opt_vi_pham",
+          "ket_qua": "dat",
+          "chi_tiet": "level_attempts quét 4 lần > 1"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "group_by_ra_dang_doc: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "dem_count_cot_ket_qua: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "nghiepvu_khong_lo_so",
+          "ket_qua": "dat",
+          "chi_tiet": ""
+        }
+      ],
+      "solution": {
+        "jelly-p1-dem-ket-qua-mot-lan": {
+          "public": {
+            "so_dong": 3,
+            "cot": [
+              "level_id",
+              "so_thang",
+              "so_thua",
+              "so_bo_cuoc",
+              "so_su_co"
+            ],
+            "giay": 0.087,
+            "dong_dau": [
+              [
+                28,
+                1433,
+                560,
+                41,
+                11
+              ],
+              [
+                29,
+                1252,
+                514,
+                85,
+                27
+              ],
+              [
+                30,
+                1163,
+                531,
+                74,
+                20
+              ]
+            ]
+          },
+          "hidden-1": {
+            "so_dong": 3,
+            "cot": [
+              "level_id",
+              "so_thang",
+              "so_thua",
+              "so_bo_cuoc",
+              "so_su_co"
+            ],
+            "giay": 0.058,
+            "dong_dau": [
+              [
+                28,
+                1268,
+                499,
+                37,
+                10
+              ],
+              [
+                29,
+                1112,
+                450,
+                78,
+                23
+              ],
+              [
+                30,
+                1044,
+                475,
+                67,
+                19
+              ]
+            ]
+          }
+        }
+      },
+      "starter": {
+        "public": "khớp",
+        "hidden-1": "khớp"
+      },
+      "wrong": {
+        "group_by_ra_dang_doc": {
+          "bien_the": {
+            "public": "rot (khác số cột (3 so với 5))",
+            "hidden-1": "rot (khác số cột (3 so với 5))"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        },
+        "dem_count_cot_ket_qua": {
+          "bien_the": {
+            "public": "rot (khác giá trị ở dòng 1, cột 2)",
+            "hidden-1": "rot (khác giá trị ở dòng 1, cột 2)"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        }
+      },
+      "optimize": {
+        "rang_buoc": {
+          "quettoida": {
+            "level_attempts": 1
+          },
+          "ngansach": null
+        },
+        "solution": {
+          "quet": {
+            "level_attempts": 1
+          },
+          "dong_trung_gian": 12649,
+          "khong_ro": []
+        },
+        "starter": {
+          "quet": {
+            "level_attempts": 4
+          },
+          "dong_trung_gian": 12697,
+          "khong_ro": [],
+          "vi_pham": [
+            "level_attempts quét 4 lần > 1"
+          ]
+        },
+        "wrong": {}
+      },
+      "buoc_wrong": {},
+      "bien_the": {
+        "public": "jelly",
+        "hidden-1": "jelly_hidden_1"
+      }
+    },
+    {
+      "ma": "jelly-p2-doanh-thu-hai-nguon",
+      "dong": 396,
+      "tieu_de": "Doanh thu quảng cáo theo nền tảng và định dạng chỉ với một lần quét",
+      "hinhthuc": "optimize",
+      "cap": "easy",
+      "dang": "A3",
+      "domain": "finance",
+      "dulieu": "jelly",
+      "diem": 20,
+      "trangthai": "review",
+      "bo_qua": false,
+      "cham": {
+        "bokiemtra": [
+          "public",
+          "hidden-1"
+        ],
+        "thutu": "co",
+        "socot": "vitri",
+        "saiso": 0.01,
+        "quettoida": {
+          "ad_events": 1
+        },
+        "ngansach": null
+      },
+      "buoc": [],
+      "khoi_sql": {
+        "jelly-p2-doanh-thu-hai-nguon": {
+          "solution": [
+            "solution"
+          ],
+          "starter": [
+            "starter"
+          ],
+          "wrong": [
+            "gom_thieu_loai_quang_cao",
+            "quen_loc_thang"
+          ]
+        }
+      },
+      "loi": [],
+      "canh_bao": [],
+      "kiem_tra": [
+        {
+          "phep": "kiem_tinh (khoá, phần bắt buộc theo hình thức, khối SQL, khái niệm, bước case)",
+          "ket_qua": "dat",
+          "chi_tiet": "0 lỗi"
+        },
+        {
+          "phep": "solution_chay_moi_bien_the",
+          "ket_qua": "dat",
+          "chi_tiet": "[jelly-p2-doanh-thu-hai-nguon]: public, hidden-1; chạy 2 lần cùng kết quả"
+        },
+        {
+          "phep": "solution_thoa_rang_buoc",
+          "ket_qua": "dat",
+          "chi_tiet": "{\"ad_events\": 1}, dòng trung gian 246616"
+        },
+        {
+          "phep": "starter_opt_dung_ket_qua",
+          "ket_qua": "dat",
+          "chi_tiet": "khớp mọi biến thể"
+        },
+        {
+          "phep": "starter_opt_vi_pham",
+          "ket_qua": "dat",
+          "chi_tiet": "ad_events quét 4 lần > 1"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "gom_thieu_loai_quang_cao: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "quen_loc_thang: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "nghiepvu_khong_lo_so",
+          "ket_qua": "dat",
+          "chi_tiet": ""
+        }
+      ],
+      "solution": {
+        "jelly-p2-doanh-thu-hai-nguon": {
+          "public": {
+            "so_dong": 4,
+            "cot": [
+              "platform",
+              "ad_type",
+              "so_luot_xem",
+              "doanh_thu_usd"
+            ],
+            "giay": 0.141,
+            "dong_dau": [
+              [
+                "Android",
+                "interstitial",
+                5497,
+                32.33
+              ],
+              [
+                "Android",
+                "rewarded",
+                44247,
+                263.4
+              ],
+              [
+                "iOS",
+                "interstitial",
+                2370,
+                14.04
+              ],
+              [
+                "iOS",
+                "rewarded",
+                19262,
+                115.67
+              ]
+            ]
+          },
+          "hidden-1": {
+            "so_dong": 4,
+            "cot": [
+              "platform",
+              "ad_type",
+              "so_luot_xem",
+              "doanh_thu_usd"
+            ],
+            "giay": 0.116,
+            "dong_dau": [
+              [
+                "Android",
+                "interstitial",
+                4994,
+                29.34
+              ],
+              [
+                "Android",
+                "rewarded",
+                39851,
+                237.02
+              ],
+              [
+                "iOS",
+                "interstitial",
+                2128,
+                12.5
+              ],
+              [
+                "iOS",
+                "rewarded",
+                17272,
+                103.95
+              ]
+            ]
+          }
+        }
+      },
+      "starter": {
+        "public": "khớp",
+        "hidden-1": "khớp"
+      },
+      "wrong": {
+        "gom_thieu_loai_quang_cao": {
+          "bien_the": {
+            "public": "rot (khác số cột (3 so với 4))",
+            "hidden-1": "rot (khác số cột (3 so với 4))"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        },
+        "quen_loc_thang": {
+          "bien_the": {
+            "public": "rot (khác giá trị ở dòng 1, cột 3)",
+            "hidden-1": "rot (khác giá trị ở dòng 1, cột 3)"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        }
+      },
+      "optimize": {
+        "rang_buoc": {
+          "quettoida": {
+            "ad_events": 1
+          },
+          "ngansach": null
+        },
+        "solution": {
+          "quet": {
+            "ad_events": 1
+          },
+          "dong_trung_gian": 246616,
+          "khong_ro": []
+        },
+        "starter": {
+          "quet": {
+            "ad_events": 4
+          },
+          "dong_trung_gian": 772300,
+          "khong_ro": [],
+          "vi_pham": [
+            "ad_events quét 4 lần > 1"
+          ]
+        },
+        "wrong": {}
+      },
+      "buoc_wrong": {},
+      "bien_the": {
+        "public": "jelly",
+        "hidden-1": "jelly_hidden_1"
+      }
+    },
+    {
+      "ma": "jelly-p3-tren-tb-the-gioi",
+      "dong": 422,
+      "tieu_de": "Màn có tỷ lệ thua cao hơn mặt bằng thế giới chứa màn",
+      "hinhthuc": "optimize",
+      "cap": "hard",
+      "dang": "C3",
+      "domain": "operations",
+      "dulieu": "jelly",
+      "diem": 50,
+      "trangthai": "review",
+      "bo_qua": false,
+      "cham": {
+        "bokiemtra": [
+          "public",
+          "hidden-1"
+        ],
+        "thutu": "co",
+        "socot": "vitri",
+        "saiso": 0.01,
+        "quettoida": {
+          "level_attempts": 1
+        },
+        "ngansach": 1.5
+      },
+      "buoc": [],
+      "khoi_sql": {
+        "jelly-p3-tren-tb-the-gioi": {
+          "solution": [
+            "solution"
+          ],
+          "starter": [
+            "starter"
+          ],
+          "wrong": [
+            "tb_ca_game_thieu_partition",
+            "tb_theo_luot_choi"
+          ]
+        }
+      },
+      "loi": [],
+      "canh_bao": [],
+      "kiem_tra": [
+        {
+          "phep": "kiem_tinh (khoá, phần bắt buộc theo hình thức, khối SQL, khái niệm, bước case)",
+          "ket_qua": "dat",
+          "chi_tiet": "0 lỗi"
+        },
+        {
+          "phep": "solution_chay_moi_bien_the",
+          "ket_qua": "dat",
+          "chi_tiet": "[jelly-p3-tren-tb-the-gioi]: public, hidden-1; chạy 2 lần cùng kết quả"
+        },
+        {
+          "phep": "solution_thoa_rang_buoc",
+          "ket_qua": "dat",
+          "chi_tiet": "{\"level_attempts\": 1}, dòng trung gian 352965"
+        },
+        {
+          "phep": "starter_opt_dung_ket_qua",
+          "ket_qua": "dat",
+          "chi_tiet": "khớp mọi biến thể"
+        },
+        {
+          "phep": "starter_opt_vi_pham",
+          "ket_qua": "dat",
+          "chi_tiet": "level_attempts quét 2 lần > 1; dòng trung gian 705721 > 1.5 × 352965"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "tb_ca_game_thieu_partition: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "tb_theo_luot_choi: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "nghiepvu_khong_lo_so",
+          "ket_qua": "dat",
+          "chi_tiet": ""
+        }
+      ],
+      "solution": {
+        "jelly-p3-tren-tb-the-gioi": {
+          "public": {
+            "so_dong": 9,
+            "cot": [
+              "world_name",
+              "level_id",
+              "ty_le_thua_pct",
+              "tb_the_gioi_pct"
+            ],
+            "giay": 0.164,
+            "dong_dau": [
+              [
+                "Cupcake Meadow",
+                12,
+                20.97,
+                12.53
+              ],
+              [
+                "Cupcake Meadow",
+                15,
+                24.24,
+                12.53
+              ],
+              [
+                "Jelly Jungle",
+                28,
+                17.73,
+                14.2
+              ],
+              [
+                "Jelly Jungle",
+                29,
+                25.98,
+                14.2
+              ],
+              [
+                "Jelly Jungle",
+                30,
+                26.11,
+                14.2
+              ]
+            ]
+          },
+          "hidden-1": {
+            "so_dong": 11,
+            "cot": [
+              "world_name",
+              "level_id",
+              "ty_le_thua_pct",
+              "tb_the_gioi_pct"
+            ],
+            "giay": 0.213,
+            "dong_dau": [
+              [
+                "Cupcake Meadow",
+                12,
+                20.73,
+                12.57
+              ],
+              [
+                "Cupcake Meadow",
+                14,
+                12.72,
+                12.57
+              ],
+              [
+                "Cupcake Meadow",
+                15,
+                24.31,
+                12.57
+              ],
+              [
+                "Jelly Jungle",
+                24,
+                14.22,
+                14.06
+              ],
+              [
+                "Jelly Jungle",
+                28,
+                18,
+                14.06
+              ]
+            ]
+          }
+        }
+      },
+      "starter": {
+        "public": "khớp",
+        "hidden-1": "khớp"
+      },
+      "wrong": {
+        "tb_ca_game_thieu_partition": {
+          "bien_the": {
+            "public": "rot (khác số dòng (12 so với 9))",
+            "hidden-1": "rot (khác số dòng (12 so với 11))"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        },
+        "tb_theo_luot_choi": {
+          "bien_the": {
+            "public": "rot (khác số dòng (12 so với 9))",
+            "hidden-1": "rot (khác số dòng (13 so với 11))"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        }
+      },
+      "optimize": {
+        "rang_buoc": {
+          "quettoida": {
+            "level_attempts": 1
+          },
+          "ngansach": 1.5
+        },
+        "solution": {
+          "quet": {
+            "level_attempts": 1
+          },
+          "dong_trung_gian": 352965,
+          "khong_ro": []
+        },
+        "starter": {
+          "quet": {
+            "level_attempts": 2
+          },
+          "dong_trung_gian": 705721,
+          "khong_ro": [],
+          "vi_pham": [
+            "level_attempts quét 2 lần > 1",
+            "dòng trung gian 705721 > 1.5 × 352965"
+          ]
+        },
+        "wrong": {}
+      },
+      "buoc_wrong": {},
+      "bien_the": {
+        "public": "jelly",
+        "hidden-1": "jelly_hidden_1"
+      }
+    },
+    {
+      "ma": "jelly-p4-luy-ke-tu-noi",
+      "dong": 452,
+      "tieu_de": "Doanh thu luỹ kế trong tháng cho biểu đồ tiến độ",
+      "hinhthuc": "optimize",
+      "cap": "hard",
+      "dang": "B3",
+      "domain": "finance",
+      "dulieu": "jelly",
+      "diem": 50,
+      "trangthai": "review",
+      "bo_qua": false,
+      "cham": {
+        "bokiemtra": [
+          "public",
+          "hidden-1"
+        ],
+        "thutu": "co",
+        "socot": "vitri",
+        "saiso": 0.01,
+        "quettoida": {
+          "daily_kpi": 1
+        },
+        "ngansach": 2.0
+      },
+      "buoc": [],
+      "khoi_sql": {
+        "jelly-p4-luy-ke-tu-noi": {
+          "solution": [
+            "solution"
+          ],
+          "starter": [
+            "starter"
+          ],
+          "wrong": [
+            "thieu_partition_thang",
+            "quen_can_tren"
+          ]
+        }
+      },
+      "loi": [],
+      "canh_bao": [],
+      "kiem_tra": [
+        {
+          "phep": "kiem_tinh (khoá, phần bắt buộc theo hình thức, khối SQL, khái niệm, bước case)",
+          "ket_qua": "dat",
+          "chi_tiet": "0 lỗi"
+        },
+        {
+          "phep": "solution_chay_moi_bien_the",
+          "ket_qua": "dat",
+          "chi_tiet": "[jelly-p4-luy-ke-tu-noi]: public, hidden-1; chạy 2 lần cùng kết quả"
+        },
+        {
+          "phep": "solution_thoa_rang_buoc",
+          "ket_qua": "dat",
+          "chi_tiet": "{\"daily_kpi\": 1}, dòng trung gian 420"
+        },
+        {
+          "phep": "starter_opt_dung_ket_qua",
+          "ket_qua": "dat",
+          "chi_tiet": "khớp mọi biến thể"
+        },
+        {
+          "phep": "starter_opt_vi_pham",
+          "ket_qua": "dat",
+          "chi_tiet": "daily_kpi quét 2 lần > 1; dòng trung gian 3091 > 2 × 420"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "thieu_partition_thang: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "quen_can_tren: rớt ở hidden-1"
+        },
+        {
+          "phep": "nghiepvu_khong_lo_so",
+          "ket_qua": "dat",
+          "chi_tiet": ""
+        }
+      ],
+      "solution": {
+        "jelly-p4-luy-ke-tu-noi": {
+          "public": {
+            "so_dong": 60,
+            "cot": [
+              "ngay",
+              "doanh_thu",
+              "luy_ke_thang"
+            ],
+            "giay": 0.001,
+            "dong_dau": [
+              [
+                "2026-07-01",
+                14.73,
+                14.73
+              ],
+              [
+                "2026-07-02",
+                43.94,
+                58.67
+              ],
+              [
+                "2026-07-03",
+                48.44,
+                107.11
+              ],
+              [
+                "2026-07-04",
+                47.62,
+                154.73
+              ],
+              [
+                "2026-07-05",
+                77.1,
+                231.83
+              ]
+            ]
+          },
+          "hidden-1": {
+            "so_dong": 60,
+            "cot": [
+              "ngay",
+              "doanh_thu",
+              "luy_ke_thang"
+            ],
+            "giay": 0.001,
+            "dong_dau": [
+              [
+                "2026-07-01",
+                14.54,
+                14.54
+              ],
+              [
+                "2026-07-02",
+                43.51,
+                58.05
+              ],
+              [
+                "2026-07-03",
+                47.93,
+                105.98
+              ],
+              [
+                "2026-07-04",
+                36.15,
+                142.13
+              ],
+              [
+                "2026-07-05",
+                66.37,
+                208.5
+              ]
+            ]
+          }
+        }
+      },
+      "starter": {
+        "public": "khớp",
+        "hidden-1": "khớp"
+      },
+      "wrong": {
+        "thieu_partition_thang": {
+          "bien_the": {
+            "public": "rot (khác giá trị ở dòng 32, cột 3)",
+            "hidden-1": "rot (khác giá trị ở dòng 32, cột 3)"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        },
+        "quen_can_tren": {
+          "bien_the": {
+            "public": "qua",
+            "hidden-1": "rot (khác số dòng (62 so với 60))"
+          },
+          "rot_o": [
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        }
+      },
+      "optimize": {
+        "rang_buoc": {
+          "quettoida": {
+            "daily_kpi": 1
+          },
+          "ngansach": 2.0
+        },
+        "solution": {
+          "quet": {
+            "daily_kpi": 1
+          },
+          "dong_trung_gian": 420,
+          "khong_ro": []
+        },
+        "starter": {
+          "quet": {
+            "daily_kpi": 2
+          },
+          "dong_trung_gian": 3091,
+          "khong_ro": [],
+          "vi_pham": [
+            "daily_kpi quét 2 lần > 1",
+            "dòng trung gian 3091 > 2 × 420"
+          ]
+        },
+        "wrong": {}
+      },
+      "buoc_wrong": {},
+      "bien_the": {
+        "public": "jelly",
+        "hidden-1": "jelly_hidden_1"
+      }
+    },
+    {
+      "ma": "jelly-p5-nguoi-tra-tien-exists",
+      "dong": 480,
+      "tieu_de": "Đếm người chơi trả tiền theo kênh cho nhẹ hơn",
+      "hinhthuc": "optimize",
+      "cap": "medium",
+      "dang": "A2",
+      "domain": "sales",
+      "dulieu": "jelly",
+      "diem": 30,
+      "trangthai": "review",
+      "bo_qua": false,
+      "cham": {
+        "bokiemtra": [
+          "public",
+          "hidden-1"
+        ],
+        "thutu": "co",
+        "socot": "vitri",
+        "saiso": 0.01,
+        "quettoida": {},
+        "ngansach": 2.0
+      },
+      "buoc": [],
+      "khoi_sql": {
+        "jelly-p5-nguoi-tra-tien-exists": {
+          "solution": [
+            "solution"
+          ],
+          "starter": [
+            "starter"
+          ],
+          "wrong": [
+            "dem_giao_dich_thay_nguoi"
+          ]
+        }
+      },
+      "loi": [],
+      "canh_bao": [],
+      "kiem_tra": [
+        {
+          "phep": "kiem_tinh (khoá, phần bắt buộc theo hình thức, khối SQL, khái niệm, bước case)",
+          "ket_qua": "dat",
+          "chi_tiet": "0 lỗi"
+        },
+        {
+          "phep": "solution_chay_moi_bien_the",
+          "ket_qua": "dat",
+          "chi_tiet": "[jelly-p5-nguoi-tra-tien-exists]: public, hidden-1; chạy 2 lần cùng kết quả"
+        },
+        {
+          "phep": "solution_thoa_rang_buoc",
+          "ket_qua": "dat",
+          "chi_tiet": "{\"purchases\": 1, \"users\": 1}, dòng trung gian 19293"
+        },
+        {
+          "phep": "starter_opt_dung_ket_qua",
+          "ket_qua": "dat",
+          "chi_tiet": "khớp mọi biến thể"
+        },
+        {
+          "phep": "starter_opt_vi_pham",
+          "ket_qua": "dat",
+          "chi_tiet": "dòng trung gian 94865 > 2 × 19293"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "dem_giao_dich_thay_nguoi: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "nghiepvu_khong_lo_so",
+          "ket_qua": "dat",
+          "chi_tiet": ""
+        }
+      ],
+      "solution": {
+        "jelly-p5-nguoi-tra-tien-exists": {
+          "public": {
+            "so_dong": 5,
+            "cot": [
+              "channel",
+              "so_nguoi_tra_tien"
+            ],
+            "giay": 0.016,
+            "dong_dau": [
+              [
+                "Organic",
+                845
+              ],
+              [
+                "Social Ads",
+                540
+              ],
+              [
+                "Search Ads",
+                525
+              ],
+              [
+                "Video Network",
+                293
+              ],
+              [
+                "Creator Campaign",
+                123
+              ]
+            ]
+          },
+          "hidden-1": {
+            "so_dong": 5,
+            "cot": [
+              "channel",
+              "so_nguoi_tra_tien"
+            ],
+            "giay": 0.012,
+            "dong_dau": [
+              [
+                "Organic",
+                749
+              ],
+              [
+                "Social Ads",
+                479
+              ],
+              [
+                "Search Ads",
+                470
+              ],
+              [
+                "Video Network",
+                266
+              ],
+              [
+                "Creator Campaign",
+                107
+              ]
+            ]
+          }
+        }
+      },
+      "starter": {
+        "public": "khớp",
+        "hidden-1": "khớp"
+      },
+      "wrong": {
+        "dem_giao_dich_thay_nguoi": {
+          "bien_the": {
+            "public": "rot (khác giá trị ở dòng 1, cột 2)",
+            "hidden-1": "rot (khác giá trị ở dòng 1, cột 2)"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        }
+      },
+      "optimize": {
+        "rang_buoc": {
+          "quettoida": {},
+          "ngansach": 2.0
+        },
+        "solution": {
+          "quet": {
+            "purchases": 1,
+            "users": 1
+          },
+          "dong_trung_gian": 19293,
+          "khong_ro": []
+        },
+        "starter": {
+          "quet": {
+            "purchases": 1,
+            "player_daily": 1
+          },
+          "dong_trung_gian": 94865,
+          "khong_ro": [],
+          "vi_pham": [
+            "dòng trung gian 94865 > 2 × 19293"
+          ]
+        },
+        "wrong": {}
+      },
+      "buoc_wrong": {},
+      "bien_the": {
+        "public": "jelly",
+        "hidden-1": "jelly_hidden_1"
+      }
+    },
+    {
+      "ma": "jelly-p6-dau-tu-sessions",
+      "dong": 508,
+      "tieu_de": "Tỷ lệ giữ chân D1, D7 theo nền tảng chỉ với một lần đọc bảng hoạt động",
+      "hinhthuc": "optimize",
+      "cap": "medium",
+      "dang": "D2",
+      "domain": "customer",
+      "dulieu": "jelly",
+      "diem": 30,
+      "trangthai": "review",
+      "bo_qua": false,
+      "cham": {
+        "bokiemtra": [
+          "public",
+          "hidden-1"
+        ],
+        "thutu": "co",
+        "socot": "vitri",
+        "saiso": 0.01,
+        "quettoida": {
+          "player_daily": 1
+        },
+        "ngansach": null
+      },
+      "buoc": [],
+      "khoi_sql": {
+        "jelly-p6-dau-tu-sessions": {
+          "solution": [
+            "solution"
+          ],
+          "starter": [
+            "starter"
+          ],
+          "wrong": [
+            "gom_ca_nhom_chua_du_ngay",
+            "mau_so_tu_bang_hoat_dong"
+          ]
+        }
+      },
+      "loi": [],
+      "canh_bao": [],
+      "kiem_tra": [
+        {
+          "phep": "kiem_tinh (khoá, phần bắt buộc theo hình thức, khối SQL, khái niệm, bước case)",
+          "ket_qua": "dat",
+          "chi_tiet": "0 lỗi"
+        },
+        {
+          "phep": "solution_chay_moi_bien_the",
+          "ket_qua": "dat",
+          "chi_tiet": "[jelly-p6-dau-tu-sessions]: public, hidden-1; chạy 2 lần cùng kết quả"
+        },
+        {
+          "phep": "solution_thoa_rang_buoc",
+          "ket_qua": "dat",
+          "chi_tiet": "{\"users\": 1, \"player_daily\": 1}, dòng trung gian 87023"
+        },
+        {
+          "phep": "starter_opt_dung_ket_qua",
+          "ket_qua": "dat",
+          "chi_tiet": "khớp mọi biến thể"
+        },
+        {
+          "phep": "starter_opt_vi_pham",
+          "ket_qua": "dat",
+          "chi_tiet": "player_daily quét 2 lần > 1"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "gom_ca_nhom_chua_du_ngay: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "mau_so_tu_bang_hoat_dong: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "nghiepvu_khong_lo_so",
+          "ket_qua": "dat",
+          "chi_tiet": ""
+        }
+      ],
+      "solution": {
+        "jelly-p6-dau-tu-sessions": {
+          "public": {
+            "so_dong": 2,
+            "cot": [
+              "platform",
+              "so_nguoi_cai",
+              "so_con_d1",
+              "so_con_d7",
+              "ty_le_d1_pct",
+              "ty_le_d7_pct"
+            ],
+            "giay": 0.105,
+            "dong_dau": [
+              [
+                "Android",
+                9029,
+                3607,
+                2166,
+                39.95,
+                23.99
+              ],
+              [
+                "iOS",
+                3837,
+                1597,
+                978,
+                41.62,
+                25.49
+              ]
+            ]
+          },
+          "hidden-1": {
+            "so_dong": 2,
+            "cot": [
+              "platform",
+              "so_nguoi_cai",
+              "so_con_d1",
+              "so_con_d7",
+              "ty_le_d1_pct",
+              "ty_le_d7_pct"
+            ],
+            "giay": 0.093,
+            "dong_dau": [
+              [
+                "Android",
+                8109,
+                3244,
+                1973,
+                40,
+                24.33
+              ],
+              [
+                "iOS",
+                3471,
+                1449,
+                876,
+                41.75,
+                25.24
+              ]
+            ]
+          }
+        }
+      },
+      "starter": {
+        "public": "khớp",
+        "hidden-1": "khớp"
+      },
+      "wrong": {
+        "gom_ca_nhom_chua_du_ngay": {
+          "bien_the": {
+            "public": "rot (khác giá trị ở dòng 1, cột 2)",
+            "hidden-1": "rot (khác giá trị ở dòng 1, cột 2)"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        },
+        "mau_so_tu_bang_hoat_dong": {
+          "bien_the": {
+            "public": "rot (khác giá trị ở dòng 1, cột 2)",
+            "hidden-1": "rot (khác giá trị ở dòng 1, cột 2)"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        }
+      },
+      "optimize": {
+        "rang_buoc": {
+          "quettoida": {
+            "player_daily": 1
+          },
+          "ngansach": null
+        },
+        "solution": {
+          "quet": {
+            "users": 1,
+            "player_daily": 1
+          },
+          "dong_trung_gian": 87023,
+          "khong_ro": []
+        },
+        "starter": {
+          "quet": {
+            "users": 1,
+            "player_daily": 2
+          },
+          "dong_trung_gian": 214402,
+          "khong_ro": [],
+          "vi_pham": [
+            "player_daily quét 2 lần > 1"
+          ]
+        },
+        "wrong": {}
+      },
+      "buoc_wrong": {},
+      "bien_the": {
+        "public": "jelly",
+        "hidden-1": "jelly_hidden_1"
+      }
+    },
+    {
+      "ma": "jelly-p7-index-ngay",
+      "dong": 537,
+      "tieu_de": "Màn được chơi nhiều nhất ngày 10/8, đọc ít dòng nhất",
+      "hinhthuc": "optimize",
+      "cap": "easy",
+      "dang": "A2",
+      "domain": "operations",
+      "dulieu": "jelly",
+      "diem": 20,
+      "trangthai": "review",
+      "bo_qua": false,
+      "cham": {
+        "bokiemtra": [
+          "public",
+          "hidden-1"
+        ],
+        "thutu": "co",
+        "socot": "vitri",
+        "saiso": 0.01,
+        "quettoida": {},
+        "ngansach": 2.0
+      },
+      "buoc": [],
+      "khoi_sql": {
+        "jelly-p7-index-ngay": {
+          "solution": [
+            "solution"
+          ],
+          "starter": [
+            "starter"
+          ],
+          "wrong": [
+            "thieu_can_tren_thoi_diem",
+            "between_tren_datetime",
+            "van_boc_ham_ngay"
+          ]
+        }
+      },
+      "loi": [],
+      "canh_bao": [],
+      "kiem_tra": [
+        {
+          "phep": "kiem_tinh (khoá, phần bắt buộc theo hình thức, khối SQL, khái niệm, bước case)",
+          "ket_qua": "dat",
+          "chi_tiet": "0 lỗi"
+        },
+        {
+          "phep": "solution_chay_moi_bien_the",
+          "ket_qua": "dat",
+          "chi_tiet": "[jelly-p7-index-ngay]: public, hidden-1; chạy 2 lần cùng kết quả"
+        },
+        {
+          "phep": "solution_thoa_rang_buoc",
+          "ket_qua": "dat",
+          "chi_tiet": "{\"level_attempts\": 1}, dòng trung gian 5015"
+        },
+        {
+          "phep": "starter_opt_dung_ket_qua",
+          "ket_qua": "dat",
+          "chi_tiet": "khớp mọi biến thể"
+        },
+        {
+          "phep": "starter_opt_vi_pham",
+          "ket_qua": "dat",
+          "chi_tiet": "dòng trung gian 254792 > 2 × 5015"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "thieu_can_tren_thoi_diem: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "between_tren_datetime: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "van_boc_ham_ngay: rớt ở -; vi phạm dòng trung gian 254792 > 2 × 5015"
+        },
+        {
+          "phep": "nghiepvu_khong_lo_so",
+          "ket_qua": "dat",
+          "chi_tiet": ""
+        }
+      ],
+      "solution": {
+        "jelly-p7-index-ngay": {
+          "public": {
+            "so_dong": 10,
+            "cot": [
+              "level_id",
+              "so_luot",
+              "so_thang",
+              "ty_le_thang_pct"
+            ],
+            "giay": 0.033,
+            "dong_dau": [
+              [
+                6,
+                244,
+                204,
+                83.61
+              ],
+              [
+                8,
+                241,
+                204,
+                84.65
+              ],
+              [
+                9,
+                238,
+                194,
+                81.51
+              ],
+              [
+                4,
+                216,
+                172,
+                79.63
+              ],
+              [
+                7,
+                211,
+                178,
+                84.36
+              ]
+            ]
+          },
+          "hidden-1": {
+            "so_dong": 10,
+            "cot": [
+              "level_id",
+              "so_luot",
+              "so_thang",
+              "ty_le_thang_pct"
+            ],
+            "giay": 0.032,
+            "dong_dau": [
+              [
+                9,
+                223,
+                181,
+                81.17
+              ],
+              [
+                8,
+                217,
+                184,
+                84.79
+              ],
+              [
+                6,
+                211,
+                176,
+                83.41
+              ],
+              [
+                4,
+                197,
+                159,
+                80.71
+              ],
+              [
+                10,
+                193,
+                161,
+                83.42
+              ]
+            ]
+          }
+        }
+      },
+      "starter": {
+        "public": "khớp",
+        "hidden-1": "khớp"
+      },
+      "wrong": {
+        "thieu_can_tren_thoi_diem": {
+          "bien_the": {
+            "public": "rot (khác giá trị ở dòng 1, cột 1)",
+            "hidden-1": "rot (khác giá trị ở dòng 1, cột 2)"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        },
+        "between_tren_datetime": {
+          "bien_the": {
+            "public": "rot (khác số dòng (0 so với 10))",
+            "hidden-1": "rot (khác số dòng (0 so với 10))"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        },
+        "van_boc_ham_ngay": {
+          "bien_the": {
+            "public": "qua",
+            "hidden-1": "qua"
+          },
+          "rot_o": [],
+          "vi_pham_rang_buoc": [
+            "dòng trung gian 254792 > 2 × 5015"
+          ]
+        }
+      },
+      "optimize": {
+        "rang_buoc": {
+          "quettoida": {},
+          "ngansach": 2.0
+        },
+        "solution": {
+          "quet": {
+            "level_attempts": 1
+          },
+          "dong_trung_gian": 5015,
+          "khong_ro": []
+        },
+        "starter": {
+          "quet": {
+            "level_attempts": 1
+          },
+          "dong_trung_gian": 254792,
+          "khong_ro": [],
+          "vi_pham": [
+            "dòng trung gian 254792 > 2 × 5015"
+          ]
+        },
+        "wrong": {
+          "van_boc_ham_ngay": {
+            "quet": {
+              "level_attempts": 1
+            },
+            "dong_trung_gian": 254792,
+            "khong_ro": [],
+            "vi_pham": [
+              "dòng trung gian 254792 > 2 × 5015"
+            ]
+          }
+        }
+      },
+      "buoc_wrong": {},
+      "bien_the": {
+        "public": "jelly",
+        "hidden-1": "jelly_hidden_1"
+      }
+    },
+    {
+      "ma": "jelly-p8-ham-tren-cot",
+      "dong": 564,
+      "tieu_de": "MAU và mức độ gắn bó theo tháng ra sai",
+      "hinhthuc": "debug",
+      "cap": "hard",
+      "dang": "B1",
+      "domain": "customer",
+      "dulieu": "jelly",
+      "diem": 50,
+      "trangthai": "review",
+      "bo_qua": false,
+      "cham": {
+        "bokiemtra": [
+          "public",
+          "hidden-1"
+        ],
+        "thutu": "co",
+        "socot": "vitri",
+        "saiso": 0.01,
+        "quettoida": {},
+        "ngansach": null
+      },
+      "buoc": [],
+      "khoi_sql": {
+        "jelly-p8-ham-tren-cot": {
+          "solution": [
+            "solution"
+          ],
+          "starter": [
+            "starter"
+          ],
+          "wrong": [
+            "chia_so_ngay_lich",
+            "giu_ham_year"
+          ]
+        }
+      },
+      "loi": [],
+      "canh_bao": [],
+      "kiem_tra": [
+        {
+          "phep": "kiem_tinh (khoá, phần bắt buộc theo hình thức, khối SQL, khái niệm, bước case)",
+          "ket_qua": "dat",
+          "chi_tiet": "0 lỗi"
+        },
+        {
+          "phep": "solution_chay_moi_bien_the",
+          "ket_qua": "dat",
+          "chi_tiet": "[jelly-p8-ham-tren-cot]: public, hidden-1; chạy 2 lần cùng kết quả"
+        },
+        {
+          "phep": "starter_debug_sai",
+          "ket_qua": "dat",
+          "chi_tiet": "public: khác giá trị ở dòng 1, cột 2, hidden-1: khác số dòng (3 so với 2)"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "chia_so_ngay_lich: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "giu_ham_year: rớt ở hidden-1"
+        },
+        {
+          "phep": "nghiepvu_khong_lo_so",
+          "ket_qua": "dat",
+          "chi_tiet": ""
+        }
+      ],
+      "solution": {
+        "jelly-p8-ham-tren-cot": {
+          "public": {
+            "so_dong": 2,
+            "cot": [
+              "thang",
+              "mau",
+              "dau_binh_quan",
+              "muc_do_gan_bo"
+            ],
+            "giay": 0.474,
+            "dong_dau": [
+              [
+                "2026-07",
+                7454,
+                1068.55,
+                0.1434
+              ],
+              [
+                "2026-08",
+                12135,
+                1603.55,
+                0.1321
+              ]
+            ]
+          },
+          "hidden-1": {
+            "so_dong": 2,
+            "cot": [
+              "thang",
+              "mau",
+              "dau_binh_quan",
+              "muc_do_gan_bo"
+            ],
+            "giay": 0.384,
+            "dong_dau": [
+              [
+                "2026-07",
+                6709,
+                961.39,
+                0.1433
+              ],
+              [
+                "2026-08",
+                10915,
+                1441,
+                0.132
+              ]
+            ]
+          }
+        }
+      },
+      "starter": {
+        "public": "khác giá trị ở dòng 1, cột 2",
+        "hidden-1": "khác số dòng (3 so với 2)"
+      },
+      "wrong": {
+        "chia_so_ngay_lich": {
+          "bien_the": {
+            "public": "rot (khác giá trị ở dòng 2, cột 3)",
+            "hidden-1": "rot (khác giá trị ở dòng 2, cột 3)"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        },
+        "giu_ham_year": {
+          "bien_the": {
+            "public": "qua",
+            "hidden-1": "rot (khác số dòng (3 so với 2))"
+          },
+          "rot_o": [
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        }
+      },
+      "optimize": null,
+      "buoc_wrong": {},
+      "bien_the": {
+        "public": "jelly",
+        "hidden-1": "jelly_hidden_1"
+      }
+    },
+    {
+      "ma": "jelly-p9-select-distinct-thua",
+      "dong": 592,
+      "tieu_de": "Báo cáo phân khúc người chơi theo mức chi chạy nhẹ hơn",
+      "hinhthuc": "optimize",
+      "cap": "medium",
+      "dang": "C4",
+      "domain": "finance",
+      "dulieu": "jelly",
+      "diem": 30,
+      "trangthai": "review",
+      "bo_qua": false,
+      "cham": {
+        "bokiemtra": [
+          "public",
+          "hidden-1"
+        ],
+        "thutu": "co",
+        "socot": "vitri",
+        "saiso": 0.01,
+        "quettoida": {},
+        "ngansach": 1.3
+      },
+      "buoc": [],
+      "khoi_sql": {
+        "jelly-p9-select-distinct-thua": {
+          "solution": [
+            "solution"
+          ],
+          "starter": [
+            "starter"
+          ],
+          "wrong": [
+            "inner_join_mat_nhom_khong_chi",
+            "ty_trong_theo_so_nguoi",
+            "loc_ngay_o_where"
+          ]
+        }
+      },
+      "loi": [],
+      "canh_bao": [],
+      "kiem_tra": [
+        {
+          "phep": "kiem_tinh (khoá, phần bắt buộc theo hình thức, khối SQL, khái niệm, bước case)",
+          "ket_qua": "dat",
+          "chi_tiet": "0 lỗi"
+        },
+        {
+          "phep": "solution_chay_moi_bien_the",
+          "ket_qua": "dat",
+          "chi_tiet": "[jelly-p9-select-distinct-thua]: public, hidden-1; chạy 2 lần cùng kết quả"
+        },
+        {
+          "phep": "solution_thoa_rang_buoc",
+          "ket_qua": "dat",
+          "chi_tiet": "{\"users\": 1, \"purchases\": 1}, dòng trung gian 74790"
+        },
+        {
+          "phep": "starter_opt_dung_ket_qua",
+          "ket_qua": "dat",
+          "chi_tiet": "khớp mọi biến thể"
+        },
+        {
+          "phep": "starter_opt_vi_pham",
+          "ket_qua": "dat",
+          "chi_tiet": "dòng trung gian 117855 > 1.3 × 74790"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "inner_join_mat_nhom_khong_chi: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "ty_trong_theo_so_nguoi: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "loc_ngay_o_where: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "nghiepvu_khong_lo_so",
+          "ket_qua": "dat",
+          "chi_tiet": ""
+        }
+      ],
+      "solution": {
+        "jelly-p9-select-distinct-thua": {
+          "public": {
+            "so_dong": 4,
+            "cot": [
+              "phan_khuc",
+              "so_nguoi_choi",
+              "doanh_thu_usd",
+              "ty_trong_doanh_thu_pct"
+            ],
+            "giay": 0.119,
+            "dong_dau": [
+              [
+                "khong_chi",
+                12029,
+                0,
+                0
+              ],
+              [
+                "duoi_5",
+                1987,
+                5320.68,
+                62.56
+              ],
+              [
+                "tu_5_den_20",
+                338,
+                3162.74,
+                37.19
+              ],
+              [
+                "tren_20",
+                1,
+                20.97,
+                0.25
+              ]
+            ]
+          },
+          "hidden-1": {
+            "so_dong": 4,
+            "cot": [
+              "phan_khuc",
+              "so_nguoi_choi",
+              "doanh_thu_usd",
+              "ty_trong_doanh_thu_pct"
+            ],
+            "giay": 0.093,
+            "dong_dau": [
+              [
+                "khong_chi",
+                10849,
+                0,
+                0
+              ],
+              [
+                "duoi_5",
+                1767,
+                4740.06,
+                62.41
+              ],
+              [
+                "tu_5_den_20",
+                303,
+                2834.32,
+                37.32
+              ],
+              [
+                "tren_20",
+                1,
+                20.97,
+                0.28
+              ]
+            ]
+          }
+        }
+      },
+      "starter": {
+        "public": "khớp",
+        "hidden-1": "khớp"
+      },
+      "wrong": {
+        "inner_join_mat_nhom_khong_chi": {
+          "bien_the": {
+            "public": "rot (khác số dòng (3 so với 4))",
+            "hidden-1": "rot (khác số dòng (3 so với 4))"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        },
+        "ty_trong_theo_so_nguoi": {
+          "bien_the": {
+            "public": "rot (khác giá trị ở dòng 1, cột 4)",
+            "hidden-1": "rot (khác giá trị ở dòng 1, cột 4)"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        },
+        "loc_ngay_o_where": {
+          "bien_the": {
+            "public": "rot (khác số dòng (3 so với 4))",
+            "hidden-1": "rot (khác số dòng (3 so với 4))"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        }
+      },
+      "optimize": {
+        "rang_buoc": {
+          "quettoida": {},
+          "ngansach": 1.3
+        },
+        "solution": {
+          "quet": {
+            "users": 1,
+            "purchases": 1
+          },
+          "dong_trung_gian": 74790,
+          "khong_ro": []
+        },
+        "starter": {
+          "quet": {
+            "player_daily": 1,
+            "purchases": 1
+          },
+          "dong_trung_gian": 117855,
+          "khong_ro": [],
+          "vi_pham": [
+            "dòng trung gian 117855 > 1.3 × 74790"
+          ]
+        },
+        "wrong": {}
+      },
+      "buoc_wrong": {},
+      "bien_the": {
+        "public": "jelly",
+        "hidden-1": "jelly_hidden_1"
+      }
+    },
+    {
+      "ma": "jelly-c9-ab-mua-them-buoc",
+      "dong": 625,
+      "tieu_de": "Đưa ưu đãi thêm lượt đi sớm hơn có đáng không?",
+      "hinhthuc": "case",
+      "cap": "hard",
+      "dang": null,
+      "domain": "marketing",
+      "dulieu": "jelly",
+      "diem": 50.0,
+      "trangthai": "review",
+      "bo_qua": false,
+      "cham": {
+        "bokiemtra": [
+          "public",
+          "hidden-1"
+        ],
+        "thutu": "co",
+        "socot": "vitri",
+        "saiso": 0.01,
+        "quettoida": {},
+        "ngansach": null
+      },
+      "buoc": [
+        {
+          "ma": "b1",
+          "hinhthuc": "write",
+          "diem": 10.0,
+          "bang": [
+            "ab_assignments"
+          ],
+          "so_phuongan": 0,
+          "phuongan_dung": []
+        },
+        {
+          "ma": "b2",
+          "hinhthuc": "write",
+          "diem": 10.0,
+          "bang": [
+            "ab_assignments",
+            "purchases"
+          ],
+          "so_phuongan": 0,
+          "phuongan_dung": []
+        },
+        {
+          "ma": "b3",
+          "hinhthuc": "write",
+          "diem": 10.0,
+          "bang": [
+            "ab_assignments",
+            "purchases"
+          ],
+          "so_phuongan": 0,
+          "phuongan_dung": []
+        },
+        {
+          "ma": "b4",
+          "hinhthuc": "write",
+          "diem": 10.0,
+          "bang": [
+            "ab_assignments",
+            "player_daily"
+          ],
+          "so_phuongan": 0,
+          "phuongan_dung": []
+        },
+        {
+          "ma": "b5",
+          "hinhthuc": "ketluan",
+          "diem": 10.0,
+          "bang": [
+            "ab_assignments",
+            "purchases",
+            "player_daily"
+          ],
+          "so_phuongan": 4,
+          "phuongan_dung": [
+            1
+          ]
+        }
+      ],
+      "khoi_sql": {
+        "jelly-c9-ab-mua-them-buoc.b1": {
+          "solution": [
+            "solution"
+          ],
+          "wrong": [
+            "dem_tiep_xuc_bang_is_null"
+          ]
+        },
+        "jelly-c9-ab-mua-them-buoc.b2": {
+          "solution": [
+            "solution"
+          ],
+          "wrong": [
+            "chi_tinh_nguoi_da_tiep_xuc"
+          ]
+        },
+        "jelly-c9-ab-mua-them-buoc.b3": {
+          "solution": [
+            "solution"
+          ],
+          "wrong": [
+            "mau_so_nguoi_tra_tien"
+          ]
+        },
+        "jelly-c9-ab-mua-them-buoc.b4": {
+          "solution": [
+            "solution"
+          ],
+          "wrong": [
+            "gom_ca_nguoi_chua_du_ngay"
+          ]
+        }
+      },
+      "loi": [],
+      "canh_bao": [],
+      "kiem_tra": [
+        {
+          "phep": "kiem_tinh (khoá, phần bắt buộc theo hình thức, khối SQL, khái niệm, bước case)",
+          "ket_qua": "dat",
+          "chi_tiet": "0 lỗi"
+        },
+        {
+          "phep": "solution_chay_moi_bien_the",
+          "ket_qua": "dat",
+          "chi_tiet": "[jelly-c9-ab-mua-them-buoc.b1]: public, hidden-1; chạy 2 lần cùng kết quả"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "b1/dem_tiep_xuc_bang_is_null: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "solution_chay_moi_bien_the",
+          "ket_qua": "dat",
+          "chi_tiet": "[jelly-c9-ab-mua-them-buoc.b2]: public, hidden-1; chạy 2 lần cùng kết quả"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "b2/chi_tinh_nguoi_da_tiep_xuc: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "solution_chay_moi_bien_the",
+          "ket_qua": "dat",
+          "chi_tiet": "[jelly-c9-ab-mua-them-buoc.b3]: public, hidden-1; chạy 2 lần cùng kết quả"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "b3/mau_so_nguoi_tra_tien: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "solution_chay_moi_bien_the",
+          "ket_qua": "dat",
+          "chi_tiet": "[jelly-c9-ab-mua-them-buoc.b4]: public, hidden-1; chạy 2 lần cùng kết quả"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "b4/gom_ca_nguoi_chua_du_ngay: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "nghiepvu_khong_lo_so",
+          "ket_qua": "dat",
+          "chi_tiet": ""
+        }
+      ],
+      "solution": {
+        "jelly-c9-ab-mua-them-buoc.b1": {
+          "public": {
+            "so_dong": 2,
+            "cot": [
+              "variant",
+              "so_nguoi_duoc_chia",
+              "so_nguoi_du_ngay",
+              "so_da_tiep_xuc"
+            ],
+            "giay": 0.01,
+            "dong_dau": [
+              [
+                "control_after_3_fails",
+                3961,
+                3560,
+                2640
+              ],
+              [
+                "early_offer_after_1_fail",
+                4039,
+                3617,
+                2623
+              ]
+            ]
+          },
+          "hidden-1": {
+            "so_dong": 2,
+            "cot": [
+              "variant",
+              "so_nguoi_duoc_chia",
+              "so_nguoi_du_ngay",
+              "so_da_tiep_xuc"
+            ],
+            "giay": 0.009,
+            "dong_dau": [
+              [
+                "control_after_3_fails",
+                3560,
+                3196,
+                2370
+              ],
+              [
+                "early_offer_after_1_fail",
+                3638,
+                3258,
+                2369
+              ]
+            ]
+          }
+        },
+        "jelly-c9-ab-mua-them-buoc.b2": {
+          "public": {
+            "so_dong": 2,
+            "cot": [
+              "variant",
+              "so_nguoi",
+              "so_giao_dich",
+              "giao_dich_moi_nguoi",
+              "ty_le_nguoi_mua_pct"
+            ],
+            "giay": 0.089,
+            "dong_dau": [
+              [
+                "control_after_3_fails",
+                3560,
+                90,
+                0.0253,
+                2.5
+              ],
+              [
+                "early_offer_after_1_fail",
+                3617,
+                87,
+                0.0241,
+                2.35
+              ]
+            ]
+          },
+          "hidden-1": {
+            "so_dong": 2,
+            "cot": [
+              "variant",
+              "so_nguoi",
+              "so_giao_dich",
+              "giao_dich_moi_nguoi",
+              "ty_le_nguoi_mua_pct"
+            ],
+            "giay": 0.071,
+            "dong_dau": [
+              [
+                "control_after_3_fails",
+                3196,
+                83,
+                0.026,
+                2.57
+              ],
+              [
+                "early_offer_after_1_fail",
+                3258,
+                77,
+                0.0236,
+                2.33
+              ]
+            ]
+          }
+        },
+        "jelly-c9-ab-mua-them-buoc.b3": {
+          "public": {
+            "so_dong": 2,
+            "cot": [
+              "variant",
+              "so_nguoi",
+              "doanh_thu_iap_usd",
+              "doanh_thu_moi_nguoi_usd"
+            ],
+            "giay": 0.115,
+            "dong_dau": [
+              [
+                "control_after_3_fails",
+                3560,
+                1027.62,
+                0.2887
+              ],
+              [
+                "early_offer_after_1_fail",
+                3617,
+                1023.74,
+                0.283
+              ]
+            ]
+          },
+          "hidden-1": {
+            "so_dong": 2,
+            "cot": [
+              "variant",
+              "so_nguoi",
+              "doanh_thu_iap_usd",
+              "doanh_thu_moi_nguoi_usd"
+            ],
+            "giay": 0.077,
+            "dong_dau": [
+              [
+                "control_after_3_fails",
+                3196,
+                921.97,
+                0.2885
+              ],
+              [
+                "early_offer_after_1_fail",
+                3258,
+                951.02,
+                0.2919
+              ]
+            ]
+          }
+        },
+        "jelly-c9-ab-mua-them-buoc.b4": {
+          "public": {
+            "so_dong": 2,
+            "cot": [
+              "variant",
+              "so_nguoi",
+              "so_con_d7",
+              "ty_le_giu_chan_d7_pct"
+            ],
+            "giay": 0.088,
+            "dong_dau": [
+              [
+                "control_after_3_fails",
+                3560,
+                871,
+                24.47
+              ],
+              [
+                "early_offer_after_1_fail",
+                3617,
+                877,
+                24.25
+              ]
+            ]
+          },
+          "hidden-1": {
+            "so_dong": 2,
+            "cot": [
+              "variant",
+              "so_nguoi",
+              "so_con_d7",
+              "ty_le_giu_chan_d7_pct"
+            ],
+            "giay": 0.059,
+            "dong_dau": [
+              [
+                "control_after_3_fails",
+                3196,
+                789,
+                24.69
+              ],
+              [
+                "early_offer_after_1_fail",
+                3258,
+                790,
+                24.25
+              ]
+            ]
+          }
+        }
+      },
+      "starter": {},
+      "wrong": {},
+      "optimize": null,
+      "buoc_wrong": {
+        "b1": {
+          "wrong": {
+            "dem_tiep_xuc_bang_is_null": {
+              "bien_the": {
+                "public": "rot (khác giá trị ở dòng 1, cột 4)",
+                "hidden-1": "rot (khác giá trị ở dòng 1, cột 4)"
+              },
+              "rot_o": [
+                "public",
+                "hidden-1"
+              ]
+            }
+          }
+        },
+        "b2": {
+          "wrong": {
+            "chi_tinh_nguoi_da_tiep_xuc": {
+              "bien_the": {
+                "public": "rot (khác giá trị ở dòng 1, cột 2)",
+                "hidden-1": "rot (khác giá trị ở dòng 1, cột 2)"
+              },
+              "rot_o": [
+                "public",
+                "hidden-1"
+              ]
+            }
+          }
+        },
+        "b3": {
+          "wrong": {
+            "mau_so_nguoi_tra_tien": {
+              "bien_the": {
+                "public": "rot (khác giá trị ở dòng 1, cột 2)",
+                "hidden-1": "rot (khác giá trị ở dòng 1, cột 2)"
+              },
+              "rot_o": [
+                "public",
+                "hidden-1"
+              ]
+            }
+          }
+        },
+        "b4": {
+          "wrong": {
+            "gom_ca_nguoi_chua_du_ngay": {
+              "bien_the": {
+                "public": "rot (khác giá trị ở dòng 1, cột 2)",
+                "hidden-1": "rot (khác giá trị ở dòng 1, cột 2)"
+              },
+              "rot_o": [
+                "public",
+                "hidden-1"
+              ]
+            }
+          }
+        }
+      },
+      "bien_the": {
+        "public": "jelly",
+        "hidden-1": "jelly_hidden_1"
+      }
+    },
+    {
+      "ma": "jelly-c10-man-28-30",
+      "dong": 679,
+      "tieu_de": "Bản 2.1.1 đã sửa xong màn 28--30 chưa?",
+      "hinhthuc": "case",
+      "cap": "hard",
+      "dang": null,
+      "domain": "after_sales",
+      "dulieu": "jelly",
+      "diem": 50.0,
+      "trangthai": "review",
+      "bo_qua": false,
+      "cham": {
+        "bokiemtra": [
+          "public",
+          "hidden-1"
+        ],
+        "thutu": "co",
+        "socot": "vitri",
+        "saiso": 0.01,
+        "quettoida": {},
+        "ngansach": null
+      },
+      "buoc": [
+        {
+          "ma": "b1",
+          "hinhthuc": "write",
+          "diem": 10.0,
+          "bang": [
+            "level_attempts"
+          ],
+          "so_phuongan": 0,
+          "phuongan_dung": []
+        },
+        {
+          "ma": "b2",
+          "hinhthuc": "write",
+          "diem": 10.0,
+          "bang": [
+            "level_attempts"
+          ],
+          "so_phuongan": 0,
+          "phuongan_dung": []
+        },
+        {
+          "ma": "b3",
+          "hinhthuc": "write",
+          "diem": 10.0,
+          "bang": [
+            "level_attempts"
+          ],
+          "so_phuongan": 0,
+          "phuongan_dung": []
+        },
+        {
+          "ma": "b4",
+          "hinhthuc": "write",
+          "diem": 10.0,
+          "bang": [
+            "users",
+            "player_daily"
+          ],
+          "so_phuongan": 0,
+          "phuongan_dung": []
+        },
+        {
+          "ma": "b5",
+          "hinhthuc": "ketluan",
+          "diem": 10.0,
+          "bang": [
+            "level_attempts",
+            "users",
+            "player_daily"
+          ],
+          "so_phuongan": 4,
+          "phuongan_dung": [
+            1
+          ]
+        }
+      ],
+      "khoi_sql": {
+        "jelly-c10-man-28-30.b1": {
+          "solution": [
+            "solution"
+          ],
+          "wrong": [
+            "phien_ban_luc_cai"
+          ]
+        },
+        "jelly-c10-man-28-30.b2": {
+          "solution": [
+            "solution"
+          ]
+        },
+        "jelly-c10-man-28-30.b3": {
+          "solution": [
+            "solution"
+          ]
+        },
+        "jelly-c10-man-28-30.b4": {
+          "solution": [
+            "solution"
+          ],
+          "wrong": [
+            "mau_so_tu_bang_hoat_dong"
+          ]
+        }
+      },
+      "loi": [],
+      "canh_bao": [],
+      "kiem_tra": [
+        {
+          "phep": "kiem_tinh (khoá, phần bắt buộc theo hình thức, khối SQL, khái niệm, bước case)",
+          "ket_qua": "dat",
+          "chi_tiet": "0 lỗi"
+        },
+        {
+          "phep": "solution_chay_moi_bien_the",
+          "ket_qua": "dat",
+          "chi_tiet": "[jelly-c10-man-28-30.b1]: public, hidden-1; chạy 2 lần cùng kết quả"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "b1/phien_ban_luc_cai: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "solution_chay_moi_bien_the",
+          "ket_qua": "dat",
+          "chi_tiet": "[jelly-c10-man-28-30.b2]: public, hidden-1; chạy 2 lần cùng kết quả"
+        },
+        {
+          "phep": "solution_chay_moi_bien_the",
+          "ket_qua": "dat",
+          "chi_tiet": "[jelly-c10-man-28-30.b3]: public, hidden-1; chạy 2 lần cùng kết quả"
+        },
+        {
+          "phep": "solution_chay_moi_bien_the",
+          "ket_qua": "dat",
+          "chi_tiet": "[jelly-c10-man-28-30.b4]: public, hidden-1; chạy 2 lần cùng kết quả"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "b4/mau_so_tu_bang_hoat_dong: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "nghiepvu_khong_lo_so",
+          "ket_qua": "dat",
+          "chi_tiet": ""
+        }
+      ],
+      "solution": {
+        "jelly-c10-man-28-30.b1": {
+          "public": {
+            "so_dong": 6,
+            "cot": [
+              "app_version",
+              "platform",
+              "so_luot",
+              "ty_le_thang_pct"
+            ],
+            "giay": 0.062,
+            "dong_dau": [
+              [
+                "2.0.2",
+                "Android",
+                1265,
+                71.3
+              ],
+              [
+                "2.0.2",
+                "iOS",
+                641,
+                74.41
+              ],
+              [
+                "2.1.0",
+                "Android",
+                2181,
+                61.94
+              ],
+              [
+                "2.1.0",
+                "iOS",
+                893,
+                74.24
+              ],
+              [
+                "2.1.1",
+                "Android",
+                1383,
+                67.25
+              ]
+            ]
+          },
+          "hidden-1": {
+            "so_dong": 6,
+            "cot": [
+              "app_version",
+              "platform",
+              "so_luot",
+              "ty_le_thang_pct"
+            ],
+            "giay": 0.051,
+            "dong_dau": [
+              [
+                "2.0.2",
+                "Android",
+                1095,
+                71.42
+              ],
+              [
+                "2.0.2",
+                "iOS",
+                591,
+                74.45
+              ],
+              [
+                "2.1.0",
+                "Android",
+                1965,
+                61.93
+              ],
+              [
+                "2.1.0",
+                "iOS",
+                787,
+                74.59
+              ],
+              [
+                "2.1.1",
+                "Android",
+                1259,
+                67.04
+              ]
+            ]
+          }
+        },
+        "jelly-c10-man-28-30.b2": {
+          "public": {
+            "so_dong": 6,
+            "cot": [
+              "app_version",
+              "platform",
+              "so_luot",
+              "ty_le_thua_pct",
+              "ty_le_bo_cuoc_pct"
+            ],
+            "giay": 0.064,
+            "dong_dau": [
+              [
+                "2.0.2",
+                "Android",
+                1265,
+                19.13,
+                7.51
+              ],
+              [
+                "2.0.2",
+                "iOS",
+                641,
+                16.85,
+                6.24
+              ],
+              [
+                "2.1.0",
+                "Android",
+                2181,
+                34.48,
+                2.71
+              ],
+              [
+                "2.1.0",
+                "iOS",
+                893,
+                23.85,
+                1.68
+              ],
+              [
+                "2.1.1",
+                "Android",
+                1383,
+                29.57,
+                2.39
+              ]
+            ]
+          },
+          "hidden-1": {
+            "so_dong": 6,
+            "cot": [
+              "app_version",
+              "platform",
+              "so_luot",
+              "ty_le_thua_pct",
+              "ty_le_bo_cuoc_pct"
+            ],
+            "giay": 0.048,
+            "dong_dau": [
+              [
+                "2.0.2",
+                "Android",
+                1095,
+                18.9,
+                7.58
+              ],
+              [
+                "2.0.2",
+                "iOS",
+                591,
+                16.24,
+                6.6
+              ],
+              [
+                "2.1.0",
+                "Android",
+                1965,
+                34.45,
+                2.8
+              ],
+              [
+                "2.1.0",
+                "iOS",
+                787,
+                23.25,
+                1.91
+              ],
+              [
+                "2.1.1",
+                "Android",
+                1259,
+                29.79,
+                2.38
+              ]
+            ]
+          }
+        },
+        "jelly-c10-man-28-30.b3": {
+          "public": {
+            "so_dong": 6,
+            "cot": [
+              "app_version",
+              "platform",
+              "so_luot",
+              "ty_le_duoc_moi_pct",
+              "ty_le_nhan_them_pct"
+            ],
+            "giay": 0.056,
+            "dong_dau": [
+              [
+                "2.0.2",
+                "Android",
+                1265,
+                13.44,
+                1.42
+              ],
+              [
+                "2.0.2",
+                "iOS",
+                641,
+                14.2,
+                0.94
+              ],
+              [
+                "2.1.0",
+                "Android",
+                2181,
+                6.79,
+                0.41
+              ],
+              [
+                "2.1.0",
+                "iOS",
+                893,
+                3.7,
+                0.34
+              ],
+              [
+                "2.1.1",
+                "Android",
+                1383,
+                6.07,
+                0.65
+              ]
+            ]
+          },
+          "hidden-1": {
+            "so_dong": 6,
+            "cot": [
+              "app_version",
+              "platform",
+              "so_luot",
+              "ty_le_duoc_moi_pct",
+              "ty_le_nhan_them_pct"
+            ],
+            "giay": 0.072,
+            "dong_dau": [
+              [
+                "2.0.2",
+                "Android",
+                1095,
+                13.06,
+                1.37
+              ],
+              [
+                "2.0.2",
+                "iOS",
+                591,
+                14.21,
+                0.85
+              ],
+              [
+                "2.1.0",
+                "Android",
+                1965,
+                6.92,
+                0.46
+              ],
+              [
+                "2.1.0",
+                "iOS",
+                787,
+                4.07,
+                0.38
+              ],
+              [
+                "2.1.1",
+                "Android",
+                1259,
+                6.12,
+                0.64
+              ]
+            ]
+          }
+        },
+        "jelly-c10-man-28-30.b4": {
+          "public": {
+            "so_dong": 6,
+            "cot": [
+              "app_version_install",
+              "platform",
+              "so_nguoi_cai",
+              "so_con_d1",
+              "ty_le_giu_chan_d1_pct"
+            ],
+            "giay": 0.134,
+            "dong_dau": [
+              [
+                "2.0.2",
+                "Android",
+                4918,
+                2007,
+                40.81
+              ],
+              [
+                "2.0.2",
+                "iOS",
+                2082,
+                892,
+                42.84
+              ],
+              [
+                "2.1.0",
+                "Android",
+                2758,
+                1036,
+                37.56
+              ],
+              [
+                "2.1.0",
+                "iOS",
+                1172,
+                475,
+                40.53
+              ],
+              [
+                "2.1.1",
+                "Android",
+                2220,
+                932,
+                41.98
+              ]
+            ]
+          },
+          "hidden-1": {
+            "so_dong": 6,
+            "cot": [
+              "app_version_install",
+              "platform",
+              "so_nguoi_cai",
+              "so_con_d1",
+              "ty_le_giu_chan_d1_pct"
+            ],
+            "giay": 0.13,
+            "dong_dau": [
+              [
+                "2.0.2",
+                "Android",
+                4416,
+                1807,
+                40.92
+              ],
+              [
+                "2.0.2",
+                "iOS",
+                1884,
+                810,
+                42.99
+              ],
+              [
+                "2.1.0",
+                "Android",
+                2476,
+                923,
+                37.28
+              ],
+              [
+                "2.1.0",
+                "iOS",
+                1061,
+                432,
+                40.72
+              ],
+              [
+                "2.1.1",
+                "Android",
+                1999,
+                849,
+                42.47
+              ]
+            ]
+          }
+        }
+      },
+      "starter": {},
+      "wrong": {},
+      "optimize": null,
+      "buoc_wrong": {
+        "b1": {
+          "wrong": {
+            "phien_ban_luc_cai": {
+              "bien_the": {
+                "public": "rot (khác số dòng (4 so với 6))",
+                "hidden-1": "rot (khác số dòng (4 so với 6))"
+              },
+              "rot_o": [
+                "public",
+                "hidden-1"
+              ]
+            }
+          }
+        },
+        "b2": {
+          "wrong": {}
+        },
+        "b3": {
+          "wrong": {}
+        },
+        "b4": {
+          "wrong": {
+            "mau_so_tu_bang_hoat_dong": {
+              "bien_the": {
+                "public": "rot (khác giá trị ở dòng 1, cột 4)",
+                "hidden-1": "rot (khác giá trị ở dòng 1, cột 4)"
+              },
+              "rot_o": [
+                "public",
+                "hidden-1"
+              ]
+            }
+          }
+        }
+      },
+      "bien_the": {
+        "public": "jelly",
+        "hidden-1": "jelly_hidden_1"
+      }
+    }
+  ],
+  "tong": {
+    "so_cau": 20,
+    "so_cau_bo_qua": 0,
+    "so_loi": 0,
+    "so_canh_bao": 1
+  }
+}

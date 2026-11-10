@@ -1,0 +1,38 @@
+% cau-hoi.tex: GÓI THỬ 1 câu trên bộ AIV Bank (MySQL `aivb`), chỉ để kiểm ánh xạ dulieu=aivb -> aivb, aivb_hidden_1.
+% Không phát hành.
+\documentclass[11pt,a4paper]{article}
+\usepackage{aio-sql-cauhoi}
+
+\khaibaodulieu{aivb}{AIV Bank · ngân hàng thương mại}
+  {Ngân hàng thương mại 12 chi nhánh: khách hàng, tài khoản thanh toán, tiền gửi có kỳ hạn, khoản vay, lệnh thanh toán và bút toán năm 2026.}
+
+\khaibaodomain{operations}{Vận hành}{Lệnh thanh toán, bút toán tài khoản, kênh giao dịch, chi nhánh.}
+
+\khaibaokhainiem{lenh-thanh-toan-hoan-tat}{Lệnh thanh toán hoàn tất}
+  {Lệnh chuyển tiền/thanh toán đã được ngân hàng xử lý xong, không bị từ chối hay đảo.}
+  {payment\_status = 'COMPLETED'}
+  {bảng \code{core_payment_order}; tiền tính bằng đồng (VND).}
+
+\begin{document}
+{\LARGE\bfseries Gói thử · AIV Bank\par}
+
+\begin{cauhoi}[ma=aivb-thu-mobile-thang-12, dulieu=aivb, domain=operations,
+  hinhthuc=write, cap=basic, dang=A2, kynang={SUM, WHERE}, bay={quen-can-tren},
+  tacgia={Bộ kiểm}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, socot=vitri, saiso=0.01]
+\tieude{Tháng 12/2026 khách chuyển qua ứng dụng di động bao nhiêu tiền?}
+\boicanh[Chị Hà · Khối Ngân hàng số]{Em tính giúp chị tổng giá trị lệnh hoàn tất qua kênh di động trong tháng 12 nhé.}
+\begin{yeucau}
+  \item Cộng \code{amount} của các lệnh thanh toán kênh \code{MOBILE}, trạng thái \code{COMPLETED}, ngày giao dịch trong tháng 12/2026.
+  \item Trả về đúng một cột \code{tong_tien} (đồng).
+\end{yeucau}
+\begin{erd}
+  \erdbang{core_payment_order}{0,0}{payment_order_id:PK, channel_code*=MOBILE, transaction_date*=2026-12-15, amount*=2.500.000, payment_status*=COMPLETED}
+\end{erd}
+\begin{nghiepvu}{Theo dõi quy mô thanh toán qua kênh số.}
+  \khainiem{lenh-thanh-toan-hoan-tat}
+  \luuy{Tháng 12 gồm mọi ngày từ 01/12 tới hết 31/12; lọc đủ cận dưới và cận trên.}
+\end{nghiepvu}
+\goiy{Lọc theo kênh, trạng thái và khoảng ngày.}
+\ghichuthietke{Gói thử: bẫy thiếu cận trên chỉ lộ ở hidden-1 (có lệnh ngày 2027-01-01).}
+\end{cauhoi}
+\end{document}

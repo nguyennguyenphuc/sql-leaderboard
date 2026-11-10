@@ -1,0 +1,624 @@
+% cau-hoi.tex: gói 1 của bộ Supply Chain (dulieu=scm), 20 câu. SQL nằm trong solution.sql, nối với câu bằng mã câu.
+% Biên dịch trên Overleaf: Menu > Compiler > XeLaTeX. Hướng dẫn: HUONG_DAN.md.
+% Phạm vi: Module 1 Retrieval (9 câu), Module 2 NULL & Expressions (9 câu), 2 case study cấp Cơ bản.
+% Lô thử: chờ giảng viên duyệt cách ra đề và giọng văn (style/STYLE-scm.md).
+\documentclass[11pt,a4paper]{article}
+\usepackage{aio-sql-cauhoi}
+% Hai dòng vá XeLaTeX (cong-cu/va-xelatex.tex), không sửa .sty:
+% 1) font chữ đơn cách có đủ chữ Việt; 2) \erdkhoa trong \begin{erd} vẽ thành node để không mất chữ.
+\setmonofont{NotoSansMono}[Extension=.ttf, UprightFont=*-Regular, BoldFont=*-Bold, Scale=0.86]
+\renewcommand{\erdkhoa}[1]{\node[font=\small, color=cqMuted, anchor=north west, align=left, text width=14cm] at ([yshift=-1mm]current bounding box.south west) {\textbf{Khoá:} #1};}
+
+% ================================================================ KHAI BÁO DÙNG CHUNG
+% Câu hỏi chỉ được dùng các mã khai báo ở đây.
+% ---------------------------------------------------------------- bộ dữ liệu
+\khaibaodulieu{scm}{Supply Chain · chuỗi bán lẻ và giao hàng chặng cuối}
+  {Chuỗi bán lẻ 54 cửa hàng, ba trung tâm phân phối (DC) và ba kho vệ tinh, dữ liệu mô phỏng. Lượng bán theo ngày chỉ có tháng 7/2017; tồn kho theo kỳ từ 2017-01 tới 2017-08; đơn giao hàng chặng cuối từ 8/2015 tới 8/2017; đơn mua nhà cung cấp từ 2013 tới 8/2017.}
+
+% ---------------------------------------------------------------- domain (6 khoá chuẩn, ánh xạ theo STYLE-scm.md G.8)
+\khaibaodomain{sales}{Bán hàng}{Lượng bán (kể cả dòng trả hàng tại cửa hàng), doanh thu, cửa hàng, ngành hàng.}
+\khaibaodomain{marketing}{Marketing}{Khuyến mãi, ngày cao điểm, voucher.}
+\khaibaodomain{customer}{Khách hàng}{Lượt giao dịch tại cửa hàng, đơn online theo thành phố và điểm giao.}
+\khaibaodomain{operations}{Vận hành}{Kho, tồn kho, giao hàng, nhà cung cấp, nhân sự kho.}
+\khaibaodomain{finance}{Tài chính}{Giá vốn, biên lợi nhuận gộp, vốn tồn kho, chi phí.}
+\khaibaodomain{after_sales}{Hậu mãi}{Hàng lỗi, lô trượt kiểm định, huỷ đơn.}
+
+% ---------------------------------------------------------------- khái niệm (từ STYLE-scm.md mục E, chỉ các khái niệm gói này dùng)
+% \khaibaokhainiem{ma}{Tên}{Định nghĩa}{Công thức}{Trong bộ dữ liệu}
+
+% --- Kỳ, lượng bán, tồn kho
+\khaibaokhainiem{ky-va-thang-du}{Kỳ và tháng đủ}
+  {Kỳ là đơn vị thời gian của số liệu tồn kho, mỗi kỳ là một tháng. Tháng đủ là tháng có dữ liệu tới ngày cuối tháng.}
+  {}
+  {\code{inventory_snapshots.ym} dạng \code{'2017-07'}. Kỳ 2017-08 chỉ có dữ liệu nửa tháng, nên không dùng khi so các tháng với nhau.}
+\khaibaokhainiem{luong-ban-va-nhu-cau}{Lượng bán trong kỳ và nhu cầu}
+  {Nhu cầu là lượng khách muốn mua; lượng bán là lượng đã ghi nhận bán ra. Khi hết hàng, lượng bán nhỏ hơn nhu cầu.}
+  {}
+  {\code{sold} là lượng bán trong kỳ, \code{received} là lượng nhập trong kỳ, \code{thieu_hut} là phần bán vượt lượng hàng sẵn có của tồn kho mô phỏng. Doanh thu, giá vốn tính trên \code{sold}, không trừ \code{thieu_hut}.}
+\khaibaokhainiem{fill-rate}{Fill rate (tỷ lệ lấp đầy)}
+  {Fill rate phản ánh phần lượng bán được phục vụ trực tiếp từ hàng sẵn có trong kho.}
+  {1 - tổng thieu\_hut / tổng sold}
+  {bảng \code{inventory_snapshots}; tính trên tổng số lượng của các dòng (cửa hàng, mã hàng, kỳ), không lấy trung bình tỷ lệ của từng dòng.}
+\khaibaokhainiem{von-ton-kho}{Vốn tồn kho}
+  {Vốn tồn kho là giá trị hàng còn trong kho cuối kỳ, tính theo giá vốn.}
+  {tồn cuối kỳ × giá vốn đơn vị}
+  {có sẵn ở \code{inventory_snapshots.inventory_value}, bằng \code{on_hand_end} nhân \code{item_costs.unit_cost}.}
+
+% --- Tài chính hàng hoá
+\khaibaokhainiem{bien-ln-gop}{Biên lợi nhuận gộp}
+  {Biên lợi nhuận gộp là phần lợi nhuận gộp trên mỗi đồng doanh thu. Lợi nhuận gộp bằng doanh thu trừ giá vốn hàng bán.}
+  {(doanh thu - giá vốn hàng bán) / doanh thu}
+  {giá cố định ở \code{item_costs} (\code{unit_price}, \code{unit_cost}); giá và biên theo tháng ở \code{item_costs_monthly} (\code{margin_pct} là tỷ lệ, không phải phần trăm).}
+
+% --- Nhà cung cấp, kiểm định
+\khaibaokhainiem{ty-le-hang-loi}{Tỷ lệ hàng lỗi}
+  {Tỷ lệ hàng lỗi phản ánh phần hàng không đạt tiêu chuẩn chất lượng tại thời điểm nhận hàng.}
+  {tổng qty\_defect / tổng qty\_received của các đơn mua đã về}
+  {tỷ lệ của từng đơn có sẵn ở \code{defect_rate}. Tỷ lệ của một nhà cung cấp tính lại từ tổng số lượng, không lấy trung bình \code{defect_rate}.}
+\khaibaokhainiem{lo-dat-lo-truot}{Lô đạt, lô trượt}
+  {Kiểm định khi nhận hàng xếp mỗi đơn mua đã về thành lô đạt hoặc lô trượt theo ngưỡng hàng lỗi cho phép (AQL).}
+  {lô trượt khi tỷ lệ hàng lỗi vượt 2\%}
+  {\code{purchase_orders.inspection_result}: \code{'Pass'} (lô đạt), \code{'Fail'} (lô trượt), \code{'Pending'} (đơn chưa về).}
+
+% --- Phân phối, chặng cuối
+\khaibaokhainiem{otif-chuyen-giao}{OTIF của chuyến giao}
+  {OTIF là tỷ lệ chuyến giao vừa đúng hạn vừa đủ số lượng. Một chuyến đúng hạn mà thiếu hàng không đạt OTIF.}
+  {số chuyến đúng hạn và đủ hàng / tổng số chuyến}
+  {\code{shipments}: \code{on_time} bằng 1 khi \code{actual_days} không vượt \code{promised_days}; \code{in_full} bằng 1 khi giao đủ; \code{otif} bằng \code{on_time} nhân \code{in_full}.}
+\khaibaokhainiem{giao-dung-han-don}{Tỷ lệ giao đúng hạn của đơn chặng cuối}
+  {Tỷ lệ giao đúng hạn là phần đơn được giao không muộn hơn mức cam kết.}
+  {số đơn có on\_time = 1 / số đơn không huỷ}
+  {\code{orders.on_time} bằng 1 khi \code{lead_time_total_h} không vượt \code{promised_h}. Đơn huỷ (\code{is_cancelled}) vẫn có giá trị ở các cột thời gian, nên phải loại trước khi tính.}
+\khaibaokhainiem{lead-time-don}{Lead time của đơn và bốn thành phần}
+  {Lead time của đơn là thời gian từ lúc tạo đơn tới lúc giao thành công. Bốn thành phần là t1 (tạo đơn tới lấy hàng), t2 (lấy hàng tới xuất kho), middle mile (t3a di chuyển cộng t3b phân loại) và t4 (kho tới giao thành công).}
+  {lead time = delivered\_at - created\_at (giờ)}
+  {\code{orders.lead_time_total_h}; năm cột chặng \code{t1_tao_don_pick_h}, \code{t2_pick_xuat_h}, \code{t3a_di_chuyen_h}, \code{t3b_sorting_h}, \code{t4_kho_giao_h}.}
+\khaibaokhainiem{thoi-gian-chua-gan}{Thời gian chưa gán}
+  {Thời gian chưa gán là phần lead time không thuộc chặng nào trong năm cột chặng.}
+  {lead time - tổng năm cột chặng}
+  {tính trên \code{orders}; tổng năm cột chặng không bằng \code{lead_time_total_h}, nên không được cộng các chặng để thay lead time.}
+\khaibaokhainiem{ty-le-huy}{Tỷ lệ huỷ}
+  {Tỷ lệ huỷ là phần đơn bị huỷ trong tổng số đơn được tạo.}
+  {số đơn huỷ / tổng số đơn tạo}
+  {\code{orders.is_cancelled}.}
+\khaibaokhainiem{ngay-cao-diem}{Ngày cao điểm và ngày nền}
+  {Ngày cao điểm là ngày khuyến mãi hoặc ngày lễ trong lịch sự kiện, có lượng đơn tăng mạnh so với ngày thường. Ngày nền là ngày cách mọi ngày cao điểm hơn hai ngày.}
+  {}
+  {\code{event_calendar}: mỗi dòng là một sự kiện; \code{tier} là quy mô (\code{'nho'}, \code{'vua'}, \code{'lon'}, \code{'le'}); \code{demand_multiplier} là hệ số nhu cầu.}
+\khaibaokhainiem{ty-le-tai}{Tỷ lệ tải (workload ratio)}
+  {Tỷ lệ tải là khối lượng việc cần xử lý trong ngày chia cho năng lực xử lý của kho. Tỷ lệ lớn hơn 1 là quá tải.}
+  {đơn cần xử lý / năng lực ngày}
+  {có sẵn ở \code{warehouse_daily_ops.workload_ratio}; câu hỏi dùng cột này, không tự tính lại từ \code{headcount}.}
+
+\begin{document}
+{\LARGE\bfseries Gói câu hỏi SQL · Supply Chain · gói 1\par}
+\medskip
+{\color{cqMuted}Bộ dữ liệu \texttt{scm} · Module 1 Retrieval (9 câu) · Module 2 NULL \& Expressions (9 câu) · 2 case study Cơ bản · chuẩn \texttt{aio-sql-cauhoi} v0.4\par}
+\bigskip
+Lô thử chờ giảng viên duyệt cách ra đề và giọng văn. Khung xanh nét đứt (\emph{Thiết kế ERD}) là ghi chú cho người duyệt. Các khung Truy vấn khởi đầu, Lời giải và Bài sai lấy từ \code{solution.sql}; học viên chỉ thấy truy vấn khởi đầu.
+
+\tableofcontents
+
+
+% ################################################################ MODULE 1 · RETRIEVAL
+
+% ================================================================ R1 · Viết · Cơ bản · A1 · sales
+\begin{cauhoi}[ma=scm-r1-cua-hang-tphcm, dulieu=scm, domain=sales,
+  hinhthuc=write, cap=basic, dang=A1, kynang={WHERE, ORDER BY}, bay={sai-cot-loc, sai-ky-tu},
+  tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, socot=vitri]
+\tieude{Cửa hàng nào đặt tại TP.HCM?}
+\boicanh[Anh Khang · Quản lý vùng phía Nam]{Tuần sau anh đi kiểm tra các cửa hàng ở TP.HCM. Em gửi anh danh sách cửa hàng trong thành phố, kèm loại cửa hàng và cụm.}
+\begin{yeucau}
+  \item Xét các cửa hàng có thành phố (cột \code{city}) là TP.HCM.
+  \item Trả về \code{store_nbr}, \code{type}, \code{cluster}.
+  \item Sắp \code{store_nbr} tăng dần.
+\end{yeucau}
+\begin{erd}
+  \erdbang{stores}{0,0}{store_nbr:PK, city*='TP.HCM', state='TP.HCM', type*='A', cluster*=17}
+\end{erd}
+\begin{nghiepvu}{Lên lịch đi kiểm tra các cửa hàng trong một thành phố.}
+  \luuy{Bảng \code{stores} ghi địa chỉ cửa hàng ở hai cấp: thành phố (\code{city}) và tỉnh, thành phố quản lý địa bàn của cửa hàng (\code{state}).}
+\end{nghiepvu}
+\goiy{So giá trị mẫu của cột \code{city} và cột \code{state} trong ERD. Cột nào cho biết cửa hàng nằm trong thành phố?}
+\goiy{Lọc \code{city = 'TP.HCM'}, viết đủ dấu chấm.}
+\ghichuthietke{Cơ bản: 1 bảng có giá trị mẫu, đề ghi rõ cột lọc. Bẫy ở public: cửa hàng 35 ở Vũng Tàu có \code{state} là TP.HCM, lọc theo \code{state} ra thừa một dòng; viết \code{'TP HCM'} ra 0 dòng. hidden-1 thêm cửa hàng 99 ở TP.HCM (9 dòng thay vì 8), nên chép kết quả Chạy thử sẽ rớt; hai bài sai rớt ở cả hai biến thể.}
+\end{cauhoi}
+
+% ================================================================ R2 · Viết · Cơ bản · E1 · after_sales
+\begin{cauhoi}[ma=scm-r2-don-mua-loi-cao-thang-7, dulieu=scm, domain=after_sales,
+  hinhthuc=write, cap=basic, dang=E1, kynang={WHERE, ORDER BY}, bay={ty-le-va-phan-tram, nham-khai-niem},
+  tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.01]
+\tieude{Đơn mua tháng 7 nào có tỷ lệ hàng lỗi cao?}
+\boicanh[Chị Ngân · Trưởng nhóm kiểm định chất lượng]{Nhiều đơn mua đặt trong tháng 7 về kho có tỷ lệ hàng lỗi cao. Chị cần danh sách đơn có tỷ lệ hàng lỗi từ 5\% trở lên để làm việc với nhà cung cấp.}
+\begin{yeucau}
+  \item Xét các đơn mua có ngày đặt (\code{po_date}) trong tháng 7/2017.
+  \item Lọc các đơn có tỷ lệ hàng lỗi (\code{defect_rate}) từ 5\% trở lên.
+  \item Trả về \code{po_id}, \code{supplier_id}, \code{qty_received}, \code{qty_defect}, \code{defect_rate}.
+  \item Sắp \code{defect_rate} giảm dần; bằng nhau thì \code{po_id} nhỏ hơn đứng trước.
+\end{yeucau}
+\begin{erd}
+  \erdbang{purchase_orders}{0,0}{po_id:PK, supplier_id:FK*, po_date*=2017-07-14, qty_received*=500, qty_defect*=12, defect_rate*=0.024, inspection_result='Fail'}
+\end{erd}
+\begin{nghiepvu}{Chọn đơn mua cần lập biên bản và trao đổi với nhà cung cấp về chất lượng.}
+  \khainiem{ty-le-hang-loi}
+  \khainiem{lo-dat-lo-truot}
+  \luuy{Ngày đặt và ngày nhận hàng của cùng một đơn có thể rơi vào hai tháng khác nhau.}
+\end{nghiepvu}
+\goiy{Giá trị mẫu \code{0.024} của \code{defect_rate} ứng với bao nhiêu phần trăm? Vậy 5\% viết thành số nào?}
+\goiy{Lọc \code{defect_rate >= 0.05} và \code{po_date} từ \code{'2017-07-01'} tới trước \code{'2017-08-01'}.}
+\ghichuthietke{Cơ bản: 1 bảng có giá trị mẫu cho thấy \code{defect_rate} là tỷ lệ. Bẫy ở public: so với 5 ra 0 dòng; lấy lô trượt (\code{'Fail'}) ra gần 900 dòng. hidden-1 bỏ khoảng 10\% đơn mua nên danh sách khác public, chép kết quả Chạy thử sẽ rớt.}
+\end{cauhoi}
+
+% ================================================================ R3 · Viết · Dễ · A1 · sales
+\begin{cauhoi}[ma=scm-r3-dong-tra-hang-cua-hang-2-3, dulieu=scm, domain=sales,
+  hinhthuc=write, cap=easy, dang=A1, kynang={AND/OR, IN, ORDER BY}, bay={thu-tu-and-or},
+  tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
+\tieude{Cửa hàng 2 và 3 có dòng trả hàng nào?}
+\boicanh[Chị Hồng · Quản lý cửa hàng]{Chị phụ trách cửa hàng 2 và cửa hàng 3 ở Hà Nội. Chị cần xem tháng 7 khách trả lại những mặt hàng nào để kiểm tra với quầy thu ngân.}
+\begin{yeucau}
+  \item Xét các dòng bán của cửa hàng 2 và cửa hàng 3 trong tháng 7/2017.
+  \item Lọc các dòng trả hàng (\code{unit_sales} âm).
+  \item Trả về \code{date}, \code{store_nbr}, \code{item_nbr}, \code{unit_sales}.
+  \item Sắp theo \code{date}, rồi \code{store_nbr}, rồi \code{item_nbr}, đều tăng dần.
+\end{yeucau}
+\begin{erd}
+  \erdbang{sales}{0,0}{date*, store_nbr:FK*, item_nbr:FK*, unit_sales*, onpromotion}
+  \erdbang{stores}{2,0}{store_nbr:PK, city, type}
+  \erdnoi[kieu=n-1, tren={nối theo \code{store_nbr}}]{sales.store_nbr}{stores.store_nbr}
+\end{erd}
+\begin{nghiepvu}{Đối soát các dòng trả hàng với sổ của quầy thu ngân.}
+  \luuy{Mỗi dòng của \code{sales} là một mã hàng ở một cửa hàng trong một ngày. Dòng có \code{unit_sales} âm là hàng khách trả lại, được trừ vào lượng bán.}
+\end{nghiepvu}
+\goiy{Điều kiện về cửa hàng và điều kiện lượng bán âm phải cùng đúng. Khi điều kiện lọc có cả \code{OR} và \code{AND}, phần \code{AND} được tính trước.}
+\goiy{Dùng \code{store_nbr IN (2, 3)}, hoặc đặt hai điều kiện nối bằng \code{OR} trong ngoặc.}
+\ghichuthietke{Dễ: 2 bảng, chữ trên đường nối; câu chỉ cần \code{sales}. Bẫy ở public: thiếu ngoặc quanh \code{OR} lấy mọi dòng bán của cửa hàng 2; dùng \code{AND} giữa hai cửa hàng ra 0 dòng. Bảng \code{sales} chỉ có tháng 7/2017 nên điều kiện tháng không tạo bẫy; giữ trong đề để học viên quen ghi phạm vi. Mảng \code{sales} vì STYLE-scm A.2 xếp dòng trả hàng vào nhóm thuật ngữ bán hàng tại cửa hàng (G.8 không nêu trả hàng ở Hậu mãi).}
+\end{cauhoi}
+
+% ================================================================ R4 · Viết · Dễ · A1 · marketing
+\begin{cauhoi}[ma=scm-r4-hang-khuyen-mai-ban-chay, dulieu=scm, domain=marketing,
+  hinhthuc=write, cap=easy, dang=A1, kynang={WHERE, ORDER BY, LIMIT}, bay={quen-dieu-kien-loc, chieu-sap-xep},
+  tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.01]
+\tieude{Mã hàng khuyến mãi nào bán chạy ngày 7/7/2017?}
+\boicanh[Chị Trâm · Nhân viên marketing]{Ngày 7/7 cửa hàng 44 chạy khuyến mãi cho nhiều mã hàng. Chị cần năm mã hàng khuyến mãi bán được nhiều nhất hôm đó để chọn hàng cho đợt sau.}
+\begin{yeucau}
+  \item Xét các dòng bán của cửa hàng 44 ngày 7/7/2017 có khuyến mãi (\code{onpromotion} bằng 1).
+  \item Trả về \code{item_nbr}, \code{unit_sales}.
+  \item Sắp \code{unit_sales} giảm dần; bằng nhau thì \code{item_nbr} nhỏ hơn đứng trước.
+  \item Lấy 5 dòng đầu.
+\end{yeucau}
+\begin{erd}
+  \erdbang{sales}{0,0}{date*, store_nbr*, item_nbr:FK*, unit_sales*, onpromotion*}
+  \erdbang{items}{2,0}{item_nbr:PK, family, class, perishable}
+  \erdnoi[kieu=n-1, tren={nối theo \code{item_nbr}}]{sales.item_nbr}{items.item_nbr}
+\end{erd}
+\begin{nghiepvu}{Chọn mã hàng khuyến mãi cần đặt thêm hàng cho đợt sau của cửa hàng.}
+  \luuy{Mức tăng lượng bán khi khuyến mãi (lift) tính bằng cách so với lượng bán của chính mã đó vào ngày không khuyến mãi. Câu này chỉ xếp lượng bán trong ngày, chưa đo mức tăng.}
+\end{nghiepvu}
+\goiy{Mã bán chạy nhất cả cửa hàng chưa chắc là mã đang khuyến mãi.}
+\goiy{Lọc thêm \code{onpromotion = 1}; sắp bằng \code{ORDER BY unit_sales DESC, item_nbr} rồi \code{LIMIT 5}.}
+\ghichuthietke{Dễ: 2 bảng, chữ trên đường nối; câu chỉ cần \code{sales}. Bẫy ở public: quên lọc khuyến mãi thì cả năm mã đứng đầu đều không khuyến mãi; quên \code{DESC} lấy năm mã bán ít nhất. hidden-1 bỏ các mã có \code{item_nbr} tận cùng 7, nên danh sách năm mã khác public.}
+\end{cauhoi}
+
+% ================================================================ R5 · Viết · Cơ bản · B4 · finance
+\begin{cauhoi}[ma=scm-r5-von-ton-cua-hang-51, dulieu=scm, domain=finance,
+  hinhthuc=write, cap=basic, dang=B4, kynang={WHERE, ORDER BY, LIMIT}, bay={sai-cot-sap-xep, sai-dinh-dang-ky},
+  tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.01]
+\tieude{Mã nào có vốn tồn lớn nhất ở cửa hàng 51?}
+\boicanh[Anh Tùng · Kế toán quản trị]{Cuối tháng 7 anh rà phần vốn nằm trong hàng tồn của cửa hàng 51. Em lấy giúp anh mười mã hàng có vốn tồn lớn nhất.}
+\begin{yeucau}
+  \item Xét tồn kho cuối kỳ 2017-07 của cửa hàng 51.
+  \item Trả về \code{item_nbr}, \code{on_hand_end}, \code{von_ton} (lấy từ \code{inventory_value}).
+  \item Sắp \code{von_ton} giảm dần; bằng nhau thì \code{item_nbr} nhỏ hơn đứng trước.
+  \item Lấy 10 dòng đầu.
+\end{yeucau}
+\begin{erd}
+  \erdbang{inventory_snapshots}{0,0}{store_nbr*=51, item_nbr*, ym*='2017-07', on_hand_end*=1250, inventory_value*=3087.50}
+\end{erd}
+\begin{nghiepvu}{Lập danh sách mã hàng đọng vốn để trình trưởng ngành hàng xem xét.}
+  \khainiem{von-ton-kho}
+  \khainiem{ky-va-thang-du}
+  \luuy{Mã có lượng tồn lớn chưa chắc có vốn tồn lớn, vì giá vốn của từng mã khác nhau.}
+\end{nghiepvu}
+\goiy{Xếp theo lượng tồn và xếp theo vốn tồn cho ra hai danh sách khác nhau. Câu này cần danh sách nào?}
+\goiy{Lọc \code{store_nbr = 51} và \code{ym = '2017-07'}; \code{ym} là chuỗi, tháng có số 0 đứng trước.}
+\ghichuthietke{Cơ bản: 1 bảng có giá trị mẫu (giá trị mẫu tự đặt, không trùng kết quả). Dạng B4 vì hỏi số liệu tại thời điểm cuối kỳ. Bẫy ở public: sắp theo \code{on_hand_end} ra danh sách khác; viết \code{'2017-7'} ra 0 dòng. hidden-1 bỏ kỳ 2017-07 của mã 903285 ở cửa hàng 51 (hạng 4 ở public) và tồn kho các mã có \code{item_nbr} tận cùng 7, nên danh sách khác public từ dòng 4; chép kết quả Chạy thử sẽ rớt.}
+\end{cauhoi}
+
+% ================================================================ R6 · Viết · Cơ bản · A1 · customer
+\begin{cauhoi}[ma=scm-r6-giao-dich-cua-hang-24, dulieu=scm, domain=customer,
+  hinhthuc=write, cap=basic, dang=A1, kynang={BETWEEN, ORDER BY}, bay={can-ngay},
+  tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
+\tieude{Cửa hàng 24 đông khách vào ngày nào trong tuần?}
+\boicanh[Chị Mai · Quản lý cửa hàng 24]{Chị đang xếp ca thu ngân cho tháng 8. Em lấy giúp chị lượt giao dịch từng ngày của cửa hàng mình, từ thứ Hai 3/7 tới Chủ nhật 9/7/2017.}
+\begin{yeucau}
+  \item Xét cửa hàng 24, từ ngày 3/7/2017 tới hết ngày 9/7/2017 (đủ 7 ngày).
+  \item Trả về \code{date}, \code{transactions}.
+  \item Sắp \code{date} tăng dần.
+\end{yeucau}
+\begin{erd}
+  \erdbang{transactions}{0,0}{date*=2017-06-26, store_nbr*=24, transactions*=2024}
+\end{erd}
+\begin{nghiepvu}{Xếp số ca thu ngân cho ngày đông khách và ngày vắng khách.}
+  \luuy{\code{transactions} là số lượt giao dịch (lượt thanh toán tại quầy) trong ngày, không phải số khách hay số mặt hàng bán ra.}
+\end{nghiepvu}
+\goiy{Khoảng ngày cần lấy gồm cả ngày đầu và ngày cuối.}
+\goiy{\code{BETWEEN '2017-07-03' AND '2017-07-09'} lấy cả hai đầu mút.}
+\ghichuthietke{Cơ bản: 1 bảng có giá trị mẫu. Cột \code{date} kiểu ngày (không có giờ) nên \code{BETWEEN} an toàn. Bẫy ở public: cận trên mở mất Chủ nhật, cận dưới mở mất thứ Hai. hidden-1 bỏ khoảng 10\% dòng \code{transactions}, cửa hàng 24 mất ngày 8/7/2017 (6 dòng thay vì 7), nên chép kết quả Chạy thử sẽ rớt.}
+\end{cauhoi}
+
+% ================================================================ R7 · Sửa lỗi · Cơ bản · A2 · after_sales
+\begin{cauhoi}[ma=scm-r7-lo-truot-rau-cu-ra-0, dulieu=scm, domain=after_sales,
+  hinhthuc=debug, cap=basic, dang=A2, kynang={WHERE, COUNT}, bay={sai-gia-tri-loc, tu-so-nguong},
+  tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
+\tieude{Lô trượt của nhà cung cấp rau củ ra 0}
+\boicanh[Bạn Vy · Thực tập sinh]{Em đếm số lô trượt năm 2016 của NCC Rau củ quả 1 mà ra 0, trong khi chị trưởng nhóm nói có nhiều. Anh chị xem giúp em sai ở đâu.}
+\begin{yeucau}
+  \item Sửa truy vấn dưới đây để đếm đúng số lô trượt của nhà cung cấp \code{SUP_061}, xét các đơn mua đặt trong năm 2016.
+  \item Giữ nguyên cột \code{so_lo_truot}.
+\end{yeucau}
+\begin{erd}
+  \erdbang{purchase_orders}{0,0}{po_id:PK, supplier_id*='SUP_061', po_date*=2016-05-31, defect_rate=0.031, inspection_result*='Fail'}
+\end{erd}
+\begin{nghiepvu}{Đưa nhà cung cấp có nhiều lô trượt vào danh sách đánh giá lại cuối năm.}
+  \khainiem{lo-dat-lo-truot}
+  \luuy{\code{defect_rate} đã làm tròn 5 chữ số, nên lô sát ngưỡng 2\% không phân định được bằng cột này; lô trượt lấy theo kết quả kiểm định \code{inspection_result}.}
+\end{nghiepvu}
+\goiy{So giá trị trong điều kiện lọc với giá trị mẫu của cột \code{inspection_result} trong ERD.}
+\ghichuthietke{Cơ bản: lỗi một chỗ (giá trị chữ \code{'Failed'}), giá trị mẫu trong ERD là manh mối. Hai bài sai tự so ngưỡng: \code{defect_rate > 0.02} thiếu một lô, \code{>= 0.02} thừa hai lô, vì dữ liệu làm tròn ở biên (STYLE-scm mục E, ghi chú lô trượt). Cả hai rớt ở public và hidden-1.}
+\end{cauhoi}
+
+% ================================================================ R8 · Sửa lỗi · Dễ · A2 · customer
+\begin{cauhoi}[ma=scm-r8-don-da-nang-thang-7-thieu, dulieu=scm, domain=customer,
+  hinhthuc=debug, cap=easy, dang=A2, kynang={WHERE, cận ngày giờ}, bay={between-ngay-gio, nham-kho-dich},
+  tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
+\tieude{Số đơn tới Đà Nẵng tháng 7/2017 bị đếm thiếu}
+\boicanh[Anh Quang · Trưởng nhóm chăm sóc khách hàng]{Số đơn giao tới Đà Nẵng tháng 7 em đếm ra ít hơn báo cáo của nhóm. Anh cần số đúng trước buổi giao ban sáng mai.}
+\begin{yeucau}
+  \item Sửa truy vấn dưới đây để đếm đúng số đơn giao tới thành phố Đà Nẵng (\code{dest_city}) được tạo trong tháng 7/2017, kể cả đơn huỷ.
+  \item Giữ nguyên cột \code{so_don}.
+\end{yeucau}
+\begin{erd}
+  \erdbang{orders}{0,0}{order_id:PK, created_at*=2017-07-31 21:45:10, dest_city*='Đà Nẵng', dest_hub_id:FK}
+  \erdbang{sorting_hubs}{2,0}{hub_id:PK, city, role}
+  \erdnoi[kieu=n-1, tren={\code{dest_hub_id = hub_id}}]{orders.dest_hub_id}{sorting_hubs.hub_id}
+\end{erd}
+\begin{nghiepvu}{Ước lượng số đơn của từng thành phố để bố trí nhân sự chăm sóc khách hàng.}
+  \luuy{Thành phố nhận hàng (\code{dest_city}) khác kho đích (\code{dest_hub_id}); một kho phục vụ nhiều thành phố.}
+\end{nghiepvu}
+\goiy{Một đơn tạo lúc 21 giờ ngày 31/7 có nằm trong khoảng lọc hiện tại không?}
+\goiy{Lọc \code{created_at >= '2017-07-01' AND created_at < '2017-08-01'}.}
+\ghichuthietke{Dễ: 2 bảng, giá trị mẫu có giờ là manh mối. Starter dùng \code{BETWEEN ... '2017-07-31'} nên mất các đơn tạo sau 0 giờ ngày 31/7. Lọc \code{order_date BETWEEN} cũng đúng vì \code{order_date} bằng ngày của \code{created_at}. Bài sai lọc theo kho đích \code{DC_DANANG} rớt ở public vì kho này nhận cả đơn của thành phố khác.}
+\end{cauhoi}
+
+% ================================================================ R9 · Sửa lỗi · Dễ · C3 · operations
+\begin{cauhoi}[ma=scm-r9-otif-da-nang-lan-tuan-2016, dulieu=scm, domain=operations,
+  hinhthuc=debug, cap=easy, dang=C3, kynang={LIKE}, bay={like-hai-dau, nham-otif-voi-dung-han},
+  tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
+\tieude{Chuyến giao không đạt OTIF năm 2017 lẫn tuần 2016}
+\boicanh[Anh Phúc · Điều phối vận hành]{Anh lọc các chuyến giao năm 2017 của trung tâm phân phối (DC) Đà Nẵng không đạt OTIF (vừa đúng hạn vừa đủ hàng), nhưng danh sách lại lẫn một tuần năm 2016.}
+\begin{yeucau}
+  \item Sửa truy vấn dưới đây để chỉ lấy các chuyến của những tuần bắt đầu trong năm 2017 (ngày đầu của \code{week} thuộc năm 2017).
+  \item Giữ nguyên các điều kiện còn lại, các cột \code{shipment_id}, \code{store_nbr}, \code{week}, \code{on_time}, \code{in_full} và thứ tự sắp.
+\end{yeucau}
+\begin{erd}
+  \erdbang{shipments}{0,0}{shipment_id:PK, warehouse_id:FK*, store_nbr:FK*, week*='2016-12-26/2017-01-01', on_time*, in_full*, otif*}
+  \erdbang{warehouses}{2,0}{warehouse_id:PK, city}
+  \erdnoi[kieu=n-1, tren={nối theo \code{warehouse_id}}]{shipments.warehouse_id}{warehouses.warehouse_id}
+\end{erd}
+\begin{nghiepvu}{Chọn tuyến từ DC tới cửa hàng cần rà soát khâu soạn hàng hoặc vận chuyển.}
+  \khainiem{otif-chuyen-giao}
+  \luuy{Cột \code{week} là chuỗi gồm ngày đầu tuần và ngày cuối tuần, ngăn bởi dấu gạch chéo. Tuần cuối năm có thể kết thúc sang năm sau.}
+\end{nghiepvu}
+\goiy{Tuần \code{'2016-12-26/2017-01-01'} có chứa chuỗi \code{2017} không?}
+\goiy{So khớp ở đầu chuỗi, ví dụ \code{week LIKE '2017-}\%\code{'}.}
+\ghichuthietke{Dễ: 2 bảng, giá trị mẫu trong ERD chính là tuần gây lỗi. Starter \code{LIKE} có ký tự đại diện ở cả hai đầu nên lấy thừa tuần 26/12/2016 tới 1/1/2017. Bài sai chỉ xét \code{on_time = 0} rớt ở public vì phần lớn chuyến không đạt OTIF là do thiếu hàng. hidden-1 sửa các chuyến có số hiệu tận cùng 7 thành vừa trễ vừa thiếu hàng, nên danh sách chuyến không đạt OTIF dài hơn public (53 dòng thay vì 35); chép kết quả Chạy thử sẽ rớt.}
+\end{cauhoi}
+
+
+% ################################################################ MODULE 2 · NULL & EXPRESSIONS
+
+% ================================================================ N1 · Viết · Cơ bản · A2 · finance
+\begin{cauhoi}[ma=scm-n1-bien-ln-gop-seafood, dulieu=scm, domain=finance,
+  hinhthuc=write, cap=basic, dang=A2, kynang={phép tính, ROUND}, bay={sai-mau-so, thu-tu-phep-tinh},
+  tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.01]
+\tieude{Mã hàng SEAFOOD nào có biên lợi nhuận gộp cao?}
+\boicanh[Chị Thu · Trưởng ngành hàng]{Chị đang xem lại giá bán ngành SEAFOOD cho quý sau. Em tính giúp chị biên lợi nhuận gộp của từng mã hàng trong ngành.}
+\begin{yeucau}
+  \item Xét các mã hàng thuộc ngành \code{SEAFOOD} trong bảng giá cố định \code{item_costs}.
+  \item Tính biên lợi nhuận gộp của từng mã theo tab Nghiệp vụ, đổi ra phần trăm.
+  \item Trả về \code{item_nbr}, \code{unit_price}, \code{unit_cost}, \code{bien_ln_gop_pct} (phần trăm, làm tròn 2 chữ số).
+  \item Sắp \code{bien_ln_gop_pct} giảm dần; bằng nhau thì \code{item_nbr} nhỏ hơn đứng trước.
+\end{yeucau}
+\begin{erd}
+  \erdbang{item_costs}{0,0}{item_nbr:PK, family*='SEAFOOD', perishable=1, unit_price*=5.20, unit_cost*=4.10}
+\end{erd}
+\begin{nghiepvu}{Chọn mã hàng cần xem lại giá bán hoặc giá mua.}
+  \khainiem{bien-ln-gop}
+  \luuy{Giá ở \code{item_costs} là giá cố định, dùng chung cho mọi cửa hàng và mọi tháng.}
+\end{nghiepvu}
+\goiy{Mẫu số của biên lợi nhuận gộp là giá bán. Lợi nhuận gộp chia giá vốn là tỷ lệ cộng thêm trên giá vốn (markup), một chỉ số khác.}
+\goiy{Đặt phép trừ trong ngoặc trước khi chia, ví dụ \code{(unit_price - unit_cost) / unit_price * 100}.}
+\ghichuthietke{Cơ bản: 1 bảng có giá trị mẫu (tự đặt). Chọn ngành SEAFOOD (8 mã) vì không có hai mã bằng nhau sau khi làm tròn, tránh lệch thứ tự giữa sắp theo giá trị làm tròn và giá trị gốc. Bẫy ở public: chia cho giá vốn; thiếu ngoặc nên phép chia làm trước phép trừ.}
+\end{cauhoi}
+
+% ================================================================ N2 · Viết · Dễ · B4 · operations
+\begin{cauhoi}[ma=scm-n2-hang-chua-ve-thang-8, dulieu=scm, domain=operations,
+  hinhthuc=write, cap=easy, dang=B4, kynang={IS NULL, COALESCE, CASE WHEN}, bay={null-trong-phep-tinh, bang-null, thieu-can-tren},
+  tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.01]
+\tieude{Đơn mua đầu tháng 8 còn bao nhiêu hàng chưa về?}
+\boicanh[Anh Long · Nhân viên mua hàng]{Hai tuần đầu tháng 8 mình đặt nhiều đơn với NCC Đồ uống 1. Anh cần biết từng đơn còn bao nhiêu hàng chưa về để báo kho chuẩn bị chỗ.}
+\begin{yeucau}
+  \item Xét các đơn mua của nhà cung cấp \code{SUP_007} đặt từ ngày 1/8/2017 tới hết ngày 14/8/2017.
+  \item Tính \code{luong_chua_ve} của từng đơn bằng lượng đặt trừ lượng đã nhận; đơn chưa về coi lượng đã nhận bằng 0.
+  \item Gán \code{trang_thai} là \code{'chua_ve'} khi đơn chưa có ngày nhận hàng, còn lại là \code{'da_ve'}.
+  \item Trả về \code{po_id}, \code{po_date}, \code{qty_ordered}, \code{luong_chua_ve}, \code{trang_thai}.
+  \item Sắp theo \code{po_date}, rồi \code{po_id}.
+\end{yeucau}
+\begin{erd}
+  \erdbang{purchase_orders}{0,0}{po_id:PK, supplier_id:FK*, po_date*, qty_ordered*, received_date*, qty_received*}
+  \erdbang{suppliers}{2,0}{supplier_id:PK, supplier_name, family}
+  \erdnoi[kieu=n-1, tren={nối theo \code{supplier_id}}]{purchase_orders.supplier_id}{suppliers.supplier_id}
+\end{erd}
+\begin{nghiepvu}{Báo kho lượng hàng sắp về và quyết định có cần nhắc nhà cung cấp hay không.}
+  \quytrinh{Vòng đời đơn mua}{đặt hàng, hàng về, kiểm định}{chưa về}
+  \luuy{Đơn đã về có thể nhận đủ hoặc nhận thiếu so với lượng đặt; phần nhận thiếu vẫn tính vào lượng chưa về.}
+\end{nghiepvu}
+\goiy{Đơn chưa về ghi \code{received_date} và \code{qty_received} thế nào? Phép trừ với một ô trống cho ra gì?}
+\goiy{Thay ô trống bằng 0 với \code{COALESCE}; nhận ra đơn chưa về bằng điều kiện \code{IS NULL}.}
+\ghichuthietke{Dễ: 2 bảng, chữ trên đường nối; câu chỉ cần \code{purchase_orders}. Sửa v2: chuyển từ một dòng tổng (\code{SUM}, \code{COUNT} thuộc Module 4) sang liệt kê từng đơn (20 dòng), đúng Module 2 (\code{IS NULL}, \code{COALESCE}, \code{CASE}); đổi ``lượng còn thiếu'' thành ``lượng chưa về''. Bẫy ở public: trừ thẳng \code{qty_received} ra ô trống ở 13 đơn chưa về; so \code{= NULL} gán mọi đơn là \code{'da_ve'}; thiếu cận trên lấy thêm hơn 500 đơn ngày 15/8. Không còn bẫy riêng ở hidden-1 (đơn thêm ngày 2017-09-01 nằm ngoài phạm vi); hidden-1 vẫn khác public vì bỏ khoảng 10\% đơn mua.}
+\end{cauhoi}
+
+% ================================================================ N3 · Viết · Dễ · C4 · operations
+\begin{cauhoi}[ma=scm-n3-muc-tai-kho-ha-noi, dulieu=scm, domain=operations,
+  hinhthuc=write, cap=easy, dang=C4, kynang={CASE WHEN}, bay={thu-tu-case, thieu-can-tren},
+  tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.01]
+\tieude{Kho Hà Nội quá tải những ngày nào tháng 7/2017?}
+\boicanh[Anh Hải · Trưởng kho Hà Nội]{Anh chuẩn bị họp giao ban kho cuối tháng. Em phân loại giúp anh từng ngày tháng 7 của kho mình theo ba mức tải anh vẫn dùng.}
+\begin{yeucau}
+  \item Xét kho \code{DC_HANOI}, các ngày trong tháng 7/2017.
+  \item Gán mức tải theo tỷ lệ tải (\code{workload_ratio}): lớn hơn 1 là \code{'qua_tai'}; từ 0,8 tới 1 là \code{'sat_nguong'}; còn lại là \code{'binh_thuong'}.
+  \item Trả về \code{date}, \code{workload_ratio}, \code{muc_tai}.
+  \item Sắp \code{date} tăng dần.
+\end{yeucau}
+\begin{erd}
+  \erdbang{warehouse_daily_ops}{0,0}{hub_id:FK*, date*, orders_to_process, headcount, workload_ratio*}
+  \erdbang{sorting_hubs}{2,0}{hub_id:PK, city, role}
+  \erdnoi[kieu=n-1, tren={nối theo \code{hub_id}}]{warehouse_daily_ops.hub_id}{sorting_hubs.hub_id}
+\end{erd}
+\begin{nghiepvu}{Quyết định tăng ca hoặc chuyển bớt đơn sang kho khác vào những ngày quá tải.}
+  \khainiem{ty-le-tai}
+  \luuy{Tỷ lệ tải đo trên năng lực của nhân sự có mặt trong ngày, không phải nhân sự kế hoạch. Ngày vắng người có thể quá tải dù số đơn không tăng.}
+\end{nghiepvu}
+\goiy{Một ngày có tỷ lệ tải 1,2 thoả mấy điều kiện trong ba mức?}
+\goiy{\code{CASE WHEN} dừng ở điều kiện đúng đầu tiên, nên đặt điều kiện \code{workload_ratio > 1} lên trước.}
+\ghichuthietke{Dễ: 2 bảng, chữ trên đường nối. Nhãn viết không dấu, có gạch dưới (như giá trị \code{tier} trong DB) để tránh lệch chuẩn Unicode khi so chuỗi. Tháng 7/2017 kho Hà Nội có cả ngày quá tải và ngày sát ngưỡng, không ngày nào đúng bằng 1. Bẫy ở public: đặt điều kiện rộng trước nên không ngày nào thành \code{'qua_tai'}; thiếu cận trên lấy cả tháng 8.}
+\end{cauhoi}
+
+% ================================================================ N4 · Viết · Dễ · C1 · sales
+\begin{cauhoi}[ma=scm-n4-fill-rate-cua-hang-52, dulieu=scm, domain=sales,
+  hinhthuc=write, cap=easy, dang=C1, kynang={phép tính, ROUND, ORDER BY}, bay={quy-uoc-sold, thu-tu-phep-tinh},
+  tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.01]
+\tieude{Mã nào ở cửa hàng 52 thiếu hụt nhiều nhất?}
+\boicanh[Chị Hạnh · Nhân viên kế hoạch nhu cầu]{Cửa hàng 52 mới mở từ tháng 4. Chị cần mười mã hàng thiếu hụt nhiều nhất tháng 7, kèm tỷ lệ lấp đầy của từng mã.}
+\begin{yeucau}
+  \item Xét tồn kho kỳ 2017-07 của cửa hàng 52.
+  \item Tính fill rate (tỷ lệ lấp đầy) của từng mã hàng theo tab Nghiệp vụ, đổi ra phần trăm.
+  \item Trả về \code{item_nbr}, \code{sold}, \code{thieu_hut}, \code{fill_rate_pct} (phần trăm, làm tròn 2 chữ số).
+  \item Sắp \code{thieu_hut} giảm dần; bằng nhau thì \code{item_nbr} nhỏ hơn đứng trước.
+  \item Lấy 10 dòng đầu.
+\end{yeucau}
+\begin{erd}
+  \erdbang{inventory_snapshots}{0,0}{store_nbr*, item_nbr:FK*, ym*, on_hand_begin, received, sold*, thieu_hut*, on_hand_end}
+  \erdbang{items}{2,0}{item_nbr:PK, family, perishable}
+  \erdnoi[kieu=n-1, tren={nối theo \code{item_nbr}}]{inventory_snapshots.item_nbr}{items.item_nbr}
+\end{erd}
+\begin{nghiepvu}{Chọn mã hàng cần tăng lượng đặt cho cửa hàng mới.}
+  \khainiem{fill-rate}
+  \khainiem{luong-ban-va-nhu-cau}
+  \luuy{Fill rate của một mã trong một kỳ cho biết phần lượng bán được đáp ứng ngay từ hàng có sẵn ở cửa hàng.}
+\end{nghiepvu}
+\goiy{Mẫu số của fill rate là lượng bán trong kỳ (\code{sold}), đã gồm cả phần thiếu hụt.}
+\goiy{\code{ROUND(100 * (1 - thieu_hut / sold), 2)}; phép trừ nằm trong ngoặc trước khi nhân 100.}
+\ghichuthietke{Dễ: 2 bảng, chữ trên đường nối; câu chỉ cần \code{inventory_snapshots}. Fill rate tính cho từng dòng (một mã, một kỳ), nên không vướng quy tắc ``không lấy trung bình tỷ lệ'' của khái niệm. Sắp theo \code{thieu_hut} (không hoà ở 10 dòng đầu) thay vì theo tỷ lệ, để tránh hoà sau khi làm tròn. Bẫy ở public: coi nhu cầu bằng \code{sold + thieu_hut} (sai quy ước của bộ dữ liệu); nhân 100 trước phép trừ.}
+\end{cauhoi}
+
+% ================================================================ N5 · Viết · Trung bình · E2 · operations
+\begin{cauhoi}[ma=scm-n5-gio-chua-gan-don-hue, dulieu=scm, domain=operations,
+  hinhthuc=write, cap=medium, dang=E2, kynang={phép tính, ROUND, JOIN hoặc tra mã kho}, bay={thieu-thanh-phan, don-huy},
+  tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.01]
+\tieude{Đơn nào về kho Huế ngày 7/7 có nhiều giờ chưa gán?}
+\boicanh[Chị Lan · Điều phối vận hành]{Ngày 7/7 các đơn về kho vệ tinh Huế vẫn kịp cam kết nhưng lead time (từ lúc tạo đơn tới lúc giao) dài bất thường. Chị cần biết phần thời gian không thuộc chặng nào lớn tới đâu.}
+\begin{yeucau}
+  \item Xét các đơn giao thành công, đặt ngày 7/7/2017, có kho đích là kho vệ tinh ở Huế (lọc theo kho đích; thành phố nhận hàng có thể khác Huế).
+  \item Tính tổng năm cột chặng và thời gian chưa gán của từng đơn theo tab Nghiệp vụ.
+  \item Giữ các đơn có thời gian chưa gán từ 50 giờ trở lên.
+  \item Trả về \code{order_id}, \code{lead_time_total_h}, \code{tong_chang_h}, \code{chua_gan_h} (giờ; hai cột sau làm tròn 2 chữ số).
+  \item Sắp \code{order_id} tăng dần.
+\end{yeucau}
+\begin{erd}
+  \erdbang{orders}{0,0}{order_id:PK, order_date*, dest_hub_id:FK*, dest_point_id:FK, is_cancelled*, lead_time_total_h*, t1_tao_don_pick_h*, t2_pick_xuat_h*, t3a_di_chuyen_h*, t3b_sorting_h*, t4_kho_giao_h*}
+  \erdbang{sorting_hubs}{1,0}{hub_id:PK, city*, role*}
+  \erdbang{delivery_points}{1,1}{point_id:PK, city}
+  \erdnoi[kieu=n-1]{orders.dest_hub_id}{sorting_hubs.hub_id}
+  \erdnoi[kieu=n-1]{orders.dest_point_id}{delivery_points.point_id}
+\end{erd}
+\begin{nghiepvu}{Quyết định cần ghi nhận thêm mốc thời gian nào để biết đơn chậm ở đâu.}
+  \quytrinh{Hành trình đơn chặng cuối}{tạo đơn, lấy hàng, xuất kho, phân loại, giao}{huỷ}
+  \khainiem{lead-time-don}
+  \khainiem{thoi-gian-chua-gan}
+  \luuy{Đơn huỷ (\code{is_cancelled} bằng 1) vẫn có giá trị ở các cột thời gian, dù không được giao tới khách.}
+\end{nghiepvu}
+\goiy{Kho vệ tinh ở Huế có mã gì trong bảng kho? Đơn huỷ có thuộc nhóm ``giao thành công'' không?}
+\goiy{Cộng đủ năm cột từ \code{t1_tao_don_pick_h} tới \code{t4_kho_giao_h}, kể cả \code{t3a_di_chuyen_h} và \code{t3b_sorting_h}, rồi lấy \code{lead_time_total_h} trừ đi.}
+\ghichuthietke{Trung bình: 3 bảng, chỉ ký hiệu n-1; \code{delivery_points} là bảng nhiễu. Đề nêu ``kho vệ tinh ở Huế'' thay vì mã \code{HUB_HUE}, học viên tra \code{sorting_hubs} hoặc nối bảng. Sắp theo \code{order_id} vì có hai đơn bằng nhau sau khi làm tròn \code{chua_gan_h}. Bẫy ở public: thiếu \code{t3b_sorting_h} làm thời gian chưa gán của mọi đơn lớn hơn (tập đơn không đổi, giá trị \code{chua_gan_h} sai); không loại đơn huỷ lọt thêm hai đơn. Lọc theo \code{dest_city} = Huế ra 15 đơn thay vì 25 vì kho Huế còn nhận đơn Đông Hà; đề ghi rõ kho đích.}
+\end{cauhoi}
+
+% ================================================================ N6 · Viết · Dễ · C3 · marketing
+\begin{cauhoi}[ma=scm-n6-ngay-cao-diem-gap-doi-2016, dulieu=scm, domain=marketing,
+  hinhthuc=write, cap=easy, dang=C3, kynang={phép tính, ROUND, WHERE trên biểu thức}, bay={he-so-va-muc-tang, thieu-can-tren},
+  tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.01]
+\tieude{Ngày cao điểm 2016 nào có nhu cầu gấp đôi?}
+\boicanh[Anh Dũng · Trưởng nhóm marketing]{Anh đang lên lịch khuyến mãi năm sau. Em liệt kê giúp anh các ngày cao điểm năm 2016 có nhu cầu từ gấp đôi ngày thường trở lên.}
+\begin{yeucau}
+  \item Xét các ngày cao điểm trong năm 2016.
+  \item Tính mức tăng nhu cầu so với ngày nền (phần trăm) từ hệ số nhu cầu \code{demand_multiplier}, theo tab Nghiệp vụ.
+  \item Giữ các ngày có mức tăng từ 100\% trở lên.
+  \item Trả về \code{date}, \code{event_name}, \code{tier}, \code{muc_tang_pct} (phần trăm, làm tròn 0 chữ số).
+  \item Sắp \code{muc_tang_pct} giảm dần; bằng nhau thì ngày sớm hơn đứng trước.
+\end{yeucau}
+\begin{erd}
+  \erdbang{event_calendar}{0,0}{date*, event_name*, tier*, demand_multiplier*}
+  \erdbang{orders}{2,0}{order_id:PK, order_date}
+  \erdnoi[kieu=1-n, tren={ghép theo ngày, không có khoá}]{event_calendar.date}{orders.order_date}
+\end{erd}
+\begin{nghiepvu}{Chọn ngày cần chuẩn bị thêm hàng và nhân sự trong lịch khuyến mãi năm sau.}
+  \khainiem{ngay-cao-diem}
+  \luuy{Hệ số nhu cầu là tỷ số giữa nhu cầu của ngày cao điểm và nhu cầu của ngày nền.}
+\end{nghiepvu}
+\goiy{Hệ số 2 nghĩa là nhu cầu bằng mấy lần ngày nền, và tăng bao nhiêu phần trăm?}
+\goiy{\code{ROUND((demand_multiplier - 1) * 100, 0)}; năm 2016 lọc từ \code{'2016-01-01'} tới trước \code{'2017-01-01'}.}
+\ghichuthietke{Dễ: 2 bảng, đường nối ghi rõ là ghép theo ngày, không có khoá; câu chỉ cần \code{event_calendar}. Dạng C3 vì so với mức nền. Bẫy ở public: lấy hệ số nhân 100 làm mức tăng nên mọi ngày đều lọt; thiếu cận trên lấy cả ngày cao điểm năm 2017. hidden-1 thêm ngày cao điểm 2/9/2016 (Quốc khánh, hệ số 2), nên kết quả có 11 dòng thay vì 10; chép kết quả Chạy thử sẽ rớt.}
+\end{cauhoi}
+
+% ================================================================ N7 · Sửa lỗi · Cơ bản · A2 · finance
+\begin{cauhoi}[ma=scm-n7-gia-dau-thang-7-thap, dulieu=scm, domain=finance,
+  hinhthuc=debug, cap=basic, dang=A2, kynang={AVG, NULL, COALESCE}, bay={null-thanh-0},
+  tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.01]
+\tieude{Giá dầu bình quân tháng 7/2017 thấp bất thường}
+\boicanh[Bạn Nam · Thực tập sinh]{Em tính giá dầu bình quân tháng 7 để chị kế toán ước phụ phí nhiên liệu, mà số ra thấp hơn hẳn các tháng trước. Em sợ gửi sai số cho chị.}
+\begin{yeucau}
+  \item Sửa truy vấn dưới đây để tính đúng giá dầu WTI bình quân của các ngày có giá trong tháng 7/2017.
+  \item Giữ nguyên cột \code{gia_dau_tb} (làm tròn 2 chữ số).
+\end{yeucau}
+\begin{erd}
+  \erdbang{oil}{0,0}{date*=2017-07-04, dcoilwtico*=NULL}
+\end{erd}
+\begin{nghiepvu}{Ước tính phụ phí nhiên liệu trong chi phí vận chuyển tháng sau.}
+  \luuy{Ngày thị trường dầu nghỉ không có giá, ô \code{dcoilwtico} để trống (NULL). Ô trống nghĩa là không có số liệu, khác với giá bằng 0.}
+\end{nghiepvu}
+\goiy{Ngày không có giá có nên tính như ngày giá bằng 0 không?}
+\goiy{Hàm \code{AVG} tự bỏ qua ô trống.}
+\ghichuthietke{Cơ bản: 1 bảng, giá trị mẫu NULL là manh mối. Tháng 7/2017 có hai ngày không có giá. Bài sai sửa đúng hàm nhưng thiếu cận trên (\code{oil} có tới 31/8/2017) rớt ở public. hidden-1 bỏ khoảng 10\% ngày ở \code{oil} (tháng 7/2017 mất ngày 12/7), nên giá bình quân khác public; chép kết quả Chạy thử sẽ rớt.}
+\end{cauhoi}
+
+% ================================================================ N8 · Sửa lỗi · Dễ · A2 · operations
+\begin{cauhoi}[ma=scm-n8-dung-han-thai-binh-tron, dulieu=scm, domain=operations,
+  hinhthuc=debug, cap=easy, dang=A2, kynang={ROUND, phép tính}, bay={lam-tron-giua-chung, don-huy-trong-mau-so},
+  tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.01]
+\tieude{Tỷ lệ giao đúng hạn ở Thái Bình ra số tròn}
+\boicanh[Anh Toàn · Trưởng kho Thái Bình]{Báo cáo tháng 7 ghi tỷ lệ giao đúng hạn của kho mình là một số tròn, anh thấy lạ. Chiều nay anh phải gửi báo cáo này lên vùng.}
+\begin{yeucau}
+  \item Sửa truy vấn dưới đây để tính đúng tỷ lệ giao đúng hạn của các đơn có kho đích \code{HUB_THAIBINH}, đặt trong tháng 7/2017.
+  \item Giữ nguyên các cột \code{so_don}, \code{so_dung_han}, \code{ty_le_dung_han_pct} (phần trăm, làm tròn 2 chữ số).
+\end{yeucau}
+\begin{erd}
+  \erdbang{orders}{0,0}{order_id:PK, order_date*, dest_hub_id:FK*, on_time*=1, is_cancelled*=0}
+  \erdbang{sorting_hubs}{2,0}{hub_id:PK, city, role}
+  \erdnoi[kieu=n-1, tren={\code{dest_hub_id = hub_id}}]{orders.dest_hub_id}{sorting_hubs.hub_id}
+\end{erd}
+\begin{nghiepvu}{Quyết định có cần điều chỉnh ca giao hàng của kho Thái Bình hay không.}
+  \khainiem{giao-dung-han-don}
+  \luuy{Báo cáo vận hành ghi tỷ lệ giao đúng hạn theo phần trăm, lấy 2 chữ số thập phân.}
+\end{nghiepvu}
+\goiy{Làm tròn tỷ lệ tới 2 chữ số rồi mới nhân 100 thì kết quả còn mấy chữ số có nghĩa?}
+\goiy{Nhân 100 trước rồi mới làm tròn, ví dụ \code{ROUND(100 * SUM(on_time) / COUNT(*), 2)}.}
+\ghichuthietke{Dễ: 2 bảng, chữ trên đường nối. Starter đã loại đơn huỷ, chỉ sai chỗ làm tròn. Chọn kho Thái Bình vì độ lệch giữa số làm tròn sớm và số đúng lớn hơn sai số chấm 0,01 ở cả hai biến thể. Bài sai sửa đúng chỗ làm tròn nhưng bỏ điều kiện loại đơn huỷ rớt ở public. Câu thay cho bản nháp về tỷ lệ huỷ kho Thái Bình, để không trùng chủ đề và ô với \code{scm-s9} của gói 2.}
+\end{cauhoi}
+
+% ================================================================ N9 · Sửa lỗi · Trung bình · C3 · customer
+\begin{cauhoi}[ma=scm-n9-gio-tre-nam-dinh-am, dulieu=scm, domain=customer,
+  hinhthuc=debug, cap=medium, dang=C3, kynang={phép tính, ROUND, WHERE}, bay={dao-phep-tru, don-huy},
+  tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.01]
+\tieude{Giờ trễ của đơn tới Nam Định ra số âm}
+\boicanh[Chị Thảo · Nhân viên chăm sóc khách hàng]{Khách ở Nam Định phàn nàn giao chậm trong tháng 7. Danh sách đơn trễ chị nhận được lại ghi số giờ trễ âm, chị không biết đọc thế nào.}
+\begin{yeucau}
+  \item Sửa hai lỗi trong truy vấn dưới đây. Kết quả cần liệt kê các đơn tới Nam Định đặt trong tháng 7/2017, đã giao tới khách nhưng trễ so với cam kết.
+  \item Tính \code{so_gio_tre} bằng số giờ giao muộn hơn cam kết (số dương, làm tròn 1 chữ số).
+  \item Giữ nguyên các cột \code{order_id}, \code{lead_time_total_h}, \code{promised_h}, \code{so_gio_tre} và thứ tự sắp (\code{so_gio_tre} giảm dần, rồi \code{order_id}).
+\end{yeucau}
+\begin{erd}
+  \erdbang{orders}{0,0}{order_id:PK, order_date*, dest_city*, dest_hub_id:FK, dest_point_id:FK, lead_time_total_h*, promised_h*, on_time, is_cancelled}
+  \erdbang{delivery_points}{1,0}{point_id:PK, city}
+  \erdbang{sorting_hubs}{1,1}{hub_id:PK, city, role}
+  \erdnoi[kieu=n-1]{orders.dest_point_id}{delivery_points.point_id}
+  \erdnoi[kieu=n-1]{orders.dest_hub_id}{sorting_hubs.hub_id}
+\end{erd}
+\begin{nghiepvu}{Chọn đơn cần gọi lại xin lỗi khách và xem xét hoàn phí giao.}
+  \khainiem{giao-dung-han-don}
+  \luuy{Cam kết (\code{promised_h}) và lead time cùng tính theo giờ, từ lúc tạo đơn.}
+\end{nghiepvu}
+\goiy{Đơn trễ có lead time lớn hơn cam kết. Lấy số nào trừ số nào để ra số dương?}
+\goiy{Đơn huỷ không được giao tới khách, nên không tính là đơn giao trễ. Xem cột \code{is_cancelled} của các đơn trong kết quả.}
+\ghichuthietke{Trung bình: 3 bảng, chỉ ký hiệu n-1; ERD trung tính, không tô cột \code{is_cancelled}. Hai lỗi chồng nhau: đảo phép trừ (số âm, thứ tự sắp bị đảo) và không loại đơn huỷ. Mỗi bài sai chỉ sửa một lỗi, đều rớt ở public. Hai đơn bằng nhau sau khi làm tròn 1 chữ số có thứ tự giống nhau dù sắp theo giá trị gốc.}
+\end{cauhoi}
+
+
+% ################################################################ CASE STUDY · CƠ BẢN
+
+% ================================================================ C1 · Case · Cơ bản · marketing
+\begin{cauhoi}[ma=scm-c1-tu-ap-voucher-huy-don, dulieu=scm, domain=marketing,
+  hinhthuc=case, cap=basic, diem=10, tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.01]
+\tieude{Tự áp voucher có làm khách huỷ đơn ít hơn?}
+\boicanh[Chị Phương · Trưởng nhóm marketing]{Từ năm 2015 mình chia khách làm hai nhóm, một nhóm được hệ thống tự áp voucher (phiếu giảm giá), nhóm kia tự nhập voucher. Chị cần biết nửa đầu năm 2017 nhóm nào huỷ đơn ít hơn.}
+\begin{erd}
+  \erdbang[hl]{orders}{0,0}{order_id:PK, order_date*=2017-03-15, checkout_group*='auto_apply', voucher_applied=1, is_cancelled*=1}
+\end{erd}
+\begin{nghiepvu}{Quyết định có tự áp voucher cho toàn bộ khách hay không.}
+  \khainiem{ty-le-huy}
+  \luuy{Nhóm \code{'manual'} gồm khách tự nhập voucher, nhóm \code{'auto_apply'} gồm khách được hệ thống tự áp voucher; khách được chia vào hai nhóm ngay khi bắt đầu thử nghiệm. Cột \code{voucher_applied} ghi đơn có dùng voucher hay không.}
+\end{nghiepvu}
+\begin{buoc}[ma=b1, diem=5, hinhthuc=write, bang={orders}]{Tỷ lệ huỷ của hai nhóm}
+  \begin{yeucau}
+    \item Xét các đơn đặt từ ngày 1/1/2017 tới hết ngày 30/6/2017.
+    \item Tính cho từng nhóm (\code{checkout_group}) số đơn, số đơn huỷ và tỷ lệ huỷ.
+    \item Trả về \code{checkout_group}, \code{so_don}, \code{so_huy}, \code{ty_le_huy_pct} (phần trăm, làm tròn 2 chữ số).
+    \item Sắp \code{ty_le_huy_pct} giảm dần.
+  \end{yeucau}
+  \goiy{Gom theo \code{checkout_group}; số đơn huỷ là \code{SUM(is_cancelled)}.}
+\end{buoc}
+\begin{buoc}[ma=b2, diem=5, hinhthuc=ketluan, bang={orders}]{Kết luận}
+  \begin{luachon}
+    \phuongan*{Nhóm hệ thống tự áp voucher có tỷ lệ huỷ thấp hơn nhóm tự nhập voucher gần 4 điểm phần trăm, với số đơn hai nhóm gần bằng nhau.}
+      {Đúng. Bước 1 cho thấy hai nhóm có số đơn gần bằng nhau, và tỷ lệ huỷ của nhóm \code{'auto_apply'} thấp hơn gần 4 điểm phần trăm.}
+    \phuongan{Đơn có dùng voucher có tỷ lệ huỷ thấp hơn đơn không dùng khoảng 4 điểm phần trăm, nên dùng voucher làm khách huỷ đơn ít hơn.}
+      {Chưa đúng. Phương án này so theo việc đơn có dùng voucher, không theo nhóm thử nghiệm; khách tự chọn dùng voucher nên hai nhóm đó không so được.}
+    \phuongan{Nhóm tự nhập voucher huỷ nhiều hơn vì giá trị đơn của nhóm này thấp hơn, nên cần nâng giá trị đơn tối thiểu để giảm huỷ.}
+      {Chưa đúng. Bước 1 không xét giá trị đơn; phương án này gán nguyên nhân khi chưa có số liệu nào về giá trị đơn.}
+  \end{luachon}
+\end{buoc}
+\ghichuthietke{Case Cơ bản: 1 bảng, 1 bước SQL, 1 bước kết luận đọc từ kết quả. Thử nghiệm A/B theo \code{checkout_group} (sách dự án mục voucher). Bài sai ở bước 1: gom theo \code{voucher_applied} (nhầm nhóm thử nghiệm với việc dùng voucher); thiếu cận trên lấy cả tháng 7, 8. Sửa v2: ba phương án dài gần bằng nhau, hai phương án có số; phương án nhiễu mới lấy từ cách gom sai theo \code{voucher_applied} (12,01\% so với 7,99\%, chênh khoảng 4 điểm phần trăm). Mức chênh giữa hai nhóm giữ được ở hidden-1.}
+\end{cauhoi}
+
+% ================================================================ C2 · Case · Cơ bản · sales
+\begin{cauhoi}[ma=scm-c2-thang-ban-nhieu-nhat-2017, dulieu=scm, domain=sales,
+  hinhthuc=case, cap=basic, diem=10, tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.01]
+\tieude{Tháng nào năm 2017 bán được nhiều hàng nhất?}
+\boicanh[Chị Diệp · Nhân viên kế hoạch nhu cầu]{Chị chuẩn bị họp kế hoạch hàng tháng. Em tổng hợp lượng bán toàn chuỗi từng tháng năm nay và cho chị biết tháng nào bán nhiều nhất.}
+\begin{erd}
+  \erdbang[hl]{inventory_snapshots}{0,0}{store_nbr, item_nbr, ym*='2017-07', sold*=120, thieu_hut=4}
+\end{erd}
+\begin{nghiepvu}{Chọn tháng làm mốc khi lập kế hoạch lượng đặt hàng cho các tháng tới.}
+  \luuy{Mỗi kỳ là một tháng; lượng bán trong kỳ là tổng \code{sold} của mọi cửa hàng và mã hàng.}
+\end{nghiepvu}
+\begin{buoc}[ma=b1, diem=5, hinhthuc=write, bang={inventory_snapshots}]{Lượng bán toàn chuỗi theo kỳ}
+  \begin{yeucau}
+    \item Xét mọi kỳ có trong bảng tồn kho.
+    \item Tính tổng lượng bán trong kỳ (\code{sold}) của mọi cửa hàng và mã hàng.
+    \item Trả về \code{ky}, \code{luong_ban}; sắp \code{ky} tăng dần.
+  \end{yeucau}
+  \goiy{Gom theo \code{ym}; \code{ym} là chuỗi dạng \code{'2017-07'}, so sánh được như chuỗi.}
+\end{buoc}
+\begin{buoc}[ma=b2, diem=5, hinhthuc=ketluan, bang={inventory_snapshots}]{Kết luận}
+  \begin{luachon}
+    \phuongan*{Kỳ 2017-07 bán nhiều nhất trong các tháng đủ; kỳ 2017-08 mới có nửa tháng nên chưa so được.}
+      {Đúng. Bước 1 cho thấy kỳ 2017-07 cao nhất, còn số liệu kỳ 2017-08 dừng ở giữa tháng.}
+    \phuongan{Kỳ 2017-08 bán chưa bằng một nửa kỳ 2017-07, nên có thể cần giảm lượng đặt hàng cho tháng 9.}
+      {Chưa đúng. Kỳ 2017-08 chỉ có nửa tháng dữ liệu, nên mức giảm này không có thật.}
+    \phuongan{Kỳ 2017-07 bán nhiều nhất, nên đây cũng là tháng nhu cầu của khách cao nhất năm nay.}
+      {Chưa đúng. Lượng bán là lượng đã bán ra; khi hết hàng, lượng bán nhỏ hơn nhu cầu.}
+  \end{luachon}
+\end{buoc}
+\ghichuthietke{Case Cơ bản: 1 bảng, 1 bước SQL, 1 bước kết luận. Bẫy kết luận: kỳ 2017-08 chỉ nửa tháng; coi \code{sold} là nhu cầu. Bài sai ở bước 1: trừ \code{thieu_hut} (sai quy ước); cộng \code{on_hand_end} (nhầm tồn cuối kỳ với lượng bán); cả hai rớt ở public. Sửa v2: bước 1 lấy mọi kỳ có trong bảng, nên ở hidden-1 có thêm dòng kỳ 2017-09 và kết quả khác public (chép kết quả Chạy thử sẽ rớt); bỏ hai khái niệm \code{ky-va-thang-du}, \code{luong-ban-va-nhu-cau} khỏi tab Nghiệp vụ vì chúng loại sẵn hai phương án sai; ba phương án dài gần bằng nhau, từ rào có ở cả phương án đúng và sai.}
+\end{cauhoi}
+
+\end{document}

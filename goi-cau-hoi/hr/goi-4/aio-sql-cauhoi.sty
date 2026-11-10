@@ -1,0 +1,353 @@
+% aio-sql-cauhoi.sty — Chuẩn soạn câu hỏi SQL (AIO)
+% Biên dịch bằng XeLaTeX. Mỗi câu hỏi là một môi trường {cauhoi}.
+% File này vừa định dạng PDF để duyệt đề, vừa là chuẩn cú pháp cho trình import.
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{aio-sql-cauhoi}[2026/11/08 v0.4 Chuan cau hoi SQL]
+
+\RequirePackage{fontspec}
+\RequirePackage{xcolor}
+\RequirePackage{amssymb}
+\RequirePackage{pgfkeys}
+\RequirePackage{etoolbox}
+\RequirePackage{fancyvrb}
+\RequirePackage[most]{tcolorbox}
+\RequirePackage{enumitem}
+\RequirePackage{array}
+\RequirePackage{tikz}
+\RequirePackage{xparse}
+
+% ---------------------------------------------------------------- màu
+\definecolor{cqInk}{HTML}{101828}
+\definecolor{cqMuted}{HTML}{475467}
+\definecolor{cqLine}{HTML}{D0D5DD}
+\definecolor{cqSoft}{HTML}{F2F4F7}
+\definecolor{cqBlue}{HTML}{2F54EB}
+\definecolor{cqBlueSoft}{HTML}{EEF2FF}
+\definecolor{cqGood}{HTML}{0E7569}
+\definecolor{cqGoodSoft}{HTML}{E3F4F1}
+\definecolor{cqBad}{HTML}{B4232C}
+\definecolor{cqWarn}{HTML}{C4320A}
+\definecolor{cqNote}{HTML}{7A4100}
+\definecolor{cqNoteSoft}{HTML}{FEF6E7}
+\definecolor{cqBasic}{HTML}{0E7569}
+\definecolor{cqEasy}{HTML}{1F4FD1}
+\definecolor{cqMedium}{HTML}{A14A06}
+\definecolor{cqHard}{HTML}{B4232C}
+
+% ---------------------------------------------------------------- tiện ích
+\newcommand{\cq@err}[1]{\PackageError{aio-sql-cauhoi}{#1}{Xem DAC_TA_CHUAN_LATEX.md}}
+% \code{...}: tên bảng, cột, giá trị trong câu chữ; không cần escape dấu gạch dưới
+\newcommand{\code}[1]{\texttt{\detokenize{#1}}}
+\newcommand{\cq@chip}[2][cqMuted]{%
+  \tcbox[on line, boxsep=0pt, left=4pt, right=4pt, top=1.5pt, bottom=1.5pt, arc=6pt,
+    colback=white, colframe=#1, boxrule=0.6pt]{\color{#1}\footnotesize #2}}
+\newcommand{\cq@label}[1]{\par\smallskip{\color{cqMuted}\scriptsize\bfseries\MakeUppercase{#1}}\par\nopagebreak}
+
+% ---------------------------------------------------------------- khai báo dùng chung
+% \khaibaodulieu{ma}{Tên}{Mô tả}
+\newcommand{\khaibaodulieu}[3]{\csdef{cq@ds@#1}{#2}\csdef{cq@dsd@#1}{#3}}
+% \khaibaodomain{ma}{Tên}{Mô tả mảng nghiệp vụ}
+\newcommand{\khaibaodomain}[3]{\csdef{cq@dm@#1}{#2}\csdef{cq@dmd@#1}{#3}}
+% \khaibaokhainiem{ma}{Tên}{Định nghĩa}{Công thức (có thể rỗng)}{Trong bộ dữ liệu}
+\newcommand{\khaibaokhainiem}[5]{%
+  \csdef{cq@kn@#1}{#2}\csdef{cq@knd@#1}{#3}\csdef{cq@knf@#1}{#4}\csdef{cq@kni@#1}{#5}}
+
+% danh sách giá trị cố định
+\newcommand{\cq@allow}[2]{\csdef{cq@ok@#1@#2}{}}
+\forcsvlist{\cq@allow{dang}}{A1,A2,A3,A4,B1,B2,B3,B4,C1,C2,C3,C4,D1,D2,D3,E1,E2,E3}
+\newcommand{\cq@need}[3]{% #1 kho, #2 giá trị, #3 tên khoá
+  \ifcsdef{#1#2}{}{\cq@err{Gia tri '#2' cua khoa '#3' chua khai bao hoac khong hop le}}}
+
+% ---------------------------------------------------------------- khoá của \begin{cauhoi}[...]
+\newcounter{cauhoi}
+\newcounter{cqgoiy}[cauhoi]
+\newcounter{cqbuoc}[cauhoi]
+\pgfkeys{
+  /cq/.is family, /cq,
+  ma/.store in=\cq@ma,
+  dulieu/.store in=\cq@dulieu,
+  domain/.store in=\cq@domain,
+  dang/.store in=\cq@dang,
+  kynang/.store in=\cq@kynang,
+  bay/.store in=\cq@bay,
+  tacgia/.store in=\cq@tacgia,
+  diem/.store in=\cq@diemghi,
+  bokiemtra/.store in=\cq@bokiemtra,
+  saiso/.store in=\cq@saiso,
+  hinhthuc/.is choice,
+  hinhthuc/write/.code={\def\cq@ht{write}\def\cq@htn{Viết truy vấn}},
+  hinhthuc/debug/.code={\def\cq@ht{debug}\def\cq@htn{Sửa lỗi}},
+  hinhthuc/optimize/.code={\def\cq@ht{optimize}\def\cq@htn{Tối ưu truy vấn}},
+  hinhthuc/case/.code={\def\cq@ht{case}\def\cq@htn{Case study}},
+  % ràng buộc của câu optimize: số lần quét tối đa mỗi bảng; ngân sách dòng trung gian (bội số của lời giải)
+  quettoida/.store in=\cq@quet,
+  ngansach/.store in=\cq@ngansach,
+  cap/.is choice,
+  cap/basic/.code={\def\cq@cap{basic}\def\cq@capn{Cơ bản}\def\cq@capc{cqBasic}\def\cq@diem{10}},
+  cap/easy/.code={\def\cq@cap{easy}\def\cq@capn{Dễ}\def\cq@capc{cqEasy}\def\cq@diem{20}},
+  cap/medium/.code={\def\cq@cap{medium}\def\cq@capn{Trung bình}\def\cq@capc{cqMedium}\def\cq@diem{30}},
+  cap/hard/.code={\def\cq@cap{hard}\def\cq@capn{Khó}\def\cq@capc{cqHard}\def\cq@diem{50}},
+  trangthai/.is choice,
+  trangthai/nhap/.code={\def\cq@tt{nháp}},
+  trangthai/review/.code={\def\cq@tt{review}},
+  trangthai/duyet/.code={\def\cq@tt{duyệt}},
+  thutu/.is choice,
+  thutu/co/.code={\def\cq@thutu{có xét thứ tự dòng}},
+  thutu/khong/.code={\def\cq@thutu{không xét thứ tự dòng}},
+  socot/.is choice,
+  socot/vitri/.code={\def\cq@socot{theo vị trí}},
+  socot/ten/.code={\def\cq@socot{theo tên cột}},
+}
+
+\newenvironment{cauhoi}[1][]{%
+  \def\cq@ma{}\def\cq@dulieu{}\def\cq@domain{}\def\cq@dang{}\def\cq@kynang{}\def\cq@bay{}%
+  \def\cq@tacgia{}\def\cq@diemghi{}\def\cq@bokiemtra{public}\def\cq@saiso{0.01}%
+  \def\cq@ht{}\def\cq@cap{}\def\cq@tt{nháp}\def\cq@thutu{có xét thứ tự dòng}\def\cq@socot{theo vị trí}%
+  \def\cq@quet{}\def\cq@ngansach{}%
+  \pgfkeys{/cq,#1}%
+  \def\cq@needsql{}%
+  \ifdefstring{\cq@ht}{write}{\def\cq@needsql{solution,wrong}}{}%
+  \ifdefstring{\cq@ht}{debug}{\def\cq@needsql{solution,starter,wrong}}{}%
+  \ifdefstring{\cq@ht}{optimize}{\def\cq@needsql{solution,starter,wrong}%
+    \ifdefempty{\cq@quet}{\ifdefempty{\cq@ngansach}{\cq@err{Cau optimize can it nhat mot rang buoc: quettoida hoac ngansach}}{}}{}}{}%
+  \ifdefempty{\cq@ma}{\cq@err{Thieu khoa ma}}{}%
+  \ifdefempty{\cq@ht}{\cq@err{Thieu khoa hinhthuc}}{}%
+  \ifdefempty{\cq@cap}{\cq@err{Thieu khoa cap}}{}%
+  \edef\cq@tmp{\noexpand\cq@need{cq@ds@}{\cq@dulieu}{dulieu}}\cq@tmp
+  \edef\cq@tmp{\noexpand\cq@need{cq@dm@}{\cq@domain}{domain}}\cq@tmp
+  \ifdefempty{\cq@dang}{}{\edef\cq@tmp{\noexpand\cq@need{cq@ok@dang@}{\cq@dang}{dang}}\cq@tmp}%
+  \ifdefempty{\cq@diemghi}{}{\let\cq@diem\cq@diemghi}%
+  \clearpage
+  \refstepcounter{cauhoi}%
+  \noindent
+  \cq@chip[cqInk]{\cq@htn}\,\cq@chip[\cq@capc]{\cq@capn\ · \cq@diem\ điểm}\,%
+  \cq@chip{\csuse{cq@dm@\cq@domain}}\,%
+  \ifdefempty{\cq@dang}{}{\cq@chip{Dạng \cq@dang}\,}%
+  \cq@chip{\cq@tt}\par\smallskip
+  {\color{cqMuted}\scriptsize Mã \texttt{\expandafter\detokenize\expandafter{\cq@ma}}
+   \ · Bộ dữ liệu \csuse{cq@ds@\cq@dulieu}%
+   \ifdefempty{\cq@kynang}{}{\ · Kỹ năng \texttt{\expandafter\detokenize\expandafter{\cq@kynang}}}%
+   \ifdefempty{\cq@bay}{}{\ · Bẫy \texttt{\expandafter\detokenize\expandafter{\cq@bay}}}%
+   \ifdefempty{\cq@tacgia}{}{\ · Soạn: \cq@tacgia}\par
+   Chấm trên: \texttt{\expandafter\detokenize\expandafter{\cq@bokiemtra}} · \cq@thutu\ · so cột \cq@socot\ · sai số \cq@saiso\par
+   \ifdefempty{\cq@quet}{}{Quét tối đa: \texttt{\expandafter\detokenize\expandafter{\cq@quet}}\ }%
+   \ifdefempty{\cq@ngansach}{}{· Dòng trung gian $\le$ \cq@ngansach\,× lời giải}%
+   \ifdefempty{\cq@quet}{\ifdefempty{\cq@ngansach}{}{\par}}{\par}}%
+  \medskip
+}{\cq@printsql{\cq@ma}{\cq@needsql}\par}
+
+% ---------------------------------------------------------------- phần đề bài
+\newcommand{\tieude}[1]{%
+  {\noindent\Large\bfseries\color{cqInk}Câu \thecauhoi. #1\par}%
+  \addcontentsline{toc}{subsection}{\thecauhoi.\quad #1}\medskip}
+% \boicanh[Người hỏi · vai trò]{Lời nhắn}
+\newcommand{\boicanh}[2][]{%
+  \begin{tcolorbox}[colback=cqSoft, colframe=cqSoft, arc=4pt, left=6pt, right=6pt, top=4pt, bottom=4pt]
+  \small\ifstrempty{#1}{}{\textbf{#1:} }“#2”\end{tcolorbox}}
+\newenvironment{yeucau}{\cq@label{Yêu cầu}\begin{itemize}[leftmargin=1.2em, itemsep=1pt, topsep=2pt]\small}{\end{itemize}}
+% Ràng buộc của câu optimize, viết bằng lời cho học viên đọc (máy chấm theo khoá quettoida, ngansach)
+\newenvironment{rangbuoc}{\cq@label{Ràng buộc}\begin{itemize}[leftmargin=1.2em, itemsep=1pt, topsep=2pt]\small\color{cqBad}}{\end{itemize}}
+% \goiy{...}: mỗi lệnh một gợi ý, theo thứ tự mở
+\newcommand{\goiy}[1]{\stepcounter{cqgoiy}%
+  \begin{tcolorbox}[colback=cqNoteSoft, colframe=cqNoteSoft, arc=4pt, left=6pt, top=3pt, bottom=3pt]
+  \small\color{cqNote}\textbf{Gợi ý \thecqgoiy\ (trừ 5 điểm):} #1\end{tcolorbox}}
+\newcommand{\ghichuthietke}[1]{%
+  \begin{tcolorbox}[enhanced, colback=cqBlueSoft, colframe=cqBlue, boxrule=0.6pt, borderline={0.6pt}{0pt}{cqBlue, dashed}, arc=4pt, left=6pt, top=3pt, bottom=3pt]
+  \small\color{cqBlue}\textbf{Thiết kế ERD:} #1\end{tcolorbox}}
+
+% ---------------------------------------------------------------- SQL: đọc từ một file solution.sql
+% Mỗi truy vấn bắt đầu bằng một dòng đánh dấu:
+%   -- [ma-cau] solution          lời giải
+%   -- [ma-cau] starter           truy vấn khởi đầu
+%   -- [ma-cau] wrong: ten_loi    bài sai
+%   -- [ma-cau.b1] solution       SQL của bước b1 trong case study
+% Nội dung chạy tới dòng đánh dấu tiếp theo. Dòng trước dòng đánh dấu đầu tiên bị bỏ qua.
+% Khi biên dịch, mỗi khối được ghi ra file tạm rồi in vào cuối câu (hoặc cuối bước) tương ứng.
+\ExplSyntaxOn
+\ior_new:N \g__cq_ior
+\iow_new:N \g__cq_iow
+\bool_new:N \g__cq_open_bool
+\int_new:N \g__cq_blk_int
+\seq_new:N \l__cq_m_seq
+\tl_new:N \l__cq_key_tl
+\tl_new:N \l__cq_file_tl
+\tl_new:N \l__cq_step_tl
+\tl_new:N \g__cq_sqlfile_tl
+\tl_gset:Nn \g__cq_sqlfile_tl { solution.sql }
+\cs_generate_variant:Nn \iow_open:Nn { Ne }
+\cs_generate_variant:Nn \seq_gput_right:Nn { ce }
+\cs_generate_variant:Nn \clist_set:Nn { Ne }
+
+% \filesql{ten.sql}: đổi tên file SQL (mặc định solution.sql); đặt trong phần đầu tài liệu
+\NewDocumentCommand \filesql { m } { \tl_gset:Nn \g__cq_sqlfile_tl {#1} }
+
+\cs_new_protected:Npn \__cq_close:
+  { \bool_if:NT \g__cq_open_bool { \iow_close:N \g__cq_iow \bool_gset_false:N \g__cq_open_bool } }
+
+\cs_new_protected:Npn \__cq_read_sql:
+  {
+    \exp_args:NV \file_if_exist:nTF \g__cq_sqlfile_tl
+      {
+        \exp_args:NNV \ior_open:Nn \g__cq_ior \g__cq_sqlfile_tl
+        \ior_str_map_inline:Nn \g__cq_ior
+          {
+            \regex_extract_once:nnNTF
+              { \A \-\- \s* \[ ([a-z0-9\-]+) (?: \. ([a-z0-9]+) )? \] \s* (solution|starter|wrong) \s* \:? \s* ([A-Za-z0-9_\-]*) \s* \Z }
+              {##1} \l__cq_m_seq
+              {
+                \__cq_close:
+                \tl_set:Ne \l__cq_step_tl { \seq_item:Nn \l__cq_m_seq {3} }
+                \tl_set:Ne \l__cq_key_tl { \seq_item:Nn \l__cq_m_seq {2} }
+                \tl_if_blank:VF \l__cq_step_tl { \tl_set:Ne \l__cq_key_tl { \l__cq_key_tl . \l__cq_step_tl } }
+                \int_gincr:N \g__cq_blk_int
+                \tl_set:Ne \l__cq_file_tl { \c_sys_jobname_str -sql- \int_use:N \g__cq_blk_int .tmp }
+                \seq_if_exist:cF { g__cq_blk_ \l__cq_key_tl _seq } { \seq_new:c { g__cq_blk_ \l__cq_key_tl _seq } }
+                \seq_gput_right:ce { g__cq_blk_ \l__cq_key_tl _seq }
+                  { { \seq_item:Nn \l__cq_m_seq {4} } { \seq_item:Nn \l__cq_m_seq {5} } { \l__cq_file_tl } }
+                \iow_open:Ne \g__cq_iow { \l__cq_file_tl }
+                \bool_gset_true:N \g__cq_open_bool
+              }
+              { \bool_if:NT \g__cq_open_bool { \iow_now:Nn \g__cq_iow {##1} } }
+          }
+        \ior_close:N \g__cq_ior
+        \__cq_close:
+      }
+      { \msg_warning:nne { aio-sql-cauhoi } { no-sql } { \g__cq_sqlfile_tl } }
+  }
+\msg_new:nnn { aio-sql-cauhoi } { no-sql } { Khong~tim~thay~file~#1. }
+\msg_new:nnn { aio-sql-cauhoi } { missing-sql } { Cau~'#1'~chua~co~khoi~'#2'~trong~file~SQL. }
+\AtBeginDocument { \__cq_read_sql: }
+
+\cs_new_protected:Npn \__cq_block:nnn #1#2#3
+  {
+    \str_case:nn {#1}
+      {
+        {starter}  { \cq@label{Truy~vấn~khởi~đầu} \def\cq@sqlc{cqLine} }
+        {solution} { \cq@label{Lời~giải} \def\cq@sqlc{cqGood} }
+        {wrong}    { \cq@label{Bài~sai~·~\texttt{\detokenize{#2}}} \def\cq@sqlc{cqBad} }
+      }
+    \VerbatimInput[frame=single, framerule=0.6pt, rulecolor=\color{\cq@sqlc}, fontsize=\small,
+      framesep=2.5mm, numbers=left, numbersep=6pt]{#3}
+  }
+% \cq@printsql{khoá}{solution,starter,...: các khối bắt buộc}
+\cs_new_protected:Npn \cq@printsql #1#2
+  {
+    \tl_set:Ne \l__cq_key_tl {#1}
+    \clist_set:Ne \l_tmpa_clist {#2}
+    \clist_map_inline:Nn \l_tmpa_clist
+      {
+        \bool_set_false:N \l_tmpa_bool
+        \seq_if_exist:cT { g__cq_blk_ \l__cq_key_tl _seq }
+          { \seq_map_inline:cn { g__cq_blk_ \l__cq_key_tl _seq } { \str_if_eq:eeT {##1} { \use_i:nnn ####1 } { \bool_set_true:N \l_tmpa_bool } } }
+        \bool_if:NF \l_tmpa_bool { \msg_warning:nnee { aio-sql-cauhoi } { missing-sql } { \l__cq_key_tl } {##1} }
+      }
+    \seq_if_exist:cT { g__cq_blk_ \l__cq_key_tl _seq }
+      { \seq_map_inline:cn { g__cq_blk_ \l__cq_key_tl _seq } { \__cq_block:nnn ##1 } }
+  }
+\ExplSyntaxOff
+
+% ---------------------------------------------------------------- ERD trong câu
+\pgfkeys{
+  /cqerd/.is family, /cqerd,
+  giatrimau/.is choice, giatrimau/true/.code={}, giatrimau/false/.code={},
+  mucchitiet/.is choice, mucchitiet/true/.code={}, mucchitiet/false/.code={},
+  che/.is choice, che/diagram/.code={}, che/lineage/.code={},
+}
+\pgfkeys{
+  /cqnoi/.is family, /cqnoi,
+  kieu/.store in=\cq@nk, tren/.store in=\cq@nt, duoi/.store in=\cq@nd,
+  canhbao/.code={\def\cq@nc{cqWarn}}, trangthai/.store in=\cq@ns,
+}
+\tikzset{
+  cqtable/.style={draw=cqLine, fill=white, rounded corners=2pt, anchor=north west, align=left,
+    text width=3.6cm, inner sep=4pt, font=\ttfamily\scriptsize},
+  cqrel/.style={font=\sffamily\tiny, fill=white, inner sep=1pt},
+}
+\newenvironment{erd}[1][]{%
+  \pgfkeys{/cqerd,#1}%
+  \cq@label{Dữ liệu · ERD}\par\nopagebreak\centering
+  \begin{tikzpicture}[x=4.3cm, y=-2.2cm]}{\end{tikzpicture}\par\raggedright}
+% \erdbang[trangthai]{tên bảng}{cột,hàng}{danh sách cột}
+%   danh sách cột: ten:PK | ten:FK | ten* (cột được dùng) | ten=giatrimau ; cách nhau bằng dấu phẩy
+\newcommand{\cq@erdcol}[1]{\detokenize{#1}\\}
+\newcommand{\erdbang}[4][]{%
+  \edef\cq@nn{\detokenize{#2}}%
+  \def\cq@bd{cqLine}\ifstrequal{#1}{hl}{\def\cq@bd{cqBlue}}{}\ifstrequal{#1}{done}{\def\cq@bd{cqMuted}}{}%
+  \node[cqtable, draw=\cq@bd] (\cq@nn) at (#3) {\textbf{\cq@nn}\\[1pt]\forcsvlist{\cq@erdcol}{#4}};}
+% \erdnoi[kieu=n-1|1-1, tren=..., duoi=..., canhbao]{bang.cot (FK)}{bang.cot (PK)}
+\def\cq@split#1.#2\@nil{\edef\cq@st{\detokenize{#1}}}
+\newcommand{\erdnoi}[3][]{%
+  \def\cq@nk{n-1}\def\cq@nt{}\def\cq@nd{}\def\cq@nc{cqMuted}\def\cq@ns{}%
+  \pgfkeys{/cqnoi,#1}%
+  \cq@split#2\@nil\let\cq@from\cq@st \cq@split#3\@nil\let\cq@to\cq@st
+  \draw[color=\cq@nc, line width=0.6pt] (\cq@from) -- node[cqrel, above]{\cq@nt} node[cqrel, below]{\cq@nk\ifdefempty{\cq@nd}{}{ · \cq@nd}} (\cq@to);}
+% \erdghichu{...}: quan hệ nói bằng lời, hiện dưới ERD
+\newcommand{\erdghichu}[1]{\node[font=\sffamily\scriptsize, color=cqMuted, anchor=north west, align=left, text width=12cm] at (current bounding box.south west) {#1};}
+% \erdkhoa{...}: dòng "mở bằng gợi ý" thay cho cách nối (cấp Khó)
+\newcommand{\erdkhoa}[1]{\par{\color{cqMuted}\small\textbf{Khoá:} #1}\par}
+
+% Insight: dải nguồn số liệu
+% \nguonsolieu{bảng1, bảng2}{phép tính}{bộ lọc và công thức}
+\newcommand{\cq@src}[1]{\cq@chip{\texttt{\detokenize{#1}}}\,}
+\newcommand{\nguonsolieu}[3]{%
+  \cq@label{Dữ liệu · Nguồn số liệu}%
+  \noindent\forcsvlist{\cq@src}{#1}$\rightarrow$\,\cq@chip[cqBlue]{#2}\,$\rightarrow$ bảng kết quả\par
+  \ifstrempty{#3}{}{{\small\textbf{Bộ lọc và công thức:} #3}\par}}
+% \begin{bangketqua}{l r r} Cột A & Cột B \\ ... \end{bangketqua}  (dòng đầu là tiêu đề)
+\newenvironment{bangketqua}[1]{\par\smallskip\centering\small\begin{tabular}{#1}\hline}{\\\hline\end{tabular}\par\raggedright\smallskip}
+
+% Trắc nghiệm: \phuongan{nội dung}{giải thích}   \phuongan*{...}{...} là phương án đúng
+\newcounter{cqpa}
+\newenvironment{luachon}{\setcounter{cqpa}{0}\cq@label{Chọn kết luận đúng nhất}}{}
+\NewDocumentCommand{\phuongan}{s m m}{\stepcounter{cqpa}%
+  \IfBooleanTF{#1}{\def\cq@pf{cqGood}\def\cq@pw{cqGood}}{\def\cq@pf{cqLine}\def\cq@pw{cqBad}}%
+  \begin{tcolorbox}[colback=white, colframe=\cq@pf, boxrule=0.6pt, arc=4pt, left=6pt, top=3pt, bottom=3pt]
+  \small\textbf{\Alph{cqpa}.} #2\IfBooleanT{#1}{\hfill{\color{cqGood}$\checkmark$ đúng}}\par
+  {\footnotesize\color{\cq@pw}#3}\end{tcolorbox}}
+
+% ---------------------------------------------------------------- tab Nghiệp vụ
+% \begin{nghiepvu}{Câu hỏi này giúp quyết định gì} ... \end{nghiepvu}
+\newenvironment{nghiepvu}[1]{%
+  \begin{tcolorbox}[colback=white, colframe=cqBlue, boxrule=0.6pt, arc=4pt,
+    title={\small Tab Nghiệp vụ · \csuse{cq@dm@\cq@domain}}, coltitle=white, colbacktitle=cqBlue]
+  \small{\color{cqMuted}\csuse{cq@dmd@\cq@domain}}\par\smallskip
+  \textbf{Câu hỏi này giúp quyết định:} #1\par}{\end{tcolorbox}}
+% \quytrinh{Tiêu đề}{bước 1, bước 2, ...}{nhánh 1, nhánh 2 (có thể rỗng)}
+\newcommand{\cq@qstep}[1]{\ifdefstring{\cq@qfirst}{1}{\gdef\cq@qfirst{0}}{\,$\rightarrow$\,}\texttt{#1}}
+\newcommand{\cq@qbr}[1]{\,·\,\texttt{\color{cqBad}#1}}
+\newcommand{\quytrinh}[3]{\par\smallskip\textbf{#1:} \gdef\cq@qfirst{1}\forcsvlist{\cq@qstep}{#2}\ifstrempty{#3}{}{\forcsvlist{\cq@qbr}{#3}}\par}
+% \khainiem{ma}: in khái niệm đã khai báo bằng \khaibaokhainiem
+\newcommand{\khainiem}[1]{%
+  \ifcsdef{cq@kn@#1}{}{\cq@err{Khai niem '#1' chua khai bao}}%
+  \par\smallskip\noindent\textbf{\csuse{cq@kn@#1}.} \csuse{cq@knd@#1}%
+  \ifcsempty{cq@knf@#1}{}{\par\noindent\hspace*{1em}{\ttfamily\footnotesize \csuse{cq@knf@#1}}}%
+  \par\noindent\hspace*{1em}{\color{cqGood}\footnotesize Trong bộ dữ liệu: \csuse{cq@kni@#1}}\par}
+\newcommand{\luuy}[1]{\par\smallskip\noindent{\color{cqNote}\textbf{Lưu ý:} #1}\par}
+
+% ---------------------------------------------------------------- Case study
+\pgfkeys{
+  /cqb/.is family, /cqb,
+  ma/.store in=\cq@bma, diem/.store in=\cq@bdiem, bang/.store in=\cq@bbang,
+  hinhthuc/.is choice, hinhthuc/write/.code={\def\cq@bht{Viết truy vấn}}, hinhthuc/ketluan/.code={\def\cq@bht{Kết luận}},
+}
+% \begin{buoc}[ma=b1, diem=10, hinhthuc=write, bang={orders,order_items}]{Tiêu đề bước} ... \end{buoc}
+\newenvironment{buoc}[2][]{%
+  \def\cq@bma{}\def\cq@bdiem{}\def\cq@bbang{}\def\cq@bht{}%
+  \pgfkeys{/cqb,#1}%
+  \def\cq@bneed{}\ifdefstring{\cq@bht}{Viết truy vấn}{\def\cq@bneed{solution}}{}%
+  \ifdefempty{\cq@bma}{\cq@err{Buoc thieu khoa ma}}{}%
+  \ifdefempty{\cq@bdiem}{\cq@err{Buoc thieu khoa diem}}{}%
+  \refstepcounter{cqbuoc}%
+  \begin{tcolorbox}[colback=white, colframe=cqInk, boxrule=0.6pt, arc=4pt,
+    title={\small Bước \thecqbuoc\ · #2 \hfill \cq@bht\ · +\cq@bdiem\ điểm}, colbacktitle=cqInk, coltitle=white]
+  {\color{cqMuted}\scriptsize Bảng tô sáng ở bước này: \texttt{\expandafter\detokenize\expandafter{\cq@bbang}}}\par}{\cq@printsql{\cq@ma.\cq@bma}{\cq@bneed}\end{tcolorbox}}
+
+% ---------------------------------------------------------------- trình bày trang
+\RequirePackage[margin=2cm]{geometry}
+\setmainfont{texgyreheros}[Extension=.otf, UprightFont=*-regular, BoldFont=*-bold,
+  ItalicFont=*-italic, BoldItalicFont=*-bolditalic]
+\setmonofont{DejaVuSansMono}[Extension=.ttf, BoldFont=*-Bold, Scale=0.86]
+\setlength{\parindent}{0pt}
+\AtEndOfPackage{\RequirePackage[hidelinks]{hyperref}}
+
+\endinput

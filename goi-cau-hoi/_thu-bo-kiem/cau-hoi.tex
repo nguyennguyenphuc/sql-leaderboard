@@ -1,0 +1,129 @@
+% cau-hoi.tex: GÓI THỬ BỘ KIỂM (không phát hành). 4 câu trên bộ dữ liệu Supply Chain (MySQL `scm`),
+% mỗi hình thức một câu cấp Cơ bản, dùng để tự kiểm thử cong-cu/kiem_tra_goi.py.
+% Biên dịch: XeLaTeX. Hướng dẫn: HUONG_DAN.md.
+\documentclass[11pt,a4paper]{article}
+\usepackage{aio-sql-cauhoi}
+
+% ================================================================ KHAI BÁO DÙNG CHUNG
+\khaibaodulieu{scm}{Supply Chain · chuỗi bán lẻ}
+  {Chuỗi bán lẻ 54 cửa hàng: bán hàng theo ngày (tháng 7/2017), tồn kho theo tháng, đơn giao hàng, đơn mua hàng nhà cung cấp.}
+
+\khaibaodomain{sales}{Bán hàng}{Doanh số, mặt hàng, cửa hàng, khuyến mãi.}
+\khaibaodomain{operations}{Vận hành}{Kho, giao hàng, đơn mua, nhà cung cấp.}
+
+\khaibaokhainiem{don-vi-ban}{Số đơn vị bán}
+  {Số lượng hàng bán ra; dòng âm là hàng bị trả lại và được trừ vào tổng.}
+  {SUM(unit\_sales)}
+  {bảng \code{sales}: mỗi dòng là một mặt hàng tại một cửa hàng trong một ngày.}
+\khaibaokhainiem{po-giao-tre}{Đơn mua giao trễ}
+  {Đơn mua hàng (PO) mà nhà cung cấp giao tới sau ngày đã hứa.}
+  {received\_date > promised\_date}
+  {\code{purchase_orders}; PO chưa nhận hàng có \code{received_date} rỗng (NULL).}
+\khaibaokhainiem{ty-le-huy}{Tỷ lệ huỷ đơn}
+  {Phần đơn bị huỷ trên tổng số đơn của nhóm.}
+  {số đơn huỷ / tổng số đơn}
+  {\code{orders.is_cancelled} = 1 là đơn bị huỷ.}
+\khaibaokhainiem{lan-quet-bang}{Số lần quét bảng}
+  {Số lần máy phải đọc một bảng để trả lời truy vấn. Mỗi truy vấn con độc lập thường đọc lại bảng.}
+  {}
+  {đếm từ kế hoạch chạy (\code{EXPLAIN ANALYZE}) của MySQL.}
+
+\begin{document}
+{\LARGE\bfseries Gói thử bộ kiểm · Supply Chain\par}
+\medskip
+{\color{cqMuted}4 câu Cơ bản (write, debug, optimize, case) · chuẩn \texttt{aio-sql-cauhoi} v0.4\par}
+\tableofcontents
+
+% ================================================================ T1 · write · Cơ bản
+\begin{cauhoi}[ma=t1-ban-cua-hang-44, dulieu=scm, domain=sales,
+  hinhthuc=write, cap=basic, dang=A2, kynang={SUM, WHERE}, bay={quen-can-tren},
+  tacgia={Bộ kiểm}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, socot=vitri, saiso=0.01]
+\tieude{Cửa hàng 44 bán được bao nhiêu đơn vị trong tháng 7/2017?}
+\boicanh[Chị Thảo · Quản lý vùng]{Tháng 7 cửa hàng 44 bán được bao nhiêu đơn vị hàng vậy em?}
+\begin{yeucau}
+  \item Cộng số đơn vị bán của cửa hàng số 44 trong tháng 7/2017 (từ ngày 1 tới hết ngày 31).
+  \item Trả về đúng một cột \code{tong_ban}.
+\end{yeucau}
+\begin{erd}
+  \erdbang{sales}{0,0}{date*=2017-07-15, store_nbr*=44, item_nbr, unit_sales*=3.000}
+\end{erd}
+\begin{nghiepvu}{Theo dõi sức bán của từng cửa hàng để phân bổ hàng cho tháng sau.}
+  \khainiem{don-vi-ban}
+  \luuy{Một tháng gồm mọi ngày từ ngày 1 tới ngày cuối tháng; lọc đủ cả cận dưới và cận trên.}
+\end{nghiepvu}
+\goiy{Lọc \code{store_nbr = 44} và \code{`date`} từ \code{'2017-07-01'} tới trước \code{'2017-08-01'}.}
+\ghichuthietke{Cơ bản: 1 bảng có giá trị mẫu. Bẫy thiếu cận trên chỉ lộ ở hidden-1 (có dòng ngày 2017-08-01).}
+\end{cauhoi}
+
+% ================================================================ T2 · debug · Cơ bản
+\begin{cauhoi}[ma=t2-po-giao-tre-2016, dulieu=scm, domain=operations,
+  hinhthuc=debug, cap=basic, dang=A1, kynang={WHERE, COUNT}, bay={quen-can-tren},
+  tacgia={Bộ kiểm}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
+\tieude{Số đơn mua giao trễ năm 2016 cao bất thường}
+\boicanh[Anh Long · Mua hàng]{Báo cáo ghi số PO giao trễ năm 2016 nghe nhiều quá, em kiểm tra giúp anh.}
+\begin{yeucau}
+  \item Truy vấn dưới đây đếm số PO đặt trong năm 2016 bị giao trễ nhưng ra quá cao. Sửa để ra đúng.
+  \item Giữ nguyên cột \code{so_po_tre}.
+\end{yeucau}
+\begin{erd}
+  \erdbang{purchase_orders}{0,0}{po_id:PK, po_date*=2016-03-31, promised_date*=2016-04-07, received_date*=2016-04-09}
+\end{erd}
+\begin{nghiepvu}{Đánh giá nhà cung cấp theo mức giữ hẹn giao hàng.}
+  \khainiem{po-giao-tre}
+  \luuy{Năm 2016 gồm các PO có ngày đặt từ 01/01/2016 tới hết 31/12/2016.}
+\end{nghiepvu}
+\goiy{Điều kiện ngày đặt đã có cận trên chưa?}
+\ghichuthietke{Cơ bản: lỗi thiếu cận trên làm đếm lẫn PO năm 2017.}
+\end{cauhoi}
+
+% ================================================================ T3 · optimize · Cơ bản
+\begin{cauhoi}[ma=t3-don-theo-mien-thang-7, dulieu=scm, domain=operations,
+  hinhthuc=optimize, cap=basic, dang=A3, kynang={CASE WHEN, COUNT}, bay={quet-lai-bang},
+  tacgia={Bộ kiểm}, trangthai=review, bokiemtra={public, hidden-1}, quettoida={orders=1}]
+\tieude{Đếm đơn theo miền chỉ với một lần quét}
+\boicanh[Anh Tuấn · Data engineer]{Dashboard gọi truy vấn này mỗi phút; nó đọc bảng đơn 3 lần, em gộp lại giúp anh.}
+\begin{yeucau}
+  \item Giữ nguyên kết quả: một dòng, ba cột \code{bac}, \code{trung}, \code{nam} là số đơn đặt trong tháng 7/2017 của từng miền.
+\end{yeucau}
+\begin{rangbuoc}
+  \item Bảng \code{orders} chỉ được quét 1 lần.
+\end{rangbuoc}
+\begin{erd}
+  \erdbang{orders}{0,0}{order_id:PK, order_date*=2017-07-15, region*='BAC'}
+\end{erd}
+\begin{nghiepvu}{Giảm tải cho dashboard vận hành chạy liên tục.}
+  \khainiem{lan-quet-bang}
+  \luuy{Cột \code{region} có ba giá trị: \code{BAC}, \code{TRUNG}, \code{NAM}.}
+\end{nghiepvu}
+\goiy{Đếm có điều kiện: \code{COUNT(CASE WHEN ... THEN 1 END)}.}
+\ghichuthietke{Cơ bản: 3 truy vấn con quét lại bảng, viết lại thành đếm có điều kiện.}
+\end{cauhoi}
+
+% ================================================================ T4 · case · Cơ bản
+\begin{cauhoi}[ma=t4-mien-huy-nhieu, dulieu=scm, domain=operations,
+  hinhthuc=case, cap=basic, diem=10, tacgia={Bộ kiểm}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
+\tieude{Miền nào huỷ đơn nhiều nhất năm 2016?}
+\boicanh[Chị Hà · Trưởng vận hành]{Chị cần biết miền nào có vấn đề huỷ đơn nặng nhất năm 2016 để ưu tiên rà soát.}
+\begin{erd}
+  \erdbang{orders}{0,0}{order_id:PK, order_date*=2016-05-20, region*='TRUNG', is_cancelled*=1}
+\end{erd}
+\begin{nghiepvu}{Chọn miền cần rà soát quy trình xử lý đơn trước.}
+  \khainiem{ty-le-huy}
+  \luuy{Các miền có quy mô đơn rất khác nhau; so sánh bằng tỷ lệ, không bằng số tuyệt đối.}
+\end{nghiepvu}
+\begin{buoc}[ma=b1, diem=5, hinhthuc=write, bang={orders}]{Tỷ lệ huỷ theo miền}
+  \begin{yeucau}
+    \item Đơn đặt trong năm 2016. Trả về \code{region}, \code{so_don}, \code{so_huy}, \code{ty_le_huy} (phần trăm, 2 chữ số); sắp \code{ty_le_huy} giảm dần.
+  \end{yeucau}
+\end{buoc}
+\begin{buoc}[ma=b2, diem=5, hinhthuc=ketluan, bang={orders}]{Kết luận}
+  \begin{luachon}
+    \phuongan*{Miền \code{TRUNG} có tỷ lệ huỷ cao nhất, nên ưu tiên rà soát.}{Đúng: đứng đầu bảng kết quả bước 1.}
+    \phuongan{Miền \code{BAC} huỷ nhiều nhất vì có nhiều đơn huỷ nhất.}{Nhầm số tuyệt đối với tỷ lệ: \code{BAC} có nhiều đơn hơn hẳn.}
+    \phuongan{Ba miền huỷ như nhau nên không cần ưu tiên miền nào.}{Tỷ lệ các miền khác nhau rõ.}
+  \end{luachon}
+\end{buoc}
+\ghichuthietke{Case Cơ bản: 1 bảng, 1 bước SQL, 1 bước kết luận đọc thẳng kết quả.}
+\end{cauhoi}
+
+\end{document}

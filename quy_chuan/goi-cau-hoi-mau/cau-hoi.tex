@@ -1,0 +1,599 @@
+% cau-hoi.tex: mọi câu hỏi của gói. SQL nằm trong solution.sql, nối với câu bằng mã câu.
+% Biên dịch trên Overleaf: Menu > Compiler > XeLaTeX. Hướng dẫn: HUONG_DAN.md.
+% Bộ mẫu: 4 hình thức × 4 cấp = 16 câu.
+\documentclass[11pt,a4paper]{article}
+\usepackage{aio-sql-cauhoi}
+
+% ================================================================ KHAI BÁO DÙNG CHUNG
+% Câu hỏi chỉ được dùng các mã khai báo ở đây.
+% ---------------------------------------------------------------- bộ dữ liệu
+\khaibaodulieu{datathon-2026}{Datathon 2026 · thời trang TMĐT}
+  {Công ty thời trang bán online, dữ liệu 2012--2022, 14 bảng.}
+
+% ---------------------------------------------------------------- domain
+\khaibaodomain{sales}{Bán hàng}{Doanh thu, đơn hàng, sản phẩm, giá bán.}
+\khaibaodomain{marketing}{Marketing}{Kênh thu hút, khuyến mãi, lưu lượng web.}
+\khaibaodomain{customer}{Khách hàng}{Phân khúc, hành vi mua lại, giá trị khách.}
+\khaibaodomain{operations}{Vận hành}{Tồn kho, giao hàng, thời gian xử lý đơn.}
+\khaibaodomain{finance}{Tài chính}{Giá vốn, biên lợi nhuận, thanh toán, đối soát.}
+\khaibaodomain{after_sales}{Hậu mãi}{Đổi trả, hoàn tiền, đánh giá sản phẩm.}
+
+% ---------------------------------------------------------------- khái niệm
+% \khaibaokhainiem{ma}{Tên}{Định nghĩa}{Công thức}{Trong bộ dữ liệu}
+\khaibaokhainiem{vong-doi-don}{Trạng thái đơn}
+  {Đơn đi qua các trạng thái tạo, thanh toán, gửi, giao; có thể bị huỷ hoặc bị trả.}
+  {}
+  {\code{orders.order_status}: \code{created}, \code{paid}, \code{shipped}, \code{delivered}, \code{cancelled}, \code{returned}.}
+\khaibaokhainiem{doanh-thu-gop}{Doanh thu gộp}
+  {Tổng tiền hàng theo giá niêm yết của dòng đơn, trước chiết khấu.}
+  {SUM(quantity * unit\_price)}
+  {bảng \code{order_items}; bảng \code{sales} đã cộng sẵn theo ngày, gồm cả đơn huỷ.}
+\khaibaokhainiem{doanh-thu-thuan}{Doanh thu thuần}
+  {Tiền hàng sau khi trừ chiết khấu, chưa gồm phí giao hàng.}
+  {SUM(quantity * unit\_price - discount\_amount)}
+  {tính từ \code{order_items}; cộng theo đơn thì bằng \code{payments.payment_value}.}
+\khaibaokhainiem{aov}{Giá trị đơn trung bình (AOV)}
+  {Số tiền khách thực trả trung bình cho một đơn.}
+  {SUM(payment\_value) / COUNT(DISTINCT order\_id)}
+  {\code{payments.payment_value} đã trừ chiết khấu, chưa gồm phí giao hàng.}
+\khaibaokhainiem{don-thanh-cong}{Đơn thành công}
+  {Đơn đã giao tới khách và không bị huỷ.}
+  {}
+  {\code{orders.order_status = 'delivered'}.}
+\khaibaokhainiem{kenh-thu-hut}{Kênh thu hút}
+  {Kênh đưa khách tới. Kênh của khách là kênh lúc đăng ký; kênh của đơn là nguồn của lần mua đó.}
+  {}
+  {\code{customers.acquisition_channel} (theo khách), \code{orders.order_source} (theo đơn).}
+\khaibaokhainiem{ty-le-tra-hang}{Tỷ lệ trả hàng}
+  {Phần sản phẩm đã giao bị khách gửi trả.}
+  {SUM(return\_quantity) / SUM(quantity) của đơn đã giao}
+  {đơn đã giao là đơn \code{delivered} hoặc \code{returned}; \code{returns} nối \code{order_items} theo cặp \code{order_id}, \code{product_id}.}
+\khaibaokhainiem{fan-out}{Nhân dòng khi nối (fan-out)}
+  {Nối bảng một với bảng nhiều làm mỗi dòng bên một lặp lại, nên tổng bị cộng nhiều lần.}
+  {}
+  {một đơn trong \code{orders} có nhiều dòng trong \code{order_items}.}
+\khaibaokhainiem{cohort}{Cohort và tỷ lệ giữ chân}
+  {Nhóm khách theo tháng mua lần đầu; tỷ lệ giữ chân tháng 1 là phần khách của nhóm có mua lại trong tháng kế tiếp.}
+  {khách quay lại / tổng khách của cohort}
+  {\code{customers.signup_date} không đáng tin: phần lớn khách có ngày đăng ký sau đơn đầu tiên.}
+\khaibaokhainiem{khach-moi}{Khách mới}
+  {Khách mua lần đầu trong kỳ.}
+  {năm của MIN(order\_date) theo khách}
+  {xác định từ \code{orders}, không dùng \code{signup_date}.}
+\khaibaokhainiem{khuyen-mai}{Chương trình khuyến mãi}
+  {Mã giảm giá chạy trong một khoảng ngày; một dòng hàng có thể dùng tới 2 mã.}
+  {}
+  {\code{promotions}; dòng hàng dùng mã ghi ở \code{order_items.promo_id}, \code{promo_id_2}.}
+\khaibaokhainiem{luot-truy-cap}{Lượt truy cập web}
+  {Số phiên truy cập website theo ngày và nguồn.}
+  {}
+  {\code{web_traffic.sessions}; bảng không có khoá nối với bảng khác, chỉ ghép theo ngày.}
+\khaibaokhainiem{lan-quet-bang}{Số lần quét bảng}
+  {Số lần máy phải đọc toàn bộ một bảng để trả lời truy vấn. Mỗi truy vấn con độc lập hay mỗi nhánh UNION thường quét lại bảng.}
+  {}
+  {đếm từ kế hoạch chạy (\code{EXPLAIN ANALYZE}) của MySQL: mỗi bước đọc bảng (Table scan, Index range scan, Index lookup…) là một lần.}
+\khaibaokhainiem{dong-trung-gian}{Dòng trung gian}
+  {Tổng số dòng mà các bước của kế hoạch chạy sinh ra trước khi ra kết quả. Tự nối bảng với điều kiện không bằng làm số này tăng theo bình phương.}
+  {}
+  {đếm từ \code{EXPLAIN ANALYZE}; so với con số của lời giải mẫu.}
+
+\begin{document}
+{\LARGE\bfseries Gói câu hỏi SQL mẫu\par}
+\medskip
+{\color{cqMuted}Bộ dữ liệu Datathon 2026 · 4 hình thức × 4 cấp = 16 câu · chuẩn \texttt{aio-sql-cauhoi} v0.4\par}
+\bigskip
+Khung xanh nét đứt (\emph{Thiết kế ERD}) là ghi chú cho người duyệt. Các khung Truy vấn khởi đầu, Lời giải và Bài sai lấy từ
+\code{solution.sql}; học viên chỉ thấy truy vấn khởi đầu.
+
+\tableofcontents
+
+
+% ################################################################ 1 · VIẾT TRUY VẤN
+
+% ================================================================ W1 · Cơ bản (đủ mọi phần, có chú thích)
+\begin{cauhoi}[
+  % Mã câu: chữ thường, số, gạch ngang; dùng để nối với SQL trong solution.sql. Trùng mã câu đang có thì thành phiên bản mới.
+  ma=w1-don-huy-2022,
+  % Bộ dữ liệu và domain: phải khai báo ở phần KHAI BÁO DÙNG CHUNG đầu file.
+  dulieu=datathon-2026, domain=sales,
+  % Hình thức: write | debug | optimize | case.  Cấp: basic | easy | medium | hard (10/20/30/50 điểm).
+  hinhthuc=write, cap=basic,
+  % Dạng bài toán A1..E3 (bắt buộc với write, debug, optimize).
+  dang=A2,
+  % Không bắt buộc: kỹ năng, bẫy, người soạn.
+  kynang={COUNT, WHERE}, bay={quen-loc-nam}, tacgia={Nguyễn A},
+  % nhap: máy bỏ qua khi tải lên. review: đưa vào hàng tự kiểm.
+  trangthai=review,
+  % Chấm: các biến thể dữ liệu, có xét thứ tự dòng không, so cột theo vị trí hay tên, sai số số thực.
+  bokiemtra={public, hidden-1}, thutu=co, socot=vitri, saiso=0.01]
+
+% ---- Đề bài
+\tieude{Có bao nhiêu đơn bị huỷ trong năm 2022?}
+\boicanh[Chị Lan · Trưởng nhóm bán hàng]{Năm 2022 mình bị huỷ bao nhiêu đơn vậy em?}
+\begin{yeucau}
+  \item Đếm các đơn có trạng thái huỷ, đặt trong năm 2022.
+  \item Trả về đúng một cột \code{so_don_huy}.
+\end{yeucau}
+
+% ---- ERD cấp Cơ bản: 1 bảng, cột cần dùng có giá trị mẫu (cot=giatri)
+\begin{erd}
+  \erdbang{orders}{0,0}{order_id:PK, order_date*=2022-12-30, order_status*='cancelled', customer_id:FK}
+\end{erd}
+
+% ---- Tab Nghiệp vụ: giải thích khái niệm, KHÔNG lộ kết quả của câu
+\begin{nghiepvu}{Theo dõi mức huỷ đơn để tìm nguyên nhân (hết hàng, thanh toán lỗi, khách đổi ý).}
+  \quytrinh{Vòng đời đơn}{created, paid, shipped, delivered}{cancelled, returned}
+  \khainiem{vong-doi-don}
+\end{nghiepvu}
+
+% ---- Gợi ý: mở từng nấc, mỗi nấc trừ 5 điểm
+\goiy{Lọc \code{order_status = 'cancelled'}.}
+\goiy{Lọc \code{order_date} từ \code{'2022-01-01'} tới trước \code{'2023-01-01'}.}
+
+% ---- SQL: các khối [w1-don-huy-2022] trong solution.sql, tự in vào đây khi biên dịch.
+\ghichuthietke{Cơ bản: 1 bảng, giá trị mẫu cho thấy cách viết trạng thái và ngày.}
+\end{cauhoi}
+
+% ================================================================ W2 · Dễ
+\begin{cauhoi}[ma=w2-don-theo-vung, dulieu=datathon-2026, domain=customer,
+  hinhthuc=write, cap=easy, dang=A3, kynang={JOIN, GROUP BY, ORDER BY}, bay={quen-loc-nam},
+  tacgia={Nguyễn A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
+\tieude{Số đơn theo vùng năm 2022}
+\boicanh[Anh Khoa · Quản lý vùng]{Vùng nào đặt nhiều đơn nhất năm 2022?}
+\begin{yeucau}
+  \item Đếm số đơn đặt trong năm 2022 theo vùng của địa chỉ giao hàng.
+  \item Trả về \code{region}, \code{so_don}; sắp \code{so_don} giảm dần.
+\end{yeucau}
+\begin{erd}
+  \erdbang{orders}{0,0}{order_id:PK, order_date*, zip:FK}
+  \erdbang{geography}{1,0}{zip:PK, region*, city}
+  \erdnoi[kieu=n-1, tren={orders.zip = geography.zip}, duoi={nhiều đơn, một zip}]{orders.zip}{geography.zip}
+\end{erd}
+\begin{nghiepvu}{Phân bổ kho và đội giao hàng theo vùng.}
+  \luuy{Vùng của đơn lấy theo \code{zip} giao hàng ghi trên đơn, không phải địa chỉ của khách.}
+\end{nghiepvu}
+\goiy{Nối \code{orders} với \code{geography} theo \code{zip}.}
+\ghichuthietke{Dễ: 2 bảng, ghi rõ điều kiện nối trên đường nối.}
+\end{cauhoi}
+
+% ================================================================ W3 · Trung bình
+\begin{cauhoi}[ma=w3-top3-san-pham, dulieu=datathon-2026, domain=sales,
+  hinhthuc=write, cap=medium, dang=C1, kynang={ROW_NUMBER, CTE, JOIN}, bay={trung-hang, trung-ten},
+  tacgia={Nguyễn A}, trangthai=review, bokiemtra={public, hidden-1, hidden-2}, thutu=co]
+\tieude{Ba sản phẩm bán chạy nhất mỗi nhóm hàng năm 2022}
+\boicanh[Chị Lan · Trưởng nhóm ngành hàng]{Chị cần 3 sản phẩm có doanh thu gộp cao nhất trong từng nhóm hàng năm 2022, để chốt hàng trưng bày cho mùa sau.}
+\begin{yeucau}
+  \item Chỉ tính đơn \code{delivered}, đặt trong năm 2022.
+  \item Trả về \code{category}, \code{product_name}, \code{doanh_thu}, \code{hang}; sắp theo \code{category}, rồi \code{hang}.
+  \item Hai sản phẩm bằng doanh thu thì sản phẩm có \code{product_id} nhỏ hơn đứng trước.
+\end{yeucau}
+\begin{erd}
+  \erdbang{orders}{0,0}{order_id:PK, order_date*, order_status*}
+  \erdbang{order_items}{1,0}{order_id:FK, product_id:FK, quantity*, unit_price*}
+  \erdbang{products}{2,0}{product_id:PK, product_name*, category*}
+  \erdnoi[kieu=1-n]{orders.order_id}{order_items.order_id}
+  \erdnoi[kieu=n-1]{order_items.product_id}{products.product_id}
+\end{erd}
+\begin{nghiepvu}{Chọn sản phẩm để trưng bày và nhập thêm cho mùa sau.}
+  \khainiem{doanh-thu-gop}
+  \khainiem{don-thanh-cong}
+  \luuy{Nhóm hàng là cột \code{category}, không phải \code{segment}. Nhiều sản phẩm trùng tên, nên gom theo \code{product_id}.}
+\end{nghiepvu}
+\goiy{Tính doanh thu từng sản phẩm trong một CTE trước, rồi mới xếp hạng.}
+\goiy{\code{ROW_NUMBER() OVER (PARTITION BY category ORDER BY doanh_thu DESC, product_id)}.}
+\ghichuthietke{Trung bình: 3 bảng, chỉ ký hiệu 1-n / n-1, không ghi điều kiện nối. Bẫy trùng hạng nằm ở hidden-1 (2 sản phẩm Casual bằng doanh thu ở hạng 3) vì dữ liệu public năm 2022 không có cặp nào bằng doanh thu; bẫy trùng tên nằm ở hidden-2.}
+\end{cauhoi}
+
+% ================================================================ W4 · Khó
+\begin{cauhoi}[ma=w4-ty-le-tra-danh-muc-vung, dulieu=datathon-2026, domain=after_sales,
+  hinhthuc=write, cap=hard, dang=A4, kynang={CTE, LEFT JOIN, tỷ lệ}, bay={fan-out, mau-so},
+  tacgia={Lê C}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.01]
+\tieude{Tỷ lệ trả hàng theo nhóm hàng và vùng năm 2022}
+\boicanh[Chị Mai · Trưởng bộ phận CSKH]{Vùng nào, nhóm hàng nào trả hàng nhiều để chị ưu tiên xử lý?}
+\begin{yeucau}
+  \item Tính tỷ lệ trả hàng (theo tab Nghiệp vụ) cho từng cặp nhóm hàng × vùng, đơn đặt trong năm 2022.
+  \item Trả về \code{category}, \code{region}, \code{ty_le_tra} (phần trăm, làm tròn 2 chữ số).
+  \item Sắp \code{ty_le_tra} giảm dần, rồi theo \code{category}, \code{region}.
+\end{yeucau}
+\begin{erd}
+  \erdbang{orders}{0,0}{order_id:PK, customer_id:FK, zip:FK}
+  \erdbang{order_items}{1,0}{order_id:FK, product_id:FK}
+  \erdbang{products}{2,0}{product_id:PK}
+  \erdbang{returns}{1,1}{return_id:PK, order_id:FK, product_id:FK}
+  \erdbang{geography}{0,1}{zip:PK}
+  \erdbang{shipments}{2,1}{order_id:FK}
+  \erdbang{reviews}{0,2}{review_id:PK, order_id:FK, product_id:FK}
+  \erdkhoa{\code{order_items}, \code{returns} cùng nối \code{orders} theo \code{order_id} và \code{products} theo \code{product_id}; \code{geography} nối \code{orders} theo \code{zip}. \code{shipments}, \code{reviews} không cần.}
+\end{erd}
+\begin{nghiepvu}{Ưu tiên nhóm hàng và vùng cần rà soát chất lượng, mô tả sản phẩm, đóng gói.}
+  \khainiem{ty-le-tra-hang}
+  \khainiem{fan-out}
+  \luuy{Mẫu số chỉ gồm hàng đã giao. Đơn bị huỷ chưa tới tay khách nên không thể bị trả.}
+\end{nghiepvu}
+\goiy{Bảng cần dùng: \code{orders}, \code{order_items}, \code{products}, \code{returns}, \code{geography}. Hai bảng còn lại không cần.}
+\goiy{Tính số lượng giao và số lượng trả trong hai CTE riêng, gom theo nhóm hàng × vùng, rồi mới nối hai CTE.}
+\ghichuthietke{Khó: 7 bảng chỉ hiện khoá, 2 bảng nhiễu, không vẽ đường nối; cách nối mở bằng \code{erdkhoa} (gợi ý trả phí).}
+\end{cauhoi}
+
+
+% ################################################################ 2 · SỬA LỖI
+
+% ================================================================ D1 · Cơ bản
+\begin{cauhoi}[ma=d1-khach-ha-noi, dulieu=datathon-2026, domain=customer,
+  hinhthuc=debug, cap=basic, dang=A1, kynang={WHERE}, bay={sai-gia-tri-loc},
+  tacgia={Trần B}, trangthai=review]
+\tieude{Số khách ở Hà Nội ra 0}
+\boicanh[Bạn Linh · Thực tập sinh]{Em lọc khách ở Hà Nội mà ra 0, chắc chắn có khách ở Hà Nội mà anh chị.}
+\begin{yeucau}
+  \item Truy vấn dưới đây đếm số khách ở Hà Nội nhưng ra 0. Sửa để ra đúng số khách.
+  \item Giữ nguyên cột \code{so_khach}.
+\end{yeucau}
+\begin{erd}
+  \erdbang{customers}{0,0}{customer_id:PK, city*='Hanoi', zip, age_group}
+\end{erd}
+\begin{nghiepvu}{Đếm khách theo thành phố để lên kế hoạch sự kiện offline.}
+  \luuy{Giá trị trong cột chữ phải khớp chính xác từng ký tự, kể cả dấu cách. Xem giá trị mẫu trong ERD.}
+\end{nghiepvu}
+\goiy{So giá trị trong \code{WHERE} với giá trị mẫu của cột \code{city}.}
+\ghichuthietke{Cơ bản: giá trị mẫu trong ERD là manh mối trực tiếp.}
+\end{cauhoi}
+
+% ================================================================ D2 · Dễ
+\begin{cauhoi}[ma=d2-khach-mua-2022, dulieu=datathon-2026, domain=customer,
+  hinhthuc=debug, cap=easy, dang=A2, kynang={COUNT DISTINCT}, bay={dem-dong-thay-vi-khach},
+  tacgia={Trần B}, trangthai=review]
+\tieude{Số khách mua hàng năm 2022 cao bất thường}
+\boicanh[Anh Minh · Kế toán]{Báo cáo ghi số khách mua năm 2022 nghe nhiều quá, em kiểm tra giúp anh.}
+\begin{yeucau}
+  \item Truy vấn dưới đây cần đếm số khách (không phải số đơn) có mua hàng trong năm 2022.
+  \item Sửa để ra đúng; giữ cột \code{so_khach}.
+\end{yeucau}
+\begin{erd}
+  \erdbang{customers}{0,0}{customer_id:PK, city}
+  \erdbang{orders}{1,0}{order_id:PK, customer_id:FK*, order_date*}
+  \erdnoi[kieu=1-n, tren={một khách, nhiều đơn}, canhbao]{customers.customer_id}{orders.customer_id}
+\end{erd}
+\begin{nghiepvu}{Đếm khách hoạt động để tính chi phí chăm sóc mỗi khách.}
+  \luuy{Một khách có thể đặt nhiều đơn trong năm. Khách mua hàng được xác định từ đơn, không phải từ ngày đăng ký.}
+\end{nghiepvu}
+\goiy{Mỗi dòng của \code{orders} là một đơn. Cần đếm gì để mỗi khách chỉ tính một lần?}
+\ghichuthietke{Dễ: nhãn trên đường nối tô cảnh báo chỉ ra quan hệ một khách nhiều đơn.}
+\end{cauhoi}
+
+% ================================================================ D3 · Trung bình
+\begin{cauhoi}[ma=d3-doanh-thu-q4, dulieu=datathon-2026, domain=finance,
+  hinhthuc=debug, cap=medium, dang=E2, kynang={JOIN, GROUP BY}, bay={fan-out},
+  tacgia={Trần B}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
+\tieude{Doanh thu quý 4/2022 trên dashboard cao hơn sổ sách}
+\boicanh[Anh Minh · Kế toán]{Dashboard báo doanh thu các tháng quý 4 cao hơn số đối soát với cổng thanh toán. Em tìm xem sai ở đâu.}
+\begin{yeucau}
+  \item Truy vấn dưới đây tính tiền thu theo tháng (đơn không bị huỷ) từ \code{payments}, nhưng ra cao hơn sổ sách.
+  \item Sửa để khớp sổ sách; giữ cột \code{thang}, \code{doanh_thu}, sắp theo tháng.
+\end{yeucau}
+\begin{erd}
+  \erdbang{orders}{1,0}{order_id:PK, order_date*, order_status*}
+  \erdbang{payments}{0,0}{order_id:FK, payment_value*}
+  \erdbang{order_items}{2,0}{order_id:FK, product_id:FK}
+  \erdnoi[kieu=1-1]{payments.order_id}{orders.order_id}
+  \erdnoi[kieu=1-n]{orders.order_id}{order_items.order_id}
+\end{erd}
+\begin{nghiepvu}{Đối soát doanh thu dashboard với số tiền cổng thanh toán đã thu.}
+  \khainiem{aov}
+  \khainiem{fan-out}
+  \luuy{Mỗi đơn có đúng một dòng trong \code{payments}. Bảng nào trong truy vấn có nhiều dòng cho một đơn?}
+\end{nghiepvu}
+\goiy{So \code{COUNT(*)} với \code{COUNT(DISTINCT o.order_id)} sau khi nối.}
+\ghichuthietke{Trung bình: không có chữ trên đường nối, manh mối là ký hiệu 1-1 và 1-n.}
+\end{cauhoi}
+
+% ================================================================ D4 · Khó
+\begin{cauhoi}[ma=d4-retention-cohort, dulieu=datathon-2026, domain=customer,
+  hinhthuc=debug, cap=hard, dang=D2, kynang={CTE, EXISTS, cohort}, bay={signup-date, inner-join-mat-mau-so},
+  tacgia={Lê C}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.1]
+\tieude{Cohort nào cũng giữ chân 100\% sau 1 tháng}
+\boicanh[Chị Hoa · Growth]{Báo cáo retention quý 1/2022 cho thấy cohort nào cũng giữ chân 100\% khách sau 1 tháng. Không thể tốt vậy được.}
+\begin{yeucau}
+  \item Cohort là tháng khách mua lần đầu, xét các cohort tháng 1--3/2022.
+  \item Với mỗi cohort: \code{so_khach}, \code{quay_lai} (số khách có mua trong tháng kế tiếp), \code{ty_le} (phần trăm, 1 chữ số).
+  \item Truy vấn dưới đây có 2 lỗi chồng nhau. Sửa cả hai; giữ tên cột, sắp theo \code{cohort}.
+\end{yeucau}
+\begin{erd}
+  \erdbang{customers}{0,0}{customer_id:PK, zip}
+  \erdbang{orders}{1,0}{order_id:PK, customer_id:FK, zip:FK}
+  \erdbang{reviews}{2,0}{review_id:PK, order_id:FK, customer_id:FK}
+  \erdbang{payments}{1,1}{order_id:FK}
+  \erdbang{geography}{0,1}{zip:PK}
+  \erdkhoa{\code{orders.customer_id} nối \code{customers}. Cả cohort và việc quay lại đều xác định từ \code{orders}; \code{reviews}, \code{payments}, \code{geography} không cần.}
+\end{erd}
+\begin{nghiepvu}{Đo hiệu quả chương trình giữ chân khách mới.}
+  \khainiem{cohort}
+  \luuy{Mẫu số là toàn bộ khách của cohort, kể cả khách không quay lại.}
+\end{nghiepvu}
+\goiy{Kiểm tra cột ngày dùng để xếp cohort có đáng tin không.}
+\goiy{\code{INNER JOIN} với đơn tháng sau loại mất những khách nào khỏi mẫu số?}
+\ghichuthietke{Khó: ERD trung tính, chỉ khoá, có \code{reviews} để thử nối nhầm theo \code{customer_id}.}
+\end{cauhoi}
+
+
+% ################################################################ 3 · TỐI ƯU TRUY VẤN
+% Truy vấn khởi đầu cho ĐÚNG kết quả nhưng vi phạm ràng buộc. Học viên viết lại: cùng kết quả, thoả ràng buộc.
+% quettoida={bang=n}: số lần quét tối đa mỗi bảng.  ngansach=k: tổng dòng trung gian không quá k lần lời giải.
+
+% ================================================================ O1 · Cơ bản
+\begin{cauhoi}[ma=o1-dem-don-theo-trang-thai, dulieu=datathon-2026, domain=sales,
+  hinhthuc=optimize, cap=basic, dang=A2, kynang={CASE WHEN, COUNT}, bay={quet-lai-bang},
+  tacgia={Phạm D}, trangthai=review, quettoida={orders=1}]
+\tieude{Đếm đơn theo trạng thái chỉ với một lần quét}
+\boicanh[Anh Tuấn · Data engineer]{Dashboard gọi truy vấn này mỗi phút. Nó quét bảng đơn 3 lần, em gộp lại giúp anh.}
+\begin{yeucau}
+  \item Giữ nguyên kết quả: một dòng, ba cột \code{so_huy}, \code{so_giao}, \code{so_tra} cho đơn năm 2022.
+\end{yeucau}
+\begin{rangbuoc}
+  \item Bảng \code{orders} chỉ được quét 1 lần.
+\end{rangbuoc}
+\begin{erd}
+  \erdbang{orders}{0,0}{order_id:PK, order_date*=2022-12-30, order_status*='delivered'}
+\end{erd}
+\begin{nghiepvu}{Giảm tải cho dashboard vận hành chạy liên tục.}
+  \khainiem{vong-doi-don}
+  \khainiem{lan-quet-bang}
+\end{nghiepvu}
+\goiy{Đếm có điều kiện: \code{COUNT(CASE WHEN ... THEN 1 END)} hoặc \code{SUM(CASE WHEN ... THEN 1 ELSE 0 END)}.}
+\ghichuthietke{Cơ bản: 1 bảng có giá trị mẫu; ràng buộc chỉ đếm số lần quét.}
+\end{cauhoi}
+
+% ================================================================ O2 · Dễ
+\begin{cauhoi}[ma=o2-doanh-thu-theo-nam, dulieu=datathon-2026, domain=sales,
+  hinhthuc=optimize, cap=easy, dang=B1, kynang={GROUP BY, DATE_FORMAT}, bay={union-all-lap},
+  tacgia={Phạm D}, trangthai=review, thutu=co, quettoida={orders=1, order_items=1}]
+\tieude{Doanh thu gộp 4 năm bằng một truy vấn}
+\boicanh[Anh Tuấn · Data engineer]{Báo cáo năm đang ghép 4 truy vấn bằng \code{UNION ALL}, thêm năm mới lại phải chép thêm một đoạn.}
+\begin{yeucau}
+  \item Giữ nguyên kết quả: \code{nam} (chuỗi \code{'2019'}…\code{'2022'}), \code{doanh_thu_gop}; sắp theo \code{nam}.
+\end{yeucau}
+\begin{rangbuoc}
+  \item \code{orders} và \code{order_items} mỗi bảng chỉ được quét 1 lần.
+\end{rangbuoc}
+\begin{erd}
+  \erdbang{orders}{0,0}{order_id:PK, order_date*}
+  \erdbang{order_items}{1,0}{order_id:FK, quantity*, unit_price*}
+  \erdnoi[kieu=1-n, tren={orders.order_id = order_items.order_id}]{orders.order_id}{order_items.order_id}
+\end{erd}
+\begin{nghiepvu}{Báo cáo doanh thu năm cho ban giám đốc.}
+  \khainiem{doanh-thu-gop}
+  \khainiem{lan-quet-bang}
+\end{nghiepvu}
+\goiy{Lọc một khoảng ngày bao cả 4 năm, rồi gom theo năm của \code{order_date}.}
+\ghichuthietke{Dễ: 2 bảng có điều kiện nối; mỗi nhánh UNION là một lần quét lại.}
+\end{cauhoi}
+
+% ================================================================ O3 · Trung bình
+\begin{cauhoi}[ma=o3-san-pham-tren-trung-binh, dulieu=datathon-2026, domain=sales,
+  hinhthuc=optimize, cap=medium, dang=C3, kynang={hàm cửa sổ, AVG OVER}, bay={tinh-lai-cte},
+  tacgia={Phạm D}, trangthai=review, thutu=co, quettoida={order_items=1, orders=1}]
+\tieude{Sản phẩm bán hơn trung bình nhóm hàng, không tính lại hai lần}
+\boicanh[Chị Lan · Trưởng nhóm ngành hàng]{Truy vấn lọc sản phẩm bán hơn trung bình nhóm đang tính doanh thu sản phẩm hai lần. Em viết gọn lại giúp chị.}
+\begin{yeucau}
+  \item Giữ nguyên kết quả: \code{category}, \code{product_name}, \code{doanh_thu}, \code{tb_nhom} của các sản phẩm có doanh thu gộp năm 2022 (đơn \code{delivered}) cao hơn trung bình nhóm hàng.
+  \item Sắp theo \code{category}, \code{doanh_thu} giảm dần, rồi \code{product_id}.
+\end{yeucau}
+\begin{rangbuoc}
+  \item \code{order_items} và \code{orders} mỗi bảng chỉ được quét 1 lần.
+\end{rangbuoc}
+\begin{erd}
+  \erdbang{orders}{0,0}{order_id:PK, order_date*, order_status*}
+  \erdbang{order_items}{1,0}{order_id:FK, product_id:FK, quantity*, unit_price*}
+  \erdbang{products}{2,0}{product_id:PK, product_name*, category*}
+  \erdnoi[kieu=1-n]{orders.order_id}{order_items.order_id}
+  \erdnoi[kieu=n-1]{order_items.product_id}{products.product_id}
+\end{erd}
+\begin{nghiepvu}{Tìm sản phẩm chủ lực của từng nhóm hàng.}
+  \khainiem{doanh-thu-gop}
+  \khainiem{lan-quet-bang}
+\end{nghiepvu}
+\goiy{Trung bình nhóm có thể tính ngay trên bảng doanh thu từng sản phẩm, không cần gom lại từ đầu.}
+\goiy{\code{AVG(doanh_thu) OVER (PARTITION BY category)}.}
+\ghichuthietke{Trung bình: 3 bảng có ký hiệu; điểm mấu chốt là thay phép tính lặp bằng hàm cửa sổ.}
+\end{cauhoi}
+
+% ================================================================ O4 · Khó
+\begin{cauhoi}[ma=o4-luy-ke-doanh-thu, dulieu=datathon-2026, domain=finance,
+  hinhthuc=optimize, cap=hard, dang=B3, kynang={SUM OVER, PARTITION BY}, bay={tu-noi-bang},
+  tacgia={Phạm D}, trangthai=review, thutu=co, saiso=0.01, quettoida={sales=1}, ngansach=2]
+\tieude{Doanh thu luỹ kế trong năm không dùng tự nối bảng}
+\boicanh[Anh Minh · Kế toán]{Báo cáo luỹ kế doanh thu theo ngày chạy rất lâu, nhất là cuối năm. Em xem có cách nào nhanh hơn.}
+\begin{yeucau}
+  \item Giữ nguyên kết quả: mỗi ngày từ 2019 tới 2022 một dòng, gồm \code{ngay}, \code{doanh_thu}, \code{luy_ke_nam} (cộng dồn từ đầu năm tới ngày đó); sắp theo \code{ngay}.
+\end{yeucau}
+\begin{rangbuoc}
+  \item Bảng \code{sales} chỉ được quét 1 lần.
+  \item Tổng số dòng trung gian không quá 2 lần của lời giải mẫu.
+\end{rangbuoc}
+\begin{erd}
+  \erdbang{sales}{0,0}{Date, Revenue, COGS}
+  \erdbang{orders}{1,0}{order_id:PK, order_date}
+  \erdbang{order_items}{2,0}{order_id:FK, product_id:FK}
+  \erdbang{payments}{1,1}{order_id:FK}
+  \erdbang{products}{2,1}{product_id:PK}
+  \erdkhoa{\code{sales} không nối với bảng nào: mỗi dòng là doanh thu của một ngày, đã cộng sẵn. Không cần bảng khác.}
+\end{erd}
+\begin{nghiepvu}{Theo dõi tiến độ doanh thu so với kế hoạch năm.}
+  \khainiem{doanh-thu-gop}
+  \khainiem{dong-trung-gian}
+  \luuy{Luỹ kế bắt đầu lại từ 0 vào ngày đầu mỗi năm.}
+\end{nghiepvu}
+\goiy{Tự nối \code{sales} với chính nó theo \code{b.Date <= a.Date} sinh ra khoảng 365 × 365 / 2 dòng mỗi năm.}
+\goiy{\code{SUM(Revenue) OVER (PARTITION BY năm ORDER BY Date)}.}
+\ghichuthietke{Khó: có bảng nhiễu và \code{erdkhoa}; ràng buộc gồm cả số lần quét và ngân sách dòng trung gian.}
+\end{cauhoi}
+
+
+% ################################################################ 4 · CASE STUDY
+% Bước write: SQL trong solution.sql với khoá [ma-cau.ma-buoc]. Bước ketluan: chọn kết luận, không có SQL.
+
+% ================================================================ C1 · Cơ bản
+\begin{cauhoi}[ma=c1-kenh-nhieu-don, dulieu=datathon-2026, domain=marketing,
+  hinhthuc=case, cap=basic, diem=10, tacgia={Lê C}, trangthai=review, thutu=co]
+\tieude{Kênh nào mang về nhiều đơn nhất năm 2022?}
+\boicanh[Chị Hà · Trưởng marketing]{Chị cần biết kênh nào đang mang về nhiều đơn nhất để báo cáo quý.}
+\begin{erd}
+  \erdbang{orders}{0,0}{order_id:PK, order_date*=2022-12-30, order_source*='organic_search'}
+\end{erd}
+\begin{nghiepvu}{Báo cáo đóng góp của từng kênh vào số đơn.}
+  \khainiem{kenh-thu-hut}
+\end{nghiepvu}
+\begin{buoc}[ma=b1, diem=5, hinhthuc=write, bang={orders}]{Số đơn theo kênh}
+  \begin{yeucau}
+    \item Đếm đơn năm 2022 theo \code{order_source}; trả về \code{order_source}, \code{so_don}, sắp \code{so_don} giảm dần.
+  \end{yeucau}
+\end{buoc}
+\begin{buoc}[ma=b2, diem=5, hinhthuc=ketluan, bang={orders}]{Kết luận}
+  \begin{luachon}
+    \phuongan*{\code{organic_search} mang về nhiều đơn nhất.}{Đúng: đứng đầu bảng kết quả bước 1.}
+    \phuongan{\code{paid_search} mang về nhiều đơn nhất vì công ty chi nhiều tiền nhất cho kênh này.}{Bảng không có chi phí; kết luận phải dựa trên số đơn.}
+    \phuongan{\code{direct} mang về nhiều đơn nhất.}{\code{direct} đứng cuối bảng.}
+  \end{luachon}
+\end{buoc}
+\ghichuthietke{Case Cơ bản: 1 bảng, 1 bước SQL, 1 bước kết luận đọc thẳng kết quả.}
+\end{cauhoi}
+
+% ================================================================ C2 · Dễ
+\begin{cauhoi}[ma=c2-year-end-sale, dulieu=datathon-2026, domain=marketing,
+  hinhthuc=case, cap=easy, diem=20, tacgia={Nguyễn A}, trangthai=review, thutu=co]
+\tieude{Year-End Sale 2022 có hiệu quả không?}
+\boicanh[Chị Hà · Trưởng marketing]{Year-End Sale năm nay chạy từ 18/11 tới hết năm. Em so với cùng kỳ năm trước rồi cho chị kết luận có nên chạy tiếp không.}
+\begin{erd}
+  \erdbang{orders}{0,0}{order_id:PK, order_date*, order_status*}
+  \erdbang{order_items}{1,0}{order_id:FK, quantity*, unit_price*, discount_amount*, promo_id:FK}
+  \erdbang{promotions}{2,0}{promo_id:PK, promo_name*, start_date*, end_date*}
+  \erdnoi[kieu=1-n, tren={một đơn, nhiều dòng}]{orders.order_id}{order_items.order_id}
+  \erdnoi[kieu=n-1, tren={dòng dùng mã}]{order_items.promo_id}{promotions.promo_id}
+\end{erd}
+\begin{nghiepvu}{Có tiếp tục chạy Year-End Sale năm sau hay không.}
+  \khainiem{doanh-thu-thuan}
+  \khainiem{khuyen-mai}
+  \luuy{Muốn biết tác động của chương trình phải có nhóm so sánh không chạy chương trình.}
+\end{nghiepvu}
+\begin{buoc}[ma=b1, diem=8, hinhthuc=write, bang={orders, order_items}]{Số đơn và doanh thu thuần cùng kỳ hai năm}
+  \begin{yeucau}
+    \item Kỳ 18/11--31/12 của năm 2021 và 2022, đơn không bị huỷ.
+    \item Trả về \code{nam}, \code{so_don}, \code{doanh_thu_thuan}; sắp theo \code{nam}.
+  \end{yeucau}
+  \goiy{Đếm đơn bằng \code{COUNT(DISTINCT o.order_id)} vì một đơn có nhiều dòng hàng.}
+\end{buoc}
+\begin{buoc}[ma=b2, diem=6, hinhthuc=write, bang={promotions}]{Năm trước có chạy chương trình tương tự không?}
+  \begin{yeucau}
+    \item Liệt kê các chương trình tên bắt đầu bằng \code{Year-End Sale}, bắt đầu từ năm 2021.
+    \item Trả về \code{promo_id}, \code{promo_name}, \code{discount_value}, \code{start_date}, \code{end_date}; sắp theo \code{start_date}.
+  \end{yeucau}
+\end{buoc}
+\begin{buoc}[ma=b3, diem=6, hinhthuc=ketluan, bang={promotions}]{Kết luận}
+  \begin{luachon}
+    \phuongan{Năm 2022 tăng đơn và doanh thu so với 2021, vậy chương trình có hiệu quả.}{Năm 2021 cùng kỳ cũng chạy Year-End Sale cùng mức 20\%; mức tăng không tách được tác động chương trình.}
+    \phuongan*{Chưa đủ căn cứ: cả hai năm đều chạy chương trình giống nhau, cần nhóm đối chứng (khách hoặc vùng không nhận mã) để đo tác động.}{Đúng: hai kỳ đều có khuyến mãi, so với nhau chỉ thấy tăng trưởng chung.}
+    \phuongan{Doanh thu thuần đã trừ chiết khấu nên phản ánh đúng lợi nhuận của chương trình.}{Doanh thu thuần chưa trừ giá vốn và chi phí chương trình, không phải lợi nhuận.}
+  \end{luachon}
+\end{buoc}
+\ghichuthietke{Case Dễ: ERD cố định 3 bảng có chữ trên đường nối; bước 2 tô sáng \code{promotions}.}
+\end{cauhoi}
+
+% ================================================================ C3 · Trung bình
+\begin{cauhoi}[ma=c3-genz-tra-hang, dulieu=datathon-2026, domain=after_sales,
+  hinhthuc=case, cap=medium, diem=30, tacgia={Lê C}, trangthai=review, thutu=co]
+\tieude{Vì sao GenZ bị trả hàng nhiều nhất?}
+\boicanh[Chị Mai · Trưởng bộ phận CSKH]{Nghe nói nhóm GenZ bị trả hàng nhiều. Em kiểm tra có đúng không và vì sao.}
+\begin{erd}
+  \erdbang{orders}{0,0}{order_id:PK, order_date*, order_status*}
+  \erdbang{order_items}{1,0}{order_id:FK, product_id:FK, quantity*}
+  \erdbang{products}{2,0}{product_id:PK, category*, size*}
+  \erdbang{returns}{1,1}{order_id:FK, product_id:FK, return_reason*, return_quantity*}
+  \erdnoi[kieu=1-n]{orders.order_id}{order_items.order_id}
+  \erdnoi[kieu=n-1]{order_items.product_id}{products.product_id}
+  \erdnoi[kieu=n-1]{returns.order_id}{orders.order_id}
+  \erdnoi[kieu=n-1]{returns.product_id}{products.product_id}
+\end{erd}
+\begin{nghiepvu}{Chọn việc cần làm trước: sửa bảng size, kiểm tra chất lượng hay sửa mô tả sản phẩm.}
+  \khainiem{ty-le-tra-hang}
+  \luuy{So nhóm hàng phải dùng tỷ lệ, không dùng số lượng trả tuyệt đối vì quy mô bán khác nhau.}
+\end{nghiepvu}
+\begin{buoc}[ma=b1, diem=8, hinhthuc=write, bang={orders, order_items, products, returns}]{Tỷ lệ trả theo nhóm hàng 2022}
+  \begin{yeucau}
+    \item Trả về \code{category}, \code{ty_le_tra} (phần trăm, 2 chữ số); sắp giảm dần.
+  \end{yeucau}
+  \goiy{Tính số lượng giao và số lượng trả trong hai CTE riêng.}
+\end{buoc}
+\begin{buoc}[ma=b2, diem=7, hinhthuc=write, bang={returns, products, orders}]{Lý do trả của GenZ 2022}
+  \begin{yeucau}
+    \item Đếm số lần trả của nhóm \code{GenZ}, đơn đặt năm 2022, theo \code{return_reason}.
+    \item Trả về \code{return_reason}, \code{so_lan_tra}; sắp giảm dần.
+  \end{yeucau}
+\end{buoc}
+\begin{buoc}[ma=b3, diem=8, hinhthuc=write, bang={orders, order_items, products, returns}]{Tỷ lệ trả của GenZ theo size 2022}
+  \begin{yeucau}
+    \item Trả về \code{size}, \code{ty_le_tra} (phần trăm, 2 chữ số); sắp giảm dần.
+  \end{yeucau}
+\end{buoc}
+\begin{buoc}[ma=b4, diem=7, hinhthuc=ketluan, bang={products, returns}]{Kết luận}
+  \begin{luachon}
+    \phuongan{GenZ bị trả nhiều chủ yếu vì sai size, nên chỉ cần sửa bảng size cho GenZ.}{\code{wrong_size} là lý do hàng đầu, nhưng chưa so tỷ trọng lý do này với các nhóm hàng khác; nếu nhóm nào cũng vậy thì không giải thích được vì sao GenZ cao hơn.}
+    \phuongan*{GenZ có tỷ lệ trả cao nhất; size M nổi bật nhất. Trước khi kết luận nguyên nhân, cần so tỷ trọng từng lý do với các nhóm hàng khác; ưu tiên rà size M.}{Đúng: bước 1 xác nhận GenZ cao nhất, bước 3 chỉ ra size M, nhưng bước 2 một mình chưa đủ để nói lý do.}
+    \phuongan{Streetwear mới là vấn đề vì có nhiều sản phẩm bị trả nhất.}{Nhầm số tuyệt đối với tỷ lệ: Streetwear bán nhiều hơn hẳn nên trả nhiều về số lượng.}
+  \end{luachon}
+\end{buoc}
+\ghichuthietke{Case Trung bình: 4 bảng có ký hiệu; bước 1 và 3 tô cùng bộ bảng, bước 2 chỉ cần \code{returns}, \code{products}, \code{orders}.}
+\end{cauhoi}
+
+% ================================================================ C4 · Khó
+\begin{cauhoi}[ma=c4-doanh-thu-2019-giam, dulieu=datathon-2026, domain=sales,
+  hinhthuc=case, cap=hard, diem=50, tacgia={Lê C}, trangthai=review, thutu=co, saiso=0.01]
+\tieude{Vì sao doanh thu năm 2019 giảm mạnh?}
+\boicanh[Anh Quân · Giám đốc kinh doanh]{Doanh thu 2019 giảm mạnh so với 2018. Anh cần biết giảm ở đâu và vì sao trước buổi họp chiến lược.}
+\begin{erd}
+  \erdbang{orders}{1,0}{order_id:PK, customer_id:FK, zip:FK}
+  \erdbang{payments}{0,0}{order_id:FK}
+  \erdbang{geography}{2,0}{zip:PK}
+  \erdbang{customers}{1,1}{customer_id:PK}
+  \erdbang{web_traffic}{0,1}{date, sessions}
+  \erdbang{products}{2,1}{product_id:PK}
+  \erdkhoa{\code{payments} nối \code{orders} theo \code{order_id}; \code{geography} theo \code{zip}. \code{web_traffic} không có khoá nối, chỉ ghép được theo ngày hoặc năm. \code{products} không cần.}
+\end{erd}
+\begin{nghiepvu}{Chọn hướng ưu tiên năm tới: kéo thêm traffic, tăng chuyển đổi hay giữ chân khách cũ.}
+  \khainiem{aov}
+  \khainiem{khach-moi}
+  \khainiem{luot-truy-cap}
+  \luuy{Doanh thu = số đơn × AOV. Tách hai thành phần này trước khi tìm nguyên nhân.}
+\end{nghiepvu}
+\begin{buoc}[ma=b1, diem=10, hinhthuc=write, bang={orders, payments}]{Doanh thu, số đơn và AOV 2018--2019}
+  \begin{yeucau}
+    \item Đơn không bị huỷ. Trả về \code{nam}, \code{doanh_thu}, \code{so_don}, \code{aov}; sắp theo \code{nam}.
+  \end{yeucau}
+\end{buoc}
+\begin{buoc}[ma=b2, diem=10, hinhthuc=write, bang={orders, payments, geography}]{Giảm đều hay tập trung ở một vùng?}
+  \begin{yeucau}
+    \item Doanh thu 2018, 2019 và phần trăm thay đổi theo vùng (1 chữ số).
+    \item Trả về \code{region}, \code{dt_2018}, \code{dt_2019}, \code{thay_doi_pct}; sắp \code{thay_doi_pct} tăng dần.
+  \end{yeucau}
+\end{buoc}
+\begin{buoc}[ma=b3, diem=10, hinhthuc=write, bang={orders, web_traffic}]{Traffic và khách mới}
+  \begin{yeucau}
+    \item Theo năm 2018, 2019: tổng \code{sessions} và số khách mới.
+    \item Trả về \code{nam}, \code{sessions}, \code{khach_moi}; sắp theo \code{nam}.
+  \end{yeucau}
+  \goiy{Khách mới xác định bằng năm của đơn đầu tiên, không dùng \code{signup_date}.}
+\end{buoc}
+\begin{buoc}[ma=b4, diem=10, hinhthuc=write, bang={orders, customers}]{Khách cũ có mua ít đi không?}
+  \begin{yeucau}
+    \item Theo năm 2018, 2019, đơn không bị huỷ: \code{so_don}, \code{so_khach}, \code{don_moi_khach} (2 chữ số).
+  \end{yeucau}
+\end{buoc}
+\begin{buoc}[ma=b5, diem=10, hinhthuc=ketluan, bang={orders, web_traffic}]{Kết luận}
+  \begin{luachon}
+    \phuongan{Doanh thu giảm vì khách chi ít hơn mỗi đơn, nên cần tăng giá trị giỏ hàng.}{AOV gần như không đổi; doanh thu giảm do số đơn.}
+    \phuongan{Doanh thu giảm vì vùng West gặp vấn đề, cần xử lý riêng vùng này.}{Cả ba vùng đều giảm gần như nhau, không phải vấn đề của riêng một vùng.}
+    \phuongan*{Số đơn giảm trong khi traffic còn tăng: khách mới giảm mạnh và khách mua ít đơn hơn. Ưu tiên tăng chuyển đổi và giữ chân, không phải kéo thêm traffic.}{Đúng: bước 1 cho thấy AOV ổn định, bước 2 giảm đều mọi vùng, bước 3–4 chỉ ra chuyển đổi và tần suất mua giảm.}
+  \end{luachon}
+\end{buoc}
+\ghichuthietke{Case Khó: 6 bảng chỉ khoá, có bảng nhiễu \code{products}, \code{web_traffic} không có khoá nối; quan hệ mở bằng \code{erdkhoa}.}
+\end{cauhoi}
+
+\end{document}

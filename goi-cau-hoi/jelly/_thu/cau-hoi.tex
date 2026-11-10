@@ -1,0 +1,33 @@
+% cau-hoi.tex: GÓI NHÁP 1 câu để thử ánh xạ dulieu=jelly -> jelly / jelly_hidden_1 (không phát hành).
+\documentclass[11pt,a4paper]{article}
+\usepackage{aio-sql-cauhoi}
+
+\khaibaodulieu{jelly}{GAME · Jelly Trail Academy}
+  {Game giải đố ghép kẹo trên di động: người chơi, phiên chơi, lượt chơi màn, mua trong game, quảng cáo, 2026-07-01 tới 2026-08-29.}
+\khaibaodomain{finance}{Tài chính}{Doanh thu IAP, quảng cáo, ARPU.}
+\khaibaokhainiem{doanh-thu-iap}{Doanh thu IAP}
+  {Doanh thu từ giao dịch mua vật phẩm trong ứng dụng (in-app purchase).}
+  {SUM(price\_usd)}
+  {bảng \code{purchases}: mỗi dòng là một giao dịch, giá theo USD.}
+
+\begin{document}
+\begin{cauhoi}[ma=jelly-thu-doanh-thu-iap-thang-8, dulieu=jelly, domain=finance,
+  hinhthuc=write, cap=basic, dang=A2, kynang={SUM, WHERE}, bay={quen-can-tren},
+  tacgia={Bộ dựng}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, socot=vitri, saiso=0.01]
+\tieude{Doanh thu IAP tháng 8/2026 là bao nhiêu?}
+\boicanh[Chị Mai · Quản lý sản phẩm]{Em xem giúp chị tháng 8 game thu được bao nhiêu tiền từ mua trong game nhé.}
+\begin{yeucau}
+  \item Cộng \code{price_usd} của các giao dịch trong tháng 8/2026.
+  \item Trả về đúng một cột \code{doanh_thu}.
+\end{yeucau}
+\begin{erd}
+  \erdbang{purchases}{0,0}{transaction_id, event_date*=2026-08-15, price_usd*=4.99}
+\end{erd}
+\begin{nghiepvu}{Theo dõi doanh thu bán vật phẩm theo tháng.}
+  \khainiem{doanh-thu-iap}
+  \luuy{Lọc đủ cận dưới và cận trên của tháng.}
+\end{nghiepvu}
+\goiy{Lọc \code{event_date} từ \code{'2026-08-01'} tới trước \code{'2026-09-01'}.}
+\ghichuthietke{Nháp kiểm ánh xạ biến thể.}
+\end{cauhoi}
+\end{document}
