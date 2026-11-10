@@ -13,36 +13,55 @@
 
 -- ================================================ MODULE 3 · STRING & DATE
 
--- [mkt-s1-social-nykaa-theo-thang] solution
+-- [mkt-s1-social-nykaa-chay-sang-thang-sau] solution
 SELECT DATE_FORMAT(start_date, '%Y-%m') AS thang,
-       COUNT(*) AS so_chien_dich
+       COUNT(*) AS so_chien_dich,
+       SUM(CASE WHEN DATE_ADD(start_date, INTERVAL duration_days - 1 DAY) > LAST_DAY(start_date) THEN 1 ELSE 0 END) AS so_sang_thang_sau,
+       ROUND(SUM(CASE WHEN DATE_ADD(start_date, INTERVAL duration_days - 1 DAY) > LAST_DAY(start_date) THEN 1 ELSE 0 END) * 100 / COUNT(*), 2) AS ty_le_sang_thang_sau
+FROM campaigns
+WHERE brand_id = 1
+  AND type_id = 5
+  AND start_date >= '2024-07-01' AND start_date < '2025-06-01'
+GROUP BY DATE_FORMAT(start_date, '%Y-%m')
+ORDER BY thang;
+
+-- [mkt-s1-social-nykaa-chay-sang-thang-sau] wrong: quen_tru_1
+-- Rớt ở public: ngày bắt đầu cộng thời lượng là ngày sau ngày cuối, nên chiến dịch kết thúc đúng ngày cuối tháng bị tính là chạy sang tháng sau.
+SELECT DATE_FORMAT(start_date, '%Y-%m') AS thang,
+       COUNT(*) AS so_chien_dich,
+       SUM(CASE WHEN DATE_ADD(start_date, INTERVAL duration_days DAY) > LAST_DAY(start_date) THEN 1 ELSE 0 END) AS so_sang_thang_sau,
+       ROUND(SUM(CASE WHEN DATE_ADD(start_date, INTERVAL duration_days DAY) > LAST_DAY(start_date) THEN 1 ELSE 0 END) * 100 / COUNT(*), 2) AS ty_le_sang_thang_sau
+FROM campaigns
+WHERE brand_id = 1
+  AND type_id = 5
+  AND start_date >= '2024-07-01' AND start_date < '2025-06-01'
+GROUP BY DATE_FORMAT(start_date, '%Y-%m')
+ORDER BY thang;
+
+-- [mkt-s1-social-nykaa-chay-sang-thang-sau] wrong: so_so_thang_bo_nam
+-- Rớt ở public: so MONTH() của ngày cuối với ngày bắt đầu; chiến dịch tháng 12 chạy sang tháng 1 có số tháng nhỏ hơn nên tháng 2024-12 ra 0.
+SELECT DATE_FORMAT(start_date, '%Y-%m') AS thang,
+       COUNT(*) AS so_chien_dich,
+       SUM(CASE WHEN MONTH(DATE_ADD(start_date, INTERVAL duration_days - 1 DAY)) > MONTH(start_date) THEN 1 ELSE 0 END) AS so_sang_thang_sau,
+       ROUND(SUM(CASE WHEN MONTH(DATE_ADD(start_date, INTERVAL duration_days - 1 DAY)) > MONTH(start_date) THEN 1 ELSE 0 END) * 100 / COUNT(*), 2) AS ty_le_sang_thang_sau
+FROM campaigns
+WHERE brand_id = 1
+  AND type_id = 5
+  AND start_date >= '2024-07-01' AND start_date < '2025-06-01'
+GROUP BY DATE_FORMAT(start_date, '%Y-%m')
+ORDER BY thang;
+
+-- [mkt-s1-social-nykaa-chay-sang-thang-sau] wrong: giu_thang_chua_du
+-- Rớt ở public: cận trên 1/7/2025 giữ tháng 6/2025 chưa đủ (dữ liệu tới 24/6, không chiến dịch nào chạy sang tháng 7).
+SELECT DATE_FORMAT(start_date, '%Y-%m') AS thang,
+       COUNT(*) AS so_chien_dich,
+       SUM(CASE WHEN DATE_ADD(start_date, INTERVAL duration_days - 1 DAY) > LAST_DAY(start_date) THEN 1 ELSE 0 END) AS so_sang_thang_sau,
+       ROUND(SUM(CASE WHEN DATE_ADD(start_date, INTERVAL duration_days - 1 DAY) > LAST_DAY(start_date) THEN 1 ELSE 0 END) * 100 / COUNT(*), 2) AS ty_le_sang_thang_sau
 FROM campaigns
 WHERE brand_id = 1
   AND type_id = 5
   AND start_date >= '2024-07-01' AND start_date < '2025-07-01'
 GROUP BY DATE_FORMAT(start_date, '%Y-%m')
-ORDER BY thang;
-
--- [mkt-s1-social-nykaa-theo-thang] wrong: thieu_can_tren
--- Rớt ở hidden-1: thêm dòng 2025-07 của chiến dịch ngày 1/7/2025.
-SELECT DATE_FORMAT(start_date, '%Y-%m') AS thang,
-       COUNT(*) AS so_chien_dich
-FROM campaigns
-WHERE brand_id = 1
-  AND type_id = 5
-  AND start_date >= '2024-07-01'
-GROUP BY DATE_FORMAT(start_date, '%Y-%m')
-ORDER BY thang;
-
--- [mkt-s1-social-nykaa-theo-thang] wrong: ten_thang_chu
--- Rớt ở public: '%M' ra tên tháng tiếng Anh, sắp theo chữ cái (2024-August đứng trước 2024-December).
-SELECT DATE_FORMAT(start_date, '%Y-%M') AS thang,
-       COUNT(*) AS so_chien_dich
-FROM campaigns
-WHERE brand_id = 1
-  AND type_id = 5
-  AND start_date >= '2024-07-01' AND start_date < '2025-07-01'
-GROUP BY DATE_FORMAT(start_date, '%Y-%M')
 ORDER BY thang;
 
 -- [mkt-s2-ket-thuc-ngay-14-2] solution
@@ -77,35 +96,87 @@ WHERE brand_id = 3
   AND start_date = '2025-02-14'
 ORDER BY start_date, campaign_id;
 
--- [mkt-s3-bat-dau-cuoi-tuan] solution
+-- [mkt-s3-tong-ket-cho-qua-cuoi-tuan] solution
+WITH ngay_hop AS (
+  SELECT type_id,
+         WEEKDAY(DATE_ADD(start_date, INTERVAL duration_days DAY)) AS thu_ngay_sau
+  FROM campaigns
+  WHERE start_date >= '2024-07-01' AND start_date < '2025-07-01'
+)
 SELECT type_id,
        COUNT(*) AS so_chien_dich,
-       SUM(CASE WHEN WEEKDAY(start_date) >= 5 THEN 1 ELSE 0 END) AS so_cuoi_tuan,
-       ROUND(SUM(CASE WHEN WEEKDAY(start_date) >= 5 THEN 1 ELSE 0 END) * 100 / COUNT(*), 2) AS ty_le_cuoi_tuan_pct
-FROM campaigns
-WHERE start_date >= '2024-07-01' AND start_date < '2025-07-01'
+       SUM(CASE WHEN thu_ngay_sau >= 5 THEN 1 ELSE 0 END) AS so_phai_cho,
+       ROUND(SUM(CASE WHEN thu_ngay_sau >= 5 THEN 1 ELSE 0 END) * 100 / COUNT(*), 2) AS ty_le_phai_cho,
+       SUM(CASE WHEN thu_ngay_sau >= 5 THEN 7 - thu_ngay_sau ELSE 0 END) AS tong_ngay_cho
+FROM ngay_hop
 GROUP BY type_id
 ORDER BY type_id;
 
--- [mkt-s3-bat-dau-cuoi-tuan] wrong: dayofweek_6_7
+-- [mkt-s3-tong-ket-cho-qua-cuoi-tuan] wrong: xet_thu_cua_ngay_cuoi
+-- Rớt ở public: xét thứ của chính ngày cuối thay vì ngày ngay sau ngày cuối.
+WITH ngay_hop AS (
+  SELECT type_id,
+         WEEKDAY(DATE_ADD(start_date, INTERVAL duration_days - 1 DAY)) AS thu_ngay_sau
+  FROM campaigns
+  WHERE start_date >= '2024-07-01' AND start_date < '2025-07-01'
+)
+SELECT type_id,
+       COUNT(*) AS so_chien_dich,
+       SUM(CASE WHEN thu_ngay_sau >= 5 THEN 1 ELSE 0 END) AS so_phai_cho,
+       ROUND(SUM(CASE WHEN thu_ngay_sau >= 5 THEN 1 ELSE 0 END) * 100 / COUNT(*), 2) AS ty_le_phai_cho,
+       SUM(CASE WHEN thu_ngay_sau >= 5 THEN 7 - thu_ngay_sau ELSE 0 END) AS tong_ngay_cho
+FROM ngay_hop
+GROUP BY type_id
+ORDER BY type_id;
+
+-- [mkt-s3-tong-ket-cho-qua-cuoi-tuan] wrong: dayofweek_6_7
 -- Rớt ở public: DAYOFWEEK đánh 1 = Chủ nhật, 7 = thứ Bảy; (6, 7) là thứ Sáu và thứ Bảy.
+WITH ngay_hop AS (
+  SELECT type_id,
+         DAYOFWEEK(DATE_ADD(start_date, INTERVAL duration_days DAY)) AS thu_ngay_sau
+  FROM campaigns
+  WHERE start_date >= '2024-07-01' AND start_date < '2025-07-01'
+)
 SELECT type_id,
        COUNT(*) AS so_chien_dich,
-       SUM(CASE WHEN DAYOFWEEK(start_date) IN (6, 7) THEN 1 ELSE 0 END) AS so_cuoi_tuan,
-       ROUND(SUM(CASE WHEN DAYOFWEEK(start_date) IN (6, 7) THEN 1 ELSE 0 END) * 100 / COUNT(*), 2) AS ty_le_cuoi_tuan_pct
-FROM campaigns
-WHERE start_date >= '2024-07-01' AND start_date < '2025-07-01'
+       SUM(CASE WHEN thu_ngay_sau IN (6, 7) THEN 1 ELSE 0 END) AS so_phai_cho,
+       ROUND(SUM(CASE WHEN thu_ngay_sau IN (6, 7) THEN 1 ELSE 0 END) * 100 / COUNT(*), 2) AS ty_le_phai_cho,
+       SUM(CASE WHEN thu_ngay_sau = 7 THEN 2 WHEN thu_ngay_sau = 6 THEN 1 ELSE 0 END) AS tong_ngay_cho
+FROM ngay_hop
 GROUP BY type_id
 ORDER BY type_id;
 
--- [mkt-s3-bat-dau-cuoi-tuan] wrong: thieu_can_tren
--- Rớt ở hidden-1: chiến dịch Social Media ngày 1/7/2025 (thứ Ba) vào mẫu số của loại 5.
+-- [mkt-s3-tong-ket-cho-qua-cuoi-tuan] wrong: dem_ngay_cho_nguoc
+-- Rớt ở public: thứ Bảy tính chờ 1 ngày, Chủ nhật chờ 2 ngày (đếm ngược tới thứ Hai).
+WITH ngay_hop AS (
+  SELECT type_id,
+         WEEKDAY(DATE_ADD(start_date, INTERVAL duration_days DAY)) AS thu_ngay_sau
+  FROM campaigns
+  WHERE start_date >= '2024-07-01' AND start_date < '2025-07-01'
+)
 SELECT type_id,
        COUNT(*) AS so_chien_dich,
-       SUM(CASE WHEN WEEKDAY(start_date) >= 5 THEN 1 ELSE 0 END) AS so_cuoi_tuan,
-       ROUND(SUM(CASE WHEN WEEKDAY(start_date) >= 5 THEN 1 ELSE 0 END) * 100 / COUNT(*), 2) AS ty_le_cuoi_tuan_pct
-FROM campaigns
-WHERE start_date >= '2024-07-01'
+       SUM(CASE WHEN thu_ngay_sau >= 5 THEN 1 ELSE 0 END) AS so_phai_cho,
+       ROUND(SUM(CASE WHEN thu_ngay_sau >= 5 THEN 1 ELSE 0 END) * 100 / COUNT(*), 2) AS ty_le_phai_cho,
+       SUM(CASE WHEN thu_ngay_sau >= 5 THEN thu_ngay_sau - 4 ELSE 0 END) AS tong_ngay_cho
+FROM ngay_hop
+GROUP BY type_id
+ORDER BY type_id;
+
+-- [mkt-s3-tong-ket-cho-qua-cuoi-tuan] wrong: thieu_can_tren
+-- Rớt ở hidden-1: chiến dịch Social Media ngày 1/7/2025 vào số chiến dịch của loại 5.
+WITH ngay_hop AS (
+  SELECT type_id,
+         WEEKDAY(DATE_ADD(start_date, INTERVAL duration_days DAY)) AS thu_ngay_sau
+  FROM campaigns
+  WHERE start_date >= '2024-07-01'
+)
+SELECT type_id,
+       COUNT(*) AS so_chien_dich,
+       SUM(CASE WHEN thu_ngay_sau >= 5 THEN 1 ELSE 0 END) AS so_phai_cho,
+       ROUND(SUM(CASE WHEN thu_ngay_sau >= 5 THEN 1 ELSE 0 END) * 100 / COUNT(*), 2) AS ty_le_phai_cho,
+       SUM(CASE WHEN thu_ngay_sau >= 5 THEN 7 - thu_ngay_sau ELSE 0 END) AS tong_ngay_cho
+FROM ngay_hop
 GROUP BY type_id
 ORDER BY type_id;
 
@@ -220,113 +291,181 @@ FROM campaigns_raw
 GROUP BY RTRIM(campaign_type)
 ORDER BY loai_chien_dich;
 
--- [mkt-s8-thang-sap-sai-thu-tu] starter
-SELECT DATE_FORMAT(start_date, '%m/%Y') AS thang,
-       COUNT(*) AS so_chien_dich,
-       SUM(revenue) AS doanh_thu
+-- [mkt-s8-tuan-dau-nam-bi-tach-doi] starter
+SELECT MIN(start_date) AS tuan_bat_dau,
+       COUNT(*) AS so_chien_dich
 FROM campaigns
-WHERE start_date >= '2024-07-01' AND start_date < '2025-07-01'
-GROUP BY DATE_FORMAT(start_date, '%m/%Y')
+WHERE start_date >= '2024-12-02' AND start_date < '2025-02-03'
+GROUP BY YEAR(start_date), WEEK(start_date, 1)
+ORDER BY tuan_bat_dau;
+
+-- [mkt-s8-tuan-dau-nam-bi-tach-doi] solution
+SELECT DATE_SUB(start_date, INTERVAL WEEKDAY(start_date) DAY) AS tuan_bat_dau,
+       COUNT(*) AS so_chien_dich
+FROM campaigns
+WHERE start_date >= '2024-12-02' AND start_date < '2025-02-03'
+GROUP BY DATE_SUB(start_date, INTERVAL WEEKDAY(start_date) DAY)
+ORDER BY tuan_bat_dau;
+
+-- [mkt-s8-tuan-dau-nam-bi-tach-doi] wrong: yearweek_mac_dinh
+-- Rớt ở public: YEARWEEK không ghi chế độ thì tuần bắt đầu từ Chủ nhật; tuần đầu năm không còn tách nhưng mọi tuần lệch một ngày.
+SELECT MIN(start_date) AS tuan_bat_dau,
+       COUNT(*) AS so_chien_dich
+FROM campaigns
+WHERE start_date >= '2024-12-02' AND start_date < '2025-02-03'
+GROUP BY YEARWEEK(start_date)
+ORDER BY tuan_bat_dau;
+
+-- [mkt-s8-tuan-dau-nam-bi-tach-doi] wrong: lui_theo_dayofweek
+-- Rớt ở public: DAYOFWEEK cho Chủ nhật là 1, nên lùi theo DAYOFWEEK ra tuần từ Chủ nhật tới thứ Bảy, mốc là thứ Bảy.
+SELECT DATE_SUB(start_date, INTERVAL DAYOFWEEK(start_date) DAY) AS tuan_bat_dau,
+       COUNT(*) AS so_chien_dich
+FROM campaigns
+WHERE start_date >= '2024-12-02' AND start_date < '2025-02-03'
+GROUP BY DATE_SUB(start_date, INTERVAL DAYOFWEEK(start_date) DAY)
+ORDER BY tuan_bat_dau;
+
+-- [mkt-s9-dang-chay-dau-thang-lech] starter
+SELECT DATE_FORMAT(k.cal_date, '%Y-%m') AS thang,
+       COUNT(*) AS so_dang_chay
+FROM calendar k
+JOIN campaigns c
+  ON c.start_date < k.cal_date
+ AND DATE_ADD(c.start_date, INTERVAL c.duration_days DAY) >= k.cal_date
+WHERE DAY(k.cal_date) = 1
+  AND k.cal_date >= '2024-08-01'
+GROUP BY DATE_FORMAT(k.cal_date, '%Y-%m')
 ORDER BY thang;
 
--- [mkt-s8-thang-sap-sai-thu-tu] solution
-SELECT DATE_FORMAT(start_date, '%Y-%m') AS thang,
-       COUNT(*) AS so_chien_dich,
-       SUM(revenue) AS doanh_thu
-FROM campaigns
-WHERE start_date >= '2024-07-01' AND start_date < '2025-07-01'
-GROUP BY DATE_FORMAT(start_date, '%Y-%m')
+-- [mkt-s9-dang-chay-dau-thang-lech] solution
+SELECT DATE_FORMAT(k.cal_date, '%Y-%m') AS thang,
+       COUNT(*) AS so_dang_chay
+FROM calendar k
+JOIN campaigns c
+  ON c.start_date <= k.cal_date
+ AND DATE_ADD(c.start_date, INTERVAL c.duration_days - 1 DAY) >= k.cal_date
+WHERE DAY(k.cal_date) = 1
+  AND k.cal_date >= '2024-08-01' AND k.cal_date <= '2025-06-01'
+GROUP BY DATE_FORMAT(k.cal_date, '%Y-%m')
 ORDER BY thang;
 
--- [mkt-s8-thang-sap-sai-thu-tu] wrong: ten_thang_chu
--- Rớt ở public: '%M' là tên tháng tiếng Anh, sắp theo chữ cái.
-SELECT DATE_FORMAT(start_date, '%Y-%M') AS thang,
-       COUNT(*) AS so_chien_dich,
-       SUM(revenue) AS doanh_thu
-FROM campaigns
-WHERE start_date >= '2024-07-01' AND start_date < '2025-07-01'
-GROUP BY DATE_FORMAT(start_date, '%Y-%M')
+-- [mkt-s9-dang-chay-dau-thang-lech] wrong: chi_sua_ngay_cuoi
+-- Rớt ở public: vẫn bỏ chiến dịch bắt đầu đúng ngày 1 của tháng.
+SELECT DATE_FORMAT(k.cal_date, '%Y-%m') AS thang,
+       COUNT(*) AS so_dang_chay
+FROM calendar k
+JOIN campaigns c
+  ON c.start_date < k.cal_date
+ AND DATE_ADD(c.start_date, INTERVAL c.duration_days - 1 DAY) >= k.cal_date
+WHERE DAY(k.cal_date) = 1
+  AND k.cal_date >= '2024-08-01' AND k.cal_date <= '2025-06-01'
+GROUP BY DATE_FORMAT(k.cal_date, '%Y-%m')
 ORDER BY thang;
 
--- [mkt-s8-thang-sap-sai-thu-tu] wrong: giu_nhan_thang_nam
--- Rớt ở public: sắp đúng nhưng nhãn tháng vẫn dạng MM/YYYY, khác yêu cầu YYYY-MM.
-SELECT DATE_FORMAT(start_date, '%m/%Y') AS thang,
-       COUNT(*) AS so_chien_dich,
-       SUM(revenue) AS doanh_thu
-FROM campaigns
-WHERE start_date >= '2024-07-01' AND start_date < '2025-07-01'
-GROUP BY DATE_FORMAT(start_date, '%m/%Y')
-ORDER BY MIN(start_date);
-
--- [mkt-s9-dang-chay-ngay-1-1] starter
-SELECT brand_id,
+-- [mkt-s9-dang-chay-dau-thang-lech] wrong: chi_sua_ngay_bat_dau
+-- Rớt ở public: vẫn đếm chiến dịch đã kết thúc ngày cuối của tháng trước.
+SELECT DATE_FORMAT(k.cal_date, '%Y-%m') AS thang,
        COUNT(*) AS so_dang_chay
-FROM campaigns
-WHERE start_date <= '2025-01-01'
-  AND DATE_ADD(start_date, INTERVAL duration_days - 1 DAY) > '2025-01-01'
-GROUP BY brand_id
-ORDER BY brand_id;
+FROM calendar k
+JOIN campaigns c
+  ON c.start_date <= k.cal_date
+ AND DATE_ADD(c.start_date, INTERVAL c.duration_days DAY) >= k.cal_date
+WHERE DAY(k.cal_date) = 1
+  AND k.cal_date >= '2024-08-01' AND k.cal_date <= '2025-06-01'
+GROUP BY DATE_FORMAT(k.cal_date, '%Y-%m')
+ORDER BY thang;
 
--- [mkt-s9-dang-chay-ngay-1-1] solution
-SELECT brand_id,
+-- [mkt-s9-dang-chay-dau-thang-lech] wrong: sua_hai_bien_thieu_can_tren
+-- Rớt ở hidden-1: lịch có thêm ngày 1/7/2025 và chiến dịch bắt đầu ngày đó, thêm dòng 2025-07.
+SELECT DATE_FORMAT(k.cal_date, '%Y-%m') AS thang,
        COUNT(*) AS so_dang_chay
-FROM campaigns
-WHERE start_date <= '2025-01-01'
-  AND DATE_ADD(start_date, INTERVAL duration_days - 1 DAY) >= '2025-01-01'
-GROUP BY brand_id
-ORDER BY brand_id;
-
--- [mkt-s9-dang-chay-ngay-1-1] wrong: thua_mot_ngay
--- Rớt ở public: quên trừ 1 nên tính cả chiến dịch đã kết thúc ngày 31/12/2024.
-SELECT brand_id,
-       COUNT(*) AS so_dang_chay
-FROM campaigns
-WHERE start_date <= '2025-01-01'
-  AND DATE_ADD(start_date, INTERVAL duration_days DAY) >= '2025-01-01'
-GROUP BY brand_id
-ORDER BY brand_id;
-
--- [mkt-s9-dang-chay-ngay-1-1] wrong: chi_bat_dau_ngay_1_1
--- Rớt ở public: chỉ đếm chiến dịch bắt đầu đúng ngày 1/1/2025.
-SELECT brand_id,
-       COUNT(*) AS so_dang_chay
-FROM campaigns
-WHERE start_date = '2025-01-01'
-GROUP BY brand_id
-ORDER BY brand_id;
+FROM calendar k
+JOIN campaigns c
+  ON c.start_date <= k.cal_date
+ AND DATE_ADD(c.start_date, INTERVAL c.duration_days - 1 DAY) >= k.cal_date
+WHERE DAY(k.cal_date) = 1
+  AND k.cal_date >= '2024-08-01'
+GROUP BY DATE_FORMAT(k.cal_date, '%Y-%m')
+ORDER BY thang;
 
 -- ================================================ MODULE 4 · AGGREGATION
 
--- [mkt-a1-roi-tong-theo-thuong-hieu] solution
+-- [mkt-a1-chi-phi-cho-chien-dich-lo] solution
 SELECT brand_id,
        COUNT(*) AS so_chien_dich,
-       SUM(revenue) AS doanh_thu,
-       ROUND(SUM(acquisition_cost * conversions), 2) AS chi_phi,
-       ROUND((SUM(revenue) - SUM(acquisition_cost * conversions)) / SUM(acquisition_cost * conversions), 4) AS roi
+       SUM(CASE WHEN revenue < acquisition_cost * conversions THEN 1 ELSE 0 END) AS so_chien_dich_lo,
+       ROUND(SUM(CASE WHEN revenue < acquisition_cost * conversions THEN acquisition_cost * conversions ELSE 0 END) * 100
+             / SUM(acquisition_cost * conversions), 2) AS ty_trong_chi_phi_lo,
+       ROUND(SUM(CASE WHEN revenue < acquisition_cost * conversions THEN revenue ELSE 0 END) * 100
+             / SUM(CASE WHEN revenue < acquisition_cost * conversions THEN acquisition_cost * conversions ELSE 0 END), 2) AS ty_le_thu_hoi
 FROM campaigns
 WHERE start_date >= '2024-07-01' AND start_date < '2025-07-01'
 GROUP BY brand_id
 ORDER BY brand_id;
 
--- [mkt-a1-roi-tong-theo-thuong-hieu] wrong: avg_roi
--- Rớt ở public: bình quân giản đơn cột roi (khoảng 2,69) khác ROI của tổng (khoảng 1,94).
+-- [mkt-a1-chi-phi-cho-chien-dich-lo] wrong: lo_theo_cot_roi_lam_tron
+-- Rớt ở public: roi < 0 bỏ sót chiến dịch lỗ rất ít mà cột roi (làm tròn 2 chữ số) ghi 0,00.
 SELECT brand_id,
        COUNT(*) AS so_chien_dich,
-       SUM(revenue) AS doanh_thu,
-       ROUND(SUM(acquisition_cost * conversions), 2) AS chi_phi,
-       ROUND(AVG(roi), 4) AS roi
+       SUM(CASE WHEN roi < 0 THEN 1 ELSE 0 END) AS so_chien_dich_lo,
+       ROUND(SUM(CASE WHEN roi < 0 THEN acquisition_cost * conversions ELSE 0 END) * 100
+             / SUM(acquisition_cost * conversions), 2) AS ty_trong_chi_phi_lo,
+       ROUND(SUM(CASE WHEN roi < 0 THEN revenue ELSE 0 END) * 100
+             / SUM(CASE WHEN roi < 0 THEN acquisition_cost * conversions ELSE 0 END), 2) AS ty_le_thu_hoi
 FROM campaigns
 WHERE start_date >= '2024-07-01' AND start_date < '2025-07-01'
 GROUP BY brand_id
 ORDER BY brand_id;
 
--- [mkt-a1-roi-tong-theo-thuong-hieu] wrong: thieu_can_tren
--- Rớt ở hidden-1: Nykaa thêm chiến dịch ngày 1/7/2025.
+-- [mkt-a1-chi-phi-cho-chien-dich-lo] wrong: chi_phi_la_cpa
+-- Rớt ở public: xác định lỗ đúng nhưng cộng acquisition_cost (CPA) làm chi phí chiến dịch.
 SELECT brand_id,
        COUNT(*) AS so_chien_dich,
-       SUM(revenue) AS doanh_thu,
-       ROUND(SUM(acquisition_cost * conversions), 2) AS chi_phi,
-       ROUND((SUM(revenue) - SUM(acquisition_cost * conversions)) / SUM(acquisition_cost * conversions), 4) AS roi
+       SUM(CASE WHEN revenue < acquisition_cost * conversions THEN 1 ELSE 0 END) AS so_chien_dich_lo,
+       ROUND(SUM(CASE WHEN revenue < acquisition_cost * conversions THEN acquisition_cost ELSE 0 END) * 100
+             / SUM(acquisition_cost), 2) AS ty_trong_chi_phi_lo,
+       ROUND(SUM(CASE WHEN revenue < acquisition_cost * conversions THEN revenue ELSE 0 END) * 100
+             / SUM(CASE WHEN revenue < acquisition_cost * conversions THEN acquisition_cost ELSE 0 END), 2) AS ty_le_thu_hoi
+FROM campaigns
+WHERE start_date >= '2024-07-01' AND start_date < '2025-07-01'
+GROUP BY brand_id
+ORDER BY brand_id;
+
+-- [mkt-a1-chi-phi-cho-chien-dich-lo] wrong: ty_trong_theo_so_chien_dich
+-- Rớt ở public: tỷ trọng tính theo số chiến dịch lỗ, không theo chi phí.
+SELECT brand_id,
+       COUNT(*) AS so_chien_dich,
+       SUM(CASE WHEN revenue < acquisition_cost * conversions THEN 1 ELSE 0 END) AS so_chien_dich_lo,
+       ROUND(SUM(CASE WHEN revenue < acquisition_cost * conversions THEN 1 ELSE 0 END) * 100 / COUNT(*), 2) AS ty_trong_chi_phi_lo,
+       ROUND(SUM(CASE WHEN revenue < acquisition_cost * conversions THEN revenue ELSE 0 END) * 100
+             / SUM(CASE WHEN revenue < acquisition_cost * conversions THEN acquisition_cost * conversions ELSE 0 END), 2) AS ty_le_thu_hoi
+FROM campaigns
+WHERE start_date >= '2024-07-01' AND start_date < '2025-07-01'
+GROUP BY brand_id
+ORDER BY brand_id;
+
+-- [mkt-a1-chi-phi-cho-chien-dich-lo] wrong: thu_hoi_binh_quan_gian_don
+-- Rớt ở public: bình quân tỷ lệ thu hồi của từng chiến dịch lỗ, không phải tổng doanh thu chia tổng chi phí của nhóm.
+SELECT brand_id,
+       COUNT(*) AS so_chien_dich,
+       SUM(CASE WHEN revenue < acquisition_cost * conversions THEN 1 ELSE 0 END) AS so_chien_dich_lo,
+       ROUND(SUM(CASE WHEN revenue < acquisition_cost * conversions THEN acquisition_cost * conversions ELSE 0 END) * 100
+             / SUM(acquisition_cost * conversions), 2) AS ty_trong_chi_phi_lo,
+       ROUND(AVG(CASE WHEN revenue < acquisition_cost * conversions THEN revenue * 100 / (acquisition_cost * conversions) END), 2) AS ty_le_thu_hoi
+FROM campaigns
+WHERE start_date >= '2024-07-01' AND start_date < '2025-07-01'
+GROUP BY brand_id
+ORDER BY brand_id;
+
+-- [mkt-a1-chi-phi-cho-chien-dich-lo] wrong: thieu_can_tren
+-- Rớt ở hidden-1: Nykaa thêm chiến dịch ngày 1/7/2025 vào số chiến dịch.
+SELECT brand_id,
+       COUNT(*) AS so_chien_dich,
+       SUM(CASE WHEN revenue < acquisition_cost * conversions THEN 1 ELSE 0 END) AS so_chien_dich_lo,
+       ROUND(SUM(CASE WHEN revenue < acquisition_cost * conversions THEN acquisition_cost * conversions ELSE 0 END) * 100
+             / SUM(acquisition_cost * conversions), 2) AS ty_trong_chi_phi_lo,
+       ROUND(SUM(CASE WHEN revenue < acquisition_cost * conversions THEN revenue ELSE 0 END) * 100
+             / SUM(CASE WHEN revenue < acquisition_cost * conversions THEN acquisition_cost * conversions ELSE 0 END), 2) AS ty_le_thu_hoi
 FROM campaigns
 WHERE start_date >= '2024-07-01'
 GROUP BY brand_id
@@ -489,68 +628,126 @@ ORDER BY start_date;
 
 -- [mkt-a6-doanh-thu-nykaa-theo-thang] solution
 SELECT DATE_FORMAT(start_date, '%Y-%m') AS thang,
+       COUNT(*) AS so_chien_dich,
        SUM(conversions) AS luot_chuyen_doi,
-       SUM(revenue) AS doanh_thu,
-       ROUND(SUM(revenue) / SUM(conversions), 2) AS gia_tri_don_bq
+       SUM(revenue) AS doanh_thu
 FROM campaigns
 WHERE brand_id = 1
-  AND start_date >= '2024-07-01'
+  AND start_date >= '2024-07-01' AND start_date < '2025-07-01'
 GROUP BY DATE_FORMAT(start_date, '%Y-%m')
 ORDER BY thang;
 
--- [mkt-a6-doanh-thu-nykaa-theo-thang] wrong: gom_theo_thang_bo_nam
--- Rớt ở hidden-1: gom theo MONTH() bỏ năm, chiến dịch ngày 1/7/2025 cộng vào tháng 7/2024. Trên public trùng lời giải.
-SELECT DATE_FORMAT(MIN(start_date), '%Y-%m') AS thang,
-       SUM(conversions) AS luot_chuyen_doi,
-       SUM(revenue) AS doanh_thu,
-       ROUND(SUM(revenue) / SUM(conversions), 2) AS gia_tri_don_bq
-FROM campaigns
-WHERE brand_id = 1
-  AND start_date >= '2024-07-01'
-GROUP BY MONTH(start_date)
-ORDER BY MIN(start_date);
-
--- [mkt-a6-doanh-thu-nykaa-theo-thang] wrong: binh_quan_gia_tri_don_tung_chien_dich
--- Rớt ở public: bình quân giản đơn giá trị đơn của từng chiến dịch, khác tổng doanh thu chia tổng lượt chuyển đổi.
+-- [mkt-a6-doanh-thu-nykaa-theo-thang] wrong: binh_quan_thay_tong
+-- Rớt ở public: AVG ra số bình quân một chiến dịch, không phải tổng của tháng.
 SELECT DATE_FORMAT(start_date, '%Y-%m') AS thang,
+       COUNT(*) AS so_chien_dich,
+       AVG(conversions) AS luot_chuyen_doi,
+       AVG(revenue) AS doanh_thu
+FROM campaigns
+WHERE brand_id = 1
+  AND start_date >= '2024-07-01' AND start_date < '2025-07-01'
+GROUP BY DATE_FORMAT(start_date, '%Y-%m')
+ORDER BY thang;
+
+-- [mkt-a6-doanh-thu-nykaa-theo-thang] wrong: dem_thay_cong
+-- Rớt ở public: COUNT(cột) đếm số chiến dịch có giá trị, không cộng số lượt và số tiền.
+SELECT DATE_FORMAT(start_date, '%Y-%m') AS thang,
+       COUNT(*) AS so_chien_dich,
+       COUNT(conversions) AS luot_chuyen_doi,
+       COUNT(revenue) AS doanh_thu
+FROM campaigns
+WHERE brand_id = 1
+  AND start_date >= '2024-07-01' AND start_date < '2025-07-01'
+GROUP BY DATE_FORMAT(start_date, '%Y-%m')
+ORDER BY thang;
+
+-- [mkt-a6-doanh-thu-nykaa-theo-thang] wrong: thieu_can_tren
+-- Rớt ở hidden-1: chiến dịch Nykaa ngày 1/7/2025 thêm dòng 2025-07.
+SELECT DATE_FORMAT(start_date, '%Y-%m') AS thang,
+       COUNT(*) AS so_chien_dich,
        SUM(conversions) AS luot_chuyen_doi,
-       SUM(revenue) AS doanh_thu,
-       ROUND(AVG(revenue / conversions), 2) AS gia_tri_don_bq
+       SUM(revenue) AS doanh_thu
 FROM campaigns
 WHERE brand_id = 1
   AND start_date >= '2024-07-01'
 GROUP BY DATE_FORMAT(start_date, '%Y-%m')
 ORDER BY thang;
 
--- [mkt-a7-roi-thuong-hieu-cao-bat-thuong] starter
-SELECT COUNT(*) AS so_chien_dich,
+-- [mkt-a7-roi-thang-nykaa-lech-tai-chinh] starter
+SELECT DATE_FORMAT(start_date, '%Y-%m') AS thang,
+       COUNT(*) AS so_chien_dich,
+       ROUND(SUM(acquisition_cost), 2) AS chi_phi,
        ROUND(AVG(roi), 4) AS roi
 FROM campaigns
-WHERE brand_id = 2
-  AND start_date >= '2024-07-01' AND start_date < '2025-01-01';
+WHERE brand_id = 1
+  AND type_id = 5
+  AND start_date >= '2025-01-01'
+GROUP BY DATE_FORMAT(start_date, '%Y-%m')
+ORDER BY thang;
 
--- [mkt-a7-roi-thuong-hieu-cao-bat-thuong] solution
-SELECT COUNT(*) AS so_chien_dich,
+-- [mkt-a7-roi-thang-nykaa-lech-tai-chinh] solution
+SELECT DATE_FORMAT(start_date, '%Y-%m') AS thang,
+       COUNT(*) AS so_chien_dich,
+       ROUND(SUM(acquisition_cost * conversions), 2) AS chi_phi,
        ROUND((SUM(revenue) - SUM(acquisition_cost * conversions)) / SUM(acquisition_cost * conversions), 4) AS roi
 FROM campaigns
-WHERE brand_id = 2
-  AND start_date >= '2024-07-01' AND start_date < '2025-01-01';
+WHERE brand_id = 1
+  AND type_id = 5
+  AND start_date >= '2025-01-01' AND start_date < '2025-07-01'
+GROUP BY DATE_FORMAT(start_date, '%Y-%m')
+ORDER BY thang;
 
--- [mkt-a7-roi-thuong-hieu-cao-bat-thuong] wrong: doanh_thu_chia_chi_phi
--- Rớt ở public: doanh thu chia chi phí là ROAS, lớn hơn ROI đúng 1.
-SELECT COUNT(*) AS so_chien_dich,
-       ROUND(SUM(revenue) / SUM(acquisition_cost * conversions), 4) AS roi
+-- [mkt-a7-roi-thang-nykaa-lech-tai-chinh] wrong: chi_sua_roi
+-- Rớt ở public: ROI đã tính từ tổng nhưng cột chi_phi vẫn là tổng CPA.
+SELECT DATE_FORMAT(start_date, '%Y-%m') AS thang,
+       COUNT(*) AS so_chien_dich,
+       ROUND(SUM(acquisition_cost), 2) AS chi_phi,
+       ROUND((SUM(revenue) - SUM(acquisition_cost * conversions)) / SUM(acquisition_cost * conversions), 4) AS roi
 FROM campaigns
-WHERE brand_id = 2
-  AND start_date >= '2024-07-01' AND start_date < '2025-01-01';
+WHERE brand_id = 1
+  AND type_id = 5
+  AND start_date >= '2025-01-01' AND start_date < '2025-07-01'
+GROUP BY DATE_FORMAT(start_date, '%Y-%m')
+ORDER BY thang;
 
--- [mkt-a7-roi-thuong-hieu-cao-bat-thuong] wrong: chi_phi_quen_nhan_chuyen_doi
--- Rớt ở public: lấy tổng acquisition_cost (CPA) làm tổng chi phí, ROI ra hàng nghìn.
-SELECT COUNT(*) AS so_chien_dich,
+-- [mkt-a7-roi-thang-nykaa-lech-tai-chinh] wrong: roi_tu_tong_cpa
+-- Rớt ở public: ROI tính từ tổng CPA của cột chi_phi cũ, ra hàng trăm.
+SELECT DATE_FORMAT(start_date, '%Y-%m') AS thang,
+       COUNT(*) AS so_chien_dich,
+       ROUND(SUM(acquisition_cost), 2) AS chi_phi,
        ROUND((SUM(revenue) - SUM(acquisition_cost)) / SUM(acquisition_cost), 4) AS roi
 FROM campaigns
-WHERE brand_id = 2
-  AND start_date >= '2024-07-01' AND start_date < '2025-01-01';
+WHERE brand_id = 1
+  AND type_id = 5
+  AND start_date >= '2025-01-01' AND start_date < '2025-07-01'
+GROUP BY DATE_FORMAT(start_date, '%Y-%m')
+ORDER BY thang;
+
+-- [mkt-a7-roi-thang-nykaa-lech-tai-chinh] wrong: doanh_thu_chia_chi_phi
+-- Rớt ở public: doanh thu chia chi phí là ROAS, lớn hơn ROI đúng 1.
+SELECT DATE_FORMAT(start_date, '%Y-%m') AS thang,
+       COUNT(*) AS so_chien_dich,
+       ROUND(SUM(acquisition_cost * conversions), 2) AS chi_phi,
+       ROUND(SUM(revenue) / SUM(acquisition_cost * conversions), 4) AS roi
+FROM campaigns
+WHERE brand_id = 1
+  AND type_id = 5
+  AND start_date >= '2025-01-01' AND start_date < '2025-07-01'
+GROUP BY DATE_FORMAT(start_date, '%Y-%m')
+ORDER BY thang;
+
+-- [mkt-a7-roi-thang-nykaa-lech-tai-chinh] wrong: sua_hai_loi_thieu_can_tren
+-- Rớt ở hidden-1: chiến dịch Nykaa Social Media ngày 1/7/2025 thêm dòng 2025-07.
+SELECT DATE_FORMAT(start_date, '%Y-%m') AS thang,
+       COUNT(*) AS so_chien_dich,
+       ROUND(SUM(acquisition_cost * conversions), 2) AS chi_phi,
+       ROUND((SUM(revenue) - SUM(acquisition_cost * conversions)) / SUM(acquisition_cost * conversions), 4) AS roi
+FROM campaigns
+WHERE brand_id = 1
+  AND type_id = 5
+  AND start_date >= '2025-01-01'
+GROUP BY DATE_FORMAT(start_date, '%Y-%m')
+ORDER BY thang;
 
 -- [mkt-a8-so-chien-dich-tho-thua] starter
 SELECT COUNT(*) AS so_dong,
