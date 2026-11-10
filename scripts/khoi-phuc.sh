@@ -16,7 +16,7 @@ export MSYS_NO_PATHCONV=1 MSYS2_ARG_CONV_EXCL='*'
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 CT=sqllb-mysql
-TAG=v1.0.0
+TAG=v1.1.0
 REPO=""
 TU_CSV=0
 KHONG_TAI=0

@@ -12,7 +12,7 @@
 # khong nam tren dong lenh, khong in ra.
 [CmdletBinding()]
 param(
-    [string]$Tag = 'v1.0.0',
+    [string]$Tag = 'v1.1.0',
     [string]$Repo = '',
     [switch]$TuCsv,
     [switch]$KhongTai

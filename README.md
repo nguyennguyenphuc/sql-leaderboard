@@ -7,7 +7,7 @@ máy chủ chấm MySQL 8.0 và kiểm một gói câu hỏi trên máy khác:
 - `docker-compose.yml` cho MySQL và image công cụ `sqllb-tools`;
 - bộ kiểm gói (`cong-cu/`) và quy chuẩn soạn câu (`quy_chuan/`, `style/`).
 
-Dữ liệu không nằm trong git. Bản dump nén của 10 database được đính kèm GitHub Release `v1.0.0`;
+Dữ liệu không nằm trong git. Bản dump nén của 10 database được đính kèm GitHub Release `v1.1.0`;
 CSV trung gian (~1,2 GB) chỉ có trên máy gốc.
 
 | Bộ | Database (public, ẩn) | Nguồn |
@@ -52,13 +52,13 @@ khoảng 10 GB trống.
 ```bash
 git clone https://github.com/nguyennguyenphuc/sql-leaderboard.git sql-leaderboard
 cd sql-leaderboard
-bash scripts/khoi-phuc.sh            # mặc định tải Release v1.0.0; release khác: --tag v1.0.0
+bash scripts/khoi-phuc.sh            # mặc định tải Release v1.1.0; release khác: --tag v1.1.0
 ```
 
 Trên Windows không có Git Bash:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\khoi-phuc.ps1 -Tag v1.0.0
+powershell -ExecutionPolicy Bypass -File scripts\khoi-phuc.ps1 -Tag v1.1.0
 ```
 
 Script làm lần lượt: kiểm Docker; tạo `mysql/.env` với mật khẩu ngẫu nhiên nếu chưa có; `docker compose up -d mysql`;
@@ -70,7 +70,7 @@ Tuỳ chọn:
 
 | `khoi-phuc.sh` | `khoi-phuc.ps1` | Tác dụng |
 |---|---|---|
-| `--tag <tag>` | `-Tag <tag>` | release cần tải (mặc định `v1.0.0`) |
+| `--tag <tag>` | `-Tag <tag>` | release cần tải (mặc định `v1.1.0`) |
 | `--repo <chủ>/<tên>` | `-Repo <chủ>/<tên>` | repo GitHub, khi thư mục hiện tại không phải bản clone |
 | `--khong-tai` | `-KhongTai` | không gọi `gh`, dùng dump đã chép sẵn vào `dist/dumps/` |
 | `--tu-csv` | `-TuCsv` | dựng từ script gốc (`02_nap_*.sh --chi-nap`, `03_bien_the_an_*.sql`); cần CSV trong `mysql/**/du-lieu/` |
@@ -93,7 +93,7 @@ Trên máy gốc, lúc MySQL rảnh:
 
 ```bash
 bash scripts/xuat-dump.sh                         # 10 database -> dist/dumps/*.sql.gz + SHA256SUMS
-gh release create v1.0.0 dist/dumps/*.sql.gz dist/dumps/SHA256SUMS --title "Dữ liệu MySQL v1.0.0" --notes "..."
+gh release create v1.1.0 dist/dumps/*.sql.gz dist/dumps/SHA256SUMS --title "Dữ liệu MySQL v1.1.0" --notes "..."
 ```
 
 `xuat-dump.sh` chạy `mysqldump --single-transaction --routines --no-tablespaces` qua `docker exec sqllb-mysql`, mật

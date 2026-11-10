@@ -21,9 +21,8 @@ GRANT SELECT ON `mkt\_hidden\_%`.* TO 'sql_runner'@'%';
 -- Datathon (khi nạp bộ dữ liệu datathon_2026 vào cùng máy chủ):
 GRANT SELECT ON `datathon\_2026`.* TO 'sql_runner'@'%';
 GRANT SELECT ON `datathon\_2026\_hidden\_%`.* TO 'sql_runner'@'%';
-FLUSH PRIVILEGES;
-SHOW GRANTS FOR 'sql_runner'@'%';
-
--- Finance (AIV Bank) – them 10/11/2026: lan dung lai user luc 17:02 thieu 2 dong nay.
+-- Finance (AIV Bank) – thêm 10/11/2026:
 GRANT SELECT ON `aivb`.* TO 'sql_runner'@'%';
 GRANT SELECT ON `aivb\_hidden\_%`.* TO 'sql_runner'@'%';
+FLUSH PRIVILEGES;
+SHOW GRANTS FOR 'sql_runner'@'%';
