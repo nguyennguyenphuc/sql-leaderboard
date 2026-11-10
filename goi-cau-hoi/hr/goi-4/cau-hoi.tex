@@ -206,13 +206,13 @@
 
 % ================================================================ t5 · debug · Khó
 \begin{cauhoi}[ma=hr-t5-chuoi-quan-ly-lap, dulieu=hr, domain=operations,
-  hinhthuc=debug, cap=hard, dang=E3, kynang={WITH RECURSIVE, giữ đường đi, FIND\_IN\_SET}, bay={chu-trinh, chi-chan-do-sau},
+  hinhthuc=debug, cap=hard, dang=E3, kynang={WITH RECURSIVE, giữ đường đi, FIND\_IN\_SET}, bay={chu-trinh, neo-thieu-thang, chi-chan-do-sau},
   tacgia={Agent gói 4}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
-\tieude{Tuyến báo cáo của E00041 lặp lại ba người}
-\boicanh[Anh Long · Chuyên viên phân tích nhân sự]{Anh lập tuyến báo cáo từ nhân viên E00041 lên cấp cao nhất để làm luồng duyệt đơn, mà kết quả cứ lặp lại ba người tới hết mười dòng. Anh chưa thấy lỗi nằm ở đâu.}
+\tieude{Tuyến báo cáo của E00041 ra cả trăm dòng lặp lại}
+\boicanh[Anh Long · Chuyên viên phân tích nhân sự]{Anh lập tuyến báo cáo từ E00041 lên cấp cao nhất để làm luồng duyệt đơn, mà kết quả ra cả trăm dòng, mỗi người lặp lại nhiều lần. Em xem giúp anh.}
 \begin{yeucau}
-  \item Truy vấn dưới đây liệt kê tuyến báo cáo tháng 12/2025 đi từ nhân viên \code{E00041} lên các cấp quản lý, mỗi dòng một người, nhưng lặp lại khi gặp một vòng báo cáo (người phía trên lại ghi người phía dưới là quản lý).
-  \item Sửa để chuỗi dừng ngay khi người tiếp theo đã có trong chuỗi. Mỗi người xuất hiện đúng một lần; dòng của người cuối vẫn ghi \code{manager_id} của người đó.
+  \item Truy vấn dưới đây cần liệt kê tuyến báo cáo tháng 12/2025 đi từ nhân viên \code{E00041} lên các cấp quản lý, mỗi dòng một người, nhưng kết quả có rất nhiều dòng lặp lại.
+  \item Truy vấn có hai lỗi chồng nhau. Sửa cả hai để mỗi người xuất hiện đúng một lần: tuyến dừng ngay khi người tiếp theo đã có trong tuyến (dữ liệu có vòng báo cáo, người phía trên lại ghi người phía dưới là quản lý); dòng của người cuối vẫn ghi \code{manager_id} của người đó.
   \item Giữ nguyên cột \code{buoc}, \code{employee_id}, \code{manager_id}, giới hạn 10 bước và thứ tự sắp.
 \end{yeucau}
 \begin{erd}
@@ -227,9 +227,9 @@
   \khainiem{quan-ly-truc-tiep}
   \luuy{Trong tuyến phê duyệt, mỗi người chỉ duyệt một lần. Dữ liệu quản lý có vòng báo cáo, nên tuyến đi lên có thể gặp lại người đã duyệt.}
 \end{nghiepvu}
-\goiy{Phần đệ quy chỉ thấy dòng ngay trước. Làm sao để bước sau biết những ai đã có trong chuỗi, kể cả người xuất phát?}
+\goiy{Đếm số dòng ở bước 1: phần neo lấy mấy dòng của E00041? Còn phần đệ quy chỉ thấy dòng ngay trước, vậy làm sao bước sau biết những ai đã có trong chuỗi, kể cả người xuất phát?}
 \goiy{Thêm cột đường đi kiểu chuỗi (khai báo đủ dài bằng \code{CAST(... AS CHAR(500))} ở phần neo), nối thêm mỗi bước bằng \code{CONCAT}, và chỉ đi tiếp khi \code{FIND_IN_SET(...)} bằng 0.}
-\ghichuthietke{Khó: 5 bảng chỉ khoá, ERD trung tính, erdkhoa chỉ nêu khoá (chuẩn hoá: thêm erdkhoa như mẫu d4). Chọn E00041: public đi E00041, E01206, E02178 rồi vào vòng ba người E02554 – E00975 – E02287 (6 dòng); hidden-1 bỏ E02287 nên chuỗi dừng ở 5 dòng, hai biến thể khác nhau. Bản đồ gợi ý E00027 nhưng E00027 bị bỏ ở hidden-1. Starter ra 10 dòng ở public. Wrong chỉ dừng khi quay về người xuất phát vẫn ra 10 dòng; wrong dừng sớm một bước mất người cuối; cả hai rớt public. ERD v3: giữ 5 bảng chỉ khoá (lời giải dùng 1 bảng; QUYET-DINH-CHUNG 1.3 sửa theo quy chuẩn 23:05 cho thêm bảng nhiễu cho đủ 5 bảng, như mẫu d4, o4).}
+\ghichuthietke{Khó: 5 bảng chỉ khoá, ERD trung tính, erdkhoa chỉ nêu khoá (chuẩn hoá: thêm erdkhoa như mẫu d4). Chọn E00041: public đi E00041, E01206, E02178 rồi vào vòng ba người E02554 – E00975 – E02287 (6 dòng); hidden-1 bỏ E02287 nên chuỗi dừng ở 5 dòng, hai biến thể khác nhau. Bản đồ gợi ý E00027 nhưng E00027 bị bỏ ở hidden-1. Kiểm V4 (11/11/2026): bản trước starter chỉ có một lỗi và ở hidden-1 ra đúng bằng lời giải, nên thêm lỗi thứ hai: phần neo bỏ điều kiện \code{snapshot_month = '2025-12'}, lấy mọi tháng của E00041 (24 dòng), mọi bước nhân lên theo. Hai lỗi chồng nhau: (1) neo thiếu tháng, (2) không chặn chu trình. Starter ra 231 dòng ở public, 116 dòng ở hidden-1, sai ở cả hai biến thể; sửa riêng (2) vẫn lặp 23–24 lần mỗi bước; sửa riêng (1) ở public vẫn lặp vòng ba người tới hết 10 bước. 5 trục: số bảng 1 (Cơ bản; câu Khó không bắt buộc nhiều bảng, QDC 0.1 \#6); số bước: CTE đệ quy giữ đường đi, chặn chu trình, lọc tháng ở neo (Khó); mơ hồ: lời nhắn chỉ nêu triệu chứng, đề không chỉ chỗ sai (Trung bình – Khó); bẫy 2: vòng báo cáo, neo nhiều tháng; nghiệp vụ: tuyến phê duyệt theo thời điểm (Trung bình); sửa lỗi: 2 lỗi chồng nhau (Khó theo QDC 2.2). Đạt Khó ở 3/5 trục (bước, mơ hồ, sửa lỗi). Wrong chỉ dừng khi quay về người xuất phát vẫn ra 10 dòng; wrong dừng sớm một bước mất người cuối; cả hai rớt public. Wrong chặn chu trình nhưng quên tháng ở neo rớt cả hai biến thể. ERD v3: giữ 5 bảng chỉ khoá (lời giải dùng 1 bảng; QUYET-DINH-CHUNG 1.3 sửa theo quy chuẩn 23:05 cho thêm bảng nhiễu cho đủ 5 bảng, như mẫu d4, o4).}
 \end{cauhoi}
 
 % ================================================================ t6 · write · Dễ
@@ -457,36 +457,35 @@
 \end{cauhoi}
 
 % ================================================================ f5 · write · Dễ
-\begin{cauhoi}[ma=hr-f5-hang-nghi-viec-sales-theo-chuc-danh, dulieu=hr, domain=sales,
-  hinhthuc=write, cap=easy, dang=C1, kynang={RANK, PARTITION BY}, bay={mat-nhom-khong-ai-nghi},
+\begin{cauhoi}[ma=hr-f5-nghi-viec-sales-binh-quan-truot, dulieu=hr, domain=sales,
+  hinhthuc=write, cap=easy, dang=B3, kynang={AVG OVER, ROWS BETWEEN, CTE}, bay={loc-nam-truoc-cua-so},
   tacgia={Agent gói 4}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
-\tieude{Mỗi nước, chức danh kinh doanh nào mất nhiều người nhất?}
-\boicanh[Anh Bình · Trưởng phòng Kinh doanh]{Hai năm qua đội kinh doanh có nhiều người nghỉ việc. Ở mỗi nước, chức danh nào mất nhiều người nhất thì anh rà trước.}
+\tieude{Bình quân ba tháng số người nghỉ của đội kinh doanh}
+\boicanh[Anh Bình · Trưởng phòng Kinh doanh]{Số người nghỉ từng tháng của đội kinh doanh lên xuống thất thường, khó thấy xu hướng. Anh cần thêm mức bình quân ba tháng gần nhất cho từng tháng năm 2025.}
 \begin{yeucau}
-  \item Xét nhân viên phòng \code{'Sales'}, các tháng từ \code{'2024-01'} tới \code{'2025-12'}; chỉ tính người nghỉ việc tự nguyện (\code{attrition_type} = \code{'Voluntary'}).
-  \item Đếm số người nghỉ của từng cặp nước và chức danh (\code{country}, \code{job_family}); cặp không có ai nghỉ vẫn hiện, với số người nghỉ bằng 0.
-  \item Xếp hạng chức danh trong từng nước theo số người nghỉ giảm dần; bằng nhau thì cùng hạng, hạng kế tiếp bỏ qua số (1, 2, 2, 4).
-  \item Trả về \code{country}, \code{job_family}, \code{so_nguoi_nghi}, \code{hang}; sắp theo \code{country}, \code{hang}, rồi \code{job_family}.
+  \item Xét nhân viên phòng \code{'Sales'}; chỉ tính người nghỉ việc tự nguyện (\code{attrition_type} = \code{'Voluntary'}), mỗi dòng như vậy là một người nghỉ trong tháng \code{snapshot_month}.
+  \item Với mỗi tháng từ \code{'2025-01'} tới \code{'2025-12'}, tính \code{so_nghi} là số người nghỉ tự nguyện trong tháng, và \code{bq_3_thang} là bình quân \code{so_nghi} của tháng đó cùng hai tháng liền trước (tháng 1/2025 tính cùng tháng 11/2024 và 12/2024).
+  \item Trả về \code{thang} (chuỗi dạng \code{'2025-01'}), \code{so_nghi}, \code{bq_3_thang} (làm tròn 2 chữ số thập phân); sắp \code{thang} tăng dần.
 \end{yeucau}
 \begin{erd}
-  \erdbang{employee_monthly_snapshot}{0,0}{employee_id:PK, snapshot_month:PK*, country*, department*, job_family*, attrition_type*, position_id:FK}
+  \erdbang{employee_monthly_snapshot}{0,0}{employee_id:PK, snapshot_month:PK*, department*, attrition_type*, position_id:FK}
   \erdbang{positions}{1,0}{position_id:PK, country, department, job_family}
   \erdnoi[kieu=n-1, tren={\code{employee_monthly_snapshot.position_id = positions.position_id}}]{employee_monthly_snapshot.position_id}{positions.position_id}
 \end{erd}
-\begin{nghiepvu}{Chọn chức danh kinh doanh ở từng nước để phỏng vấn thôi việc và rà soát trước.}
+\begin{nghiepvu}{Theo dõi xu hướng nghỉ việc của đội kinh doanh để quyết định có cần chương trình giữ chân riêng hay không.}
   \khainiem{nghi-viec}
-  \luuy{Số người nghỉ của một chức danh còn phụ thuộc quy mô đội, nên chỉ dùng để chọn nơi rà trước, chưa thay được tỷ lệ nghỉ việc.}
+  \luuy{Đội nhỏ nên số người nghỉ mỗi tháng dao động mạnh; bình quân ba tháng gần nhất làm mượt dao động để thấy xu hướng. Tháng nào phòng Sales cũng có dòng dữ liệu, kể cả tháng không ai nghỉ tự nguyện.}
 \end{nghiepvu}
-\goiy{Lọc người nghỉ tự nguyện ở \code{WHERE} trước khi gom thì cặp nước và chức danh nào biến mất khỏi kết quả?}
-\goiy{\code{RANK() OVER (PARTITION BY country ORDER BY so_nguoi_nghi DESC)} trên bảng đã gom theo nước và chức danh.}
-\ghichuthietke{Dễ (v4, viết lại từ hr-f5-gan-ket-truot-sales-indonesia Khó), theo bài Dễ f3-hang-nhom-hang (RANK) của M8 trên lộ trình; giữ mảng Khối Kinh doanh. Năm trục: 1 bảng; 2 tầng (gom có điều kiện, RANK); đề nêu rõ cột và quy tắc hoà; 1 bẫy (lọc người nghỉ trước khi gom làm mất cặp 0 người: public Singapore · Sales Development Rep, hidden-1 thêm Singapore · Country Sales Lead); 1 khái niệm, không công thức. Đạt Dễ 5/5. ERD 2 bảng, \code{positions} nhiễu. Hoà ở hạng 2 (Malaysia, Thailand ở public; thêm Vietnam, Singapore ở hidden-1) nên wrong ROW\_NUMBER rớt cả hai biến thể; wrong lọc trước khi gom rớt cả hai. Trung bình trượt (ROWS BETWEEN) không còn trong gói; luỹ kế còn ở f2, f9. Câu chỉ đếm người nghỉ, không dùng mức luật của Việt Nam cho nước khác.}
+\goiy{Nếu chỉ giữ các tháng năm 2025 trước khi tính bình quân, tháng 1 và tháng 2 còn lấy được mấy tháng liền trước?}
+\goiy{\code{AVG(so_nghi) OVER (ORDER BY thang ROWS BETWEEN 2 PRECEDING AND CURRENT ROW)} trên bảng đã gom theo tháng.}
+\ghichuthietke{Dễ (kiểm V4, 11/11/2026: viết lại từ \code{hr-f5-hang-nghi-viec-sales-theo-chuc-danh} Dễ (RANK theo chức danh) để Module 8 có lại khung \code{ROWS BETWEEN}, nội dung chính của M8 theo CHOT-LO-TRINH mục 1 và bài \code{f5-trung-binh-truot} của lộ trình; bản RANK cũng làm M8 có bốn câu xếp hạng, đánh số trong nhóm). Giữ mảng Khối Kinh doanh, cấp Dễ, hình thức write nên phân bố cấp và hình thức của M8 không đổi. Năm trục: 1 bảng (Dễ ở M8 khi đã có hàm cửa sổ); 2 tầng (gom theo tháng, rồi cửa sổ trượt; Dễ); đề ghi rõ cột, nêu khung ba tháng bằng lời (Dễ); 1 bẫy (lọc năm 2025 trước khi tính cửa sổ làm tháng 1, 2 thiếu tháng 11, 12/2024; Dễ); nghiệp vụ một công thức bình quân (Dễ). Đạt Dễ 5/5. ERD 2 bảng, \code{positions} nhiễu, chữ trên đường nối. Public khác hidden-1 ở tháng 3, 11, 12/2025. Wrong lọc năm trước cửa sổ và wrong dùng khung mặc định (bình quân luỹ kế) rớt cả hai biến thể; wrong thiếu cận trên rớt ở hidden-1 (thêm dòng \code{'2026-01'} của E00002, phòng Sales). Ô B3 · sales · easy · write chưa có trong cả bộ.}
 \end{cauhoi}
 
 % ================================================================ f6 · write · Cơ bản
 \begin{cauhoi}[ma=hr-f6-thu-tu-yeu-cau-singapore, dulieu=hr, domain=marketing,
   hinhthuc=write, cap=basic, dang=A1, kynang={ROW\_NUMBER, PARTITION BY}, bay={sap-theo-ma},
   tacgia={Agent gói 4}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
-\tieude{Yêu cầu tuyển dụng thứ mấy của phòng ở Singapore năm 2025?}
+\tieude{Đánh số yêu cầu tuyển dụng năm 2025 của từng phòng ở Singapore}
 \boicanh[Chị Mai · Trưởng nhóm tuyển dụng]{Chị đang lập sổ theo dõi tuyển dụng năm 2025 của văn phòng Singapore. Em đánh số giúp chị các yêu cầu của từng phòng ban theo thứ tự ngày duyệt.}
 \begin{yeucau}
   \item Xét yêu cầu tuyển dụng ở \code{'Singapore'} có ngày duyệt trong năm 2025 (từ \code{'2025-01-01'} tới hết \code{'2025-12-31'}).
@@ -502,7 +501,7 @@
 \end{nghiepvu}
 \goiy{Số thứ tự bắt đầu lại từ 1 ở mỗi phòng ban.}
 \goiy{\code{ROW_NUMBER() OVER (PARTITION BY department ORDER BY approval_date, requisition_id)}.}
-\ghichuthietke{Cơ bản (v4, viết lại từ hr-f6-yeu-cau-dat-nhat-moi-phong Trung bình), theo bài Cơ bản f1-thu-tu-don (ROW\_NUMBER) của M8 trên lộ trình. Năm trục: 1 bảng; 1 tầng (lọc rồi một hàm cửa sổ); đề ghi rõ cột, giá trị lọc, tiêu chí phụ, ERD có giá trị mẫu (R0036 duyệt năm 2024, không nằm trong kết quả); 0 bẫy dữ liệu; 1 khái niệm. Đạt Cơ bản 5/5. Public 28 dòng; hidden-1 bỏ R0447, R0787 và thêm R9001 (phòng Engineering, duyệt 2025-08-14) nên 27 dòng, số thứ tự đổi. Wrong thiếu PARTITION BY (đánh số chung cả văn phòng) và wrong sắp theo mã yêu cầu đều rớt cả hai biến thể. Ô A1 · marketing · Cơ bản · write trùng với r3, s2 (gói 1, 2); khác gói nên giữ.}
+\ghichuthietke{Cơ bản (v4, viết lại từ hr-f6-yeu-cau-dat-nhat-moi-phong Trung bình), theo bài Cơ bản f1-thu-tu-don (ROW\_NUMBER) của M8 trên lộ trình. Năm trục: 1 bảng; 1 tầng (lọc rồi một hàm cửa sổ); đề ghi rõ cột, giá trị lọc, tiêu chí phụ, ERD có giá trị mẫu (R0036 duyệt năm 2024, không nằm trong kết quả); 0 bẫy dữ liệu; 1 khái niệm. Đạt Cơ bản 5/5. Public 28 dòng; hidden-1 bỏ R0447, R0787 và thêm R9001 (phòng Engineering, duyệt 2025-08-14) nên 27 dòng, số thứ tự đổi. Wrong thiếu PARTITION BY (đánh số chung cả văn phòng) và wrong sắp theo mã yêu cầu đều rớt cả hai biến thể. Ô A1 · marketing · Cơ bản · write trùng với s2 (gói 2; r3 đã nâng Khó ở v4 nên khác ô); trùng ô giữa hai gói được phép, hai câu khác chủ đề (đánh số yêu cầu tuyển theo phòng, so với lọc ngày đi làm thứ Hai) nên giữ.}
 \end{cauhoi}
 
 % ================================================================ f7 · debug · Trung bình
@@ -597,7 +596,7 @@
   \erdbang{employee_monthly_snapshot}{0,0}{employee_id:PK, snapshot_month:PK*, engagement_score*, attrition_type*, attrition_this_month*}
   \erdbang{engagement_survey}{1,0}{employee_id:PK, survey_quarter:PK*, engagement_score*, intent_to_stay*}
   \erdbang{positions}{0,1}{position_id:PK}
-  \erdnoi[kieu=n-n, tren={\code{employee_id} và quý}]{employee_monthly_snapshot.employee_id}{engagement_survey.employee_id}
+  \erdnoi[kieu=n-n]{employee_monthly_snapshot.employee_id}{engagement_survey.employee_id}
   \erdnoi[kieu=n-1]{employee_monthly_snapshot.position_id}{positions.position_id}
 \end{erd}
 \begin{nghiepvu}{Quyết định có đưa điểm gắn kết và ý định ở lại vào bộ chỉ số cảnh báo sớm nghỉ việc hay không.}
@@ -630,12 +629,12 @@
     \phuongan{Chỉ cần theo dõi điểm gắn kết của tháng gần nhất, vì điểm chỉ giảm mạnh ở tháng ngay trước khi nghỉ.}
       {Bước 2 cho thấy điểm của người nghỉ đã thấp từ sáu tháng trước và giảm dần đều, không dồn vào tháng cuối.}
     \phuongan*{Người nghỉ tự nguyện có điểm gắn kết thấp hơn từ sáu tháng trước khi nghỉ, và ý định ở lại trong khảo sát cùng quý cũng thấp hơn.}
-      {Đúng: bước 1, 2 cho thấy khoảng cách lớn, có sớm; bước 3 đo cùng quý, bỏ được chênh do khác thời điểm nhưng chưa bỏ thiên lệch người ở lại.}
+      {Đúng: bước 1, 2 cho thấy người nghỉ có điểm thấp hơn rõ từ sáu tháng trước; bước 3 so cùng quý nên bớt được lệch thời điểm, nhưng chưa bỏ được thiên lệch người ở lại.}
     \phuongan{Điểm gắn kết thấp là nguyên nhân khiến nhân viên nghỉ, nên nâng điểm của mỗi người lên mức của người ở lại sẽ giữ được phần lớn số người nghỉ.}
       {Các bước chỉ cho thấy hai nhóm khác nhau; số liệu quan sát chưa đủ để kết luận về nguyên nhân.}
   \end{luachon}
 \end{buoc}
-\ghichuthietke{Case Trung bình: 3 bảng có ký hiệu, 3 bước SQL (CTE, UNION ALL, PERIOD\_DIFF, nối khảo sát đúng quý) và 1 bước kết luận. Bẫy: thiên lệch người ở lại (bước 1 so hai khoảng thời gian khác nhau, bước 3 sửa bằng cùng quý); hai nguồn gắn kết (bước 3 dùng khảo sát quý). Phương án sai: dồn vào tháng cuối; quy nguyên nhân từ dữ liệu mô phỏng (H5).}
+\ghichuthietke{Case Trung bình: 3 bảng có ký hiệu (kiểm V4: bỏ chữ trên đường nối \code{employee_id}, vì ERD Trung bình chỉ ký hiệu, không ghi cột nối theo CHOT-FORMAT mục 3), 3 bước SQL (CTE, UNION ALL, PERIOD\_DIFF, nối khảo sát đúng quý) và 1 bước kết luận. Bẫy: thiên lệch người ở lại (bước 1 so hai khoảng thời gian khác nhau, bước 3 sửa bằng cùng quý); hai nguồn gắn kết (bước 3 dùng khảo sát quý). Phương án sai: dồn vào tháng cuối; quy nguyên nhân từ dữ liệu mô phỏng (H5).}
 \end{cauhoi}
 
 % ================================================================ c8 · case · Khó

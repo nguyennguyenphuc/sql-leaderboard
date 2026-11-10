@@ -182,7 +182,7 @@ ORDER BY so_cap_duoi;
 WITH RECURSIVE chuoi AS (
   SELECT 1 AS buoc, employee_id, manager_id
   FROM employee_monthly_snapshot
-  WHERE snapshot_month = '2025-12' AND employee_id = 'E00041'
+  WHERE employee_id = 'E00041'
   UNION ALL
   SELECT c.buoc + 1, e.employee_id, e.manager_id
   FROM chuoi c
@@ -240,6 +240,23 @@ WITH RECURSIVE chuoi AS (
     ON e.employee_id = c.manager_id AND e.snapshot_month = '2025-12'
   WHERE c.buoc < 10 AND FIND_IN_SET(e.employee_id, c.da_qua) = 0
     AND FIND_IN_SET(e.manager_id, CONCAT(c.da_qua, ',', e.employee_id)) = 0
+)
+SELECT buoc, employee_id, manager_id
+FROM chuoi
+ORDER BY buoc;
+
+-- [hr-t5-chuoi-quan-ly-lap] wrong: chi_chan_chu_trinh_quen_thang_neo
+-- Chặn chu trình đúng nhưng phần neo vẫn lấy mọi tháng của E00041: mỗi bước lặp 23-24 lần, rớt ở cả hai biến thể.
+WITH RECURSIVE chuoi AS (
+  SELECT 1 AS buoc, employee_id, manager_id, CAST(employee_id AS CHAR(500)) AS da_qua
+  FROM employee_monthly_snapshot
+  WHERE employee_id = 'E00041'
+  UNION ALL
+  SELECT c.buoc + 1, e.employee_id, e.manager_id, CONCAT(c.da_qua, ',', e.employee_id)
+  FROM chuoi c
+  JOIN employee_monthly_snapshot e
+    ON e.employee_id = c.manager_id AND e.snapshot_month = '2025-12'
+  WHERE c.buoc < 10 AND FIND_IN_SET(e.employee_id, c.da_qua) = 0
 )
 SELECT buoc, employee_id, manager_id
 FROM chuoi
@@ -658,48 +675,78 @@ FROM chuoi
 WHERE snapshot_month = thang_nghi AND so_thang_giam >= 3
 ORDER BY so_thang_giam DESC, employee_id;
 
--- [hr-f5-hang-nghi-viec-sales-theo-chuc-danh] solution
-WITH nhom AS (
-  SELECT country, job_family,
-         COUNT(CASE WHEN attrition_type = 'Voluntary' THEN 1 END) AS so_nguoi_nghi
+-- [hr-f5-nghi-viec-sales-binh-quan-truot] solution
+WITH theo_thang AS (
+  SELECT snapshot_month AS thang,
+         COUNT(CASE WHEN attrition_type = 'Voluntary' THEN 1 END) AS so_nghi
   FROM employee_monthly_snapshot
   WHERE department = 'Sales'
-    AND snapshot_month >= '2024-01' AND snapshot_month <= '2025-12'
-  GROUP BY country, job_family
+    AND snapshot_month >= '2024-11' AND snapshot_month <= '2025-12'
+  GROUP BY snapshot_month
+),
+truot AS (
+  SELECT thang, so_nghi,
+         AVG(so_nghi) OVER (ORDER BY thang ROWS BETWEEN 2 PRECEDING AND CURRENT ROW) AS bq
+  FROM theo_thang
 )
-SELECT country, job_family, so_nguoi_nghi,
-       RANK() OVER (PARTITION BY country ORDER BY so_nguoi_nghi DESC) AS hang
-FROM nhom
-ORDER BY country, hang, job_family;
+SELECT thang, so_nghi, ROUND(bq, 2) AS bq_3_thang
+FROM truot
+WHERE thang >= '2025-01'
+ORDER BY thang;
 
--- [hr-f5-hang-nghi-viec-sales-theo-chuc-danh] wrong: dung_row_number
--- ROW_NUMBER() chia hạng khác nhau cho hai chức danh bằng số người nghỉ (hoà hạng 2 ở Malaysia, Thailand): rớt cả hai biến thể.
-WITH nhom AS (
-  SELECT country, job_family,
-         COUNT(CASE WHEN attrition_type = 'Voluntary' THEN 1 END) AS so_nguoi_nghi
+-- [hr-f5-nghi-viec-sales-binh-quan-truot] wrong: loc_nam_truoc_cua_so
+-- Lọc năm 2025 trước khi tính cửa sổ: tháng 1, 2 thiếu tháng 11, 12/2024, rớt cả hai biến thể.
+WITH theo_thang AS (
+  SELECT snapshot_month AS thang,
+         COUNT(CASE WHEN attrition_type = 'Voluntary' THEN 1 END) AS so_nghi
   FROM employee_monthly_snapshot
   WHERE department = 'Sales'
-    AND snapshot_month >= '2024-01' AND snapshot_month <= '2025-12'
-  GROUP BY country, job_family
+    AND snapshot_month >= '2025-01' AND snapshot_month <= '2025-12'
+  GROUP BY snapshot_month
 )
-SELECT country, job_family, so_nguoi_nghi,
-       ROW_NUMBER() OVER (PARTITION BY country ORDER BY so_nguoi_nghi DESC, job_family) AS hang
-FROM nhom
-ORDER BY country, hang, job_family;
+SELECT thang, so_nghi,
+       ROUND(AVG(so_nghi) OVER (ORDER BY thang ROWS BETWEEN 2 PRECEDING AND CURRENT ROW), 2) AS bq_3_thang
+FROM theo_thang
+ORDER BY thang;
 
--- [hr-f5-hang-nghi-viec-sales-theo-chuc-danh] wrong: loc_truoc_khi_gom
--- Lọc người nghỉ tự nguyện ở WHERE trước khi gom: cặp không có ai nghỉ biến mất (Singapore), rớt cả hai biến thể.
-WITH nhom AS (
-  SELECT country, job_family, COUNT(*) AS so_nguoi_nghi
+-- [hr-f5-nghi-viec-sales-binh-quan-truot] wrong: khung_mac_dinh_luy_ke
+-- Không ghi khung: AVG OVER (ORDER BY) mặc định lấy từ đầu tới dòng hiện tại (bình quân luỹ kế), rớt cả hai biến thể.
+WITH theo_thang AS (
+  SELECT snapshot_month AS thang,
+         COUNT(CASE WHEN attrition_type = 'Voluntary' THEN 1 END) AS so_nghi
   FROM employee_monthly_snapshot
-  WHERE department = 'Sales' AND attrition_type = 'Voluntary'
-    AND snapshot_month >= '2024-01' AND snapshot_month <= '2025-12'
-  GROUP BY country, job_family
+  WHERE department = 'Sales'
+    AND snapshot_month >= '2024-11' AND snapshot_month <= '2025-12'
+  GROUP BY snapshot_month
+),
+truot AS (
+  SELECT thang, so_nghi, AVG(so_nghi) OVER (ORDER BY thang) AS bq
+  FROM theo_thang
 )
-SELECT country, job_family, so_nguoi_nghi,
-       RANK() OVER (PARTITION BY country ORDER BY so_nguoi_nghi DESC) AS hang
-FROM nhom
-ORDER BY country, hang, job_family;
+SELECT thang, so_nghi, ROUND(bq, 2) AS bq_3_thang
+FROM truot
+WHERE thang >= '2025-01'
+ORDER BY thang;
+
+-- [hr-f5-nghi-viec-sales-binh-quan-truot] wrong: thieu_can_tren
+-- Thiếu cận trên: hidden-1 có thêm dòng '2026-01' của E00002 (phòng Sales), ra thêm một tháng.
+WITH theo_thang AS (
+  SELECT snapshot_month AS thang,
+         COUNT(CASE WHEN attrition_type = 'Voluntary' THEN 1 END) AS so_nghi
+  FROM employee_monthly_snapshot
+  WHERE department = 'Sales'
+    AND snapshot_month >= '2024-11'
+  GROUP BY snapshot_month
+),
+truot AS (
+  SELECT thang, so_nghi,
+         AVG(so_nghi) OVER (ORDER BY thang ROWS BETWEEN 2 PRECEDING AND CURRENT ROW) AS bq
+  FROM theo_thang
+)
+SELECT thang, so_nghi, ROUND(bq, 2) AS bq_3_thang
+FROM truot
+WHERE thang >= '2025-01'
+ORDER BY thang;
 
 -- [hr-f6-thu-tu-yeu-cau-singapore] solution
 SELECT department, requisition_id, approval_date,

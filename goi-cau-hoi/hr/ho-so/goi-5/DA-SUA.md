@@ -79,3 +79,20 @@ Kiểm lại: bộ kiểm đầy đủ cả gói `cong-cu/ket-qua/cap-do/hr-goi-
 Sửa kèm: dòng chú thích đầu khối của k2, k4, k5, k6, k8, p1, p2, p8 ghi đúng cấp hiện tại (cũ còn ghi cấp trước v3); khai báo thêm khái niệm `de-bat` (chép từ STYLE-hr mục E). `BAN-DO-100-CAU.md`: chỉ sửa 5 dòng của gói 5, dòng M9, M10, dòng gói 5, bỏ k7 khỏi ô trùng E2 · after_sales · medium · debug, thêm ghi chú v4; các bảng tổng toàn bộ chưa cộng lại (agent gói khác đang sửa song song).
 
 Ô trùng: 5 ô mới (E1·customer·basic·write, E2·customer·hard·write, E1·finance·basic·debug, A3·marketing·easy·optimize, B1·customer·easy·optimize) không trùng ô nào trong gói, cũng không trùng gói 1–4 theo bản đồ. Gần nội dung (không trùng ô): p3 với p7 (cùng bài học chỉ mục; p7 là write trên cột chuỗi, không chấm kế hoạch) và p8; p6 với hr-s5 (gói 2, cùng cột `intent_to_stay`, khác câu hỏi).
+
+
+## Sửa theo KIEM-V4 (11/11/2026)
+
+Đầu vào: `ho-so/KIEM-V4-B.md`, `ho-so/KIEM-V4-C.md`. Không đổi cấp câu nào; mỗi module vẫn 2 Cơ bản · 3 Dễ · 2 Trung bình · 2 Khó. Quy tắc ô (đính chính của người điều phối 11/11): trùng ô giữa hai gói được phép, chỉ gỡ khi trùng trong cùng gói hoặc trùng cả chủ đề.
+
+| Mã | Điểm B/C | Đã sửa gì | Kết quả kiểm |
+|---|---|---|---|
+| hr-k2-loai-ly-do-nghi | B: `\ghichuthietke` mở bằng ``Trung bình'' trong khi `cap=easy` | Đổi thành ``Dễ, E1: …''. | Bộ kiểm cả gói 0 lỗi |
+| hr-k5-ty-le-thieu-du-lieu | C: ghi chú mở bằng ``Trung bình'' rồi cuối lại ghi hạ Dễ | Đổi thành ``Dễ (v3 hạ từ Trung bình), E1: …''. | Bộ kiểm cả gói 0 lỗi |
+| hr-k6-compa-tu-tinh | B: ghi chú mở bằng ``Khó'' trong khi `cap=medium`; wrong `noi_thieu_nam` chạy 72–88 giây | Đổi thành ``Trung bình, E2: …''; ghi thời gian chạy của wrong vào `\ghichuthietke` và mục chờ giảng viên bên dưới. | Bộ kiểm cả gói 0 lỗi |
+| hr-k8-thieu-quan-ly-ra-0 | B: ghi chú mở bằng ``Trung bình'' trong khi `cap=easy` | Đổi thành ``Dễ, E1: …''. | Bộ kiểm cả gói 0 lỗi |
+| hr-k4-bao-cao-vong | B: ô E1 · operations · medium · write trùng j6 (gói 3), đề xuất đổi mảng sang customer | Không áp: trùng giữa hai gói và khác chủ đề (vòng báo cáo / quản lý không cao bậc hơn cấp dưới), được phép theo đính chính của người điều phối. Mảng operations đúng STYLE-hr G (cây quản lý). | – |
+
+Bộ kiểm đầy đủ cả gói `cong-cu/ket-qua/sua-v4/hr-goi-5/` → **KIEM TRA: 0 loi**; biên dịch XeLaTeX `cong-cu/ket-qua/sua-v4/hr-goi-5/bien-dich/`: 0 lỗi LaTeX. Thư mục gói vẫn đúng 4 file.
+
+**Chờ giảng viên (KIEM-V4):** wrong `noi_thieu_nam` của k6 là lỗi học viên hay mắc nhưng chạy 72–88 giây mỗi biến thể (B đo lúc máy bận). Nếu máy chấm có giới hạn thời gian, học viên mắc lỗi này sẽ gặp hết giờ thay vì thấy sai kết quả. Cần giảng viên/dev chọn: giữ, hay đổi dữ liệu mẫu, hay báo lỗi thời gian rõ hơn.

@@ -79,3 +79,18 @@ Kiểm:
 - Biên dịch XeLaTeX (`cong-cu/ket-qua/cap-do/hr-goi-2-pdf/`): 0 lỗi LaTeX, 0 ký tự thiếu.
 - Ô dạng × mảng × cấp × hình thức: không trùng trong gói; 8 ô mới không trùng gói 1, 3, 4, 5 (đọc `cau-hoi.tex` các gói lúc 11/11). Ô cũ của s1 (B2·as·medium·W) trùng `hr-t1-nghi-viec-yoy-theo-phong` nên s1 chuyển sang làm thêm giờ (B2·ops).
 - Ghi chú: s1, s7 (Trung bình) dùng ERD 3 bảng mà lời giải chỉ cần 1 bảng (2 bảng nhiễu), theo CHOT mục 3 (Trung bình 3–4 bảng) và tiền lệ a6, a8; lệch quy ước bổ sung QDC 1.3 "Trung bình ≤ 1 bảng nhiễu" (quy chuẩn đứng trên).
+
+
+## Sửa theo KIEM-V4 (11/11/2026)
+
+Đầu vào: `ho-so/KIEM-V4-B.md`, `ho-so/KIEM-V4-C.md`. Không đổi cấp câu nào; mỗi module vẫn 2 Cơ bản · 3 Dễ · 2 Trung bình · 2 Khó. Quy tắc ô (đính chính của người điều phối 11/11): trùng ô giữa hai gói được phép, chỉ gỡ khi trùng trong cùng gói hoặc trùng cả chủ đề.
+
+| Mã | Điểm B/C | Đã sửa gì | Kết quả kiểm |
+|---|---|---|---|
+| hr-s7-quy-luong-nam-lech-ke-toan | B: nặng, starter có 2 dòng chú thích nói thẳng lỗi so chuỗi tháng với mốc ngày | Xoá 2 dòng chú thích khỏi khối `starter` trong `solution.sql` (ý này đã có ở `\ghichuthietke`). SQL của starter không đổi. | Bộ kiểm cả gói 0 lỗi |
+| hr-s9-quan-so-cuoi-thang-lech | C: nặng, starter có 2 dòng chú thích liệt kê đủ ba lỗi, kể cả lỗi chỉ lộ ở hidden-1 | Xoá 2 dòng chú thích khỏi khối `starter`; nội dung đã có ở `\ghichuthietke`. | Bộ kiểm cả gói 0 lỗi |
+| hr-a9-ty-le-nghi-sales-quy-nam | B: nặng, starter mở bằng chú thích ``Ba lỗi: …'' | Xoá 2 dòng chú thích khỏi khối `starter`. Đã quét mọi khối `starter` của 5 gói: không còn dòng chú thích nào. | Bộ kiểm cả gói 0 lỗi |
+| hr-s5-y-dinh-o-lai-thap-2025 | B: ô trùng A1 · customer · easy · write với r5 (gói 1), đề xuất đổi dạng; C: giữ được (khác chủ đề), lời nhắn chưa nói tới eNPS | Không đổi ô: trùng giữa hai gói và khác chủ đề nên được phép (đính chính của người điều phối; C cũng đề nghị giữ). Áp ý (2) của C: lời nhắn thêm ``lại gần như không muốn giới thiệu công ty''. | Bộ kiểm cả gói 0 lỗi (chỉ đổi chữ) |
+| hr-s4-cho-nhan-viec, hr-a4-phong-compa-thap | B, C: ghi ô trùng với j1, q1 (gói 3) | Không áp: trùng giữa hai gói, khác chủ đề (chờ đi làm theo nước / số yêu cầu theo bậc; compa bình quân nước – phòng / lương từng người so với bình quân bậc), được phép. Đã ghi ở BAN-DO mục ô trùng giữa các gói. | – |
+
+Bộ kiểm đầy đủ cả gói `cong-cu/ket-qua/sua-v4/hr-goi-2/` → **KIEM TRA: 0 loi**; biên dịch XeLaTeX `cong-cu/ket-qua/sua-v4/hr-goi-2/bien-dich/`: 0 lỗi LaTeX. Thư mục gói vẫn đúng 4 file.

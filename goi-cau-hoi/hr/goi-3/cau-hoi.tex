@@ -289,11 +289,11 @@
 \end{cauhoi}
 
 % ================================================================ J8 · debug · Cơ bản
-\begin{cauhoi}[ma=hr-j8-nghi-thang-11-ra-rong, dulieu=hr, domain=after_sales,
+\begin{cauhoi}[ma=hr-j8-nghi-thang-11-ra-rong, dulieu=hr, domain=marketing,
   hinhthuc=debug, cap=basic, dang=A1, kynang={INNER JOIN, khoá nối}, bay={noi-sai-cot},
   tacgia={Agent gói 3}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
-\tieude{Danh sách người phòng Kỹ thuật nghỉ tháng 11/2025 ra rỗng}
-\boicanh[Chị Lan · Trưởng nhóm tuyển dụng]{Chị cần danh sách người phòng Kỹ thuật nghỉ tháng 11/2025 kèm yêu cầu tuyển thay thế để hỏi tiến độ, mà truy vấn không ra dòng nào. Em xem sai ở đâu.}
+\tieude{Người nghỉ tháng 11/2025 không khớp được yêu cầu tuyển thay thế nào}
+\boicanh[Chị Lan · Trưởng nhóm tuyển dụng]{Chị cần danh sách người phòng Kỹ thuật nghỉ tháng 11/2025 kèm yêu cầu tuyển thay thế để hỏi tiến độ, nhưng truy vấn không ra dòng nào. Em xem giúp chị sai ở đâu nhé.}
 \begin{yeucau}
   \item Truy vấn khởi đầu cần liệt kê nhân viên phòng \code{'Engineering'} nghỉ việc trong tháng 11/2025 (\code{snapshot_month = '2025-11'}, \code{attrition_this_month = 1}) đã có yêu cầu tuyển thay thế, kèm mã yêu cầu và ngày người mới bắt đầu làm việc; người chưa có yêu cầu thì không lấy.
   \item Sửa truy vấn cho đúng; giữ nguyên cột \code{employee_id}, \code{attrition_type}, \code{requisition_id}, \code{start_date} và thứ tự theo \code{employee_id}.
@@ -309,7 +309,7 @@
 \end{nghiepvu}
 \goiy{So giá trị mẫu của hai cột đang được nối trong truy vấn: hai cột này có bao giờ bằng nhau không?}
 \goiy{Nối theo \code{r.vacated_employee_id = s.employee_id}.}
-\ghichuthietke{Cơ bản (v4, hạ từ Trung bình). Năm trục: bảng: lời giải cần 2 bảng (Cơ bản của Joins trên lộ trình là nối 2 bảng), ERD đúng 2 bảng có giá trị mẫu, không bảng nhiễu; bước: 1 tầng (nối, lọc); mơ hồ: yêu cầu ghi đủ cột, giá trị lọc; sửa lỗi: một lỗi dễ thấy (nối nhầm cột mã, giá trị mẫu R… và E… là manh mối trực tiếp, như mẫu d1); nghiệp vụ: một khái niệm. Starter nối \code{requisition_id} với \code{employee_id} nên ra 0 dòng. Bản Trung bình cũ (tỷ lệ người nghỉ có yêu cầu, INNER JOIN mất mẫu số) đã bỏ. Wrong: nối theo vị trí và tháng nghỉ (ghép cả yêu cầu thay cho người khác cùng vị trí, rớt public); \code{LEFT JOIN} giữ người chưa có yêu cầu (public mọi người đều có yêu cầu, chỉ rớt hidden-1 vì R0637 bị bỏ). Ô: A1 · after\_sales · basic · debug, không trùng trong gói; trùng ô với \code{hr-r7-danh-sach-nghi-huu-rong} ở gói 1 (được phép giữa các gói).}
+\ghichuthietke{Cơ bản (v4, hạ từ Trung bình). Năm trục: bảng: lời giải cần 2 bảng (Cơ bản của Joins trên lộ trình là nối 2 bảng), ERD đúng 2 bảng có giá trị mẫu, không bảng nhiễu; bước: 1 tầng (nối, lọc); mơ hồ: yêu cầu ghi đủ cột, giá trị lọc; sửa lỗi: một lỗi dễ thấy (nối nhầm cột mã, giá trị mẫu R… và E… là manh mối trực tiếp, như mẫu d1); nghiệp vụ: một khái niệm. Starter nối \code{requisition_id} với \code{employee_id} nên ra 0 dòng. Bản Trung bình cũ (tỷ lệ người nghỉ có yêu cầu, INNER JOIN mất mẫu số) đã bỏ. Wrong: nối theo vị trí và tháng nghỉ (ghép cả yêu cầu thay cho người khác cùng vị trí, rớt public); \code{LEFT JOIN} giữ người chưa có yêu cầu (public mọi người đều có yêu cầu, chỉ rớt hidden-1 vì R0637 bị bỏ). Ô: A1 · marketing · basic · debug (đổi từ after\_sales theo kiểm V4: người hỏi là Trưởng nhóm tuyển dụng, mục đích theo dõi tiến độ tuyển thay thế, thuộc mảng tuyển dụng của STYLE-hr G). Bản trước trùng cả ô lẫn chủ đề (``danh sách người nghỉ ra rỗng'') với \code{hr-r7-danh-sach-nghi-huu-rong} ở gói 1; nay khác ô, tiêu đề bỏ khuôn ``ra rỗng''.}
 \end{cauhoi}
 
 % ================================================================ J9 · debug · Khó
@@ -336,7 +336,7 @@
   \luuy{Nhóm không ghi quản lý gồm người có cột quản lý trống. Nhóm quản lý không còn tên gồm người mà quản lý được ghi không có dòng nào trong tháng đang xét, thường vì quản lý đã nghỉ việc trước đó. Những người còn lại thuộc nhóm quản lý còn tên.}
 \end{nghiepvu}
 \goiy{Một chỗ sai làm rơi nhân viên khỏi kết quả, một chỗ sai làm một nhân viên khớp với nhiều dòng của quản lý.}
-\goiy{Đổi sang \code{LEFT JOIN} và thêm \code{m.snapshot_month = e.snapshot_month} vào \code{ON}.}
+\goiy{Thêm \code{m.snapshot_month = e.snapshot_month} vào điều kiện nối.}
 \ghichuthietke{Khó (v4, nâng từ Trung bình). Năm trục: bảng: lời giải tự nối 1 bảng (mẫu d4, o4 cho phép Khó dùng ít bảng), ERD 5 bảng chỉ khoá, 4 bảng nhiễu cho đủ 5 bảng theo QUYET-DINH-CHUNG 1.3, cách nối ở \code{erdkhoa}; sửa lỗi: hai lỗi chồng nhau (\code{INNER JOIN} làm rơi người không ghi quản lý và người có quản lý đã nghỉ; thiếu điều kiện cùng tháng làm mỗi nhân viên khớp mọi tháng của quản lý); bẫy: ô quản lý trống, quản lý đã nghỉ, nhân dòng theo tháng (hidden-1 bỏ thêm quản lý nên nhóm quản lý không còn tên lớn hơn); mơ hồ: yêu cầu không chỉ ra chỗ sai, ERD trung tính; nghiệp vụ: phân loại ba nhóm theo điều kiện tại thời điểm. Starter: một nhóm \code{'quan_ly_con_ten'}, tỷ lệ quá 2.000\%. Sửa một lỗi vẫn sai: chỉ đổi \code{LEFT JOIN} thì mất nhóm quản lý không còn tên và nhân dòng; chỉ thêm cùng tháng thì còn một nhóm. Wrong: \code{chi_sua_left_join}, \code{chi_them_cung_thang}, \code{dem_distinct_thay_cung_thang} (chữa nhân dòng bằng \code{COUNT(DISTINCT)}: public còn hai nhóm, hidden-1 có ba nhóm nhưng sai số người); cả ba rớt public và hidden-1. Ô: A3 · operations · hard · debug, không trùng trong gói.}
 \end{cauhoi}
 
@@ -402,7 +402,7 @@
   hinhthuc=write, cap=medium, dang=C1, kynang={truy vấn con gom nhóm, IN nhiều cột, MAX, COUNT}, bay={khong-tuong-quan, hoa-diem, quen-loc-thang-ngoai},
   tacgia={Agent gói 3}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
 \tieude{Điểm gắn kết cao nhất từng phòng ban mỗi nước}
-\boicanh[Chị Mai · Chuyên viên phân tích nhân sự]{Mỗi nước muốn đặt mục tiêu gắn kết năm 2026 cho từng phòng ban. Chị cần mức điểm cao nhất của từng phòng trong tháng 12 và số người đạt mức đó; báo cáo không nêu tên ai.}
+\boicanh[Chị Mai · Chuyên viên phân tích nhân sự]{Ban lãnh đạo từng nước sắp đặt mục tiêu gắn kết năm 2026 cho các phòng ban. Chị cần điểm cao nhất của mỗi phòng trong tháng 12/2025 và số người đạt mức đó, không nêu tên ai.}
 \begin{yeucau}
   \item Xét nhân viên có tên trong tháng 12/2025, dùng điểm gắn kết hằng tháng của \code{employee_monthly_snapshot}; bỏ người có điểm trống.
   \item Theo từng nước và phòng ban, tìm điểm cao nhất trong tháng và đếm số người có điểm đúng bằng mức đó (nhiều người cùng điểm cao nhất thì đếm đủ).
@@ -430,7 +430,7 @@
   hinhthuc=write, cap=hard, dang=E2, kynang={truy vấn con tương quan, MAX trên chuỗi, đếm có điều kiện, tỷ lệ}, bay={quy-lon-nhat-ca-bang, so-chuoi-quy-voi-thang, loc-truoc-khi-dem, dinh-nghia-nguoi-nghi},
   tacgia={Agent gói 3}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
 \tieude{Nước nào có nhiều người nghỉ mà khảo sát không báo trước?}
-\boicanh[Chị Hạnh · Trưởng phòng Nhân sự]{Chị nghi khảo sát gắn kết chưa báo trước được ai sắp nghỉ. Năm 2025, mỗi nước có bao nhiêu phần trăm người nghỉ tự nguyện mà phiếu gần nhất không cho thấy ý định rời đi?}
+\boicanh[Chị Hạnh · Trưởng phòng Nhân sự]{Chị nghi khảo sát gắn kết chưa báo trước được ai sắp nghỉ. Năm 2025, ở mỗi nước, bao nhiêu phần trăm người nghỉ tự nguyện có phiếu gần nhất vẫn muốn ở lại?}
 \begin{yeucau}
   \item Xét người nghỉ việc tự nguyện có tháng nghỉ từ tháng 1/2025 tới hết tháng 12/2025.
   \item Tính theo nước số người nghỉ tự nguyện, số người khảo sát không báo trước và tỷ lệ của nhóm này trên số người nghỉ tự nguyện (định nghĩa ở tab Nghiệp vụ).
@@ -452,7 +452,7 @@
 \end{nghiepvu}
 \goiy{Có hai việc: tìm quý khảo sát gần nhất của từng người nghỉ, không lớn hơn quý có tháng nghỉ; rồi đếm có điều kiện trong một lần gom theo nước. Lọc điểm ý định ở lại ở \code{WHERE} sẽ làm đổi mẫu số.}
 \goiy{\code{k.survey_quarter = (SELECT MAX(k2.survey_quarter) FROM engagement_survey k2 WHERE k2.employee_id = s.employee_id AND k2.survey_quarter <= quy_nghi)}, với \code{quy_nghi} dựng như trong phần khoá.}
-\ghichuthietke{Khó (v4, nâng từ Trung bình). Năm trục: bảng: lời giải cần 2 bảng, ERD 5 bảng chỉ khoá, 3 bảng nhiễu cho đủ 5 bảng (QUYET-DINH-CHUNG 1.3), cách nối ở \code{erdkhoa}; bước: 4 tầng (dựng quý từ tháng, truy vấn con tương quan lấy quý gần nhất, đếm có điều kiện, tỷ lệ theo nước); mơ hồ: đề nói bằng ngôn ngữ nghiệp vụ, chỉ số định nghĩa ở tab Nghiệp vụ; bẫy: quý lớn nhất của cả bảng, so chuỗi quý với chuỗi tháng, lọc trước khi đếm (tỷ lệ 100\%), tính cả nghỉ hưu và chấm dứt hợp đồng; hidden-1 có ba nước cùng tỷ lệ 0 nên tiêu chí phụ \code{country} chỉ quyết định thứ tự ở hidden-1; nghiệp vụ: chỉ số nhiều điều kiện (loại nghỉ, phiếu gần nhất theo thời điểm, ngưỡng). Bản cũ liệt kê \code{employee_id} kèm điểm ý định ở lại của từng người; bản mới chỉ báo cáo theo nước, cùng tinh thần quyết định v3 của q3 (kết quả khảo sát báo cáo theo nhóm). Mọi người nghỉ tự nguyện năm 2025 đều có phiếu của quý nghỉ, nên nối thẳng phiếu cùng quý cũng cho đúng kết quả. Ngưỡng 3 (thay cho 4 ở bản cũ) để mỗi nước có đủ người trong nhóm. Wrong: quý lớn nhất của cả bảng; so chuỗi quý với chuỗi tháng; lọc ý định ở lại ở \code{WHERE}; mẫu số gồm mọi loại nghỉ; cả bốn rớt public. Ô: E2 · after\_sales · hard · write, không trùng trong gói.}
+\ghichuthietke{Khó (v4, nâng từ Trung bình). Năm trục: bảng: lời giải cần 2 bảng, ERD 5 bảng chỉ khoá, 3 bảng nhiễu cho đủ 5 bảng (QUYET-DINH-CHUNG 1.3), cách nối ở \code{erdkhoa}; bước: 4 tầng (dựng quý từ tháng, truy vấn con tương quan lấy quý gần nhất, đếm có điều kiện, tỷ lệ theo nước); mơ hồ: đề nói bằng ngôn ngữ nghiệp vụ, chỉ số định nghĩa ở tab Nghiệp vụ; bẫy: quý lớn nhất của cả bảng, so chuỗi quý với chuỗi tháng, lọc trước khi đếm (tỷ lệ 100\%), tính cả nghỉ hưu và chấm dứt hợp đồng; public có Indonesia và Thailand cùng 20,00\% nên tiêu chí phụ \code{country} quyết định thứ tự ở public (hidden-1 không có hai nước cùng tỷ lệ, thấp nhất Singapore 6,67\%); nghiệp vụ: chỉ số nhiều điều kiện (loại nghỉ, phiếu gần nhất theo thời điểm, ngưỡng). Bản cũ liệt kê \code{employee_id} kèm điểm ý định ở lại của từng người; bản mới chỉ báo cáo theo nước, cùng tinh thần quyết định v3 của q3 (kết quả khảo sát báo cáo theo nhóm). Mọi người nghỉ tự nguyện năm 2025 đều có phiếu của quý nghỉ, nên nối thẳng phiếu cùng quý cũng cho đúng kết quả. Ngưỡng 3 (thay cho 4 ở bản cũ) để mỗi nước có đủ người trong nhóm. Wrong: quý lớn nhất của cả bảng; so chuỗi quý với chuỗi tháng; lọc ý định ở lại ở \code{WHERE}; mẫu số gồm mọi loại nghỉ; cả bốn rớt public. Ô: E2 · after\_sales · hard · write, không trùng trong gói.}
 \end{cauhoi}
 
 % ================================================================ Q5 · write · Trung bình
@@ -577,7 +577,7 @@
   \luuy{Lý do nghỉ là kết quả phỏng vấn thôi việc, chỉ có ở tháng nghỉ. Thị trường lao động và chính sách lương mỗi nước khác nhau, nên lý do nghỉ việc cần xem riêng từng nước.}
 \end{nghiepvu}
 \goiy{Một chỗ sai quyết định số lớn nhất được tính trên tập nào; chỗ còn lại quyết định ai được tính là người nghỉ tự nguyện.}
-\goiy{Thêm \code{WHERE t2.country = t.country} vào truy vấn con lấy \code{MAX}, và lọc \code{attrition_type = 'Voluntary'} ở cả hai bảng dẫn xuất.}
+\goiy{Thêm \code{WHERE t2.country = t.country} vào truy vấn con lấy \code{MAX}.}
 \ghichuthietke{Khó (v4, nâng từ Trung bình). Năm trục: bảng: 1 bảng (mẫu d4, o4 cho phép Khó dùng ít bảng), ERD 5 bảng chỉ khoá, 4 bảng nhiễu cho đủ 5 bảng (QUYET-DINH-CHUNG 1.3), \code{erdkhoa}; bước: 3–4 tầng (bảng dẫn xuất gom theo nước, lý do; truy vấn con tương quan trên bảng dẫn xuất thứ hai; lọc bằng); sửa lỗi: hai lỗi chồng nhau, một lỗi phạm vi (\code{MAX} của cả công ty) và một lỗi sai định nghĩa chỉ số (đếm mọi lượt nghỉ, kể cả nghỉ hưu và chấm dứt hợp đồng); bẫy: hoà lý do (public: Thái Lan ba lý do cùng 6 người; hidden-1: hai lý do), nghỉ hưu lọt vào nhóm hoà khi đếm mọi loại nghỉ; mơ hồ: yêu cầu không nói chỗ sai, triệu chứng ở bối cảnh chỉ lộ lỗi thứ nhất. Starter: chỉ còn Việt Nam. Wrong: chỉ sửa tương quan (Thái Lan thêm dòng \code{'Retirement'}, rớt public); chỉ sửa loại nghỉ (vẫn một nước, rớt public). Ô: C1 · after\_sales · hard · debug, không trùng trong gói.}
 \end{cauhoi}
 
@@ -619,8 +619,8 @@
   \begin{luachon}
     \phuongan{Mọi người nghỉ năm 2025 đều đã có yêu cầu tuyển thay thế, nên chỗ trống được lấp kịp và quy trình tuyển không cần thay đổi.}
       {Bước 2 cho thấy nhóm nghỉ hưu không có yêu cầu nào, và người thay thế cần gần hai tháng sau tháng nghỉ mới đi làm.}
-    \phuongan*{Phần lớn người nghỉ tự nguyện, không tự nguyện có yêu cầu thay thế nhưng chỗ trống kéo dài gần hai tháng; người nghỉ hưu cần kế hoạch kế nhiệm riêng.}
-      {Đúng: bước 2 cho thấy hai nhóm đầu có tỷ lệ có yêu cầu cao, số ngày chờ bình quân khoảng 50 ngày; nhóm nghỉ hưu không có yêu cầu.}
+    \phuongan*{Phần lớn người nghỉ tự nguyện và người bị chấm dứt hợp đồng đều có yêu cầu thay thế, nhưng người mới gần hai tháng sau mới đi làm; người nghỉ hưu cần kế hoạch kế nhiệm riêng.}
+      {Đúng: bước 2 cho thấy nhóm nghỉ tự nguyện và không tự nguyện có tỷ lệ có yêu cầu cao, số ngày chờ bình quân khoảng 50 ngày; nhóm nghỉ hưu không có yêu cầu.}
     \phuongan{Nhóm nghỉ hưu có số ngày chờ để trống, tức người thay thế đi làm ngay, nên chỉ cần rút ngắn thời gian chờ của nhóm nghỉ tự nguyện.}
       {Số ngày chờ trống vì nhóm nghỉ hưu không có yêu cầu thay thế nào, không phải vì người thay đi làm ngay.}
   \end{luachon}
@@ -630,14 +630,15 @@
 
 % ================================================================ C6 · case · Trung bình
 \begin{cauhoi}[ma=hr-c6-luong-thap-va-nghi-viec, dulieu=hr, domain=finance,
-  hinhthuc=case, cap=medium, diem=30, tacgia={Agent gói 3}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.05]
+  hinhthuc=case, cap=medium, diem=30, tacgia={Agent gói 3}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.01]
 \tieude{Nhóm lương thấp hơn thị trường có nghỉ việc nhiều hơn không?}
-\boicanh[Anh Bình · Giám đốc Nhân sự]{Ban giám đốc đang cân nhắc ngân sách điều chỉnh lương năm tới. Anh cần biết nhóm đang được trả thấp hơn thị trường có nghỉ việc tự nguyện nhiều hơn không, và nước nào cũng vậy hay không.}
+\boicanh[Anh Bình · Giám đốc Nhân sự]{Ban giám đốc đang cân nhắc ngân sách điều chỉnh lương năm tới. Anh cần biết nhóm đang được trả thấp hơn thị trường có nghỉ việc tự nguyện nhiều hơn không, ở mọi nước hay chỉ vài nước.}
 \begin{erd}
   \erdbang{employee_monthly_snapshot}{0,0}{employee_id:PK, snapshot_month:PK, country*, compa_ratio*, attrition_type*, position_id:FK}
   \erdbang{country_market_benchmark}{1,0}{benchmark_year:PK, country:PK, job_role:PK, job_level:PK}
   \erdbang{positions}{0,1}{position_id:PK, country, job_level}
   \erdnoi[kieu=n-1]{employee_monthly_snapshot.position_id}{positions.position_id}
+  \erdnoi[kieu=n-1]{employee_monthly_snapshot.country}{country_market_benchmark.country}
 \end{erd}
 \begin{nghiepvu}{Quyết định có ưu tiên ngân sách điều chỉnh lương cho nhóm compa-ratio thấp hay không.}
   \khainiem{compa-ratio}
@@ -677,7 +678,7 @@
       {Đúng: bước 2 cho thấy nhóm dưới 0,9 nghỉ gấp khoảng hai lần rưỡi nhóm giữa, bước 3 thấy chênh ở từng nước; đây là tương quan.}
   \end{luachon}
 \end{buoc}
-\ghichuthietke{Case Trung bình: 4 bước, 3 bảng chỉ ký hiệu (hai bảng nhiễu). Bước 2 có wrong chia cho số dòng thay quân số bình quân. Phương án sai: quy nhân quả và dự báo hiệu quả tăng lương (H5); cho rằng chênh lệch chỉ do cơ cấu nước. v3 (K32): bỏ câu rào ``theo dõi thêm'' khỏi phương án đúng (trước đây chỉ phương án đúng có rào); phương án đúng nay không dài nhất. Ý tương quan nằm ở lời giải thích.}
+\ghichuthietke{Case Trung bình: 4 bước, 3 bảng chỉ ký hiệu (hai bảng nhiễu, mỗi bảng nhiễu có đường nối 1-n đúng với bảng tháng theo QUYET-DINH-CHUNG 1.3; \code{country_market_benchmark} nối theo \code{country}, thêm ở kiểm V4). Sai số để mặc định 0,01 (kiểm V4: bản trước để 0,05 mà không có lý do; lời giải tự giải của người kiểm khớp ở 0,01). Bước 2 có wrong chia cho số dòng thay quân số bình quân. Phương án sai: quy nhân quả và dự báo hiệu quả tăng lương (H5); cho rằng chênh lệch chỉ do cơ cấu nước. v3 (K32): bỏ câu rào ``theo dõi thêm'' khỏi phương án đúng (trước đây chỉ phương án đúng có rào); phương án đúng nay không dài nhất. Ý tương quan nằm ở lời giải thích.}
 \end{cauhoi}
 
 \end{document}

@@ -80,3 +80,23 @@ Kiểm:
 - Thư mục gói vẫn đúng 4 file.
 
 Cập nhật kèm: `\ghichuthietke` của j3 (bẫy thiếu điều kiện tháng nay ở j6, j9); dòng gói 3 trong `../../BAN-DO-100-CAU.md` (chỉ 8 dòng của gói; phần thống kê của bản đồ chưa đếm lại vì các gói khác đang sửa song song).
+
+
+## Sửa theo KIEM-V4 (11/11/2026)
+
+Đầu vào: `ho-so/KIEM-V4-B.md`, `ho-so/KIEM-V4-C.md`. Không đổi cấp câu nào; mỗi module vẫn 2 Cơ bản · 3 Dễ · 2 Trung bình · 2 Khó. Quy tắc ô (đính chính của người điều phối 11/11): trùng ô giữa hai gói được phép, chỉ gỡ khi trùng trong cùng gói hoặc trùng cả chủ đề.
+
+| Mã | Điểm B/C | Đã sửa gì | Kết quả kiểm |
+|---|---|---|---|
+| hr-j8-nghi-thang-11-ra-rong | C: trùng ô A1 · after_sales · basic · debug và trùng chủ đề ``danh sách người nghỉ ra rỗng'' với r7 (gói 1); lời nhắn cụt | `domain=after_sales` → `marketing` (người hỏi là Trưởng nhóm tuyển dụng, mục đích theo dõi tiến độ tuyển thay thế; ô A1 · marketing · basic · debug trống). Tiêu đề ``Người nghỉ tháng 11/2025 không khớp được yêu cầu tuyển thay thế nào'' (bỏ khuôn ``ra rỗng''). Lời nhắn ``… nhưng truy vấn không ra dòng nào. Em xem giúp chị sai ở đâu nhé.'' Sửa câu về ô ở `\ghichuthietke`. Giữ mã (nội dung, SQL không đổi). | Bộ kiểm cả gói 0 lỗi |
+| hr-j9-trang-thai-quan-ly-vuot-100 | B: gợi ý nấc 2 đưa trọn cả hai chỗ sửa | Nấc 2 còn một biểu thức: ``Thêm `m.snapshot_month = e.snapshot_month` vào điều kiện nối.''; chỗ sửa `LEFT JOIN` để học viên tự tìm từ nấc 1. | Bộ kiểm cả gói 0 lỗi |
+| hr-q3-gan-ket-cao-nhat-moi-phong | B: lời nhắn lấy ``mỗi nước'' làm chủ ngữ cho ``muốn'', 38 tiếng | Lời nhắn theo câu sửa của B: ``Ban lãnh đạo từng nước sắp đặt mục tiêu gắn kết năm 2026 cho các phòng ban. Chị cần điểm cao nhất của mỗi phòng trong tháng 12/2025 và số người đạt mức đó, không nêu tên ai.'' | Bộ kiểm cả gói 0 lỗi |
+| hr-q4-khao-sat-khong-bao-truoc | C: `\ghichuthietke` sai số liệu hoà; lời nhắn 37 tiếng | Đã chạy lại lời giải: public có Indonesia = Thailand = 20,00 %, hidden-1 không có hoà (thấp nhất Singapore 6,67 %). Sửa câu ghi chú theo đó. Lời nhắn theo câu rút của C. | Bộ kiểm cả gói 0 lỗi |
+| hr-q9-ly-do-pho-bien-hai-loi | B: gợi ý nấc 2 đưa đủ hai chỗ sửa | Nấc 2 chỉ còn ``Thêm `WHERE t2.country = t.country` vào truy vấn con lấy `MAX`.'' | Bộ kiểm cả gói 0 lỗi |
+| hr-c5-tuyen-thay-the-kip-khong | C: lời giải thích phương án đúng ghi ``hai nhóm đầu'' trong khi nhóm 2 của bước 2 là nghỉ hưu; câu phương án đúng dễ đọc lệch | Lời giải thích: ``Đúng: bước 2 cho thấy nhóm nghỉ tự nguyện và không tự nguyện có tỷ lệ có yêu cầu cao, số ngày chờ bình quân khoảng 50 ngày; nhóm nghỉ hưu không có yêu cầu.'' Phương án đúng theo câu sửa của C. | Bộ kiểm cả gói 0 lỗi |
+| hr-c6-luong-thap-va-nghi-viec | B: ERD bảng nhiễu `country_market_benchmark` không có đường nối; `saiso=0.05` không lý do; lời nhắn 39 tiếng, lủng củng | Thêm `\erdnoi[kieu=n-1]{employee_monthly_snapshot.country}{country_market_benchmark.country}`; `saiso` về 0,01 (lời giải tự giải của B khớp ở 0,01); lời nhắn kết bằng ``…, ở mọi nước hay chỉ vài nước.''; ghi lý do ở `\ghichuthietke`. | Bộ kiểm cả gói 0 lỗi (bước SQL so ở sai số 0,01) |
+| hr-j1-yeu-cau-theo-bac, hr-q1-luong-tren-bq-bac, hr-j6-quan-ly-khong-cao-hon | B, C: ghi ô trùng với s4, a4 (gói 2), k4 (gói 5) | Không áp: trùng giữa hai gói, khác chủ đề, được phép. | – |
+
+Bộ kiểm đầy đủ cả gói `cong-cu/ket-qua/sua-v4/hr-goi-3/` → **KIEM TRA: 0 loi**; biên dịch XeLaTeX `cong-cu/ket-qua/sua-v4/hr-goi-3/bien-dich/`: 0 lỗi LaTeX. Thư mục gói vẫn đúng 4 file.
+
+Không áp, ghi để tham khảo: các ghi chú không chặn của B/C (lời nhắn 36–38 tiếng ở j2, j4, q8; vai Anh Khoa ở q2) chưa sửa ở lượt này.

@@ -227,8 +227,6 @@ GROUP BY vai_tro
 ORDER BY vai_tro;
 
 -- [hr-s7-quy-luong-nam-lech-ke-toan] starter
--- So chuỗi: '2024-01' < '2024-01-01' (chuỗi ngắn hơn đứng trước) nên mất riêng tháng 1/2024;
--- chia cho số tháng có dữ liệu nên quỹ lương bình quân tháng năm 2024 vẫn trông hợp lý.
 SELECT LEFT(snapshot_month, 4) AS nam,
        SUM(monthly_salary_usd) AS quy_luong_nam,
        ROUND(SUM(monthly_salary_usd) / COUNT(DISTINCT snapshot_month), 0) AS quy_luong_bq_thang
@@ -299,8 +297,6 @@ GROUP BY thang
 ORDER BY thang;
 
 -- [hr-s9-quan-so-cuoi-thang-lech] starter
--- Ba lỗi: sắp theo nhãn '2024-7' ('2024-10' đứng trước '2024-7'); COUNT(*) gồm cả người nghỉ trong tháng;
--- thiếu cận trên (chỉ lộ ở hidden-1, dòng '2026-01' của E00002).
 SELECT DATE_FORMAT(CONCAT(snapshot_month, '-01'), '%Y-%c') AS thang,
        COUNT(*) AS quan_so_cuoi_thang
 FROM employee_monthly_snapshot
@@ -608,8 +604,6 @@ GROUP BY country
 ORDER BY country;
 
 -- [hr-a9-ty-le-nghi-sales-quy-nam] starter
--- Ba lỗi: đếm mọi loại nghỉ; mẫu số là số người từng có tên thay vì quân số bình quân;
--- thiếu cận trên (chỉ lộ ở hidden-1, dòng '2026-01' của E00002, Sales, Vietnam).
 SELECT country,
        SUM(attrition_this_month) AS so_nghi_tu_nguyen,
        ROUND(COUNT(DISTINCT employee_id), 1) AS quan_so_bq,
