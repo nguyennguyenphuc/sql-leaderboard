@@ -9,47 +9,43 @@
 -- ======================================================================= MODULE 9 · DATA QUALITY
 
 -- [mkt-k1-ho-so-null] solution
-SELECT b.brand_name,
+SELECT brand_id,
        COUNT(*) AS so_dong,
-       SUM(r.impressions IS NULL) AS thieu_impressions,
-       SUM(r.clicks IS NULL) AS thieu_clicks,
-       SUM(r.leads IS NULL) AS thieu_leads,
-       SUM(r.conversions IS NULL) AS thieu_conversions,
-       SUM(r.revenue IS NULL) AS thieu_revenue,
-       SUM(r.acquisition_cost IS NULL) AS thieu_acquisition_cost
-FROM campaigns_raw r
-JOIN brands b ON b.brand_id = r.brand_id
-GROUP BY b.brand_id, b.brand_name
-ORDER BY b.brand_id;
+       SUM(impressions IS NULL) AS thieu_impressions,
+       SUM(clicks IS NULL) AS thieu_clicks,
+       SUM(leads IS NULL) AS thieu_leads,
+       SUM(conversions IS NULL) AS thieu_conversions,
+       SUM(revenue IS NULL) AS thieu_revenue,
+       SUM(acquisition_cost IS NULL) AS thieu_acquisition_cost
+FROM campaigns_raw
+GROUP BY brand_id
+ORDER BY brand_id;
 
 -- [mkt-k1-ho-so-null] wrong: count_cot_dem_o_co_gia_tri
-SELECT b.brand_name,
+SELECT brand_id,
        COUNT(*) AS so_dong,
-       COUNT(r.impressions) AS thieu_impressions,
-       COUNT(r.clicks) AS thieu_clicks,
-       COUNT(r.leads) AS thieu_leads,
-       COUNT(r.conversions) AS thieu_conversions,
-       COUNT(r.revenue) AS thieu_revenue,
-       COUNT(r.acquisition_cost) AS thieu_acquisition_cost
-FROM campaigns_raw r
-JOIN brands b ON b.brand_id = r.brand_id
-GROUP BY b.brand_id, b.brand_name
-ORDER BY b.brand_id;
+       COUNT(impressions) AS thieu_impressions,
+       COUNT(clicks) AS thieu_clicks,
+       COUNT(leads) AS thieu_leads,
+       COUNT(conversions) AS thieu_conversions,
+       COUNT(revenue) AS thieu_revenue,
+       COUNT(acquisition_cost) AS thieu_acquisition_cost
+FROM campaigns_raw
+GROUP BY brand_id
+ORDER BY brand_id;
 
--- [mkt-k1-ho-so-null] wrong: dem_tren_nhat_ky_thay_ban_tho
-SELECT b.brand_name,
-       COUNT(*) AS so_dong,
-       COUNT(CASE WHEN n.column_name = 'Impressions' THEN 1 END) AS thieu_impressions,
-       COUNT(CASE WHEN n.column_name = 'Clicks' THEN 1 END) AS thieu_clicks,
-       COUNT(CASE WHEN n.column_name = 'Leads' THEN 1 END) AS thieu_leads,
-       COUNT(CASE WHEN n.column_name = 'Conversions' THEN 1 END) AS thieu_conversions,
-       COUNT(CASE WHEN n.column_name = 'Revenue' THEN 1 END) AS thieu_revenue,
-       COUNT(CASE WHEN n.column_name = 'Acquisition_Cost' THEN 1 END) AS thieu_acquisition_cost
-FROM noise_log n
-JOIN brands b ON b.brand_id = n.brand_id
-WHERE n.noise_type = 'NULL'
-GROUP BY b.brand_id, b.brand_name
-ORDER BY b.brand_id;
+-- [mkt-k1-ho-so-null] wrong: dem_ma_thay_dong
+SELECT brand_id,
+       COUNT(DISTINCT campaign_id) AS so_dong,
+       SUM(impressions IS NULL) AS thieu_impressions,
+       SUM(clicks IS NULL) AS thieu_clicks,
+       SUM(leads IS NULL) AS thieu_leads,
+       SUM(conversions IS NULL) AS thieu_conversions,
+       SUM(revenue IS NULL) AS thieu_revenue,
+       SUM(acquisition_cost IS NULL) AS thieu_acquisition_cost
+FROM campaigns_raw
+GROUP BY brand_id
+ORDER BY brand_id;
 
 -- [mkt-k2-dong-trung-hoan-toan] solution
 WITH nhom AS (
@@ -194,80 +190,35 @@ FROM phan_loai
 GROUP BY loai_ngay
 ORDER BY so_dong DESC, loai_ngay;
 
--- [mkt-k5-doi-soat-doanh-thu-tho-sach] solution
-WITH tho AS (
-  SELECT DISTINCT brand_id, campaign_id, revenue
-  FROM campaigns_raw
-  WHERE revenue >= 0
-),
-tong_tho AS (
-  SELECT brand_id, COUNT(*) AS so_chien_dich, SUM(revenue) AS doanh_thu
-  FROM tho
-  GROUP BY brand_id
-),
-tong_sach AS (
-  SELECT brand_id, COUNT(*) AS so_chien_dich, SUM(revenue) AS doanh_thu
-  FROM campaigns
-  GROUP BY brand_id
-)
-SELECT s.brand_id,
-       s.doanh_thu AS dt_ban_sach,
-       t.doanh_thu AS dt_tho_lam_sach,
-       s.doanh_thu - t.doanh_thu AS chenh_lech,
-       s.so_chien_dich - t.so_chien_dich AS so_chien_dich_bi_loai
-FROM tong_sach s
-JOIN tong_tho t ON t.brand_id = s.brand_id
-ORDER BY s.brand_id;
+-- [mkt-k5-dong-doanh-thu-lech-ban-sach] solution
+SELECT r.brand_id,
+       COUNT(*) AS so_dong_lech,
+       SUM(c.revenue) AS dt_ban_sach
+FROM campaigns_raw r
+JOIN campaigns c ON c.campaign_id = r.campaign_id
+WHERE r.revenue IS NULL OR r.revenue <> c.revenue
+GROUP BY r.brand_id
+ORDER BY r.brand_id;
 
--- [mkt-k5-doi-soat-doanh-thu-tho-sach] wrong: quen_bo_dong_trung
-WITH tho AS (
-  SELECT brand_id, campaign_id, revenue
-  FROM campaigns_raw
-  WHERE revenue >= 0
-),
-tong_tho AS (
-  SELECT brand_id, COUNT(*) AS so_chien_dich, SUM(revenue) AS doanh_thu
-  FROM tho
-  GROUP BY brand_id
-),
-tong_sach AS (
-  SELECT brand_id, COUNT(*) AS so_chien_dich, SUM(revenue) AS doanh_thu
-  FROM campaigns
-  GROUP BY brand_id
-)
-SELECT s.brand_id,
-       s.doanh_thu AS dt_ban_sach,
-       t.doanh_thu AS dt_tho_lam_sach,
-       s.doanh_thu - t.doanh_thu AS chenh_lech,
-       s.so_chien_dich - t.so_chien_dich AS so_chien_dich_bi_loai
-FROM tong_sach s
-JOIN tong_tho t ON t.brand_id = s.brand_id
-ORDER BY s.brand_id;
+-- [mkt-k5-dong-doanh-thu-lech-ban-sach] wrong: so_khac_bo_dong_trong
+SELECT r.brand_id,
+       COUNT(*) AS so_dong_lech,
+       SUM(c.revenue) AS dt_ban_sach
+FROM campaigns_raw r
+JOIN campaigns c ON c.campaign_id = r.campaign_id
+WHERE r.revenue <> c.revenue
+GROUP BY r.brand_id
+ORDER BY r.brand_id;
 
--- [mkt-k5-doi-soat-doanh-thu-tho-sach] wrong: giu_doanh_thu_am
-WITH tho AS (
-  SELECT DISTINCT brand_id, campaign_id, revenue
-  FROM campaigns_raw
-  WHERE revenue IS NOT NULL
-),
-tong_tho AS (
-  SELECT brand_id, COUNT(*) AS so_chien_dich, SUM(revenue) AS doanh_thu
-  FROM tho
-  GROUP BY brand_id
-),
-tong_sach AS (
-  SELECT brand_id, COUNT(*) AS so_chien_dich, SUM(revenue) AS doanh_thu
-  FROM campaigns
-  GROUP BY brand_id
-)
-SELECT s.brand_id,
-       s.doanh_thu AS dt_ban_sach,
-       t.doanh_thu AS dt_tho_lam_sach,
-       s.doanh_thu - t.doanh_thu AS chenh_lech,
-       s.so_chien_dich - t.so_chien_dich AS so_chien_dich_bi_loai
-FROM tong_sach s
-JOIN tong_tho t ON t.brand_id = s.brand_id
-ORDER BY s.brand_id;
+-- [mkt-k5-dong-doanh-thu-lech-ban-sach] wrong: cong_doanh_thu_tho
+SELECT r.brand_id,
+       COUNT(*) AS so_dong_lech,
+       SUM(r.revenue) AS dt_ban_sach
+FROM campaigns_raw r
+JOIN campaigns c ON c.campaign_id = r.campaign_id
+WHERE r.revenue IS NULL OR r.revenue <> c.revenue
+GROUP BY r.brand_id
+ORDER BY r.brand_id;
 
 -- [mkt-k6-do-chinh-xac-quy-tac] solution
 WITH luat AS (
@@ -467,75 +418,44 @@ WHERE n.noise_type IS NOT NULL
 GROUP BY b.brand_id, b.brand_name, n.column_name
 ORDER BY b.brand_id, n.column_name;
 
--- [mkt-k9-doanh-thu-sach-con-trung] starter
-WITH tho AS (
-  SELECT brand_id, SUM(revenue) AS dt_tho
-  FROM campaigns_raw
-  WHERE revenue >= 0
-  GROUP BY brand_id
-),
-sach AS (
-  SELECT c.brand_id, SUM(c.revenue) AS dt_sach
-  FROM campaigns c
-  WHERE EXISTS (SELECT 1 FROM campaigns_raw r
-                WHERE r.campaign_id = c.campaign_id AND r.revenue >= 0)
-  GROUP BY c.brand_id
-)
-SELECT t.brand_id, t.dt_tho, s.dt_sach, t.dt_tho - s.dt_sach AS chenh_lech
-FROM tho t
-JOIN sach s ON s.brand_id = t.brand_id
-ORDER BY t.brand_id;
+-- [mkt-k9-ma-lap-ra-ca-file] starter
+SELECT campaign_id, COUNT(*) AS so_dong
+FROM campaigns_raw
+WHERE brand_id = 2
+GROUP BY campaign_id
+HAVING COUNT(*) >= 1
+ORDER BY campaign_id;
 
--- [mkt-k9-doanh-thu-sach-con-trung] solution
-WITH dong AS (
-  SELECT DISTINCT brand_id, campaign_id, revenue
-  FROM campaigns_raw
-  WHERE revenue >= 0
-),
-tho AS (
-  SELECT brand_id, SUM(revenue) AS dt_tho
-  FROM dong
-  GROUP BY brand_id
-),
-sach AS (
-  SELECT c.brand_id, SUM(c.revenue) AS dt_sach
-  FROM campaigns c
-  WHERE EXISTS (SELECT 1 FROM campaigns_raw r
-                WHERE r.campaign_id = c.campaign_id AND r.revenue >= 0)
-  GROUP BY c.brand_id
-)
-SELECT t.brand_id, t.dt_tho, s.dt_sach, t.dt_tho - s.dt_sach AS chenh_lech
-FROM tho t
-JOIN sach s ON s.brand_id = t.brand_id
-ORDER BY t.brand_id;
+-- [mkt-k9-ma-lap-ra-ca-file] solution
+SELECT campaign_id, COUNT(*) AS so_dong
+FROM campaigns_raw
+WHERE brand_id = 2
+GROUP BY campaign_id
+HAVING COUNT(*) > 1
+ORDER BY campaign_id;
 
--- [mkt-k9-doanh-thu-sach-con-trung] wrong: khu_trung_gia_tri_thay_dong
-WITH tho AS (
-  SELECT brand_id, SUM(DISTINCT revenue) AS dt_tho
-  FROM campaigns_raw
-  WHERE revenue >= 0
-  GROUP BY brand_id
-),
-sach AS (
-  SELECT c.brand_id, SUM(c.revenue) AS dt_sach
-  FROM campaigns c
-  WHERE EXISTS (SELECT 1 FROM campaigns_raw r
-                WHERE r.campaign_id = c.campaign_id AND r.revenue >= 0)
-  GROUP BY c.brand_id
-)
-SELECT t.brand_id, t.dt_tho, s.dt_sach, t.dt_tho - s.dt_sach AS chenh_lech
-FROM tho t
-JOIN sach s ON s.brand_id = t.brand_id
-ORDER BY t.brand_id;
+-- [mkt-k9-ma-lap-ra-ca-file] wrong: lon_hon_hai
+SELECT campaign_id, COUNT(*) AS so_dong
+FROM campaigns_raw
+WHERE brand_id = 2
+GROUP BY campaign_id
+HAVING COUNT(*) > 2
+ORDER BY campaign_id;
 
--- [mkt-k9-doanh-thu-sach-con-trung] wrong: noi_tho_sach_nhan_ca_hai_ve
-SELECT r.brand_id, SUM(r.revenue) AS dt_tho, SUM(c.revenue) AS dt_sach,
-       SUM(r.revenue) - SUM(c.revenue) AS chenh_lech
-FROM campaigns_raw r
-JOIN campaigns c ON c.campaign_id = r.campaign_id
-WHERE r.revenue >= 0
-GROUP BY r.brand_id
-ORDER BY r.brand_id;
+-- [mkt-k9-ma-lap-ra-ca-file] wrong: gom_ca_vi_tri_dong
+SELECT campaign_id, COUNT(*) AS so_dong
+FROM campaigns_raw
+WHERE brand_id = 2
+GROUP BY campaign_id, row_index
+HAVING COUNT(*) > 1
+ORDER BY campaign_id;
+
+-- [mkt-k9-ma-lap-ra-ca-file] wrong: quen_loc_purplle
+SELECT campaign_id, COUNT(*) AS so_dong
+FROM campaigns_raw
+GROUP BY campaign_id
+HAVING COUNT(*) > 1
+ORDER BY campaign_id;
 
 -- ======================================================================= MODULE 10 · QUERY PERFORMANCE
 
@@ -719,87 +639,100 @@ LEFT JOIN campaign_channels cc ON cc.campaign_id = c.campaign_id AND cc.channel_
 GROUP BY c.brand_id
 ORDER BY c.brand_id;
 
--- [mkt-p5-dang-chay-moi-ngay-nhanh] starter
-SELECT k.cal_date AS ngay,
-       (SELECT COUNT(*)
-        FROM campaigns c
-        WHERE c.start_date <= k.cal_date
-          AND DATE_ADD(c.start_date, INTERVAL c.duration_days - 1 DAY) >= k.cal_date) AS so_dang_chay
-FROM calendar k
-WHERE k.cal_date >= '2025-01-01' AND k.cal_date < '2025-02-01'
-ORDER BY k.cal_date;
+-- [mkt-p5-chi-phi-roi-bon-quy-mot-lan-quet] starter
+SELECT '2024-Q3' AS quy, COUNT(*) AS so_chien_dich,
+       ROUND(SUM(acquisition_cost * conversions), 2) AS chi_phi,
+       ROUND((SUM(revenue) - SUM(acquisition_cost * conversions))
+             / SUM(acquisition_cost * conversions), 4) AS roi
+FROM campaigns
+WHERE start_date >= '2024-07-01' AND start_date < '2024-10-01'
+UNION ALL
+SELECT '2024-Q4', COUNT(*),
+       ROUND(SUM(acquisition_cost * conversions), 2),
+       ROUND((SUM(revenue) - SUM(acquisition_cost * conversions))
+             / SUM(acquisition_cost * conversions), 4)
+FROM campaigns
+WHERE start_date >= '2024-10-01' AND start_date < '2025-01-01'
+UNION ALL
+SELECT '2025-Q1', COUNT(*),
+       ROUND(SUM(acquisition_cost * conversions), 2),
+       ROUND((SUM(revenue) - SUM(acquisition_cost * conversions))
+             / SUM(acquisition_cost * conversions), 4)
+FROM campaigns
+WHERE start_date >= '2025-01-01' AND start_date < '2025-04-01'
+UNION ALL
+SELECT '2025-Q2', COUNT(*),
+       ROUND(SUM(acquisition_cost * conversions), 2),
+       ROUND((SUM(revenue) - SUM(acquisition_cost * conversions))
+             / SUM(acquisition_cost * conversions), 4)
+FROM campaigns
+WHERE start_date >= '2025-04-01' AND start_date < '2025-07-01'
+ORDER BY quy;
 
--- [mkt-p5-dang-chay-moi-ngay-nhanh] solution
-WITH ung_vien AS (
-  SELECT start_date,
-         DATE_ADD(start_date, INTERVAL duration_days - 1 DAY) AS ngay_cuoi
-  FROM campaigns
-  WHERE start_date >= '2024-12-03' AND start_date < '2025-02-01'
-)
-SELECT k.cal_date AS ngay, COUNT(u.start_date) AS so_dang_chay
-FROM calendar k
-LEFT JOIN ung_vien u ON u.start_date <= k.cal_date AND u.ngay_cuoi >= k.cal_date
-WHERE k.cal_date >= '2025-01-01' AND k.cal_date < '2025-02-01'
-GROUP BY k.cal_date
-ORDER BY k.cal_date;
+-- [mkt-p5-chi-phi-roi-bon-quy-mot-lan-quet] solution
+SELECT CONCAT(YEAR(start_date), '-Q', QUARTER(start_date)) AS quy,
+       COUNT(*) AS so_chien_dich,
+       ROUND(SUM(acquisition_cost * conversions), 2) AS chi_phi,
+       ROUND((SUM(revenue) - SUM(acquisition_cost * conversions))
+             / SUM(acquisition_cost * conversions), 4) AS roi
+FROM campaigns
+WHERE start_date >= '2024-07-01' AND start_date < '2025-07-01'
+GROUP BY CONCAT(YEAR(start_date), '-Q', QUARTER(start_date))
+ORDER BY quy;
 
--- [mkt-p5-dang-chay-moi-ngay-nhanh] wrong: ngay_cuoi_thua_mot_ngay
-WITH ung_vien AS (
-  SELECT start_date,
-         DATE_ADD(start_date, INTERVAL duration_days DAY) AS ngay_cuoi
-  FROM campaigns
-  WHERE start_date >= '2024-12-03' AND start_date < '2025-02-01'
-)
-SELECT k.cal_date AS ngay, COUNT(u.start_date) AS so_dang_chay
-FROM calendar k
-LEFT JOIN ung_vien u ON u.start_date <= k.cal_date AND u.ngay_cuoi >= k.cal_date
-WHERE k.cal_date >= '2025-01-01' AND k.cal_date < '2025-02-01'
-GROUP BY k.cal_date
-ORDER BY k.cal_date;
+-- [mkt-p5-chi-phi-roi-bon-quy-mot-lan-quet] wrong: thieu_can_tren
+SELECT CONCAT(YEAR(start_date), '-Q', QUARTER(start_date)) AS quy,
+       COUNT(*) AS so_chien_dich,
+       ROUND(SUM(acquisition_cost * conversions), 2) AS chi_phi,
+       ROUND((SUM(revenue) - SUM(acquisition_cost * conversions))
+             / SUM(acquisition_cost * conversions), 4) AS roi
+FROM campaigns
+WHERE start_date >= '2024-07-01'
+GROUP BY CONCAT(YEAR(start_date), '-Q', QUARTER(start_date))
+ORDER BY quy;
 
--- [mkt-p5-dang-chay-moi-ngay-nhanh] wrong: can_duoi_theo_tung_ngay
-SELECT k.cal_date AS ngay, COUNT(c.campaign_id) AS so_dang_chay
-FROM calendar k
-LEFT JOIN campaigns c
-  ON c.start_date <= k.cal_date
- AND c.start_date >= k.cal_date - INTERVAL 29 DAY
- AND DATE_ADD(c.start_date, INTERVAL c.duration_days - 1 DAY) >= k.cal_date
-WHERE k.cal_date >= '2025-01-01' AND k.cal_date < '2025-02-01'
-GROUP BY k.cal_date
-ORDER BY k.cal_date;
+-- [mkt-p5-chi-phi-roi-bon-quy-mot-lan-quet] wrong: binh_quan_cot_roi
+SELECT CONCAT(YEAR(start_date), '-Q', QUARTER(start_date)) AS quy,
+       COUNT(*) AS so_chien_dich,
+       ROUND(SUM(acquisition_cost * conversions), 2) AS chi_phi,
+       ROUND(AVG(roi), 4) AS roi
+FROM campaigns
+WHERE start_date >= '2024-07-01' AND start_date < '2025-07-01'
+GROUP BY CONCAT(YEAR(start_date), '-Q', QUARTER(start_date))
+ORDER BY quy;
 
--- [mkt-p6-dong-trung-du-lieu-tho] starter
-SELECT b.brand_id, b.campaign_id,
-       a.row_index AS row_index_goc,
-       b.row_index AS row_index_ban_sao
-FROM campaigns_raw a
-JOIN campaigns_raw b ON b.campaign_id = a.campaign_id AND b.row_index > a.row_index
-WHERE NOT EXISTS (SELECT 1 FROM campaigns_raw c
-                  WHERE c.campaign_id = a.campaign_id AND c.row_index < a.row_index)
-ORDER BY b.brand_id, b.row_index;
+-- [mkt-p6-thoi-luong-purplle-mot-lan-quet] starter
+SELECT
+  (SELECT COUNT(*) FROM campaigns
+   WHERE brand_id = 2 AND start_date >= '2025-05-01' AND start_date < '2025-06-01'
+     AND duration_days <= 10) AS so_ngan,
+  (SELECT COUNT(*) FROM campaigns
+   WHERE brand_id = 2 AND start_date >= '2025-05-01' AND start_date < '2025-06-01'
+     AND duration_days BETWEEN 11 AND 20) AS so_vua,
+  (SELECT COUNT(*) FROM campaigns
+   WHERE brand_id = 2 AND start_date >= '2025-05-01' AND start_date < '2025-06-01'
+     AND duration_days >= 21) AS so_dai;
 
--- [mkt-p6-dong-trung-du-lieu-tho] solution
-WITH danh_dau AS (
-  SELECT brand_id, campaign_id, row_index,
-         MIN(row_index) OVER (PARTITION BY campaign_id) AS row_index_goc
-  FROM campaigns_raw
-)
-SELECT brand_id, campaign_id, row_index_goc, row_index AS row_index_ban_sao
-FROM danh_dau
-WHERE row_index > row_index_goc
-ORDER BY brand_id, row_index_ban_sao;
+-- [mkt-p6-thoi-luong-purplle-mot-lan-quet] solution
+SELECT COUNT(CASE WHEN duration_days <= 10 THEN 1 END) AS so_ngan,
+       COUNT(CASE WHEN duration_days BETWEEN 11 AND 20 THEN 1 END) AS so_vua,
+       COUNT(CASE WHEN duration_days >= 21 THEN 1 END) AS so_dai
+FROM campaigns
+WHERE brand_id = 2 AND start_date >= '2025-05-01' AND start_date < '2025-06-01';
 
--- [mkt-p6-dong-trung-du-lieu-tho] wrong: lay_ca_dong_goc
-WITH danh_dau AS (
-  SELECT brand_id, campaign_id, row_index,
-         MIN(row_index) OVER (PARTITION BY campaign_id) AS row_index_goc,
-         COUNT(*) OVER (PARTITION BY campaign_id) AS so_ban
-  FROM campaigns_raw
-)
-SELECT brand_id, campaign_id, row_index_goc, row_index AS row_index_ban_sao
-FROM danh_dau
-WHERE so_ban > 1
-ORDER BY brand_id, row_index_ban_sao;
+-- [mkt-p6-thoi-luong-purplle-mot-lan-quet] wrong: nhom_vua_tu_10_ngay
+SELECT COUNT(CASE WHEN duration_days <= 10 THEN 1 END) AS so_ngan,
+       COUNT(CASE WHEN duration_days BETWEEN 10 AND 20 THEN 1 END) AS so_vua,
+       COUNT(CASE WHEN duration_days >= 21 THEN 1 END) AS so_dai
+FROM campaigns
+WHERE brand_id = 2 AND start_date >= '2025-05-01' AND start_date < '2025-06-01';
+
+-- [mkt-p6-thoi-luong-purplle-mot-lan-quet] wrong: quen_loc_purplle
+SELECT COUNT(CASE WHEN duration_days <= 10 THEN 1 END) AS so_ngan,
+       COUNT(CASE WHEN duration_days BETWEEN 11 AND 20 THEN 1 END) AS so_vua,
+       COUNT(CASE WHEN duration_days >= 21 THEN 1 END) AS so_dai
+FROM campaigns
+WHERE start_date >= '2025-05-01' AND start_date < '2025-06-01';
 
 -- [mkt-p7-chien-dich-ngay-8-3-theo-chi-muc] solution
 SELECT c.campaign_id, t.type_name, c.revenue, c.roi
@@ -827,40 +760,47 @@ WHERE c.start_date = '2025-03-08'
   AND c.target_audience_id = 4
 ORDER BY c.revenue DESC, c.campaign_id;
 
--- [mkt-p8-bao-cao-thang-cham-va-sai] starter
+-- [mkt-p8-so-chien-dich-theo-thang-lech] starter
 SELECT m.thang,
        (SELECT COUNT(*) FROM campaigns c
-        WHERE c.start_date >= m.ngay_dau AND c.start_date < m.ngay_dau + INTERVAL 30 DAY) AS so_chien_dich,
-       (SELECT SUM(c.revenue) FROM campaigns c
-        WHERE c.start_date >= m.ngay_dau AND c.start_date < m.ngay_dau + INTERVAL 30 DAY) AS doanh_thu
+        WHERE c.start_date >= m.ngay_dau
+          AND c.start_date < m.ngay_dau + INTERVAL 30 DAY) AS so_chien_dich
 FROM (SELECT DATE_FORMAT(cal_date, '%Y-%m') AS thang, MIN(cal_date) AS ngay_dau
       FROM calendar
-      WHERE cal_date >= '2024-07-01'
+      WHERE cal_date >= '2024-07-01' AND cal_date < '2025-07-01'
       GROUP BY DATE_FORMAT(cal_date, '%Y-%m')) m
 ORDER BY m.thang;
 
--- [mkt-p8-bao-cao-thang-cham-va-sai] solution
+-- [mkt-p8-so-chien-dich-theo-thang-lech] solution
 SELECT DATE_FORMAT(start_date, '%Y-%m') AS thang,
-       COUNT(*) AS so_chien_dich,
-       SUM(revenue) AS doanh_thu
+       COUNT(*) AS so_chien_dich
 FROM campaigns
 WHERE start_date >= '2024-07-01' AND start_date < '2025-07-01'
 GROUP BY DATE_FORMAT(start_date, '%Y-%m')
 ORDER BY thang;
 
--- [mkt-p8-bao-cao-thang-cham-va-sai] wrong: thieu_can_tren
+-- [mkt-p8-so-chien-dich-theo-thang-lech] wrong: thieu_can_tren
 SELECT DATE_FORMAT(start_date, '%Y-%m') AS thang,
-       COUNT(*) AS so_chien_dich,
-       SUM(revenue) AS doanh_thu
+       COUNT(*) AS so_chien_dich
 FROM campaigns
 WHERE start_date >= '2024-07-01'
 GROUP BY DATE_FORMAT(start_date, '%Y-%m')
 ORDER BY thang;
 
--- [mkt-p8-bao-cao-thang-cham-va-sai] wrong: thang_30_ngay
+-- [mkt-p8-so-chien-dich-theo-thang-lech] wrong: thang_31_ngay
+SELECT m.thang,
+       (SELECT COUNT(*) FROM campaigns c
+        WHERE c.start_date >= m.ngay_dau
+          AND c.start_date < m.ngay_dau + INTERVAL 31 DAY) AS so_chien_dich
+FROM (SELECT DATE_FORMAT(cal_date, '%Y-%m') AS thang, MIN(cal_date) AS ngay_dau
+      FROM calendar
+      WHERE cal_date >= '2024-07-01' AND cal_date < '2025-07-01'
+      GROUP BY DATE_FORMAT(cal_date, '%Y-%m')) m
+ORDER BY m.thang;
+
+-- [mkt-p8-so-chien-dich-theo-thang-lech] wrong: noi_lich_thang_30_ngay
 SELECT DATE_FORMAT(m.ngay_dau, '%Y-%m') AS thang,
-       COUNT(c.campaign_id) AS so_chien_dich,
-       SUM(c.revenue) AS doanh_thu
+       COUNT(c.campaign_id) AS so_chien_dich
 FROM (SELECT MIN(cal_date) AS ngay_dau
       FROM calendar
       WHERE cal_date >= '2024-07-01' AND cal_date < '2025-07-01'
