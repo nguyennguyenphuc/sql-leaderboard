@@ -11,34 +11,33 @@
 
 -- ================================================ MODULE 5 · JOINS
 
--- [mkt-j1-doanh-thu-loai-thuong-hieu] solution
-SELECT b.brand_name, t.type_name, COUNT(*) AS so_chien_dich, SUM(c.revenue) AS doanh_thu
+-- [mkt-j1-tira-doanh-thu-cao-kem-loai] solution
+SELECT c.campaign_id, t.type_name, c.revenue
 FROM campaigns c
-JOIN brands b ON b.brand_id = c.brand_id
 JOIN campaign_types t ON t.type_id = c.type_id
-WHERE c.start_date >= '2025-04-01' AND c.start_date < '2025-07-01'
-GROUP BY b.brand_name, t.type_name
-ORDER BY b.brand_name, t.type_name;
+WHERE c.brand_id = 3
+  AND c.start_date = '2025-03-19'
+  AND c.revenue >= 2000000
+ORDER BY c.revenue DESC, c.campaign_id;
 
--- [mkt-j1-doanh-thu-loai-thuong-hieu] wrong: thieu_can_tren
--- Rớt ở hidden-1: chiến dịch Nykaa Social Media ngày 2025-07-01 lọt vào quý 2.
-SELECT b.brand_name, t.type_name, COUNT(*) AS so_chien_dich, SUM(c.revenue) AS doanh_thu
+-- [mkt-j1-tira-doanh-thu-cao-kem-loai] wrong: noi_sai_khoa
+-- Rớt ở public: nối loại chiến dịch theo brand_id, mọi dòng đều mang tên loại có mã 3.
+SELECT c.campaign_id, t.type_name, c.revenue
 FROM campaigns c
-JOIN brands b ON b.brand_id = c.brand_id
-JOIN campaign_types t ON t.type_id = c.type_id
-WHERE c.start_date >= '2025-04-01'
-GROUP BY b.brand_name, t.type_name
-ORDER BY b.brand_name, t.type_name;
-
--- [mkt-j1-doanh-thu-loai-thuong-hieu] wrong: noi_sai_khoa
--- Rớt ở public: nối loại chiến dịch theo brand_id, chỉ còn ba loại đầu và số bị gán sai loại.
-SELECT b.brand_name, t.type_name, COUNT(*) AS so_chien_dich, SUM(c.revenue) AS doanh_thu
-FROM campaigns c
-JOIN brands b ON b.brand_id = c.brand_id
 JOIN campaign_types t ON t.type_id = c.brand_id
-WHERE c.start_date >= '2025-04-01' AND c.start_date < '2025-07-01'
-GROUP BY b.brand_name, t.type_name
-ORDER BY b.brand_name, t.type_name;
+WHERE c.brand_id = 3
+  AND c.start_date = '2025-03-19'
+  AND c.revenue >= 2000000
+ORDER BY c.revenue DESC, c.campaign_id;
+
+-- [mkt-j1-tira-doanh-thu-cao-kem-loai] wrong: tra_ma_loai
+-- Rớt ở public: không nối danh mục, trả mã loại thay cho tên loại.
+SELECT c.campaign_id, c.type_id AS type_name, c.revenue
+FROM campaigns c
+WHERE c.brand_id = 3
+  AND c.start_date = '2025-03-19'
+  AND c.revenue >= 2000000
+ORDER BY c.revenue DESC, c.campaign_id;
 
 -- [mkt-j2-doi-tuong-va-phan-khuc] solution
 SELECT dt.audience_name AS doi_tuong, pk.audience_name AS phan_khuc, COUNT(*) AS so_chien_dich
@@ -67,38 +66,37 @@ WHERE c.start_date >= '2024-07-01' AND c.start_date < '2025-01-01'
 GROUP BY dt.audience_name, c.segment_id
 ORDER BY doi_tuong, phan_khuc;
 
--- [mkt-j3-hien-thi-theo-kenh] solution
-SELECT ch.channel_name, COUNT(*) AS so_chien_dich, SUM(c.impressions) AS luot_hien_thi
+-- [mkt-j3-influencer-nykaa-tren-youtube] solution
+SELECT c.campaign_id, c.impressions
 FROM campaigns c
 JOIN campaign_channels cc ON cc.campaign_id = c.campaign_id
-JOIN channels ch ON ch.channel_id = cc.channel_id
 WHERE c.brand_id = 1
-  AND c.start_date >= '2025-04-01' AND c.start_date < '2025-07-01'
-GROUP BY ch.channel_name
-ORDER BY so_chien_dich DESC, ch.channel_name;
+  AND c.type_id = 2
+  AND c.start_date = '2025-05-15'
+  AND cc.channel_id = 6
+ORDER BY c.impressions DESC, c.campaign_id;
 
--- [mkt-j3-hien-thi-theo-kenh] wrong: chi_lay_kenh_dau
--- Rớt ở public: channel_pos = 1 chỉ là kênh viết đầu trong chuỗi gốc, bỏ mất kênh thứ hai, thứ ba.
-SELECT ch.channel_name, COUNT(*) AS so_chien_dich, SUM(c.impressions) AS luot_hien_thi
+-- [mkt-j3-influencer-nykaa-tren-youtube] wrong: chi_lay_kenh_dau
+-- Rớt ở public: channel_pos = 1 chỉ là kênh viết đầu trong chuỗi gốc, bỏ mất chiến dịch có YouTube ở vị trí 2, 3.
+SELECT c.campaign_id, c.impressions
 FROM campaigns c
 JOIN campaign_channels cc ON cc.campaign_id = c.campaign_id
-JOIN channels ch ON ch.channel_id = cc.channel_id
 WHERE c.brand_id = 1
-  AND c.start_date >= '2025-04-01' AND c.start_date < '2025-07-01'
+  AND c.type_id = 2
+  AND c.start_date = '2025-05-15'
+  AND cc.channel_id = 6
   AND cc.channel_pos = 1
-GROUP BY ch.channel_name
-ORDER BY so_chien_dich DESC, ch.channel_name;
+ORDER BY c.impressions DESC, c.campaign_id;
 
--- [mkt-j3-hien-thi-theo-kenh] wrong: thieu_can_tren
--- Rớt ở hidden-1: chiến dịch Nykaa ngày 2025-07-01 (WhatsApp, YouTube) lọt vào quý 2.
-SELECT ch.channel_name, COUNT(*) AS so_chien_dich, SUM(c.impressions) AS luot_hien_thi
+-- [mkt-j3-influencer-nykaa-tren-youtube] wrong: noi_khong_loc_kenh
+-- Rớt ở public: nối cầu nối mà không lọc kênh, mỗi chiến dịch Influencer hiện một dòng cho mỗi kênh.
+SELECT c.campaign_id, c.impressions
 FROM campaigns c
 JOIN campaign_channels cc ON cc.campaign_id = c.campaign_id
-JOIN channels ch ON ch.channel_id = cc.channel_id
 WHERE c.brand_id = 1
-  AND c.start_date >= '2025-04-01'
-GROUP BY ch.channel_name
-ORDER BY so_chien_dich DESC, ch.channel_name;
+  AND c.type_id = 2
+  AND c.start_date = '2025-05-15'
+ORDER BY c.impressions DESC, c.campaign_id;
 
 -- [mkt-j4-dang-chay-tuan-dau-thang-2] solution
 SELECT k.cal_date, COUNT(*) AS so_dang_chay
@@ -176,40 +174,81 @@ WHERE k.cal_date >= '2025-05-01' AND k.cal_date < '2025-06-01'
   AND c.campaign_id IS NULL
 ORDER BY k.cal_date;
 
--- [mkt-j6-loai-email-khong-kenh-email] solution
-SELECT c.brand_id,
+-- [mkt-j6-email-lech-kenh-nua-dau-2025] solution
+SELECT b.brand_name,
        COUNT(*) AS so_chien_dich_email,
-       COUNT(CASE WHEN cc.campaign_id IS NULL THEN 1 END) AS so_khong_kenh_email
+       COUNT(CASE WHEN e.campaign_id IS NULL THEN 1 END) AS so_lech_kenh,
+       ROUND(COUNT(CASE WHEN e.campaign_id IS NULL THEN 1 END) * 100 / COUNT(*), 2) AS ty_le_lech_pct,
+       SUM(CASE WHEN e.campaign_id IS NULL THEN c.revenue ELSE 0 END) AS doanh_thu_lech
 FROM campaigns c
+JOIN brands b ON b.brand_id = c.brand_id
 JOIN campaign_types t ON t.type_id = c.type_id
-LEFT JOIN campaign_channels cc ON cc.campaign_id = c.campaign_id AND cc.channel_id = 1
+LEFT JOIN campaign_channels e ON e.campaign_id = c.campaign_id AND e.channel_id = 1
 WHERE t.type_name = 'Email'
-GROUP BY c.brand_id
-ORDER BY c.brand_id;
+  AND c.start_date >= '2025-01-01' AND c.start_date < '2025-07-01'
+GROUP BY b.brand_name
+ORDER BY b.brand_name;
 
--- [mkt-j6-loai-email-khong-kenh-email] wrong: dieu_kien_kenh_o_where
--- Rớt ở public: nối mọi kênh rồi lọc kênh khác Email: đếm theo dòng nối và gồm cả chiến dịch có Email kèm kênh khác.
-SELECT c.brand_id,
+-- [mkt-j6-email-lech-kenh-nua-dau-2025] wrong: kenh_khac_email_o_where
+-- Rớt ở public: lọc dòng kênh khác Email ở WHERE nên tính cả chiến dịch có Email kèm kênh khác, doanh thu cộng theo dòng nối.
+SELECT b.brand_name,
        COUNT(DISTINCT c.campaign_id) AS so_chien_dich_email,
-       COUNT(*) AS so_khong_kenh_email
+       COUNT(DISTINCT c.campaign_id) AS so_lech_kenh,
+       ROUND(COUNT(DISTINCT c.campaign_id) * 100 / COUNT(DISTINCT c.campaign_id), 2) AS ty_le_lech_pct,
+       SUM(c.revenue) AS doanh_thu_lech
 FROM campaigns c
+JOIN brands b ON b.brand_id = c.brand_id
 JOIN campaign_types t ON t.type_id = c.type_id
-LEFT JOIN campaign_channels cc ON cc.campaign_id = c.campaign_id
+JOIN campaign_channels cc ON cc.campaign_id = c.campaign_id
 WHERE t.type_name = 'Email' AND cc.channel_id <> 1
-GROUP BY c.brand_id
-ORDER BY c.brand_id;
+  AND c.start_date >= '2025-01-01' AND c.start_date < '2025-07-01'
+GROUP BY b.brand_name
+ORDER BY b.brand_name;
 
--- [mkt-j6-loai-email-khong-kenh-email] wrong: noi_thuong_nhan_dong
--- Rớt ở public: nối thường với cầu nối làm mỗi chiến dịch thành 1-3 dòng.
-SELECT c.brand_id,
-       COUNT(*) AS so_chien_dich_email,
-       COUNT(CASE WHEN cc.channel_id <> 1 THEN 1 END) AS so_khong_kenh_email
+-- [mkt-j6-email-lech-kenh-nua-dau-2025] wrong: doanh_thu_nhan_dong
+-- Rớt ở public: đếm đúng nhờ DISTINCT nhưng doanh thu lấy tổng mọi dòng nối trừ dòng kênh Email, chiến dịch nhiều kênh bị cộng nhiều lần.
+SELECT b.brand_name,
+       COUNT(DISTINCT c.campaign_id) AS so_chien_dich_email,
+       COUNT(DISTINCT c.campaign_id) - COUNT(DISTINCT CASE WHEN cc.channel_id = 1 THEN c.campaign_id END) AS so_lech_kenh,
+       ROUND((COUNT(DISTINCT c.campaign_id) - COUNT(DISTINCT CASE WHEN cc.channel_id = 1 THEN c.campaign_id END)) * 100
+             / COUNT(DISTINCT c.campaign_id), 2) AS ty_le_lech_pct,
+       SUM(c.revenue) - SUM(CASE WHEN cc.channel_id = 1 THEN c.revenue ELSE 0 END) AS doanh_thu_lech
 FROM campaigns c
+JOIN brands b ON b.brand_id = c.brand_id
 JOIN campaign_types t ON t.type_id = c.type_id
 JOIN campaign_channels cc ON cc.campaign_id = c.campaign_id
 WHERE t.type_name = 'Email'
-GROUP BY c.brand_id
-ORDER BY c.brand_id;
+  AND c.start_date >= '2025-01-01' AND c.start_date < '2025-07-01'
+GROUP BY b.brand_name
+ORDER BY b.brand_name;
+
+-- [mkt-j6-email-lech-kenh-nua-dau-2025] wrong: kenh_email_khong_phai_loai_email
+-- Rớt ở public: đảo vai loại và kênh, đếm chiến dịch có kênh Email mà không thuộc loại Email.
+SELECT b.brand_name,
+       COUNT(*) AS so_chien_dich_email,
+       COUNT(CASE WHEN c.type_id <> 1 THEN 1 END) AS so_lech_kenh,
+       ROUND(COUNT(CASE WHEN c.type_id <> 1 THEN 1 END) * 100 / COUNT(*), 2) AS ty_le_lech_pct,
+       SUM(CASE WHEN c.type_id <> 1 THEN c.revenue ELSE 0 END) AS doanh_thu_lech
+FROM campaigns c
+JOIN brands b ON b.brand_id = c.brand_id
+JOIN campaign_channels cc ON cc.campaign_id = c.campaign_id AND cc.channel_id = 1
+WHERE c.start_date >= '2025-01-01' AND c.start_date < '2025-07-01'
+GROUP BY b.brand_name
+ORDER BY b.brand_name;
+
+-- [mkt-j6-email-lech-kenh-nua-dau-2025] wrong: mau_so_moi_chien_dich
+-- Rớt ở public: tỷ lệ chia cho mọi chiến dịch của thương hiệu thay vì chiến dịch loại Email.
+SELECT b.brand_name,
+       COUNT(CASE WHEN c.type_id = 1 THEN 1 END) AS so_chien_dich_email,
+       COUNT(CASE WHEN c.type_id = 1 AND e.campaign_id IS NULL THEN 1 END) AS so_lech_kenh,
+       ROUND(COUNT(CASE WHEN c.type_id = 1 AND e.campaign_id IS NULL THEN 1 END) * 100 / COUNT(*), 2) AS ty_le_lech_pct,
+       SUM(CASE WHEN c.type_id = 1 AND e.campaign_id IS NULL THEN c.revenue ELSE 0 END) AS doanh_thu_lech
+FROM campaigns c
+JOIN brands b ON b.brand_id = c.brand_id
+LEFT JOIN campaign_channels e ON e.campaign_id = c.campaign_id AND e.channel_id = 1
+WHERE c.start_date >= '2025-01-01' AND c.start_date < '2025-07-01'
+GROUP BY b.brand_name
+ORDER BY b.brand_name;
 
 -- [mkt-j7-doanh-thu-instagram-facebook-gap-doi] starter
 SELECT COUNT(*) AS so_chien_dich, SUM(c.revenue) AS doanh_thu
@@ -283,7 +322,38 @@ WHERE c.start_date >= '2025-01-01' AND c.start_date < '2025-07-01'
 GROUP BY a.audience_name
 ORDER BY phan_khuc;
 
--- [mkt-j9-lich-thieu-ngay-trong] starter
+-- [mkt-j9-lich-paid-ads-tira-chua-dung-duoc] starter
+SELECT k.cal_date, COUNT(*) AS so_chien_dich
+FROM calendar k
+LEFT JOIN campaigns c ON c.start_date = k.cal_date
+WHERE k.cal_date >= '2025-06-01'
+  AND c.brand_id = 3 AND c.type_id = 3
+GROUP BY k.cal_date
+ORDER BY k.cal_date;
+
+-- [mkt-j9-lich-paid-ads-tira-chua-dung-duoc] solution
+SELECT k.cal_date, COUNT(c.campaign_id) AS so_chien_dich
+FROM calendar k
+LEFT JOIN campaigns c
+  ON c.start_date = k.cal_date
+ AND c.brand_id = 3 AND c.type_id = 3
+WHERE k.cal_date >= '2025-06-01' AND k.cal_date < '2025-07-01'
+GROUP BY k.cal_date
+ORDER BY k.cal_date;
+
+-- [mkt-j9-lich-paid-ads-tira-chua-dung-duoc] wrong: chi_dua_dieu_kien_vao_on
+-- Rớt ở public: đã giữ đủ ngày nhưng COUNT(*) cho ngày trống ra 1 (và vẫn thiếu cận trên).
+SELECT k.cal_date, COUNT(*) AS so_chien_dich
+FROM calendar k
+LEFT JOIN campaigns c
+  ON c.start_date = k.cal_date
+ AND c.brand_id = 3 AND c.type_id = 3
+WHERE k.cal_date >= '2025-06-01'
+GROUP BY k.cal_date
+ORDER BY k.cal_date;
+
+-- [mkt-j9-lich-paid-ads-tira-chua-dung-duoc] wrong: chi_sua_cot_dem
+-- Rớt ở public: đổi sang COUNT(c.campaign_id) nhưng điều kiện vẫn ở WHERE, ngày không có chiến dịch vẫn mất.
 SELECT k.cal_date, COUNT(c.campaign_id) AS so_chien_dich
 FROM calendar k
 LEFT JOIN campaigns c ON c.start_date = k.cal_date
@@ -292,29 +362,8 @@ WHERE k.cal_date >= '2025-06-01' AND k.cal_date < '2025-07-01'
 GROUP BY k.cal_date
 ORDER BY k.cal_date;
 
--- [mkt-j9-lich-thieu-ngay-trong] solution
-SELECT k.cal_date, COUNT(c.campaign_id) AS so_chien_dich
-FROM calendar k
-LEFT JOIN campaigns c
-  ON c.start_date = k.cal_date
- AND c.brand_id = 3 AND c.type_id = 3
-WHERE k.cal_date >= '2025-06-01' AND k.cal_date < '2025-07-01'
-GROUP BY k.cal_date
-ORDER BY k.cal_date;
-
--- [mkt-j9-lich-thieu-ngay-trong] wrong: dem_sao
--- Rớt ở public: đã đưa điều kiện vào ON nhưng COUNT(*) cho ngày trống ra 1.
-SELECT k.cal_date, COUNT(*) AS so_chien_dich
-FROM calendar k
-LEFT JOIN campaigns c
-  ON c.start_date = k.cal_date
- AND c.brand_id = 3 AND c.type_id = 3
-WHERE k.cal_date >= '2025-06-01' AND k.cal_date < '2025-07-01'
-GROUP BY k.cal_date
-ORDER BY k.cal_date;
-
--- [mkt-j9-lich-thieu-ngay-trong] wrong: thieu_can_tren
--- Rớt ở hidden-1: lịch có thêm ngày 2025-07-01.
+-- [mkt-j9-lich-paid-ads-tira-chua-dung-duoc] wrong: sua_hai_loi_thieu_can_tren
+-- Rớt ở hidden-1: sửa ON và cột đếm nhưng giữ lọc lịch không cận trên, lịch có thêm ngày 2025-07-01.
 SELECT k.cal_date, COUNT(c.campaign_id) AS so_chien_dich
 FROM calendar k
 LEFT JOIN campaigns c
@@ -386,66 +435,119 @@ WHERE c.start_date = '2025-03-05'
 GROUP BY c.brand_id
 ORDER BY c.brand_id, campaign_id;
 
--- [mkt-q3-loai-ctr-tren-chung] solution
-SELECT t.type_name, ROUND(SUM(c.clicks) * 100 / SUM(c.impressions), 2) AS ctr_pct
-FROM campaigns c
-JOIN campaign_types t ON t.type_id = c.type_id
-GROUP BY t.type_id, t.type_name
-HAVING SUM(c.clicks) * 100 / SUM(c.impressions)
-       > (SELECT SUM(clicks) * 100 / SUM(impressions) FROM campaigns)
-ORDER BY ctr_pct DESC, t.type_name;
+-- [mkt-q3-social-media-purplle-nhap-tren-binh-quan] solution
+SELECT campaign_id, clicks
+FROM campaigns
+WHERE brand_id = 2
+  AND type_id = 5
+  AND start_date = '2025-05-06'
+  AND clicks > (SELECT AVG(clicks) FROM campaigns)
+ORDER BY clicks DESC, campaign_id;
 
--- [mkt-q3-loai-ctr-tren-chung] wrong: so_sanh_tung_chien_dich_o_where
--- Rớt ở public: lọc từng chiến dịch có CTR trên mức chung rồi mới gom, loại nào cũng còn và CTR bị đẩy lên.
-SELECT t.type_name, ROUND(SUM(c.clicks) * 100 / SUM(c.impressions), 2) AS ctr_pct
-FROM campaigns c
-JOIN campaign_types t ON t.type_id = c.type_id
-WHERE c.clicks * 100 / c.impressions
-      > (SELECT SUM(clicks) * 100 / SUM(impressions) FROM campaigns)
-GROUP BY t.type_id, t.type_name
-ORDER BY ctr_pct DESC, t.type_name;
+-- [mkt-q3-social-media-purplle-nhap-tren-binh-quan] wrong: binh_quan_cung_nhom
+-- Rớt ở public: lấy bình quân của chính nhóm Purplle Social Media ngày 6/5 thay vì của mọi chiến dịch.
+SELECT campaign_id, clicks
+FROM campaigns
+WHERE brand_id = 2
+  AND type_id = 5
+  AND start_date = '2025-05-06'
+  AND clicks > (SELECT AVG(clicks) FROM campaigns
+                WHERE brand_id = 2 AND type_id = 5 AND start_date = '2025-05-06')
+ORDER BY clicks DESC, campaign_id;
 
--- [mkt-q3-loai-ctr-tren-chung] wrong: quen_nhan_100
--- Rớt ở public: cột ctr_pct để dạng tỷ số (khoảng 0,09) thay vì phần trăm.
-SELECT t.type_name, ROUND(SUM(c.clicks) / SUM(c.impressions), 2) AS ctr_pct
-FROM campaigns c
-JOIN campaign_types t ON t.type_id = c.type_id
-GROUP BY t.type_id, t.type_name
-HAVING SUM(c.clicks) * 100 / SUM(c.impressions)
-       > (SELECT SUM(clicks) * 100 / SUM(impressions) FROM campaigns)
-ORDER BY ctr_pct DESC, t.type_name;
+-- [mkt-q3-social-media-purplle-nhap-tren-binh-quan] wrong: thieu_loc_loai
+-- Rớt ở public: quên lọc loại Social Media, lấy chiến dịch của cả năm loại.
+SELECT campaign_id, clicks
+FROM campaigns
+WHERE brand_id = 2
+  AND start_date = '2025-05-06'
+  AND clicks > (SELECT AVG(clicks) FROM campaigns)
+ORDER BY clicks DESC, campaign_id;
 
--- [mkt-q4-doi-soat-roi-tinh-san] solution
-SELECT campaign_id, roi,
-       ROUND(roi_tinh, 4) AS roi_tinh_lai,
-       ROUND(ABS(roi - roi_tinh), 4) AS chenh_lech
-FROM (SELECT campaign_id, roi,
-             (revenue - acquisition_cost * conversions) / (acquisition_cost * conversions) AS roi_tinh
-      FROM campaigns) t
-WHERE ABS(roi - roi_tinh) > 0.02
-ORDER BY chenh_lech DESC, campaign_id;
+-- [mkt-q4-thang-roi-tren-muc-quy-1] solution
+SELECT m.brand_id, m.thang,
+       ROUND(m.roi_thang, 4) AS roi_thang,
+       ROUND(q.roi_quy, 4) AS roi_quy
+FROM (SELECT brand_id, DATE_FORMAT(start_date, '%Y-%m') AS thang,
+             (SUM(revenue) - SUM(acquisition_cost * conversions)) / SUM(acquisition_cost * conversions) AS roi_thang
+      FROM campaigns
+      WHERE start_date >= '2025-01-01' AND start_date < '2025-04-01'
+      GROUP BY brand_id, DATE_FORMAT(start_date, '%Y-%m')) m
+JOIN (SELECT brand_id,
+             (SUM(revenue) - SUM(acquisition_cost * conversions)) / SUM(acquisition_cost * conversions) AS roi_quy
+      FROM campaigns
+      WHERE start_date >= '2025-01-01' AND start_date < '2025-04-01'
+      GROUP BY brand_id) q ON q.brand_id = m.brand_id
+WHERE m.roi_thang > q.roi_quy
+ORDER BY m.brand_id, m.thang;
 
--- [mkt-q4-doi-soat-roi-tinh-san] wrong: lam_tron_trung_gian
--- Rớt ở public: làm tròn ROI tính lại 2 chữ số trước khi lấy chênh lệch, còn rất ít dòng.
-SELECT campaign_id, roi,
-       ROUND(roi_tinh, 4) AS roi_tinh_lai,
-       ROUND(ABS(roi - roi_tinh), 4) AS chenh_lech
-FROM (SELECT campaign_id, roi,
-             (revenue - acquisition_cost * conversions) / (acquisition_cost * conversions) AS roi_tinh
-      FROM campaigns) t
-WHERE ABS(roi - ROUND(roi_tinh, 2)) > 0.02
-ORDER BY chenh_lech DESC, campaign_id;
+-- [mkt-q4-thang-roi-tren-muc-quy-1] wrong: binh_quan_cot_roi
+-- Rớt ở public: ROI tháng và ROI quý đều lấy bình quân cột roi, không phải tỷ lệ của tổng.
+SELECT m.brand_id, m.thang,
+       ROUND(m.roi_thang, 4) AS roi_thang,
+       ROUND(q.roi_quy, 4) AS roi_quy
+FROM (SELECT brand_id, DATE_FORMAT(start_date, '%Y-%m') AS thang, AVG(roi) AS roi_thang
+      FROM campaigns
+      WHERE start_date >= '2025-01-01' AND start_date < '2025-04-01'
+      GROUP BY brand_id, DATE_FORMAT(start_date, '%Y-%m')) m
+JOIN (SELECT brand_id, AVG(roi) AS roi_quy
+      FROM campaigns
+      WHERE start_date >= '2025-01-01' AND start_date < '2025-04-01'
+      GROUP BY brand_id) q ON q.brand_id = m.brand_id
+WHERE m.roi_thang > q.roi_quy
+ORDER BY m.brand_id, m.thang;
 
--- [mkt-q4-doi-soat-roi-tinh-san] wrong: lam_tron_roi_so_khac
--- Rớt ở public: làm tròn 2 chữ số rồi so khác, bắt cả chiến dịch chỉ lệch 0,01 do làm tròn.
-SELECT campaign_id, roi,
-       ROUND(roi_tinh, 4) AS roi_tinh_lai,
-       ROUND(ABS(roi - roi_tinh), 4) AS chenh_lech
-FROM (SELECT campaign_id, roi,
-             (revenue - acquisition_cost * conversions) / (acquisition_cost * conversions) AS roi_tinh
-      FROM campaigns) t
-WHERE ROUND(roi_tinh, 2) <> roi
-ORDER BY chenh_lech DESC, campaign_id;
+-- [mkt-q4-thang-roi-tren-muc-quy-1] wrong: muc_chung_ca_ba_thuong_hieu
+-- Rớt ở public: mức so sánh là ROI quý 1 của cả ba thương hiệu (truy vấn con không gắn với thương hiệu).
+SELECT m.brand_id, m.thang,
+       ROUND(m.roi_thang, 4) AS roi_thang,
+       ROUND((SELECT (SUM(revenue) - SUM(acquisition_cost * conversions)) / SUM(acquisition_cost * conversions)
+              FROM campaigns
+              WHERE start_date >= '2025-01-01' AND start_date < '2025-04-01'), 4) AS roi_quy
+FROM (SELECT brand_id, DATE_FORMAT(start_date, '%Y-%m') AS thang,
+             (SUM(revenue) - SUM(acquisition_cost * conversions)) / SUM(acquisition_cost * conversions) AS roi_thang
+      FROM campaigns
+      WHERE start_date >= '2025-01-01' AND start_date < '2025-04-01'
+      GROUP BY brand_id, DATE_FORMAT(start_date, '%Y-%m')) m
+WHERE m.roi_thang > (SELECT (SUM(revenue) - SUM(acquisition_cost * conversions)) / SUM(acquisition_cost * conversions)
+                     FROM campaigns
+                     WHERE start_date >= '2025-01-01' AND start_date < '2025-04-01')
+ORDER BY m.brand_id, m.thang;
+
+-- [mkt-q4-thang-roi-tren-muc-quy-1] wrong: muc_so_sanh_ca_ky
+-- Rớt ở public: mức so sánh là ROI của thương hiệu trong cả kỳ dữ liệu, không phải riêng quý 1.
+SELECT m.brand_id, m.thang,
+       ROUND(m.roi_thang, 4) AS roi_thang,
+       ROUND(q.roi_quy, 4) AS roi_quy
+FROM (SELECT brand_id, DATE_FORMAT(start_date, '%Y-%m') AS thang,
+             (SUM(revenue) - SUM(acquisition_cost * conversions)) / SUM(acquisition_cost * conversions) AS roi_thang
+      FROM campaigns
+      WHERE start_date >= '2025-01-01' AND start_date < '2025-04-01'
+      GROUP BY brand_id, DATE_FORMAT(start_date, '%Y-%m')) m
+JOIN (SELECT brand_id,
+             (SUM(revenue) - SUM(acquisition_cost * conversions)) / SUM(acquisition_cost * conversions) AS roi_quy
+      FROM campaigns
+      GROUP BY brand_id) q ON q.brand_id = m.brand_id
+WHERE m.roi_thang > q.roi_quy
+ORDER BY m.brand_id, m.thang;
+
+-- [mkt-q4-thang-roi-tren-muc-quy-1] wrong: lam_tron_truoc_khi_so
+-- Rớt ở hidden-1: so hai ROI đã làm tròn 2 chữ số; tháng 1 của Tira Beauty chỉ cao hơn ROI quý chưa tới 0,001 nên bị loại.
+SELECT m.brand_id, m.thang,
+       ROUND(m.roi_thang, 4) AS roi_thang,
+       ROUND(q.roi_quy, 4) AS roi_quy
+FROM (SELECT brand_id, DATE_FORMAT(start_date, '%Y-%m') AS thang,
+             (SUM(revenue) - SUM(acquisition_cost * conversions)) / SUM(acquisition_cost * conversions) AS roi_thang
+      FROM campaigns
+      WHERE start_date >= '2025-01-01' AND start_date < '2025-04-01'
+      GROUP BY brand_id, DATE_FORMAT(start_date, '%Y-%m')) m
+JOIN (SELECT brand_id,
+             (SUM(revenue) - SUM(acquisition_cost * conversions)) / SUM(acquisition_cost * conversions) AS roi_quy
+      FROM campaigns
+      WHERE start_date >= '2025-01-01' AND start_date < '2025-04-01'
+      GROUP BY brand_id) q ON q.brand_id = m.brand_id
+WHERE ROUND(m.roi_thang, 2) > ROUND(q.roi_quy, 2)
+ORDER BY m.brand_id, m.thang;
 
 -- [mkt-q5-ty-trong-loai-purplle] solution
 SELECT t.type_name, SUM(c.revenue) AS doanh_thu,
@@ -600,55 +702,55 @@ WHERE NOT EXISTS (SELECT 1
 GROUP BY r.brand_id
 ORDER BY r.brand_id;
 
--- [mkt-q9-tuong-tac-tren-binh-quan-loai] starter
+-- [mkt-q9-tuong-tac-tren-binh-quan-hai-loi] starter
 SELECT c.type_id, COUNT(*) AS so_chien_dich
 FROM campaigns c
 WHERE c.brand_id = 1
-  AND c.start_date >= '2025-03-01' AND c.start_date < '2025-03-08'
+  AND c.start_date >= '2025-03-07' AND c.start_date < '2025-03-09'
   AND c.engagement_score > (SELECT AVG(engagement_score)
                             FROM campaigns
-                            WHERE brand_id = 1
-                              AND start_date >= '2025-03-01' AND start_date < '2025-03-08'
+                            WHERE start_date >= '2025-03-07' AND start_date < '2025-03-09'
                               AND type_id = type_id)
 GROUP BY c.type_id
 ORDER BY c.type_id;
 
--- [mkt-q9-tuong-tac-tren-binh-quan-loai] solution
+-- [mkt-q9-tuong-tac-tren-binh-quan-hai-loi] solution
 SELECT c.type_id, COUNT(*) AS so_chien_dich
 FROM campaigns c
 WHERE c.brand_id = 1
-  AND c.start_date >= '2025-03-01' AND c.start_date < '2025-03-08'
+  AND c.start_date >= '2025-03-07' AND c.start_date < '2025-03-09'
   AND c.engagement_score > (SELECT AVG(c2.engagement_score)
                             FROM campaigns c2
                             WHERE c2.brand_id = 1
-                              AND c2.start_date >= '2025-03-01' AND c2.start_date < '2025-03-08'
+                              AND c2.start_date >= '2025-03-07' AND c2.start_date < '2025-03-09'
                               AND c2.type_id = c.type_id)
 GROUP BY c.type_id
 ORDER BY c.type_id;
 
--- [mkt-q9-tuong-tac-tren-binh-quan-loai] wrong: binh_quan_loai_ca_ba_thuong_hieu
--- Rớt ở public: bình quân của loại lấy cả ba thương hiệu trong 7 ngày.
+-- [mkt-q9-tuong-tac-tren-binh-quan-hai-loi] wrong: chi_sua_bi_danh
+-- Rớt ở public: truy vấn con đã gắn với loại nhưng vẫn lấy cả ba thương hiệu.
 SELECT c.type_id, COUNT(*) AS so_chien_dich
 FROM campaigns c
 WHERE c.brand_id = 1
-  AND c.start_date >= '2025-03-01' AND c.start_date < '2025-03-08'
+  AND c.start_date >= '2025-03-07' AND c.start_date < '2025-03-09'
   AND c.engagement_score > (SELECT AVG(c2.engagement_score)
                             FROM campaigns c2
-                            WHERE c2.start_date >= '2025-03-01' AND c2.start_date < '2025-03-08'
+                            WHERE c2.start_date >= '2025-03-07' AND c2.start_date < '2025-03-09'
                               AND c2.type_id = c.type_id)
 GROUP BY c.type_id
 ORDER BY c.type_id;
 
--- [mkt-q9-tuong-tac-tren-binh-quan-loai] wrong: bo_loc_thuong_hieu_ngoai
--- Rớt ở public: sửa đúng truy vấn con nhưng bỏ lọc Nykaa ở truy vấn ngoài, đếm cả ba thương hiệu.
+-- [mkt-q9-tuong-tac-tren-binh-quan-hai-loi] wrong: chi_them_loc_thuong_hieu
+-- Rớt ở public: truy vấn con đã lọc Nykaa nhưng type_id = type_id vẫn so cột với chính nó, ra bình quân mọi loại.
 SELECT c.type_id, COUNT(*) AS so_chien_dich
 FROM campaigns c
-WHERE c.start_date >= '2025-03-01' AND c.start_date < '2025-03-08'
-  AND c.engagement_score > (SELECT AVG(c2.engagement_score)
-                            FROM campaigns c2
-                            WHERE c2.brand_id = 1
-                              AND c2.start_date >= '2025-03-01' AND c2.start_date < '2025-03-08'
-                              AND c2.type_id = c.type_id)
+WHERE c.brand_id = 1
+  AND c.start_date >= '2025-03-07' AND c.start_date < '2025-03-09'
+  AND c.engagement_score > (SELECT AVG(engagement_score)
+                            FROM campaigns
+                            WHERE brand_id = 1
+                              AND start_date >= '2025-03-07' AND start_date < '2025-03-09'
+                              AND type_id = type_id)
 GROUP BY c.type_id
 ORDER BY c.type_id;
 

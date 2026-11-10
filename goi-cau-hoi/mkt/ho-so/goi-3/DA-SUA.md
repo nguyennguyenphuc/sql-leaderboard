@@ -65,3 +65,57 @@ Kiểm: bộ kiểm đầy đủ gói 3 **KIEM TRA: 0 loi** (chỉ đổi chữ 
 ### Chuẩn hoá theo quy chuẩn (10/11, BRIEF-CHUAN-HOA)
 
 Xem `../CHUAN-HOA.md` (tiêu đề ≤ 13 tiếng, gợi ý nấc cuối, kết luận case ≤ 35 tiếng, ERD theo CHOT mục 3, cấp). File hồ sơ chuyển từ `goi-3/` sang `ho-so/goi-3/`.
+
+## v4 – đủ 4 cấp mỗi module (11/11/2026)
+
+Theo `BRIEF-CAP-DO-MODULE.md`: mỗi module 2 Cơ bản · 3 Dễ · 2 Trung bình · 2 Khó (không tính case), theo lộ trình `quy_chuan/lo-trinh-sql/assets/js/data.js` (Joins: `j1-don-kem-vung` basic, `j3-khach-chua-mua` easy, `j5-doanh-thu-nhom-hang` medium, `j6-mua-cung-don` hard; Subqueries: `q1-tren-gia-trung-binh` basic, `q2`, `q3` easy, `q4`, `q5` medium, `q6-don-dau-tien` hard). Case c5 (Dễ), c6 (Trung bình) giữ nguyên cấp. Agent v4 trước dừng vì giới hạn lượt trước khi sửa gì (`TRANG-THAI-V4.md`); bản này làm từ đầu.
+
+| Module | Trước (Cơ bản/Dễ/TB/Khó) | Sau | Hình thức sau (write/debug) |
+|---|---|---|---|
+| M5 Joins | 0 / 4 / 5 / 0 | 2 / 3 / 2 / 2 | 6 / 3 (debug: j7 Dễ, j8 Dễ, j9 Khó) |
+| M6 Subqueries | 1 / 3 / 5 / 0 | 2 / 3 / 2 / 2 | 6 / 3 (debug: q7 Cơ bản, q8 Trung bình, q9 Khó) |
+
+Số câu viết lại tối thiểu: M5 thừa 1 Dễ và 3 Trung bình (1 Dễ + 1 TB → Cơ bản, 2 TB → Khó); M6 thừa 3 Trung bình (1 → Cơ bản, 2 → Khó). Tổng **7 câu**. Giữ j2, j7, j8 (Dễ), j4, j5 (TB), q1, q2, q5 (Dễ), q6, q8 (TB), q7 (Cơ bản). Không hạ j8 (sửa lỗi Dễ) xuống Cơ bản vì ô A1 · customer · basic · debug đã có q7; hạ j1 thay.
+
+| Mã cũ → mã mới | Cấp cũ → mới | Đổi gì | 5 trục (bảng lời giải · bước · mơ hồ · bẫy · nghiệp vụ) |
+|---|---|---|---|
+| `mkt-j1-doanh-thu-loai-thuong-hieu` → `mkt-j1-tira-doanh-thu-cao-kem-loai` | Dễ → Cơ bản | Bỏ gom theo thương hiệu × loại quý 2; liệt kê chiến dịch Tira Beauty ngày 19/3/2025 có doanh thu từ 2.000.000, kèm tên loại. Yêu cầu ghi rõ khoá nối. ERD 2 bảng có giá trị mẫu (chiến dịch ngày 18/3, không thuộc kết quả) và chữ trên đường nối, bỏ `brands`. Đổi mảng marketing → sales, dạng A3 → A1. 2 wrong. | 2 bảng (Cơ bản của Joins là nối 2 bảng) · 1 tầng · ghi rõ cột, giá trị lọc, khoá nối · 0 bẫy · 1 khái niệm. Đạt Cơ bản 5/5 |
+| `mkt-j3-hien-thi-theo-kenh` → `mkt-j3-influencer-nykaa-tren-youtube` | Trung bình → Cơ bản | Bỏ đếm và cộng lượt hiển thị theo kênh; liệt kê chiến dịch Influencer của Nykaa ngày 15/5/2025 có kênh YouTube, kèm lượt hiển thị. Ý "vị trí kênh không phải mức ưu tiên" nói thẳng trong yêu cầu. ERD 2 bảng có giá trị mẫu (YouTube ở vị trí 3) và chữ trên đường nối, bỏ `channels`. Dạng A3 → A1. 2 wrong. | 2 bảng · 1 tầng · ghi rõ cột, giá trị lọc, khoá nối · 0 bẫy · 1 khái niệm. Đạt Cơ bản 5/5 |
+| `mkt-j6-loai-email-khong-kenh-email` → `mkt-j6-email-lech-kenh-nua-dau-2025` | Trung bình → Khó | Thêm chỉ số "chiến dịch email lệch kênh" (định nghĩa ở tab Nghiệp vụ), tỷ lệ lệch kênh và doanh thu của nhóm lệch kênh theo tên thương hiệu, nửa đầu 2025. Lời nhắn nói bằng ngôn ngữ báo cáo; ERD 6 bảng chỉ khoá, 2 bảng nhiễu, cách nối ở `\erdkhoa`. 4 wrong. | 4 bảng · 4 tầng (đánh dấu từng chiến dịch, gom, tỷ lệ, doanh thu có điều kiện) · chỉ số ở tab Nghiệp vụ, nối ở `\erdkhoa` · 4 bẫy (kênh khác Email ở WHERE, doanh thu nhân theo số kênh, đảo vai loại và kênh, sai mẫu số) · chỉ số nhiều điều kiện. Đạt Khó 4/5 (trục bẫy thiếu bẫy chỉ lộ ở hidden-1) |
+| `mkt-j9-lich-thieu-ngay-trong` → `mkt-j9-lich-paid-ads-tira-chua-dung-duoc` | Trung bình → Khó | Starter có ba lỗi chồng nhau: điều kiện bảng phải ở WHERE, `COUNT(*)`, lọc lịch thiếu cận trên. Sửa lỗi thứ nhất mới lộ lỗi thứ hai; lỗi thứ ba chỉ lộ ở hidden-1 (lịch có thêm 2025-07-01). Yêu cầu không chỉ chỗ sai; ERD 5 bảng chỉ khoá, 3 bảng nhiễu. 3 wrong. | 2 bảng (mẫu d4) · 3 tầng · không nêu chỗ sai, ERD trung tính · 3 bẫy, 1 chỉ lộ ở hidden-1 · lịch đủ ngày cho tháng chưa đủ. Đạt Khó 3/5 + trục sửa lỗi (3 lỗi chồng nhau) |
+| `mkt-q3-loai-ctr-tren-chung` → `mkt-q3-social-media-purplle-nhap-tren-binh-quan` | Trung bình → Cơ bản | Đổi sang truy vấn con một giá trị không lọc (đúng mẫu `q1-tren-gia-trung-binh`): chiến dịch Social Media của Purplle ngày 6/5/2025 có lượt nhấp trên bình quân của mọi chiến dịch. ERD 1 bảng có giá trị mẫu, bỏ 2 bảng. 2 wrong. | 1 bảng · 1 tầng · ghi rõ cột, giá trị lọc, phạm vi bình quân · 0 bẫy · 1 khái niệm. Đạt Cơ bản 5/5 |
+| `mkt-q4-doi-soat-roi-tinh-san` → `mkt-q4-thang-roi-tren-muc-quy-1` | Trung bình → Khó | Viết mới: với mỗi thương hiệu, tháng nào của quý 1/2025 có ROI (tỷ lệ của tổng) cao hơn ROI cả quý của chính thương hiệu đó. Truy vấn con tương quan hoặc hai bảng dẫn xuất; `saiso=0.0001`. ERD 5 bảng chỉ khoá, 4 bảng nhiễu. Dạng E2 → C3. 4 wrong. | 1 bảng (mẫu o4) · 4 tầng · ngôn ngữ báo cáo, công thức ở tab Nghiệp vụ · 4 bẫy (bình quân cột `roi`, mức của ba thương hiệu, mức của cả kỳ, làm tròn trước khi so – chỉ lộ ở hidden-1) · ROI của tổng, so trong từng thương hiệu. Đạt Khó 4/5 |
+| `mkt-q9-tuong-tac-tren-binh-quan-loai` → `mkt-q9-tuong-tac-tren-binh-quan-hai-loi` | Trung bình → Khó | Starter thêm lỗi thứ hai (truy vấn con thiếu lọc Nykaa) chồng lên `type_id = type_id`; sửa một lỗi vẫn sai. Thu phạm vi 1–7/3 → 7–8/3 vì chậm (xem dưới). ERD 5 bảng chỉ khoá. 2 wrong (mỗi wrong là một lỗi được sửa một mình). | 1 bảng đọc hai lần · 3 tầng · không nêu chỗ sai, ERD trung tính · 3 bẫy · so trong nhóm theo ba điều kiện. Đạt Khó 3/5 + trục sửa lỗi (2 lỗi chồng nhau) |
+
+Câu giữ nguyên chỉ sửa chú thích tiêu đề khối (`% ==== J8 · … Dễ`, `Q5 · … Dễ`, `Q7 · … Cơ bản`) cho khớp `cap` đã đổi ở v2.
+
+### Thời gian chạy (đo lúc 4 agent khác cùng dùng `sqllb-mysql`, gồm khoảng 0,15 giây gọi `docker exec`)
+
+- Mọi solution của gói, cả hai biến thể: chậm nhất **`mkt-q4-thang-roi-tren-muc-quy-1` 3,9 giây** (public; hidden-1 3,0 giây), tiếp theo `mkt-c5-kenh-hieu-qua-hon.b2` 3,9 giây, `mkt-j7` 3,6 giây; các câu mới khác dưới 1,7 giây.
+- Cách giải tự nhiên đã đo: q4 truy vấn con tương quan ở SELECT và HAVING 3,6–4,3 giây, CTE hai tầng 0,4 giây; q9 truy vấn con tương quan có `BETWEEN` 2,1 giây, bảng dẫn xuất 0,2 giây; j6 `NOT EXISTS` 0,6 giây, `NOT IN` 0,9 giây, bảng dẫn xuất `MAX(channel_id = 1)` 1,9 giây. Mọi cách cho cùng kết quả với solution.
+- Thu phạm vi vì chậm: q9 bản 7 ngày (1–7/3) lời giải 7,7 giây, bài sai chỉ sửa bí danh 23,5 giây → 2 ngày (7–8/3): 0,8 giây và 2,1 giây. q4 bản 5 tháng đầu 2025 (có bẫy tháng 6 chưa đủ) truy vấn con tương quan ở HAVING 7,5 giây → một quý: 3,6–4,3 giây; bản đầu tiên (11 tháng, tương quan ở SELECT) 14 giây.
+
+### Kiểm lại
+
+- Kiểm tĩnh (`--chi-phan-tich`): 20 câu, 0 lỗi, 0 cảnh báo.
+- Bộ kiểm đầy đủ (`cong-cu/kiem_tra_goi.py --goi goi-cau-hoi/mkt/goi-3 --ra cong-cu/ket-qua/cap-do/mkt-goi-3 --host sqllb-mysql --port 3306`): 20 câu, 80 khối SQL, `KIEM TRA: 0 loi`, 0 cảnh báo. Mọi wrong mới rớt ≥ 1 biến thể; `mkt-j9…sua_hai_loi_thieu_can_tren`, `mkt-q4…lam_tron_truoc_khi_so` chỉ rớt ở hidden-1 như thiết kế. Solution của 7 câu mới khác nhau giữa public và hidden-1 (md5 kết quả).
+- Biên dịch `bash cong-cu/bien_dich.sh goi-cau-hoi/mkt/goi-3 <ra>`: 53 trang, 0 lỗi LaTeX, 0 ký tự thiếu, 0 cảnh báo `aio-sql-cauhoi` (PDF ở `cong-cu/ket-qua/cap-do/mkt-goi-3/bien-dich/`). Đã xem PDF: ERD Cơ bản của j1 lúc đầu chồng hai bảng, đã dời bảng thứ hai sang cột 2 (cả j3).
+- Thư mục gói vẫn đúng 4 file.
+
+### Cửa chặn giọng văn (BRIEF-KIEM-GOI bước 6) trên chữ mới
+
+Đã đọc lại mọi trường của 7 câu. Sửa trước khi chốt:
+- j1 lời nhắn: "danh sách chiến dịch đạt từ 2 triệu đơn vị tiền doanh thu" (trật tự từ kiểu dịch) → "danh sách chiến dịch có doanh thu từ 2 triệu (đơn vị tiền) trở lên".
+- j3 lời nhắn: "khởi chạy ngày 15/5 có chạy trên YouTube" (lặp "chạy") → "khởi chạy ngày 15/5 có dùng kênh YouTube".
+- j6 lời nhắn: "Chị cần số liệu …: bao nhiêu …, chiếm bao nhiêu phần, và doanh thu … là bao nhiêu" (khuôn hai chấm, ba vế) → "Em tính giúp chị, cho nửa đầu 2025 và theo từng thương hiệu, có bao nhiêu …, chiếm tỷ lệ bao nhiêu và mang về bao nhiêu doanh thu."
+- j6 gợi ý 1: "chỉ cần biết một điều: bảng cầu nối có …" (khuôn "mệnh đề: kết luận") → "Ở mỗi chiến dịch loại Email, chỉ cần biết bảng cầu nối có dòng kênh Email của chiến dịch đó hay không."
+
+Không có tên kỹ thuật SQL trong lời nhắn; thuật ngữ theo STYLE-mkt A ("loại Email"/"kênh Email", "lượt nhấp (click)", "marketing mạng xã hội (Social Media)", "đơn vị tiền", ROI là hệ số). Sau khi sửa: 0 chỗ giọng AI, 0 chỗ dịch máy theo người sửa; cần người kiểm đọc độc lập.
+
+### Ô dạng × mảng × cấp × hình thức
+
+Không trùng trong gói (đã đối chiếu cả 20 câu). Giữa các gói: `mkt-j3-influencer-nykaa-tren-youtube` (A1 · marketing · basic · write) cùng ô với `mkt-r1-influencer-purplle-thang-1` (gói 1, M1, lọc một bảng): khác module, được phép, ghi để tham khảo. Nội dung gần: q4 và q1 cùng ý "ROI trên mức chung" (khác cấp Khó/Dễ, khác đơn vị so: tháng so với quý, chiến dịch so với tháng); q3 (Cơ bản, Viết) và q9 (Khó, Sửa lỗi) cùng dạng C3 · marketing nhưng khác cấp, hình thức. Các gói 1, 2, 4, 5 đang được sửa song song nên chỉ đối chiếu được bản trên đĩa lúc 11/11.
+
+Dòng bản đồ mới: `BAN-DO-V4-DONG.md` (7 dòng, kèm mã cũ). `../../BAN-DO-100-CAU.md` không sửa theo brief v4.
+
+Điểm tự thấy yếu: j6 chưa có bẫy chỉ lộ ở hidden-1; q4 Khó chỉ dùng một bảng và ra 6 dòng (đúng mẫu o4 nhưng ít dòng); ERD Khó của j9, q4, q9 phải thêm 3–4 bảng nhiễu cho đủ 5 bảng (QUYET-DINH-CHUNG 1.3).
