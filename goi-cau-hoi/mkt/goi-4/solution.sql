@@ -337,7 +337,7 @@ WITH theo_ngay AS (
   LEFT JOIN campaigns c
     ON c.start_date <= k.cal_date
    AND k.cal_date <= c.start_date + INTERVAL c.duration_days - 1 DAY
-  WHERE k.cal_date >= '2025-01-01' AND k.cal_date < '2025-04-01'
+  WHERE k.cal_date >= '2025-01-01' AND k.cal_date < '2025-02-01'
   GROUP BY k.cal_date, k.week_start
 )
 SELECT week_start,
@@ -347,7 +347,7 @@ FROM theo_ngay
 GROUP BY week_start
 ORDER BY week_start;
 
--- [mkt-t5-dang-chay-binh-quan-theo-tuan] wrong: chi_chien_dich_bat_dau_trong_quy
+-- [mkt-t5-dang-chay-binh-quan-theo-tuan] wrong: chi_chien_dich_bat_dau_trong_ky
 -- Chỉ lấy chiến dịch bắt đầu từ 1/1/2025: mất các chiến dịch bắt đầu cuối tháng 12/2024 còn chạy sang tháng 1 (rớt ở public).
 WITH theo_ngay AS (
   SELECT k.cal_date, k.week_start, COUNT(c.campaign_id) AS so_dang_chay
@@ -356,7 +356,7 @@ WITH theo_ngay AS (
     ON c.start_date <= k.cal_date
    AND k.cal_date <= c.start_date + INTERVAL c.duration_days - 1 DAY
    AND c.start_date >= '2025-01-01'
-  WHERE k.cal_date >= '2025-01-01' AND k.cal_date < '2025-04-01'
+  WHERE k.cal_date >= '2025-01-01' AND k.cal_date < '2025-02-01'
   GROUP BY k.cal_date, k.week_start
 )
 SELECT week_start,
@@ -374,7 +374,7 @@ WITH theo_ngay AS (
   LEFT JOIN campaigns c
     ON c.start_date <= k.cal_date
    AND k.cal_date <= c.start_date + INTERVAL c.duration_days DAY
-  WHERE k.cal_date >= '2025-01-01' AND k.cal_date < '2025-04-01'
+  WHERE k.cal_date >= '2025-01-01' AND k.cal_date < '2025-02-01'
   GROUP BY k.cal_date, k.week_start
 )
 SELECT week_start,
@@ -384,15 +384,15 @@ FROM theo_ngay
 GROUP BY week_start
 ORDER BY week_start;
 
--- [mkt-t5-dang-chay-binh-quan-theo-tuan] wrong: thieu_can_tren
--- Chỉ có cận dưới của lịch: lấy thêm các tuần của quý 2 (rớt ở public).
+-- [mkt-t5-dang-chay-binh-quan-theo-tuan] wrong: can_tren_lay_ca_ngay_1_2
+-- Cận trên viết bằng BETWEEN tới ngày 1/2/2025: tuần 27/1/2025 có thêm ngày 1/2, ra 6 ngày (rớt ở public).
 WITH theo_ngay AS (
   SELECT k.cal_date, k.week_start, COUNT(c.campaign_id) AS so_dang_chay
   FROM calendar k
   LEFT JOIN campaigns c
     ON c.start_date <= k.cal_date
    AND k.cal_date <= c.start_date + INTERVAL c.duration_days - 1 DAY
-  WHERE k.cal_date >= '2025-01-01'
+  WHERE k.cal_date BETWEEN '2025-01-01' AND '2025-02-01'
   GROUP BY k.cal_date, k.week_start
 )
 SELECT week_start,
@@ -403,14 +403,14 @@ GROUP BY week_start
 ORDER BY week_start;
 
 -- [mkt-t5-dang-chay-binh-quan-theo-tuan] wrong: chia_bay_ngay
--- Chia tổng của tuần cho 7: tuần 30/12/2024 (5 ngày trong quý) và tuần 31/3/2025 (1 ngày) sai bình quân (rớt ở public).
+-- Chia tổng của tuần cho 7: tuần 30/12/2024 và tuần 27/1/2025 (mỗi tuần 5 ngày trong tháng) sai bình quân (rớt ở public).
 WITH theo_ngay AS (
   SELECT k.cal_date, k.week_start, COUNT(c.campaign_id) AS so_dang_chay
   FROM calendar k
   LEFT JOIN campaigns c
     ON c.start_date <= k.cal_date
    AND k.cal_date <= c.start_date + INTERVAL c.duration_days - 1 DAY
-  WHERE k.cal_date >= '2025-01-01' AND k.cal_date < '2025-04-01'
+  WHERE k.cal_date >= '2025-01-01' AND k.cal_date < '2025-02-01'
   GROUP BY k.cal_date, k.week_start
 )
 SELECT week_start,
@@ -723,7 +723,7 @@ SELECT start_date,
        campaign_id,
        clicks
 FROM campaigns
-WHERE brand_id = 2 AND type_id = 5
+WHERE brand_id = 2 AND type_id = 5 AND language_id = 2
   AND start_date >= '2025-03-03' AND start_date < '2025-03-05'
 ORDER BY start_date, hang;
 
@@ -734,7 +734,7 @@ SELECT start_date,
        campaign_id,
        clicks
 FROM campaigns
-WHERE brand_id = 2 AND type_id = 5
+WHERE brand_id = 2 AND type_id = 5 AND language_id = 2
   AND start_date >= '2025-03-03' AND start_date < '2025-03-05'
 ORDER BY start_date, hang;
 
@@ -745,7 +745,7 @@ SELECT start_date,
        campaign_id,
        clicks
 FROM campaigns
-WHERE brand_id = 2 AND type_id = 5
+WHERE brand_id = 2 AND type_id = 5 AND language_id = 2
   AND start_date >= '2025-03-03' AND start_date < '2025-03-05'
 ORDER BY start_date, hang;
 
@@ -859,17 +859,16 @@ LIMIT 1;
 
 -- [mkt-f6-nhom-gia-tri-don-theo-phan-khuc] solution
 WITH chia_nhom AS (
-  SELECT segment_id, campaign_id, revenue,
-         revenue / NULLIF(conversions, 0) AS gia_tri_don,
+  SELECT segment_id, campaign_id,
+         revenue / conversions AS gia_tri_don,
          NTILE(4) OVER (PARTITION BY segment_id
-                        ORDER BY revenue / NULLIF(conversions, 0) DESC, campaign_id) AS nhom
+                        ORDER BY revenue / conversions DESC, campaign_id) AS nhom
   FROM campaigns
   WHERE start_date >= '2025-01-01' AND start_date < '2025-04-01'
 )
 SELECT segment_id,
        COUNT(*) AS so_chien_dich,
-       ROUND(MIN(gia_tri_don), 2) AS gia_tri_don_thap_nhat,
-       SUM(revenue) AS doanh_thu
+       ROUND(MIN(gia_tri_don), 2) AS gia_tri_don_thap_nhat
 FROM chia_nhom
 WHERE nhom = 1
 GROUP BY segment_id
@@ -878,16 +877,15 @@ ORDER BY segment_id;
 -- [mkt-f6-nhom-gia-tri-don-theo-phan-khuc] wrong: thieu_partition
 -- Chia bốn nhóm trên toàn bộ chiến dịch rồi mới tách phân khúc (rớt ở public).
 WITH chia_nhom AS (
-  SELECT segment_id, campaign_id, revenue,
-         revenue / NULLIF(conversions, 0) AS gia_tri_don,
-         NTILE(4) OVER (ORDER BY revenue / NULLIF(conversions, 0) DESC, campaign_id) AS nhom
+  SELECT segment_id, campaign_id,
+         revenue / conversions AS gia_tri_don,
+         NTILE(4) OVER (ORDER BY revenue / conversions DESC, campaign_id) AS nhom
   FROM campaigns
   WHERE start_date >= '2025-01-01' AND start_date < '2025-04-01'
 )
 SELECT segment_id,
        COUNT(*) AS so_chien_dich,
-       ROUND(MIN(gia_tri_don), 2) AS gia_tri_don_thap_nhat,
-       SUM(revenue) AS doanh_thu
+       ROUND(MIN(gia_tri_don), 2) AS gia_tri_don_thap_nhat
 FROM chia_nhom
 WHERE nhom = 1
 GROUP BY segment_id
@@ -896,17 +894,16 @@ ORDER BY segment_id;
 -- [mkt-f6-nhom-gia-tri-don-theo-phan-khuc] wrong: sap_tang_lay_nhom_4
 -- Sắp tăng dần rồi lấy nhóm 4: khi số chiến dịch không chia hết cho 4, nhóm cuối ít hơn nhóm đầu (rớt ở public).
 WITH chia_nhom AS (
-  SELECT segment_id, campaign_id, revenue,
-         revenue / NULLIF(conversions, 0) AS gia_tri_don,
+  SELECT segment_id, campaign_id,
+         revenue / conversions AS gia_tri_don,
          NTILE(4) OVER (PARTITION BY segment_id
-                        ORDER BY revenue / NULLIF(conversions, 0), campaign_id) AS nhom
+                        ORDER BY revenue / conversions, campaign_id) AS nhom
   FROM campaigns
   WHERE start_date >= '2025-01-01' AND start_date < '2025-04-01'
 )
 SELECT segment_id,
        COUNT(*) AS so_chien_dich,
-       ROUND(MIN(gia_tri_don), 2) AS gia_tri_don_thap_nhat,
-       SUM(revenue) AS doanh_thu
+       ROUND(MIN(gia_tri_don), 2) AS gia_tri_don_thap_nhat
 FROM chia_nhom
 WHERE nhom = 4
 GROUP BY segment_id

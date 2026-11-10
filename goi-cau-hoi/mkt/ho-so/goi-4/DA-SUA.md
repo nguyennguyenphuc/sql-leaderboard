@@ -78,3 +78,64 @@ Kiểm: bộ kiểm đầy đủ gói 4 (public + hidden-1) **KIEM TRA: 0 loi**,
 ### Chuẩn hoá theo quy chuẩn (10/11, BRIEF-CHUAN-HOA)
 
 Không sửa nội dung gói 4 (ERD Khó đã đạt, tiêu đề ≤ 13 tiếng). File hồ sơ chuyển sang `ho-so/goi-4/`. Xem `../CHUAN-HOA.md`.
+
+## v4 – đủ 4 cấp mỗi module (11/11/2026)
+
+Theo `BRIEF-CAP-DO-MODULE.md`: lộ trình chuẩn (`quy_chuan/lo-trinh-sql/assets/js/data.js`) cho mỗi module đủ Cơ bản → Khó; mục tiêu mỗi module 2 Cơ bản · 3 Dễ · 2 Trung bình · 2 Khó, giữ 6 write + 3 debug. Đổi số câu tối thiểu: M7 đổi 4 câu (2 Khó, 2 Trung bình xuống Cơ bản/Dễ), M8 đổi 5 câu (2 Khó, 3 Trung bình xuống Cơ bản/Dễ; module không có câu Cơ bản, Dễ nào nên 5 là tối thiểu). Năm trục (QUYET-DINH-CHUNG 2.2): số bảng lời giải cần · số tầng xử lý · mức mơ hồ · số bẫy dữ liệu · độ sâu nghiệp vụ; điểm từng trục ghi ở `\ghichuthietke` của từng câu. Mẫu làm theo: mục v4 của `../../../hr/ho-so/goi-4/DA-SUA.md` (cùng hai module).
+
+### Gói vỡ dở lúc nhận việc
+
+Lượt v4 trước dừng giữa chừng (xem `TRANG-THAI-V4.md`): `solution.sql` đã có khối SQL cho bốn câu theo hướng mới với mã mới (`mkt-t6-so-chien-dich-theo-so-kenh`, `mkt-f3-hang-luot-nhap-trong-ngay`, `mkt-f7-chi-phi-luy-ke-ngay-nao-cung-bang`, `mkt-f8-thang-truoc-lay-so-thang-sau`), còn `cau-hoi.tex` vẫn là đề v3 với mã cũ, nên kiểm tĩnh báo 24 lỗi (thiếu khối của mã cũ). Đề của bốn câu này chưa được viết lại (`git log -p`: lần sửa `cau-hoi.tex` cuối cùng là v3). Quyết định: **hoàn thiện theo hướng đó** (bốn hướng đều khớp bài Cơ bản, Dễ của M7, M8 trên lộ trình và lấp đúng ô cấp còn thiếu): viết đủ 8 phần đề cho bốn mã mới; giữ SQL đã có, riêng f3 thêm điều kiện ngôn ngữ English để kết quả còn 21 dòng (bản dở cho 58 dòng). Năm câu còn lại để đủ 2/3/2/2 (t2, t8, t9, f2, f6) chọn trong lượt này.
+
+### Phân bố cấp
+
+| Module | Trước (Cơ bản / Dễ / TB / Khó) | Sau | Hình thức sau |
+|---|---|---|---|
+| M7 CTE & Set Operations | 0 / 1 / 4 / 4 | 2 / 3 / 2 / 2 | 6 write + 3 debug (debug: t9 Cơ bản, t7 Dễ, t8 Dễ) |
+| M8 Window Functions | 0 / 0 / 5 / 4 | 2 / 3 / 2 / 2 | 6 write + 3 debug (debug: f7 Cơ bản, f8 Dễ, f9 TB) |
+| Case | c7 TB · c8 Khó | giữ nguyên | |
+
+Sau v4: M7 Cơ bản t6, t9 · Dễ t2, t7, t8 · TB t1, t3 · Khó t4, t5. M8 Cơ bản f3, f7 · Dễ f2, f6, f8 · TB f1, f9 · Khó f4, f5.
+
+| Mã cũ → mã mới | Cấp cũ → mới | Đổi gì | 5 trục (cấp mới) |
+|---|---|---|---|
+| `mkt-t2-pheu-dang-dai` (giữ mã) | TB → Dễ | Câu đạt cấp thấp hơn nhãn nên hạ (QĐC 2.1). Cách lấy số lượng từng tầng (cột nào) và công thức tỷ lệ đi tiếp ghi ngay trong yêu cầu, bỏ khái niệm tỷ lệ rơi ở tab Nghiệp vụ; sắp theo `thu_tu`; ERD 2 bảng có chữ trên đường nối (bỏ `calendar`); `bay` còn `thu-tu-tang`. SQL không đổi. | 1 bảng · 2 tầng (CTE bốn tổng, bốn nhánh `UNION ALL`) · đề ghi rõ cột và công thức · 1 bẫy (thứ tự tầng là chuỗi) · 1 phép chia → 5/5 Dễ |
+| `mkt-t6-phan-nhom-roi-ctr` → `mkt-t6-so-chien-dich-theo-so-kenh` | Khó → Cơ bản | Viết lại (hướng của lượt trước): số chiến dịch theo số kênh, CTE gom hai lượt trên `campaign_channels` (bài Cơ bản "viết lại bảng dẫn xuất thành CTE" của lộ trình). Dạng C4 → A3, mảng finance → marketing. ERD 1 bảng có giá trị mẫu. Wrong đếm theo `channel_pos`; wrong cộng số kênh thay vì đếm chiến dịch. Bỏ khai báo khái niệm CTR (không câu nào dùng nữa). | 1 bảng · 1 tầng mỗi lượt gom · đề ghi rõ cách đếm, ERD có giá trị mẫu · 0 bẫy · 1 khái niệm → 5/5 Cơ bản |
+| `mkt-t8-ty-le-roi-pheu-sai-mau` (giữ mã) | TB → Dễ | Truy vấn khởi đầu vốn chỉ sai mẫu số của tầng 4 (lỗi logic một chỗ, Sửa lỗi Dễ theo HD mục 6); ghi chú cũ nói sai "tầng 3, 4". Công thức tỷ lệ rơi và thứ tự bốn cột ghi ngay trong yêu cầu; gợi ý 2 chỉ đúng một chỗ sửa; ERD 2 bảng có chữ trên đường nối (bỏ `brands`); `bay` còn `mau-so-tang-dau`. SQL không đổi. | 1 bảng · 2 tầng · đề ghi rõ công thức · 1 lỗi một chỗ · 1 phép chia → 5/5 Dễ |
+| `mkt-t9-bo-trung-khong-het` (giữ mã) | Khó → Cơ bản | Định nghĩa dòng trùng (mọi cột trừ `raw_id`, `row_index`) ghi ngay trong yêu cầu nên lỗi còn lại là một chỗ dễ thấy (`DISTINCT *`). ERD 1 bảng đủ 19 cột, giá trị mẫu là một dòng chép (`raw_id` 55585, `row_index` 55584) và `\luuy` chỉ dòng gốc; bỏ bốn bảng nhiễu. Người hỏi đổi Anh Bảo → Bạn Linh · Thực tập sinh (Sửa lỗi cấp thấp, STYLE-mkt B.2). SQL không đổi (wrong cắt cứng vị trí vẫn rớt ở hidden-1). Lý do giữ Khó ở v3 (QĐC 2.3 mục 17: sai định nghĩa dòng trùng) không còn vì đề đã nêu định nghĩa. | 1 bảng · khởi đầu 2 tầng, sửa danh sách cột · đề ghi rõ cột cần bỏ, ERD có giá trị mẫu · 0 bẫy trong đề · 1 khái niệm → 4/5 Cơ bản |
+| `mkt-f2-mom-purplle` (giữ mã) | TB → Dễ | Câu đạt cấp thấp hơn nhãn nên hạ (bài Dễ "doanh thu so với hôm trước" của lộ trình). Công thức mức thay đổi ghi ngay trong yêu cầu; tháng đầu nêu rõ là 2024-07; ERD 2 bảng có chữ trên đường nối (bỏ `calendar`); `bay` còn `mau-so-thang-truoc`; bỏ ghi chú trùng với f8 (f8 đã đổi). SQL không đổi. | 1 bảng · 2 tầng (gom tháng, `LAG` và phép chia) · đề ghi rõ kỳ, cột, công thức · 1 bẫy (mẫu số) · 1 phép chia → 5/5 Dễ |
+| `mkt-f3-truot-7-ngay-tira` → `mkt-f3-hang-luot-nhap-trong-ngay` | Khó → Cơ bản | Viết lại (hướng của lượt trước): đánh số `ROW_NUMBER()` chiến dịch Social Media tiếng Anh của Purplle trong từng ngày 3/3, 4/3/2025 theo lượt nhấp (bài Cơ bản "đơn thứ mấy của khách"). Thêm `language_id = 2` vào SQL (58 → 21 dòng; hidden-1 19 dòng). Dạng B3 → C1. ERD 1 bảng, giá trị mẫu lấy chiến dịch ngày 1/3 (không nằm trong kết quả). Wrong thiếu `PARTITION BY`; wrong sắp tăng dần. Tổng trượt `ROWS BETWEEN` không còn trong gói. | 1 bảng · 1 tầng · đề ghi rõ cột, giá trị lọc, tiêu chí phụ · 0 bẫy · 1 khái niệm → 5/5 Cơ bản |
+| `mkt-f6-nhom-gia-tri-don-theo-phan-khuc` (giữ mã) | TB → Dễ | Công thức giá trị đơn bình quân ghi ngay trong yêu cầu; bỏ cột tổng doanh thu của nhóm (SQL ba khối bỏ `SUM(revenue)`, bỏ `NULLIF` vì không có chiến dịch 0 lượt chuyển đổi); ERD 2 bảng có chữ trên đường nối, `audiences` một vai (bỏ đường nối đối tượng mục tiêu và `brands`); `bay` còn `ntile-nhom-le`. | 1 bảng · 2 tầng (`NTILE` trong CTE, lọc và gom) · đề ghi rõ công thức, tiêu chí phụ · 1 bẫy (nhóm lệch) · 1 phép chia → 5/5 Dễ |
+| `mkt-f7-chi-phi-luy-ke-nhay-bac` → `mkt-f7-chi-phi-luy-ke-ngay-nao-cung-bang` | TB → Cơ bản | Viết lại (hướng của lượt trước): truy vấn khởi đầu đã gom theo ngày nhưng `SUM(...) OVER ()` thiếu `ORDER BY start_date`, mọi ngày bằng tổng quý (lỗi một chỗ, triệu chứng thấy ngay). ERD 1 bảng có giá trị mẫu (chiến dịch ngày 31/3, ngoài kỳ). Người hỏi Bạn Tú · Thực tập sinh. Wrong `PARTITION BY start_date`; wrong `ORDER BY start_date DESC`. Lỗi "gom trước khi cộng dồn" của bản cũ không còn trong gói. | 1 bảng · khởi đầu 2 tầng, sửa một chỗ · đề nêu rõ cách tính luỹ kế · 0 bẫy · 1 khái niệm → 4/5 Cơ bản |
+| `mkt-f8-lag-khong-chia-thuong-hieu` → `mkt-f8-thang-truoc-lay-so-thang-sau` | Khó → Dễ | Viết lại (hướng của lượt trước): số chiến dịch Tira Beauty theo tháng 7/2024–5/2025, truy vấn khởi đầu dùng `LEAD` thay `LAG` (lỗi logic một chỗ: nhầm chiều). Mảng sales → marketing. ERD 2 bảng có chữ trên đường nối. Wrong `LAG` sắp theo số chiến dịch; wrong `LAG` độ lệch 2. Lỗi thiếu `PARTITION BY` vẫn có ở f9 (TB). | 1 bảng · 2 tầng · đề ghi rõ kỳ, cột, tháng đầu để trống · 1 lỗi một chỗ · không công thức → 4/5 Dễ |
+
+Sửa thêm, không đổi cấp: `mkt-t5-dang-chay-binh-quan-theo-tuan` (Khó, giữ mã). Đo lại riêng khi MySQL gần rảnh (CPU container 10–18%): lời giải v3 (quý 1/2025, 90 ngày lịch) mất 13–15 giây, vượt mức 10 giây; `EXPLAIN ANALYZE` cho thấy mỗi ngày lịch đọc lại 166.665 dòng `campaigns` qua chỉ mục `start_date`, nên mọi cách giải nối khoảng ngày tự nhiên đều chậm như vậy. Rút khoảng xét về tháng 1/2025 (31 ngày): lời giải còn khoảng 4,8 giây (public), 3,2 giây (hidden-1). Bối cảnh, yêu cầu, `\luuy`, tab Nghiệp vụ đổi "quý" thành "tháng"; bốn bẫy giữ được (chiến dịch bắt đầu cuối tháng 12/2024 còn chạy sang tháng 1; ngày cuối thừa một ngày; tuần 30/12/2024 và 27/1/2025 chỉ có 5 ngày). Wrong `thieu_can_tren` (lịch tới 30/6/2025, chạy rất lâu) thay bằng `can_tren_lay_ca_ngay_1_2` (`BETWEEN` tới 1/2/2025, tuần cuối ra 6 ngày); wrong `chi_chien_dich_bat_dau_trong_quy` đổi tên `..._trong_ky`. Khoá `bay` đổi `thieu-can-tren` → `can-tren-lay-them-ngay`.
+
+Giữ nguyên (cấp đã đúng chỗ): M7 t1, t3 (TB), t4, t5 (Khó, xem trên), t7 (Dễ); M8 f1, f9 (TB), f4, f5 (Khó); case c7, c8. Không hạ f1 xuống Dễ vì ô C1 · sales · Dễ · write đã có `mkt-q2-doanh-thu-cao-nhat-moi-thuong-hieu` (gói 3, nội dung gần giống); không hạ f9 vì thiếu `PARTITION BY` là sai phạm vi cửa sổ, mức TB theo QĐC 2.2.
+
+Kỹ năng sau v4: M7 có CTE gom hai lượt (t6), CTE + `JOIN` (t1), `UNION ALL` dạng dài (t2, t3), `UNION`/`UNION ALL` (t7), nhiều CTE + `EXISTS` (t4), nối khoảng ngày (t5), `DISTINCT` (t9), phép chia trong CTE (t8). M8 có `ROW_NUMBER` (f3, f1, f9), `LAG`/`LEAD` (f2, f8), luỹ kế (f7, f4), `NTILE` (f6), chuỗi liên tiếp (f5). `WITH RECURSIVE` và `ROWS BETWEEN` trượt không có trong gói.
+
+Nhân vật mới: Bạn Linh · Thực tập sinh (t9), Bạn Tú · Thực tập sinh (f7). Chị Hạnh thêm t6, Chị Ngân thêm f3, Anh Quân hỏi f8 (thay f3 cũ), Anh Phong không còn ở f8.
+
+### Kiểm lại
+
+- Bộ kiểm đầy đủ cả gói (`cong-cu/ket-qua/cap-do/mkt-goi-4/`): **KIEM TRA: 0 loi**, 0 cảnh báo, 20 câu, 79 khối SQL. Mọi wrong rớt ≥ 1 biến thể (wrong của 9 câu đổi rớt cả public và hidden-1, trừ t9 `cat_theo_vi_tri_dong` chỉ rớt ở hidden-1 như thiết kế). Starter của t8, t9, f7, f8 khác solution.
+- Kết quả public ≠ hidden-1 ở mọi khối solution (số dòng hoặc giá trị): t6 3/3 dòng (55.523/55.568/55.574 so với 50.089/49.952/49.960), f3 21/19 dòng, f7 85/85, f8 11/11, f2 11/11, f6 5/5, t2 12/12, t8 5/5, t9 3/3.
+- Thời gian solution (bộ kiểm chạy lúc MySQL đang phục vụ thêm bốn gói khác, CPU container 100–290%): câu đổi chậm nhất t9 khoảng 5–6 giây, t4 (không đổi) 5–6 giây, các câu đổi khác dưới 1,4 giây. t5 sau khi rút về tháng 1: 4,7 giây (public), 3,5 giây (hidden-1) trong bộ kiểm lần cuối; đo riêng lúc máy gần rảnh 4,8 và 3,2 giây.
+- Biên dịch XeLaTeX (`cong-cu/ket-qua/cap-do/mkt-goi-4/bien-dich/`): 0 lỗi LaTeX, 0 ký tự thiếu, 0 cảnh báo `aio-sql-cauhoi`.
+- Đếm lại cấp từ `cau-hoi.tex`: M7 2/3/2/2, M8 2/3/2/2; c7 medium, c8 hard. Thư mục gói vẫn đúng 4 file.
+- Bản đồ: không sửa `BAN-DO-100-CAU.md`; 10 dòng mới (9 câu đổi cấp và t5) kèm mã cũ ở `BAN-DO-V4-DONG.md`.
+
+### Cửa chặn giọng văn (BRIEF-KIEM-GOI bước 6)
+
+Đọc lại mọi trường mới hoặc sửa của 9 câu. Đã sửa trước khi chốt:
+- Khuôn "Em … giúp chị/anh" lặp ở 4 lời nhắn mới → t6 "Chị cần biết có bao nhiêu chiến dịch chạy một kênh, bao nhiêu chạy hai kênh, bao nhiêu chạy ba kênh."; f3 "Trong từng ngày, chị cần thứ tự các chiến dịch từ nhiều lượt nhấp nhất trở xuống."; f8 "Anh cần bản đúng trước buổi họp tuần sau."; f7 "Em chưa tìm ra mình sai ở đâu." Chỉ t9 (thực tập sinh) giữ "Anh chị xem giúp em", như mẫu d1.
+- Khuôn "mệnh đề: kết luận" ở `\luuy` f3 ("Thứ hạng tính riêng trong từng ngày: mỗi ngày…") → "Thứ hạng tính riêng trong từng ngày, nên mỗi ngày có một chiến dịch số 1; …".
+- `\luuy` f3 bản nháp nêu một nhận xét về số liệu không đúng (chiến dịch đứng đầu ngày 4/3 ít lượt nhấp hơn nhiều chiến dịch ngày 3/3; thật ra chỉ thua một chiến dịch) → bỏ, chỉ giữ quy tắc.
+- Tên Bạn Duy (f7) trùng tên Anh Duy · Giám đốc marketing (c7, c8) → Bạn Tú.
+Không còn chỗ giọng AI, dịch máy hay lệch thuật ngữ STYLE-mkt A mà tôi thấy; thuật ngữ dùng đúng bảng A ("lượt nhấp", "khách hàng tiềm năng", "chi phí chiến dịch", "marketing mạng xã hội (Social Media)", "kênh quảng cáo"). Dấu hai chấm còn lại chỉ dùng để mở danh sách (t2 "bốn tầng: nhận biết là…").
+
+### Nghi trùng ô
+
+- Trong gói: không trùng ô dạng × mảng × cấp × hình thức. Cặp gần nhau: t2 (D1 · marketing · Dễ · write) và t8 (D1 · marketing · Dễ · debug), f2 (B2 · sales · Dễ · write) và f8 (B2 · marketing · Dễ · debug), khác hình thức (và mảng).
+- Với bản đồ bộ (bản 2) và các gói đang sửa song song (đọc `cau-hoi.tex` gói 1, 2, 3, 5 lúc 11/11): 9 ô mới không trùng dòng nào. Nghi trùng nội dung, không trùng ô: t2 với `mkt-a2-pheu-theo-loai` (gói 2, A3 · marketing · Dễ · write, phễu theo loại); f8 với `mkt-s1-social-nykaa-theo-thang` (gói 2, đếm chiến dịch theo tháng, Cơ bản). Các gói khác đang sửa song song, cần rà lại khi ghép bản đồ.
