@@ -36,7 +36,9 @@ done
 
 loi() { echo "LỖI: $*" >&2; exit 1; }
 buoc() { echo; echo "== $*"; }
-dc() { docker compose -f "$ROOT/docker-compose.yml" "$@"; }
+# Git Bash: MSYS_NO_PATHCONV=1 nên phải tự đổi /d/... sang D:\... cho docker
+ROOT_DOCKER="$(command -v cygpath >/dev/null 2>&1 && cygpath -w "$ROOT" || echo "$ROOT")"
+dc() { docker compose -f "$ROOT_DOCKER/docker-compose.yml" "$@"; }
 # chạy lệnh mysql root trong container; mật khẩu lấy từ biến môi trường của container
 root_sql() { docker exec -i "$CT" sh -c 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" exec mysql -uroot --default-character-set=utf8mb4 "$@"' mysql "$@"; }
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Bao tien do soan de: tung bo du lieu, tung goi. Chi doc file, khong chay SQL.
 # Dung: bash cong-cu/tien_do.sh
-R="/c/Cong viec/ProjectDA/sql-leaderboard"
+R="$(cd "$(dirname "$0")/.." && pwd)"
 echo "== $(date '+%H:%M') tien do"
 for bo in scm aivb jelly hr mkt; do
   readme="-"; [ -f "$R/mysql/README-$bo.md" ] || [ "$bo" = scm ] && readme="ok"

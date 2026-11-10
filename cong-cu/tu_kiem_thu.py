@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """tu_kiem_thu.py: tự kiểm thử bộ kiểm gói (kiem_tra_goi.py).
 
-    docker run --rm --network sqllb -v "C:\\Cong viec\\ProjectDA\\sql-leaderboard:/w" -w /w sqllb-tools \
+    docker run --rm --network sqllb -v "<thư mục repo>:/w" -w /w sqllb-tools \
         python cong-cu/tu_kiem_thu.py [--host sqllb-mysql --port 3306]
 
 (1) Gói mẫu 16 câu (Datathon) chỉ phân tích: đủ 16 câu, 51 khối SQL, 0 lỗi.
