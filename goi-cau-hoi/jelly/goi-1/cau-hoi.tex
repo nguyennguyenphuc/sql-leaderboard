@@ -94,8 +94,8 @@ Gói chờ giảng viên duyệt. Khung xanh nét đứt (\emph{Thiết kế ERD
 \begin{cauhoi}[ma=jelly-r2-goi-tam-trung-chau-my, dulieu=jelly, domain=sales,
   hinhthuc=write, cap=medium, dang=A1, kynang={IN, BETWEEN, khoảng thời điểm nửa mở}, bay={between-tren-thoi-diem, thu-tu-and-or, bien-duoi-khoang-gia},
   tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
-\tieude{Ai ở Mỹ và Brazil mua gói tầm trung tuần cuối tháng 7?}
-\boicanh[Anh Huy · Quản lý doanh thu]{Anh định gửi quà cảm ơn người chơi ở Mỹ và Brazil đã mua gói tầm trung trong tuần cuối tháng 7. Em lập giúp anh danh sách các giao dịch đó, có cả thời điểm mua để anh đối chiếu với cửa hàng ứng dụng.}
+\tieude{Giao dịch gói tầm trung ở Mỹ và Brazil tuần cuối tháng 7}
+\boicanh[Anh Huy · Quản lý doanh thu]{Cửa hàng ứng dụng báo một số giao dịch gói tầm trung ở Mỹ và Brazil trong tuần cuối tháng 7 bị trừ tiền hai lần. Em lập giúp anh danh sách các giao dịch đó, có cả thời điểm mua để anh đối chiếu.}
 \begin{yeucau}
   \item Xét các giao dịch mua gói tầm trung (định nghĩa ở tab Nghiệp vụ) ở thị trường Mỹ (\code{'US'}) và Brazil (\code{'BR'}), có thời điểm giao dịch (\code{event_time}) từ 0 giờ ngày 25/7/2026 tới hết ngày 31/7/2026.
   \item Trả về \code{transaction_id}, \code{user_id}, \code{country}, \code{product_name}, \code{event_time}.
@@ -108,7 +108,7 @@ Gói chờ giảng viên duyệt. Khung xanh nét đứt (\emph{Thiết kế ERD
   \erdnoi[kieu=n-1]{purchases.user_id}{users.user_id}
   \erdnoi[kieu=n-1]{purchases.level_id_if_relevant}{level_metadata.level_id}
 \end{erd}
-\begin{nghiepvu}{Lập danh sách người chơi nhận quà cảm ơn sau tuần mua sắm cuối tháng 7.}
+\begin{nghiepvu}{Đối chiếu giao dịch gói tầm trung tuần cuối tháng 7 với báo cáo của cửa hàng ứng dụng.}
   \khainiem{doanh-thu-iap}
   \luuy{Giá niêm yết của năm gói: Starter Pack 0,99 USD, Extra Moves Pack 1,99 USD, Piggy Bank 2,99 USD, Booster Bundle 4,99 USD, Season Pass 9,99 USD. Gói tầm trung là gói có giá từ 2,99 USD tới 4,99 USD, tính cả hai mức này. Cột \code{event_time} ghi cả ngày lẫn giờ của giao dịch.}
 \end{nghiepvu}
@@ -122,7 +122,7 @@ Gói chờ giảng viên duyệt. Khung xanh nét đứt (\emph{Thiết kế ERD
   hinhthuc=write, cap=hard, dang=A1, kynang={IN, AND/OR, lọc nhiều điều kiện}, bay={thu-tu-and-or, bo-dieu-kien-do-kho, chep-danh-sach-man},
   tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
 \tieude{Lượt chơi kết thúc bất thường ở Chocolate Volcano trên Android 2.1.1}
-\boicanh[Chị Linh · Kỹ sư QA]{Từ khi có bản 2.1.1, người chơi Android ở Đông Nam Á báo ở các màn khó của thế giới Chocolate Volcano, ứng dụng hay tự thoát, có lúc chơi dở phải bỏ ngang. Chị cần danh sách những lượt chơi như vậy để nhóm tái hiện lỗi.}
+\boicanh[Chị Linh · Kỹ sư QA]{Từ khi có bản 2.1.1, người chơi Android ở Đông Nam Á báo rằng ở các màn khó của thế giới Chocolate Volcano, ứng dụng hay tự thoát, có lúc đang chơi phải bỏ ngang. Chị cần danh sách những lượt chơi như vậy để nhóm tái hiện lỗi.}
 \begin{yeucau}
   \item Lấy các lượt chơi kết thúc bất thường ở những màn khó trở lên của thế giới Chocolate Volcano, do người chơi Android ở Đông Nam Á chơi trên bản 2.1.1. Các khái niệm này được định nghĩa ở tab Nghiệp vụ.
   \item Trả về \code{attempt_id}, \code{event_time}, \code{country}, \code{level_id}, \code{result}.
@@ -138,11 +138,11 @@ Gói chờ giảng viên duyệt. Khung xanh nét đứt (\emph{Thiết kế ERD
 \end{erd}
 \begin{nghiepvu}{Xác định các lượt chơi cần tái hiện để tìm lỗi của bản 2.1.1 trên Android.}
   \khainiem{phien-ban-luc-choi}
-  \luuy{Lượt chơi kết thúc bất thường là lượt người chơi bỏ cuộc (\code{'quit'}) hoặc gặp sự cố khiến ứng dụng tự thoát (\code{'crash'}). Màn khó trở lên là màn có nhãn độ khó \code{'hard'} hoặc \code{'super_hard'}; nhóm thiết kế có thể đổi nhãn khi chỉnh màn. Đông Nam Á gồm bốn thị trường VN, TH, PH, ID.}
+  \luuy{Lượt chơi kết thúc bất thường là lượt không thắng mà cũng không thua do hết lượt đi. Màn khó trở lên là màn không mang nhãn độ khó thường; nhóm thiết kế có thể đổi nhãn khi chỉnh màn. Đông Nam Á gồm bốn thị trường VN, TH, PH, ID.}
 \end{nghiepvu}
-\goiy{Viết mỗi khái niệm của đề thành một điều kiện. Khái niệm nào gồm hai giá trị thì đặt cả hai giá trị trong \code{IN} hoặc trong ngoặc.}
-\goiy{\code{difficulty_tag IN ('hard', 'super_hard') AND result IN ('quit', 'crash')}.}
-\ghichuthietke{Khó. 5 trục: 1 bảng; 1 tầng lọc với sáu điều kiện; đề nói bằng lời nghiệp vụ, học viên tự đổi ra cột và giá trị; 3 bẫy, một bẫy chỉ lộ ở hidden-1; định nghĩa nhiều điều kiện. ERD 5 bảng chỉ khoá, không vẽ đường nối, 4 bảng nhiễu (lời giải dùng 1 bảng, thêm cho đủ 5 như mẫu d4). v4: viết lại từ câu Cơ bản ``Màn nào được gắn nhãn siêu khó?'', đổi mảng sang \code{after_sales} (sự cố sau bản cập nhật). Bẫy ở public: \code{OR} không ngoặc giữa hai kết quả lấy mọi lượt bỏ cuộc ở mọi màn, mọi thị trường; bỏ điều kiện độ khó lấy cả màn thường. Bẫy chỉ lộ ở hidden-1: ở public các màn khó trở lên của Chocolate Volcano đều mang nhãn \code{'super_hard'}, nên lọc \code{= 'super_hard'} hoặc chép mã màn 46, 60 vẫn qua; hidden-1 đổi màn 59 thành \code{'hard'} (file 04 mục f) và có lượt bỏ cuộc ở màn 59 của người chơi Android ở VN, PH trên bản 2.1.1, nên hai cách này rớt.}
+\goiy{Xem cột kết quả và cột nhãn độ khó có những giá trị nào, rồi viết mỗi khái niệm của đề thành một điều kiện. Khái niệm nào gồm hai giá trị thì đặt cả hai trong \code{IN} hoặc trong ngoặc.}
+\goiy{\code{difficulty_tag <> 'normal' AND result NOT IN ('complete', 'fail_out_of_moves')}.}
+\ghichuthietke{Khó. 5 trục: 1 bảng; 1 tầng lọc với sáu điều kiện; đề nói bằng lời nghiệp vụ, tab Nghiệp vụ không cho sẵn giá trị của kết quả và nhãn độ khó, học viên tự xem miền giá trị của \code{result}, \code{difficulty_tag} rồi đổi ra điều kiện (KIEM-V4: cả hai biến thể có đúng 4 giá trị \code{result}, 3 nhãn, không có NULL); 3 bẫy, một bẫy chỉ lộ ở hidden-1; định nghĩa nhiều điều kiện. ERD 5 bảng chỉ khoá, không vẽ đường nối, 4 bảng nhiễu (lời giải dùng 1 bảng, thêm cho đủ 5 như mẫu d4). v4: viết lại từ câu Cơ bản ``Màn nào được gắn nhãn siêu khó?'', đổi mảng sang \code{after_sales} (sự cố sau bản cập nhật). Bẫy ở public: \code{OR} không ngoặc giữa hai kết quả lấy mọi lượt bỏ cuộc ở mọi màn, mọi thị trường; bỏ điều kiện độ khó lấy cả màn thường. Bẫy chỉ lộ ở hidden-1: ở public các màn khó trở lên của Chocolate Volcano đều mang nhãn \code{'super_hard'}, nên lọc \code{= 'super_hard'} hoặc chép mã màn 46, 60 vẫn qua; hidden-1 đổi màn 59 thành \code{'hard'} (file 04 mục f) và có lượt bỏ cuộc ở màn 59 của người chơi Android ở VN, PH trên bản 2.1.1, nên hai cách này rớt.}
 \end{cauhoi}
 
 % ================================================================ R4 · Viết · Dễ · A1 · marketing

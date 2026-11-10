@@ -651,7 +651,7 @@
 \begin{buoc}[ma=b5, diem=10, hinhthuc=ketluan, bang={ab_assignments, level_attempts, purchases, player_daily}]{Kết luận}
   \begin{luachon}
     \phuongan{Nên áp dụng, vì người đã tiếp xúc ưu đãi ở nhánh thử nhận thêm lượt đi nhiều hơn mức chung của nhánh đối chứng.}{Người đã tiếp xúc là người đã thua, vốn dễ nhận thêm lượt đi hơn; phải so mọi người được chia của hai nhánh (bước 2).}
-    \phuongan*{Chưa nên áp dụng ngay: trên mọi người được chia, nhánh thử chỉ nhỉnh hơn ở chỉ số chính, doanh thu D0--D6 không tăng, D7 hơi thấp hơn.}{Đúng: bước 2 chênh chưa tới 1 lượt trên 100 người, chưa kiểm ý nghĩa thống kê; bước 3 doanh thu không tăng rõ, bước 4 D7 hơi thấp hơn.}
+    \phuongan*{Chưa nên áp dụng ngay: trên mọi người được chia, nhánh thử chỉ nhỉnh hơn ở chỉ số chính, doanh thu D0--D6 gần như không đổi, D7 hơi thấp hơn.}{Đúng: bước 2 chênh chưa tới 1 lượt trên 100 người, chưa kiểm ý nghĩa thống kê; bước 3 doanh thu không tăng rõ, bước 4 D7 hơi thấp hơn.}
     \phuongan{Nên áp dụng, vì nhánh thử nhận thêm lượt đi cao hơn khoảng một phần mười, còn giữ chân D7 gần như không giảm.}{Chênh tuyệt đối chưa tới 1 lượt trên 100 người, chưa loại được may rủi; giữ chân không giảm chỉ cho biết chưa thấy hại (bước 2, 4).}
   \end{luachon}
 \end{buoc}
@@ -682,18 +682,19 @@
 \end{nghiepvu}
 \begin{buoc}[ma=b1, diem=10, hinhthuc=write, bang={level_attempts}]{Tỷ lệ thắng màn 28--30 theo phiên bản và nền tảng}
   \begin{yeucau}
-    \item Lượt chơi màn 28--30 từ 1/7 tới hết 29/8/2026, theo \code{app_version} lúc chơi × \code{platform}: \code{so_luot}, \code{ty_le_thang_pct} (2 chữ số).
+    \item Để không lẫn yếu tố thời gian, chỉ so trong khoảng ba bản cùng chạy: lượt chơi màn 28--30 từ ngày bản vá phát hành tới hết 29/8/2026, theo \code{app_version} lúc chơi × \code{platform}: \code{so_luot}, \code{ty_le_thang_pct} (2 chữ số).
     \item Sắp theo \code{app_version}, \code{platform}.
   \end{yeucau}
+  \goiy{Bản vá ra ngày 15/8; từ ngày đó cả ba bản đều còn người chơi.}
 \end{buoc}
 \begin{buoc}[ma=b2, diem=10, hinhthuc=write, bang={level_attempts}]{Tỷ lệ thua và bỏ cuộc}
   \begin{yeucau}
-    \item Cùng phạm vi bước 1: \code{app_version}, \code{platform}, \code{so_luot}, \code{ty_le_thua_pct} (lượt \code{'fail_out_of_moves'}), \code{ty_le_bo_cuoc_pct} (lượt \code{'quit'}), 2 chữ số; sắp như bước 1.
+    \item Lượt chơi màn 28--30 trong cả cửa sổ dữ liệu, từ 1/7 tới hết 29/8/2026: \code{app_version}, \code{platform}, \code{so_luot}, \code{ty_le_thua_pct} (lượt \code{'fail_out_of_moves'}), \code{ty_le_bo_cuoc_pct} (lượt \code{'quit'}), 2 chữ số; sắp như bước 1.
   \end{yeucau}
 \end{buoc}
 \begin{buoc}[ma=b3, diem=10, hinhthuc=write, bang={level_attempts}]{Lượt chơi được mời thêm lượt đi}
   \begin{yeucau}
-    \item Cùng phạm vi bước 1: \code{app_version}, \code{platform}, \code{so_luot}, \code{ty_le_duoc_moi_pct} (lượt được mời thêm lượt đi, \code{extra_moves_offered = 1}), \code{ty_le_nhan_them_pct} (lượt nhận thêm lượt đi, \code{extra_moves_purchased = 1}), 2 chữ số; sắp như bước 1.
+    \item Cùng phạm vi bước 2: \code{app_version}, \code{platform}, \code{so_luot}, \code{ty_le_duoc_moi_pct} (lượt được mời thêm lượt đi, \code{extra_moves_offered = 1}), \code{ty_le_nhan_them_pct} (lượt nhận thêm lượt đi, \code{extra_moves_purchased = 1}), 2 chữ số; sắp như bước 1.
   \end{yeucau}
 \end{buoc}
 \begin{buoc}[ma=b4, diem=10, hinhthuc=write, bang={users, player_daily}]{Giữ chân D1 theo phiên bản lúc cài}
@@ -704,12 +705,12 @@
 \end{buoc}
 \begin{buoc}[ma=b5, diem=10, hinhthuc=ketluan, bang={level_attempts, users, player_daily}]{Kết luận}
   \begin{luachon}
-    \phuongan{Đã sửa xong, có thể đóng vụ việc: trên Android, bản 2.1.1 thắng màn 28--30 nhiều hơn 2.1.0 và D1 đã về mức 2.0.2.}{Tỷ lệ thắng Android 2.1.1 vẫn thấp hơn 2.0.2 khoảng 4 điểm, iOS đi xuống (bước 1, 4); 2.1.1 mới nửa tháng, iOS chưa tới 600 lượt nên chưa đóng được.}
+    \phuongan{Đã sửa xong, có thể đóng vụ việc: trên Android, bản 2.1.1 thắng màn 28--30 nhiều hơn 2.1.0 và D1 đã về mức 2.0.2.}{Tỷ lệ thắng Android 2.1.1 vẫn thấp hơn 2.0.2 khoảng 2 điểm, iOS đi xuống (bước 1, 4); 2.1.1 mới nửa tháng, iOS chưa tới 600 lượt nên chưa đóng được.}
     \phuongan*{Chưa đóng vụ việc: Android 2.1.1 khá hơn 2.1.0 nhưng tỷ lệ thắng chưa về mức 2.0.2, còn iOS 2.1.1 lại kém 2.1.0; cần theo dõi thêm.}{Đúng: bước 1 và 4 cho thấy Android hồi một phần, iOS đi xuống; dữ liệu 2.1.1 mới khoảng nửa tháng nên cần theo dõi thêm.}
-    \phuongan{Bản 2.1.0 không làm màn 28--30 khó hơn, vì tỷ lệ bỏ cuộc ở bản 2.1.0 còn thấp hơn bản 2.0.2, nên không cần chỉnh lại độ khó.}{Bỏ cuộc giảm nhưng thua do hết lượt đi tăng (bước 2) và tỷ lệ thắng giảm rõ (bước 1), nên màn khó hơn.}
+    \phuongan{Bản 2.1.0 không làm màn 28--30 khó hơn, vì tỷ lệ bỏ cuộc ở bản 2.1.0 còn thấp hơn bản 2.0.2, nên không cần chỉnh lại độ khó.}{Bỏ cuộc giảm nhưng thua do hết lượt đi tăng rõ (bước 2), còn lượt được mời thêm lượt đi giảm mạnh (bước 3), nên màn khó hơn.}
   \end{luachon}
 \end{buoc}
-\ghichuthietke{Case Khó: 5 bảng chỉ khoá, 2 bảng nhiễu, \code{erdkhoa}. ``Sự cố'' chỉ dùng cho crash; vụ việc màn 28--30 gọi là ``vụ việc''. Bẫy: lấy phiên bản lúc cài thay vì lúc chơi (bài sai b1), mẫu số từ bảng hoạt động (bài sai b4), bỏ qua việc 2.1.1 chỉ có nửa tháng. Phương án đúng đã đối chiếu số public và hidden-1 (cùng chiều). v3 (10/11): phương án 1 nêu đúng hai sự thật về Android, chỉ sai ở kết luận ``đóng vụ việc''; lời giải thích nêu rõ ba lý do chưa đóng được (Android chưa về mức 2.0.2, iOS đi xuống, 2.1.1 ít ngày và iOS ít lượt). Chuẩn hoá (10/11): còn ba phương án như case mẫu c1--c4, bỏ phương án ``cờ thêm lượt đi là doanh thu''.}
+\ghichuthietke{Case Khó: 5 bảng chỉ khoá, 2 bảng nhiễu, \code{erdkhoa}. ``Sự cố'' chỉ dùng cho crash; vụ việc màn 28--30 gọi là ``vụ việc''. Bẫy: lấy phiên bản lúc cài thay vì lúc chơi (bài sai b1), mẫu số từ bảng hoạt động (bài sai b4), bỏ qua việc 2.1.1 chỉ có nửa tháng. Phương án đúng đã đối chiếu số public và hidden-1 (cùng chiều). v3 (10/11): phương án 1 nêu đúng hai sự thật về Android, chỉ sai ở kết luận ``đóng vụ việc''; lời giải thích nêu rõ ba lý do chưa đóng được (Android chưa về mức 2.0.2, iOS đi xuống, 2.1.1 ít ngày và iOS ít lượt). Chuẩn hoá (10/11): còn ba phương án như case mẫu c1--c4, bỏ phương án ``cờ thêm lượt đi là doanh thu''. Sửa theo KIEM-V4 (C): bước 1 trước đây trùng hẳn c7.b2 (gói 4: cùng màn, cùng cột, cùng kết quả), nay so trong khoảng ba bản cùng chạy từ 15/8 tới hết 29/8 (public: Android 2.1.1 67,25\% giữa 2.1.0 63,83\% và 2.0.2 69,48\%; iOS 2.1.1 69,76\% thấp hơn 2.1.0 74,10\%; hidden-1 cùng chiều); bài sai mới so trên cả cửa sổ 1/7--29/8 rớt ở public; lời giải thích phương án 1 đổi ``khoảng 4 điểm'' thành ``khoảng 2 điểm''; phương án 3 dẫn thêm bước 3 (được mời thêm lượt đi ở 2.1.0 giảm còn khoảng một nửa so với 2.0.2 trở xuống). Bước 2, 3 vẫn xét cả cửa sổ. Bẫy ``thiếu cận trên'' không dùng ở bước 1 vì hidden-1 không có lượt màn 28--30 sau 29/8.}
 \end{cauhoi}
 
 \end{document}

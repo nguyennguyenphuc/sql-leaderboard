@@ -675,7 +675,7 @@ WITH gom AS (
          SUM(CASE WHEN app_version = '2.1.1' THEN sessions ELSE 0 END) AS phien_211,
          SUM(CASE WHEN app_version = '2.1.1' THEN crash_count ELSE 0 END) AS su_co_211
   FROM player_daily
-  WHERE activity_date >= '2026-07-01' AND activity_date < '2026-08-30'
+  WHERE activity_date >= '2026-08-15' AND activity_date < '2026-08-30'
   GROUP BY country
 )
 SELECT country,
@@ -695,7 +695,7 @@ WITH gom AS (
          SUM(CASE WHEN u.app_version_install = '2.1.1' THEN p.crash_count ELSE 0 END) AS su_co_211
   FROM player_daily p
   JOIN users u ON u.user_id = p.user_id
-  WHERE p.activity_date >= '2026-07-01' AND p.activity_date < '2026-08-30'
+  WHERE p.activity_date >= '2026-08-15' AND p.activity_date < '2026-08-30'
   GROUP BY p.country
 )
 SELECT country,
@@ -714,7 +714,7 @@ WITH gom AS (
          SUM(CASE WHEN app_version = '2.1.1' THEN sessions ELSE 0 END) AS phien_211,
          SUM(CASE WHEN app_version = '2.1.1' THEN crash_count ELSE 0 END) AS su_co_211
   FROM player_daily
-  WHERE activity_date >= '2026-07-01' AND activity_date < '2026-08-30'
+  WHERE activity_date >= '2026-08-15' AND activity_date < '2026-08-30'
   GROUP BY country
 )
 SELECT country,
@@ -733,7 +733,7 @@ WITH gom AS (
          SUM(CASE WHEN app_version = '2.1.1' THEN sessions ELSE 0 END) AS phien_211,
          AVG(CASE WHEN app_version = '2.1.1' THEN 1000 * crash_count / sessions END) AS ty_le_211
   FROM player_daily
-  WHERE activity_date >= '2026-07-01' AND activity_date < '2026-08-30'
+  WHERE activity_date >= '2026-08-15' AND activity_date < '2026-08-30'
   GROUP BY country
 )
 SELECT country,
@@ -743,20 +743,42 @@ SELECT country,
 FROM gom
 ORDER BY chenh_lech DESC, country;
 
--- [jelly-a6-su-co-truoc-sau-ban-va] wrong: bo_cua_so_du_lieu
+-- [jelly-a6-su-co-truoc-sau-ban-va] wrong: so_ca_ky
+-- So trên cả cửa sổ 1/7–29/8: bản 2.1.0 chạy thêm 30/7–14/8 khi chưa có bản vá, chênh lệch lẫn yếu tố thời gian.
+WITH gom AS (
+  SELECT country,
+         SUM(CASE WHEN app_version = '2.1.0' THEN sessions ELSE 0 END) AS phien_210,
+         SUM(CASE WHEN app_version = '2.1.0' THEN crash_count ELSE 0 END) AS su_co_210,
+         SUM(CASE WHEN app_version = '2.1.1' THEN sessions ELSE 0 END) AS phien_211,
+         SUM(CASE WHEN app_version = '2.1.1' THEN crash_count ELSE 0 END) AS su_co_211
+  FROM player_daily
+  WHERE activity_date >= '2026-07-01' AND activity_date < '2026-08-30'
+  GROUP BY country
+)
 SELECT country,
-       SUM(CASE WHEN app_version = '2.1.0' THEN sessions ELSE 0 END) AS phien_210,
-       ROUND(1000 * SUM(CASE WHEN app_version = '2.1.0' THEN crash_count ELSE 0 END)
-                  / SUM(CASE WHEN app_version = '2.1.0' THEN sessions ELSE 0 END), 2) AS ty_le_210,
-       SUM(CASE WHEN app_version = '2.1.1' THEN sessions ELSE 0 END) AS phien_211,
-       ROUND(1000 * SUM(CASE WHEN app_version = '2.1.1' THEN crash_count ELSE 0 END)
-                  / SUM(CASE WHEN app_version = '2.1.1' THEN sessions ELSE 0 END), 2) AS ty_le_211,
-       ROUND(1000 * SUM(CASE WHEN app_version = '2.1.1' THEN crash_count ELSE 0 END)
-                  / SUM(CASE WHEN app_version = '2.1.1' THEN sessions ELSE 0 END)
-           - 1000 * SUM(CASE WHEN app_version = '2.1.0' THEN crash_count ELSE 0 END)
-                  / SUM(CASE WHEN app_version = '2.1.0' THEN sessions ELSE 0 END), 2) AS chenh_lech
-FROM player_daily
-GROUP BY country
+       phien_210, ROUND(1000 * su_co_210 / phien_210, 2) AS ty_le_210,
+       phien_211, ROUND(1000 * su_co_211 / phien_211, 2) AS ty_le_211,
+       ROUND(1000 * su_co_211 / phien_211 - 1000 * su_co_210 / phien_210, 2) AS chenh_lech
+FROM gom
+ORDER BY chenh_lech DESC, country;
+
+-- [jelly-a6-su-co-truoc-sau-ban-va] wrong: thieu_can_tren
+-- Có ngày bản vá ra nhưng thiếu cận trên 29/8: hidden-1 có thêm phiên 2.1.1 ngày 30/8, 1/9.
+WITH gom AS (
+  SELECT country,
+         SUM(CASE WHEN app_version = '2.1.0' THEN sessions ELSE 0 END) AS phien_210,
+         SUM(CASE WHEN app_version = '2.1.0' THEN crash_count ELSE 0 END) AS su_co_210,
+         SUM(CASE WHEN app_version = '2.1.1' THEN sessions ELSE 0 END) AS phien_211,
+         SUM(CASE WHEN app_version = '2.1.1' THEN crash_count ELSE 0 END) AS su_co_211
+  FROM player_daily
+  WHERE activity_date >= '2026-08-15'
+  GROUP BY country
+)
+SELECT country,
+       phien_210, ROUND(1000 * su_co_210 / phien_210, 2) AS ty_le_210,
+       phien_211, ROUND(1000 * su_co_211 / phien_211, 2) AS ty_le_211,
+       ROUND(1000 * su_co_211 / phien_211 - 1000 * su_co_210 / phien_210, 2) AS chenh_lech
+FROM gom
 ORDER BY chenh_lech DESC, country;
 
 -- [jelly-a7-dem-nguoi-tra-tien] starter

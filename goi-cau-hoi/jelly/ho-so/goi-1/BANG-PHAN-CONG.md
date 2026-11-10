@@ -1,12 +1,14 @@
 # Bảng phân công · bộ `jelly` · gói 1
 
+v4.1 sửa theo KIEM-V4 (11/11/2026): 2 câu, xem `DA-SUA.md` mục "Sửa theo KIEM-V4 (11/11/2026)". Bộ kiểm đầy đủ cả gói (`cong-cu/ket-qua/sua-v4/jelly-goi-1/`) `KIEM TRA: 0 loi`; biên dịch 0 lỗi LaTeX. Không đổi cấp, mã.
+
 v4 (11/11/2026): đủ 4 cấp mỗi module theo `BRIEF-CAP-DO-MODULE.md`; 8 câu viết lại, xem `DA-SUA.md` mục "v4 – đủ 4 cấp mỗi module".
 
 | Mã | Người soạn (A) | Người kiểm (B) | Phiên bản | Kiểm SQL | Kiểm nội dung |
 |---|---|---|---|---|---|
 | jelly-r1-cai-moi-29-8-vn | A | B | v2 | Đạt (B; SQL không đổi) | Đạt, sửa chữ theo B |
-| jelly-r2-goi-tam-trung-chau-my | A | C | v4 | Đạt (bộ kiểm cả gói v4, 11/11: 0 lỗi); 3 wrong rớt ở public | v4: viết lại Cơ bản → Trung bình (đổi mã từ r2-giao-dich-season-pass); chờ người kiểm |
-| jelly-r3-luot-bat-thuong-volcano | A | B | v4 | Đạt (bộ kiểm cả gói v4, 11/11: 0 lỗi); 2 wrong chỉ rớt ở hidden-1 (nhãn màn 59) | v4: viết lại Cơ bản → Khó, mảng operations → after_sales (đổi mã từ r3-man-sieu-kho); chờ người kiểm |
+| jelly-r2-goi-tam-trung-chau-my | A | C | v4.1 | Đạt v4.1 (SQL không đổi; bộ kiểm cả gói sau KIEM-V4: 0 lỗi) | Đã sửa theo KIEM-V4 (B), xem DA-SUA mục "Sửa theo KIEM-V4" |
+| jelly-r3-luot-bat-thuong-volcano | A | B | v4.1 | Đạt v4.1 (SQL không đổi; bộ kiểm cả gói sau KIEM-V4: 0 lỗi) | Đã sửa theo KIEM-V4 (C), xem DA-SUA mục "Sửa theo KIEM-V4" |
 | jelly-r4-ngay-chi-cao-social | A | C | v2 | Đạt (bộ kiểm gói tạm v2) | Đã sửa theo C |
 | jelly-r5-luot-dai-man-30 | A | B | v2 | Đạt (B; SQL không đổi) | Đã sửa theo B |
 | jelly-r6-su-kien-ky-14-ngay | A | C | v4 | Đạt (bộ kiểm cả gói v4, 11/11: 0 lỗi); public 2 dòng, hidden-1 3 dòng | v4: nâng Cơ bản → Trung bình (đổi mã từ r6-su-kien-thang-8); chờ người kiểm |

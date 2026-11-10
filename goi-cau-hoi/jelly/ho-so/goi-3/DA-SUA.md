@@ -91,3 +91,19 @@ Kiểm:
 - **Bộ kiểm đầy đủ cả gói** (`--ra cong-cu/ket-qua/cap-do/jelly-goi-3`): `KIEM TRA: 0 loi`, 0 cảnh báo; mọi wrong rớt ≥ 1 biến thể (wrong thiếu cận trên của j1, j3, j4, q8 rớt đúng ở hidden-1); kết quả public khác hidden-1 ở cả 8 câu; solution mỗi câu < 1 giây khi máy rảnh.
 - **Biên dịch** (`bash cong-cu/bien_dich.sh`, ra `cong-cu/ket-qua/cap-do/jelly-goi-3-bien-dich/`): 0 lỗi LaTeX, 0 ký tự thiếu, 54 trang. Thư mục gói vẫn đúng 4 file.
 - **Bản đồ:** `BAN-DO-100-CAU.md` chỉ sửa 8 dòng của gói 3; các bảng thống kê, ô trùng ở cuối file chưa sinh lại (agent khác đang sửa song song), còn ghi mã cũ của q3, q5.
+
+## Sửa theo KIEM-V4 (11/11/2026)
+
+Căn cứ: `ho-so/KIEM-V4-B.md`, `ho-so/KIEM-V4-C.md`. Không đổi cấp, không đổi mã câu nào. Trùng ô giữa các gói được phép (đính chính của người điều phối 11/11), nên không đổi mảng, dạng của câu nào; trong gói không có ô trùng.
+
+| Mã | Điểm B/C | Đã sửa gì | Kết quả kiểm |
+|---|---|---|---|
+| `jelly-j1-luot-choi-kem-the-gioi` | B A.5: lệch thuật ngữ "xác suất thua thiết kế" | Tiêu đề → "Lượt chơi cuối ngày 29/8 kèm xác suất thua theo thiết kế". Ô trùng A1 · operations · basic · write với s2 (gói 2) là trùng giữa các gói, được phép, khác chủ đề: giữ. | Chỉ sửa chữ |
+| `jelly-q5-roas-duoi-muc-chung` | B mục B: đủ Khó nhưng chưa có bẫy chỉ lộ ở hidden-1; đề xuất cột doanh thu luỹ kế dùng biến thể (e) | Áp đề xuất: thêm cột `doanh_thu_luy_ke_usd` (doanh thu từ ngày cài tới ngày mới nhất có trong dữ liệu, không giới hạn 30 ngày) sau `kenh`; lời giải thêm bảng dẫn xuất luỹ kế không cận trên; `\luuy` phân biệt ROAS D30 (cửa sổ cố định) với luỹ kế (tăng theo ngày mới); wrong mới `luy_ke_gan_cung_29_8` khớp public (Social Ads 1.376,53), rớt hidden-1 (1.202,81 so với 1.203,30). Bốn wrong cũ thêm cùng cột. Nay 5 bẫy, đủ 5/5 trục. | Bộ kiểm cả gói: q5 0 lỗi; 4 wrong cũ rớt public + hidden-1, wrong mới rớt hidden-1; lời giải dưới 1,1 giây |
+| `jelly-q6-nguoi-choi-cu-len-210` | C: 2/5 trục Khó, chưa có bẫy chỉ lộ ở hidden-1; nấc gợi ý 2 quá dài | Áp đề xuất của C: thêm cột `so_len_truoc_su_kien` (số người chơi cũ lên bản trước ngày bắt đầu của sự kiện LiveOps đầu tiên từ ngày phát hành 2.1.0); bối cảnh thêm lý do (gắn lời nhắc cập nhật vào sự kiện); ba định nghĩa chuyển từ yêu cầu sang `\luuy`; ERD thay bảng nhiễu `tutorial_steps` bằng `liveops_events`, `\erdkhoa` ghi so theo ngày; nấc gợi ý 2 rút còn `MIN(activity_date)` trên ngày có `app_version = '2.1.0'`. Lời giải thêm `CROSS JOIN` lấy `MIN(start_date)` từ 30/7; wrong mới `gan_cung_ngay_su_kien` (`< '2026-08-08'`). Số: public Android 2.200, iOS 921 (sự kiện 8/8); hidden-1 598, 237 (`LIVE_004` 31/7); wrong mới ra 1.996, 829 ở hidden-1. Nay 5/5 trục Khó. | Bộ kiểm cả gói: q6 0 lỗi; 4 wrong cũ rớt public + hidden-1, wrong mới rớt hidden-1; lời giải dưới 1,1 giây |
+
+Kiểm:
+
+- Bộ kiểm đầy đủ cả gói: `docker compose run --rm tools python cong-cu/kiem_tra_goi.py --goi goi-cau-hoi/jelly/goi-3 --ra cong-cu/ket-qua/sua-v4/jelly-goi-3 --host sqllb-mysql --port 3306` → 20 câu, 79 khối SQL, `KIEM TRA: 0 loi`, 0 cảnh báo, mọi wrong rớt ít nhất một biến thể, mọi solution ra kết quả public khác hidden-1.
+- Biên dịch: `bash cong-cu/bien_dich.sh goi-cau-hoi/jelly/goi-3 <ra>` → 0 lỗi LaTeX, 0 ký tự thiếu, 0 cảnh báo gói lệnh; PDF ở `cong-cu/ket-qua/sua-v4/jelly-goi-3/bien-dich/`.
+- Thư mục gói vẫn đúng 4 file.

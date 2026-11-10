@@ -505,6 +505,7 @@ ORDER BY ngay;
 
 -- [jelly-q5-roas-duoi-muc-chung] solution
 SELECT r.campaign_id, r.channel AS kenh,
+       ROUND(lk.luy_ke, 2) AS doanh_thu_luy_ke_usd,
        ROUND(100 * r.doanh_thu / c.chi, 2) AS roas_d30_pct,
        ROUND(100 * g.doanh_thu / g.chi, 2) AS roas_chung_pct,
        ROUND(100 * r.doanh_thu / c.chi - 100 * g.doanh_thu / g.chi, 2) AS chenh_lech_diem
@@ -518,6 +519,12 @@ JOIN (SELECT campaign_id, SUM(spend_usd) AS chi
       FROM campaign_spend
       WHERE `date` >= '2026-07-01' AND `date` < '2026-08-01'
       GROUP BY campaign_id) c ON c.campaign_id = r.campaign_id
+JOIN (SELECT u.campaign_id, SUM(pd.iap_revenue + pd.ad_revenue) AS luy_ke
+      FROM users u
+      JOIN player_daily pd ON pd.user_id = u.user_id
+      WHERE u.install_date >= '2026-07-01' AND u.install_date < '2026-08-01'
+        AND u.channel <> 'Organic'
+      GROUP BY u.campaign_id) lk ON r.campaign_id = lk.campaign_id
 CROSS JOIN (SELECT (SELECT SUM(pd.iap_revenue + pd.ad_revenue)
                     FROM player_daily pd
                     JOIN users u ON u.user_id = pd.user_id
@@ -531,10 +538,12 @@ ORDER BY chenh_lech_diem, r.campaign_id;
 -- [jelly-q5-roas-duoi-muc-chung] wrong: muc_chung_trung_binh_ty_le
 -- Mức chung lấy trung bình ROAS của bốn chiến dịch, không phải tổng doanh thu chia tổng chi phí.
 SELECT t.campaign_id, t.kenh,
+       ROUND(t.luy_ke, 2) AS doanh_thu_luy_ke_usd,
        ROUND(t.roas, 2) AS roas_d30_pct,
        ROUND(t.muc_chung, 2) AS roas_chung_pct,
        ROUND(t.roas - t.muc_chung, 2) AS chenh_lech_diem
 FROM (SELECT r.campaign_id, r.channel AS kenh,
+             lk.luy_ke,
              100 * r.doanh_thu / c.chi AS roas,
              AVG(100 * r.doanh_thu / c.chi) OVER () AS muc_chung
       FROM (SELECT u.campaign_id, u.channel, SUM(pd.iap_revenue + pd.ad_revenue) AS doanh_thu
@@ -546,7 +555,13 @@ FROM (SELECT r.campaign_id, r.channel AS kenh,
       JOIN (SELECT campaign_id, SUM(spend_usd) AS chi
             FROM campaign_spend
             WHERE `date` >= '2026-07-01' AND `date` < '2026-08-01'
-            GROUP BY campaign_id) c ON c.campaign_id = r.campaign_id) t
+            GROUP BY campaign_id) c ON c.campaign_id = r.campaign_id
+      JOIN (SELECT u.campaign_id, SUM(pd.iap_revenue + pd.ad_revenue) AS luy_ke
+            FROM users u
+            JOIN player_daily pd ON pd.user_id = u.user_id
+            WHERE u.install_date >= '2026-07-01' AND u.install_date < '2026-08-01'
+              AND u.channel <> 'Organic'
+            GROUP BY u.campaign_id) lk ON r.campaign_id = lk.campaign_id) t
 WHERE t.roas < t.muc_chung
 ORDER BY chenh_lech_diem, t.campaign_id;
 
@@ -554,6 +569,7 @@ ORDER BY chenh_lech_diem, t.campaign_id;
 -- Gom doanh thu D0--D29 theo người chơi rồi nối thẳng với từng dòng chi phí của chiến dịch:
 -- chi phí bị cộng lặp theo số người cài, doanh thu bị cộng lặp theo số dòng chi.
 SELECT u.campaign_id, u.channel AS kenh,
+       ROUND(MAX(lk.luy_ke), 2) AS doanh_thu_luy_ke_usd,
        ROUND(100 * SUM(pd.doanh_thu) / SUM(cs.spend_usd), 2) AS roas_d30_pct,
        ROUND(100 * MAX(g.doanh_thu / g.chi), 2) AS roas_chung_pct,
        ROUND(100 * SUM(pd.doanh_thu) / SUM(cs.spend_usd) - 100 * MAX(g.doanh_thu / g.chi), 2) AS chenh_lech_diem
@@ -563,6 +579,12 @@ JOIN (SELECT user_id, SUM(iap_revenue + ad_revenue) AS doanh_thu
       WHERE cohort_day BETWEEN 0 AND 29
       GROUP BY user_id) pd ON pd.user_id = u.user_id
 JOIN campaign_spend cs ON cs.campaign_id = u.campaign_id
+JOIN (SELECT u.campaign_id, SUM(pd.iap_revenue + pd.ad_revenue) AS luy_ke
+      FROM users u
+      JOIN player_daily pd ON pd.user_id = u.user_id
+      WHERE u.install_date >= '2026-07-01' AND u.install_date < '2026-08-01'
+        AND u.channel <> 'Organic'
+      GROUP BY u.campaign_id) lk ON u.campaign_id = lk.campaign_id
 CROSS JOIN (SELECT (SELECT SUM(pd2.iap_revenue + pd2.ad_revenue)
                     FROM player_daily pd2
                     JOIN users u2 ON u2.user_id = pd2.user_id
@@ -579,6 +601,7 @@ ORDER BY chenh_lech_diem, u.campaign_id;
 -- [jelly-q5-roas-duoi-muc-chung] wrong: doanh_thu_ca_ky
 -- Doanh thu lấy mọi ngày tới 29/8, không giới hạn D0--D29 (người cài đầu tháng 7 được tính gần 60 ngày).
 SELECT r.campaign_id, r.channel AS kenh,
+       ROUND(lk.luy_ke, 2) AS doanh_thu_luy_ke_usd,
        ROUND(100 * r.doanh_thu / c.chi, 2) AS roas_d30_pct,
        ROUND(100 * g.doanh_thu / g.chi, 2) AS roas_chung_pct,
        ROUND(100 * r.doanh_thu / c.chi - 100 * g.doanh_thu / g.chi, 2) AS chenh_lech_diem
@@ -592,6 +615,12 @@ JOIN (SELECT campaign_id, SUM(spend_usd) AS chi
       FROM campaign_spend
       WHERE `date` >= '2026-07-01' AND `date` < '2026-08-01'
       GROUP BY campaign_id) c ON c.campaign_id = r.campaign_id
+JOIN (SELECT u.campaign_id, SUM(pd.iap_revenue + pd.ad_revenue) AS luy_ke
+      FROM users u
+      JOIN player_daily pd ON pd.user_id = u.user_id
+      WHERE u.install_date >= '2026-07-01' AND u.install_date < '2026-08-01'
+        AND u.channel <> 'Organic'
+      GROUP BY u.campaign_id) lk ON r.campaign_id = lk.campaign_id
 CROSS JOIN (SELECT (SELECT SUM(pd.iap_revenue + pd.ad_revenue)
                     FROM player_daily pd
                     JOIN users u ON u.user_id = pd.user_id
@@ -605,6 +634,7 @@ ORDER BY chenh_lech_diem, r.campaign_id;
 -- [jelly-q5-roas-duoi-muc-chung] wrong: muc_chung_gom_organic
 -- Tử số của mức chung cộng cả doanh thu người chơi tự nhiên (không có chi phí): mức chung cao lên, cả bốn chiến dịch bị giữ.
 SELECT r.campaign_id, r.channel AS kenh,
+       ROUND(lk.luy_ke, 2) AS doanh_thu_luy_ke_usd,
        ROUND(100 * r.doanh_thu / c.chi, 2) AS roas_d30_pct,
        ROUND(100 * g.doanh_thu / g.chi, 2) AS roas_chung_pct,
        ROUND(100 * r.doanh_thu / c.chi - 100 * g.doanh_thu / g.chi, 2) AS chenh_lech_diem
@@ -618,6 +648,12 @@ JOIN (SELECT campaign_id, SUM(spend_usd) AS chi
       FROM campaign_spend
       WHERE `date` >= '2026-07-01' AND `date` < '2026-08-01'
       GROUP BY campaign_id) c ON c.campaign_id = r.campaign_id
+JOIN (SELECT u.campaign_id, SUM(pd.iap_revenue + pd.ad_revenue) AS luy_ke
+      FROM users u
+      JOIN player_daily pd ON pd.user_id = u.user_id
+      WHERE u.install_date >= '2026-07-01' AND u.install_date < '2026-08-01'
+        AND u.channel <> 'Organic'
+      GROUP BY u.campaign_id) lk ON r.campaign_id = lk.campaign_id
 CROSS JOIN (SELECT (SELECT SUM(pd.iap_revenue + pd.ad_revenue)
                     FROM player_daily pd
                     JOIN users u ON u.user_id = pd.user_id
@@ -628,10 +664,44 @@ CROSS JOIN (SELECT (SELECT SUM(pd.iap_revenue + pd.ad_revenue)
 WHERE r.doanh_thu / c.chi < g.doanh_thu / g.chi
 ORDER BY chenh_lech_diem, r.campaign_id;
 
+-- [jelly-q5-roas-duoi-muc-chung] wrong: luy_ke_gan_cung_29_8
+-- Doanh thu luỹ kế gắn cứng tới 29/8 thay cho ngày mới nhất có trong dữ liệu: hidden-1 có giao dịch 1/9 của người cài Social Ads.
+SELECT r.campaign_id, r.channel AS kenh,
+       ROUND(lk.luy_ke, 2) AS doanh_thu_luy_ke_usd,
+       ROUND(100 * r.doanh_thu / c.chi, 2) AS roas_d30_pct,
+       ROUND(100 * g.doanh_thu / g.chi, 2) AS roas_chung_pct,
+       ROUND(100 * r.doanh_thu / c.chi - 100 * g.doanh_thu / g.chi, 2) AS chenh_lech_diem
+FROM (SELECT u.campaign_id, u.channel, SUM(pd.iap_revenue + pd.ad_revenue) AS doanh_thu
+      FROM users u
+      JOIN player_daily pd ON pd.user_id = u.user_id
+      WHERE u.install_date >= '2026-07-01' AND u.install_date < '2026-08-01'
+        AND u.channel <> 'Organic' AND pd.cohort_day BETWEEN 0 AND 29
+      GROUP BY u.campaign_id, u.channel) r
+JOIN (SELECT campaign_id, SUM(spend_usd) AS chi
+      FROM campaign_spend
+      WHERE `date` >= '2026-07-01' AND `date` < '2026-08-01'
+      GROUP BY campaign_id) c ON c.campaign_id = r.campaign_id
+JOIN (SELECT u.campaign_id, SUM(pd.iap_revenue + pd.ad_revenue) AS luy_ke
+      FROM users u
+      JOIN player_daily pd ON pd.user_id = u.user_id
+      WHERE u.install_date >= '2026-07-01' AND u.install_date < '2026-08-01'
+        AND u.channel <> 'Organic' AND pd.activity_date <= '2026-08-29'
+      GROUP BY u.campaign_id) lk ON r.campaign_id = lk.campaign_id
+CROSS JOIN (SELECT (SELECT SUM(pd.iap_revenue + pd.ad_revenue)
+                    FROM player_daily pd
+                    JOIN users u ON u.user_id = pd.user_id
+                    WHERE u.install_date >= '2026-07-01' AND u.install_date < '2026-08-01'
+                      AND u.channel <> 'Organic' AND pd.cohort_day BETWEEN 0 AND 29) AS doanh_thu,
+                   (SELECT SUM(spend_usd) FROM campaign_spend
+                    WHERE `date` >= '2026-07-01' AND `date` < '2026-08-01') AS chi) g
+WHERE r.doanh_thu / c.chi < g.doanh_thu / g.chi
+ORDER BY chenh_lech_diem, r.campaign_id;
+
 -- [jelly-q6-nguoi-choi-cu-len-210] solution
 SELECT u.platform AS nen_tang,
        COUNT(*) AS so_nguoi_choi_cu,
        COUNT(l.ngay_len) AS so_len_210,
+       SUM(l.ngay_len < sk.ngay_bat_dau) AS so_len_truoc_su_kien,
        ROUND(100 * COUNT(l.ngay_len) / COUNT(*), 2) AS ty_le_len_210_pct,
        ROUND(AVG(DATEDIFF(l.ngay_len, '2026-07-30')), 2) AS so_ngay_cho_tb
 FROM users u
@@ -639,6 +709,9 @@ LEFT JOIN (SELECT user_id, MIN(activity_date) AS ngay_len
            FROM player_daily
            WHERE app_version = '2.1.0' AND activity_date <= '2026-08-29'
            GROUP BY user_id) l ON l.user_id = u.user_id
+CROSS JOIN (SELECT MIN(start_date) AS ngay_bat_dau
+            FROM liveops_events
+            WHERE start_date >= '2026-07-30') sk
 WHERE u.app_version_install = '2.0.2'
   AND EXISTS (SELECT 1 FROM player_daily p
               WHERE p.user_id = u.user_id
@@ -651,6 +724,7 @@ ORDER BY nen_tang;
 SELECT u.platform AS nen_tang,
        COUNT(*) AS so_nguoi_choi_cu,
        COUNT(l.ngay_len) AS so_len_210,
+       SUM(l.ngay_len < sk.ngay_bat_dau) AS so_len_truoc_su_kien,
        ROUND(100 * COUNT(l.ngay_len) / COUNT(*), 2) AS ty_le_len_210_pct,
        ROUND(AVG(DATEDIFF(l.ngay_len, '2026-07-30')), 2) AS so_ngay_cho_tb
 FROM users u
@@ -658,6 +732,9 @@ LEFT JOIN (SELECT user_id, MIN(activity_date) AS ngay_len
            FROM player_daily
            WHERE app_version = '2.1.0' AND activity_date <= '2026-08-29'
            GROUP BY user_id) l ON l.user_id = u.user_id
+CROSS JOIN (SELECT MIN(start_date) AS ngay_bat_dau
+            FROM liveops_events
+            WHERE start_date >= '2026-07-30') sk
 WHERE EXISTS (SELECT 1 FROM player_daily p
               WHERE p.user_id = u.user_id
                 AND p.activity_date >= '2026-07-30' AND p.activity_date <= '2026-08-29')
@@ -669,6 +746,7 @@ ORDER BY nen_tang;
 SELECT u.platform AS nen_tang,
        COUNT(*) AS so_nguoi_choi_cu,
        COUNT(l.ngay_len) AS so_len_210,
+       SUM(l.ngay_len < sk.ngay_bat_dau) AS so_len_truoc_su_kien,
        ROUND(100 * COUNT(l.ngay_len) / COUNT(*), 2) AS ty_le_len_210_pct,
        ROUND(AVG(DATEDIFF(l.ngay_len, '2026-07-30')), 2) AS so_ngay_cho_tb
 FROM users u
@@ -676,6 +754,9 @@ LEFT JOIN (SELECT user_id, MIN(activity_date) AS ngay_len
            FROM player_daily
            WHERE app_version <> '2.0.2' AND activity_date <= '2026-08-29'
            GROUP BY user_id) l ON l.user_id = u.user_id
+CROSS JOIN (SELECT MIN(start_date) AS ngay_bat_dau
+            FROM liveops_events
+            WHERE start_date >= '2026-07-30') sk
 WHERE u.app_version_install = '2.0.2'
   AND EXISTS (SELECT 1 FROM player_daily p
               WHERE p.user_id = u.user_id
@@ -688,6 +769,7 @@ ORDER BY nen_tang;
 SELECT u.platform AS nen_tang,
        COUNT(*) AS so_nguoi_choi_cu,
        COUNT(l.ngay_len) AS so_len_210,
+       SUM(l.ngay_len < sk.ngay_bat_dau) AS so_len_truoc_su_kien,
        ROUND(100 * COUNT(l.ngay_len) / COUNT(*), 2) AS ty_le_len_210_pct,
        ROUND(AVG(DATEDIFF(l.ngay_len, '2026-07-30')), 2) AS so_ngay_cho_tb
 FROM users u
@@ -695,6 +777,9 @@ LEFT JOIN (SELECT user_id, MIN(activity_date) AS ngay_len
            FROM player_daily
            WHERE app_version = '2.1.0' AND activity_date <= '2026-08-29'
            GROUP BY user_id) l ON l.user_id = u.user_id
+CROSS JOIN (SELECT MIN(start_date) AS ngay_bat_dau
+            FROM liveops_events
+            WHERE start_date >= '2026-07-30') sk
 WHERE u.app_version_install = '2.0.2'
 GROUP BY u.platform
 ORDER BY nen_tang;
@@ -704,11 +789,35 @@ ORDER BY nen_tang;
 SELECT u.platform AS nen_tang,
        COUNT(DISTINCT u.user_id) AS so_nguoi_choi_cu,
        COUNT(DISTINCT p2.user_id) AS so_len_210,
+       COUNT(DISTINCT CASE WHEN p2.activity_date < sk.ngay_bat_dau THEN p2.user_id END) AS so_len_truoc_su_kien,
        ROUND(100 * COUNT(DISTINCT p2.user_id) / COUNT(DISTINCT u.user_id), 2) AS ty_le_len_210_pct,
        ROUND(AVG(DATEDIFF(p2.activity_date, '2026-07-30')), 2) AS so_ngay_cho_tb
 FROM users u
 LEFT JOIN player_daily p2 ON p2.user_id = u.user_id AND p2.app_version = '2.1.0'
                          AND p2.activity_date <= '2026-08-29'
+CROSS JOIN (SELECT MIN(start_date) AS ngay_bat_dau
+            FROM liveops_events
+            WHERE start_date >= '2026-07-30') sk
+WHERE u.app_version_install = '2.0.2'
+  AND EXISTS (SELECT 1 FROM player_daily p
+              WHERE p.user_id = u.user_id
+                AND p.activity_date >= '2026-07-30' AND p.activity_date <= '2026-08-29')
+GROUP BY u.platform
+ORDER BY nen_tang;
+
+-- [jelly-q6-nguoi-choi-cu-len-210] wrong: gan_cung_ngay_su_kien
+-- Chép tay ngày bắt đầu của Licorice Rescue (8/8) thay cho sự kiện đầu tiên từ ngày phát hành: hidden-1 có thêm Jungle Jam Weekend từ 31/7.
+SELECT u.platform AS nen_tang,
+       COUNT(*) AS so_nguoi_choi_cu,
+       COUNT(l.ngay_len) AS so_len_210,
+       SUM(l.ngay_len < '2026-08-08') AS so_len_truoc_su_kien,
+       ROUND(100 * COUNT(l.ngay_len) / COUNT(*), 2) AS ty_le_len_210_pct,
+       ROUND(AVG(DATEDIFF(l.ngay_len, '2026-07-30')), 2) AS so_ngay_cho_tb
+FROM users u
+LEFT JOIN (SELECT user_id, MIN(activity_date) AS ngay_len
+           FROM player_daily
+           WHERE app_version = '2.1.0' AND activity_date <= '2026-08-29'
+           GROUP BY user_id) l ON l.user_id = u.user_id
 WHERE u.app_version_install = '2.0.2'
   AND EXISTS (SELECT 1 FROM player_daily p
               WHERE p.user_id = u.user_id

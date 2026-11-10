@@ -94,3 +94,19 @@ Số câu đổi cấp là tối thiểu: M7 thừa 2 Trung bình, 2 Khó → 4 
 **Nghi chồng nội dung (không trùng ô):** f3 mới (chi luỹ kế một chiến dịch) và `jelly-p4-luy-ke-tu-noi` (gói 5, doanh thu luỹ kế) cùng kỹ năng cộng dồn nhưng khác bảng, khác hình thức. f6 mới (nhóm ngày theo DAU) gần chủ đề `jelly-q4-ngay-dau-tren-tb-thang` (gói 3, ngày có DAU trên bình quân tháng) nhưng khác kỹ năng và kết quả.
 
 **Kiểm lại v4:** bộ kiểm đầy đủ cả gói trên `jelly` + `jelly_hidden_1` → `cong-cu/ket-qua/cap-do/jelly-goi-4/`, 20/20 OK, `KIEM TRA: 0 loi`, 0 cảnh báo; solution của 9 câu đổi cấp cho kết quả public khác hidden-1 (so md5 kết quả). Biên dịch → `cong-cu/ket-qua/cap-do/jelly-goi-4-pdf/`: 0 lỗi LaTeX, 0 ký tự thiếu. Thư mục gói vẫn đúng 4 file.
+
+## Sửa theo KIEM-V4 (11/11/2026)
+
+Căn cứ: `ho-so/KIEM-V4-B.md`, `ho-so/KIEM-V4-C.md`. Không đổi cấp, không đổi mã câu nào. Trùng ô giữa các gói được phép (đính chính của người điều phối 11/11), nên không đổi mảng, dạng của câu nào; trong gói không có ô trùng.
+
+| Mã | Điểm B/C | Đã sửa gì | Kết quả kiểm |
+|---|---|---|---|
+| `jelly-f9-ty-trong-goi` | B A.6: "(tới hết ngày 29/8)" đọc như định nghĩa kỳ, bài gắn cứng rớt hidden-1; ERD có bảng trôi | "(tới hết ngày 29/8)" → "(tính trọn tháng; dữ liệu Chạy thử có tới hết ngày 29/8)"; ERD thêm `level_id_if_relevant:FK` vào `purchases` và đường nối n-1 sang `level_metadata`. SQL giữ. Không đổi wrong `thieu_can_tren` (B ghi không bắt buộc). | Chỉ sửa chữ |
+| `jelly-c8-doanh-thu-giam-vi-dau` | B A.7: phương án đúng dài gần gấp đôi hai phương án sai | Phương án đúng rút còn khoảng 30 tiếng: "Doanh thu giảm vì ARPDAU phần IAP giảm, do tỷ lệ trả tiền và số tiền mỗi ngày-người trả tiền đều thấp hơn; DAU tăng chỉ bù được một phần." (giữ đúng hai chỉ số của bước 3, không dùng "mỗi lần chi" như đề xuất vì bước 3 đo theo ngày-người, không theo lần mua). Lời giải thích giữ. | Chỉ sửa chữ |
+| `jelly-c7-android-210` | C (ghi chú nhẹ, còn từ KIEM-V3) | Lời giải thích phương án 3: bỏ chữ "có" ("iOS 2.1.1 thấp hơn các nhóm iOS khác …"). Trùng bước c7.b2 / c10.b1 xử lý ở c10 (gói 5). | Chỉ sửa chữ |
+
+Kiểm:
+
+- Bộ kiểm đầy đủ cả gói: `docker compose run --rm tools python cong-cu/kiem_tra_goi.py --goi goi-cau-hoi/jelly/goi-4 --ra cong-cu/ket-qua/sua-v4/jelly-goi-4 --host sqllb-mysql --port 3306` → 20 câu, 78 khối SQL, `KIEM TRA: 0 loi`, 0 cảnh báo, mọi wrong rớt ít nhất một biến thể, mọi solution ra kết quả public khác hidden-1.
+- Biên dịch: `bash cong-cu/bien_dich.sh goi-cau-hoi/jelly/goi-4 <ra>` → 0 lỗi LaTeX, 0 ký tự thiếu, 0 cảnh báo gói lệnh; PDF ở `cong-cu/ket-qua/sua-v4/jelly-goi-4/bien-dich/`.
+- Thư mục gói vẫn đúng 4 file.

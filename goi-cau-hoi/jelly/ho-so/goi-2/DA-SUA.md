@@ -99,3 +99,20 @@ Khác:
 - `BAN-DO-100-CAU.md`: chỉ thay 8 dòng của gói 2. Phần thống kê và danh sách ô trùng cuối file chưa sinh lại (dòng "A3 · marketing · easy · write: a3, j2" nay không còn trùng vì a3 thành Cơ bản); cần sinh lại khi các gói xong.
 - `style/STYLE-jelly.md` mục E: `kenh-thu-hut` chép đủ 4 đối số, giống hệt khai báo ở `cau-hoi.tex` (việc tồn từ KIEM-V3); thêm dòng 23 vào bảng khái niệm.
 - Sửa chú thích đầu khối câu a4 (ghi "Trung bình" trong khi `cap=easy`).
+
+## Sửa theo KIEM-V4 (11/11/2026)
+
+Căn cứ: `ho-so/KIEM-V4-B.md`, `ho-so/KIEM-V4-C.md`. Không đổi cấp, không đổi mã câu nào. Trùng ô giữa các gói được phép (đính chính của người điều phối 11/11), nên không đổi mảng, dạng của câu nào; trong gói không có ô trùng.
+
+| Mã | Điểm B/C | Đã sửa gì | Kết quả kiểm |
+|---|---|---|---|
+| `jelly-s8-su-co-ba-ngay-dau` | B A.2: bối cảnh, tiêu đề ngầm báo 2.1.0 phải tệ hơn trong khi đáp án 2.1.0 vẫn tốt hơn bản vá; câu kết lặp t7 | Tiêu đề → "Số phiên ba ngày đầu của bản 2.1.0 thấp bất thường"; lời nhắn dựa vào triệu chứng thật của starter: số phiên 2.1.0 chỉ khoảng 60% bản vá (starter 3.655 / 6.070 ở public, 3.326 / 5.493 ở hidden-1; đáp án 5.495 / 6.070), trung tính về tỷ lệ sự cố; bỏ câu kết lặp. SQL giữ. | Chỉ sửa chữ |
+| `jelly-a3-chi-theo-kenh` | B A.3: nấc gợi ý 2 (`SUM(spend_usd)`) ít thông tin hơn nấc 1 | Nấc 1 → "Tháng 7 có 31 ngày. Điều kiện ngày cần cả cận dưới và cận trên."; nấc 2 → `date >= '2026-07-01' AND date < '2026-08-01'`. SQL giữ. | Chỉ sửa chữ |
+| `jelly-a6-su-co-truoc-sau-ban-va` | C: nhãn Khó nhưng 1/5 trục Khó; nâng câu, không hạ nhãn | So cùng kỳ: chỉ xét khoảng hai bản cùng chạy, từ 15/8 tới hết 29/8; yêu cầu viết bằng lời nghiệp vụ, bỏ câu chỉ sẵn cột phiên bản (khái niệm ở tab), bỏ mở đầu "Với mỗi"; `\luuy` thêm ngày phát hành hai bản và lý do so cùng kỳ. Lời giải đổi cận dưới thành `'2026-08-15'`; lời giải cũ thành wrong `so_ca_ky` (rớt public); `bo_cua_so_du_lieu` thay bằng `thieu_can_tren` (có cận dưới 15/8, chỉ rớt hidden-1); ba wrong cũ chuyển sang kỳ 15/8. Thứ hạng đổi hẳn (public BR +0,57 đứng đầu, PH −20,53 cuối; hidden-1 TH +1,60). Nay 3/5 trục Khó (mơ hồ, bẫy, nghiệp vụ). | Bộ kiểm cả gói: a6 0 lỗi; 4 wrong rớt public + hidden-1, `thieu_can_tren` rớt hidden-1; lời giải 0,3 giây |
+| `jelly-a8-arpdau-thang-8-nen-tang` | B A.4: "Dữ liệu hiện có tới hết ngày 29/8" dẫn tới bài gắn cứng 29/8, khớp public, rớt hidden-1 (chấm oan) | Đề ghi "Tháng 8 tính trọn tháng, tới hết ngày 31/8; dữ liệu dùng khi Chạy thử mới có tới hết ngày 29/8, còn báo cáo thật chạy trên dữ liệu có thêm ngày mới" (cùng cách nói của r8). Cận đúng `< '2026-09-01'` nay khớp lời đề; bẫy thiếu cận trên giữ nguyên. SQL giữ. | Chỉ sửa chữ |
+
+Kiểm:
+
+- Bộ kiểm đầy đủ cả gói: `docker compose run --rm tools python cong-cu/kiem_tra_goi.py --goi goi-cau-hoi/jelly/goi-2 --ra cong-cu/ket-qua/sua-v4/jelly-goi-2 --host sqllb-mysql --port 3306` → 20 câu, 77 khối SQL, `KIEM TRA: 0 loi`, 0 cảnh báo, mọi wrong rớt ít nhất một biến thể, mọi solution ra kết quả public khác hidden-1.
+- Biên dịch: `bash cong-cu/bien_dich.sh goi-cau-hoi/jelly/goi-2 <ra>` → 0 lỗi LaTeX, 0 ký tự thiếu, 0 cảnh báo gói lệnh; PDF ở `cong-cu/ket-qua/sua-v4/jelly-goi-2/bien-dich/`.
+- Thư mục gói vẫn đúng 4 file.

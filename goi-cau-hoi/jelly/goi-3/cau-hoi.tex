@@ -91,7 +91,7 @@
 \begin{cauhoi}[ma=jelly-j1-luot-choi-kem-the-gioi, dulieu=jelly, domain=operations,
   hinhthuc=write, cap=basic, dang=A1, kynang={INNER JOIN, ORDER BY, LIMIT}, bay={quen-loc-ngay},
   tacgia={Agent gói 3}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
-\tieude{Lượt chơi cuối ngày 29/8 kèm xác suất thua thiết kế}
+\tieude{Lượt chơi cuối ngày 29/8 kèm xác suất thua theo thiết kế}
 \boicanh[Chị Hương · Kỹ sư QA]{Chị cần xem 20 lượt chơi cuối cùng của ngày 29/8 đã ghi đủ chưa, mỗi lượt kèm xác suất thua theo thiết kế của màn để đối chiếu. Em lấy giúp chị nhé.}
 \begin{yeucau}
   \item Xét các lượt chơi có \code{event_date} là ngày 29/8/2026.
@@ -445,7 +445,7 @@
 
 % ================================================================ Q5 · write · Khó
 \begin{cauhoi}[ma=jelly-q5-roas-duoi-muc-chung, dulieu=jelly, domain=finance,
-  hinhthuc=write, cap=hard, dang=C3, kynang={bảng dẫn xuất, truy vấn con một giá trị, lọc theo mức chung}, bay={trung-binh-ty-le, fan-out, doanh-thu-ca-ky, gop-organic},
+  hinhthuc=write, cap=hard, dang=C3, kynang={bảng dẫn xuất, truy vấn con một giá trị, lọc theo mức chung}, bay={trung-binh-ty-le, fan-out, doanh-thu-ca-ky, gop-organic, luy-ke-gan-cung-ngay},
   tacgia={Agent gói 3}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
 \tieude{Chiến dịch nào thu về trên mỗi đồng chi thấp hơn mức chung?}
 \boicanh[Chị Thu · Kế toán quản trị]{Quý sau chị phải đề xuất cắt ngân sách ở những chiến dịch thu hút kém hiệu quả của tháng 7. Em chỉ giúp chị chiến dịch nào thu về trên mỗi đồng chi thấp hơn mức chung, và thấp hơn bao nhiêu.}
@@ -453,7 +453,8 @@
   \item Xét người chơi cài trong tháng 7/2026 qua kênh trả phí và chi phí quảng cáo tháng 7/2026.
   \item Hiệu quả của một chiến dịch đo bằng ROAS D30 (doanh thu trên chi phí quảng cáo) của người cài từ chiến dịch đó. Mức chung là ROAS D30 của cả bốn chiến dịch gộp lại.
   \item Chỉ giữ chiến dịch có ROAS D30 thấp hơn mức chung.
-  \item Trả về \code{campaign_id}, \code{kenh}, \code{roas_d30_pct}, \code{roas_chung_pct} (phần trăm), \code{chenh_lech_diem} (ROAS D30 của chiến dịch trừ mức chung, tính bằng điểm phần trăm); ba cột số chỉ làm tròn 2 chữ số ở kết quả.
+  \item Kèm doanh thu luỹ kế của người cài từ chiến dịch: doanh thu từ ngày cài tới ngày mới nhất có trong dữ liệu, không giới hạn 30 ngày.
+  \item Trả về \code{campaign_id}, \code{kenh}, \code{doanh_thu_luy_ke_usd} (USD), \code{roas_d30_pct}, \code{roas_chung_pct} (phần trăm), \code{chenh_lech_diem} (ROAS D30 của chiến dịch trừ mức chung, tính bằng điểm phần trăm); bốn cột số chỉ làm tròn 2 chữ số ở kết quả.
   \item Sắp \code{chenh_lech_diem} tăng dần (thấp nhất đứng trước); bằng nhau thì \code{campaign_id} theo thứ tự chữ cái.
 \end{yeucau}
 \begin{erd}
@@ -468,24 +469,23 @@
   \khainiem{roas}
   \khainiem{nhom-cai-dat}
   \khainiem{fan-out}
-  \luuy{Chi phí ghi ở mức ngày, chiến dịch, quốc gia, nền tảng; doanh thu ghi ở mức người chơi và ngày. Người chơi tự nhiên không đến từ chiến dịch nào có chi phí. Mọi người cài tháng 7 đều đủ 30 ngày quan sát tới 29/8.}
+  \luuy{Chi phí ghi ở mức ngày, chiến dịch, quốc gia, nền tảng; doanh thu ghi ở mức người chơi và ngày. Người chơi tự nhiên không đến từ chiến dịch nào có chi phí. Mọi người cài tháng 7 đều đủ 30 ngày quan sát. ROAS D30 dùng cửa sổ cố định nên so được giữa các nhóm cài; doanh thu luỹ kế thì tăng dần, vì dữ liệu chạy hằng ngày có thêm ngày mới.}
 \end{nghiepvu}
-\goiy{Gom doanh thu D0--D29 theo chiến dịch và chi phí tháng 7 theo chiến dịch, mỗi bên trong một bảng dẫn xuất, rồi mới ghép. Mức chung là tổng doanh thu chia tổng chi phí, tính bằng truy vấn con.}
+\goiy{Gom doanh thu D0--D29, doanh thu luỹ kế và chi phí tháng 7 theo chiến dịch, mỗi thứ trong một bảng dẫn xuất, rồi mới ghép. Mức chung là tổng doanh thu chia tổng chi phí, tính bằng truy vấn con.}
 \goiy{\code{WHERE r.doanh_thu / c.chi < (SELECT SUM(pd.iap_revenue + pd.ad_revenue) FROM ... WHERE u.channel <> 'Organic' AND pd.cohort_day BETWEEN 0 AND 29) / (SELECT SUM(spend_usd) FROM ...)}.}
-\ghichuthietke{Khó (v4, viết lại từ Trung bình; mã cũ \code{jelly-q5-roas-tren-chuan}): thêm bước lọc theo mức chung và cột chênh lệch; đề chỉ nêu ROAS D30, cửa sổ D0--D29 lấy từ khái niệm \code{roas} (bản cũ ghi sẵn \code{cohort_day} từ 0 tới 29); ERD 5 bảng chỉ khoá, 2 bảng nhiễu, cách ghép mở bằng \code{erdkhoa}. 5 trục: 3 bảng, 5 tầng (doanh thu theo chiến dịch, chi theo chiến dịch, hai mức chung, ghép, lọc), đề bằng ngôn ngữ kinh doanh, 4 bẫy (nhân dòng, trung bình bốn ROAS, doanh thu cả kỳ, gộp doanh thu người chơi tự nhiên vào mức chung), chỉ số nhiều điều kiện (cửa sổ ngày tuổi, chỉ kênh trả phí), nên đạt Khó 4/5 trục; bẫy chỉ lộ ở hidden-1 chưa có vì nhóm cài tháng 7 không chạm cận trên. Wrong: mức chung là trung bình bốn ROAS (Social Ads nằm ngay trên mức này nên bị loại, rớt ở public); gom doanh thu theo người chơi rồi nối thẳng với từng dòng chi phí của chiến dịch (nhân dòng, rớt ở public); doanh thu cả kỳ thay cho D0--D29 (rớt ở public); mức chung gồm doanh thu người chơi tự nhiên (giữ cả bốn chiến dịch, rớt ở public). Hidden-1 bỏ 10\% người chơi và tăng chi Video Network nên mọi ROAS đổi.}
+\ghichuthietke{Khó (v4, viết lại từ Trung bình; mã cũ \code{jelly-q5-roas-tren-chuan}): thêm bước lọc theo mức chung và cột chênh lệch; đề chỉ nêu ROAS D30, cửa sổ D0--D29 lấy từ khái niệm \code{roas} (bản cũ ghi sẵn \code{cohort_day} từ 0 tới 29); ERD 5 bảng chỉ khoá, 2 bảng nhiễu, cách ghép mở bằng \code{erdkhoa}. 5 trục: 3 bảng, 5 tầng (doanh thu theo chiến dịch, chi theo chiến dịch, hai mức chung, ghép, lọc), đề bằng ngôn ngữ kinh doanh, 4 bẫy (nhân dòng, trung bình bốn ROAS, doanh thu cả kỳ, gộp doanh thu người chơi tự nhiên vào mức chung), chỉ số nhiều điều kiện (cửa sổ ngày tuổi, chỉ kênh trả phí), nên đạt Khó. Sửa theo KIEM-V4 (B): thêm cột \code{doanh_thu_luy_ke_usd} (doanh thu từ ngày cài tới ngày mới nhất, không cận trên) để có bẫy chỉ lộ ở hidden-1: bài gắn cứng tới 29/8 khớp public (Social Ads 1.376,53) nhưng rớt hidden-1 (1.202,81 so với 1.203,30, do giao dịch 1/9 của \code{jta_user_001174}); nay 5 bẫy, đủ 5/5 trục. Wrong: mức chung là trung bình bốn ROAS (Social Ads nằm ngay trên mức này nên bị loại, rớt ở public); gom doanh thu theo người chơi rồi nối thẳng với từng dòng chi phí của chiến dịch (nhân dòng, rớt ở public); doanh thu cả kỳ thay cho D0--D29 (rớt ở public); mức chung gồm doanh thu người chơi tự nhiên (giữ cả bốn chiến dịch, rớt ở public). Hidden-1 bỏ 10\% người chơi và tăng chi Video Network nên mọi ROAS đổi.}
 \end{cauhoi}
 
 % ================================================================ Q6 · write · Khó
 \begin{cauhoi}[ma=jelly-q6-nguoi-choi-cu-len-210, dulieu=jelly, domain=operations,
-  hinhthuc=write, cap=hard, dang=B4, kynang={EXISTS, bảng dẫn xuất, MIN, LEFT JOIN}, bay={phien-ban-luc-cai, dem-moi-ngay, bo-qua-ban, mau-so-gom-nguoi-da-nghi},
+  hinhthuc=write, cap=hard, dang=B4, kynang={EXISTS, bảng dẫn xuất, MIN, LEFT JOIN, truy vấn con một giá trị}, bay={phien-ban-luc-cai, dem-moi-ngay, bo-qua-ban, mau-so-gom-nguoi-da-nghi, gan-cung-ngay-su-kien},
   tacgia={Agent gói 3}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
 \tieude{Người chơi cũ cập nhật lên bản 2.1.0 nhanh đến đâu?}
-\boicanh[Anh Đức · Quản lý sản phẩm]{Anh định ngừng hỗ trợ bản 2.0.2. Trước khi chốt, anh cần biết trên mỗi nền tảng, trong số người chơi cũ còn chơi có bao nhiêu người đã lên bản 2.1.0 và bình quân họ chờ mấy ngày sau khi bản mới ra.}
+\boicanh[Anh Đức · Quản lý sản phẩm]{Anh định ngừng hỗ trợ bản 2.0.2. Trước khi chốt, anh cần biết trên mỗi nền tảng, trong số người chơi cũ còn chơi có bao nhiêu người đã lên bản 2.1.0 và bình quân họ chờ mấy ngày sau khi bản mới ra. Anh cũng muốn biết bao nhiêu người tự cập nhật trước đợt sự kiện LiveOps đầu tiên sau đó, để quyết có gắn lời nhắc cập nhật vào sự kiện không.}
 \begin{yeucau}
   \item Xét dữ liệu tới hết ngày 29/8/2026. Bản 2.1.0 phát hành ngày 30/7/2026.
-  \item Người chơi cũ là người cài game trên bản 2.0.2 và còn hoạt động ít nhất một ngày từ ngày phát hành bản 2.1.0 tới hết 29/8. Người chơi cũ đã lên bản 2.1.0 nếu có ít nhất một ngày chơi trên bản này; ngày lên bản là ngày sớm nhất đó.
-  \item Tính cho từng nền tảng số người chơi cũ, số người đã lên bản 2.1.0, tỷ lệ lên bản và số ngày chờ bình quân (từ 30/7 tới ngày lên bản) của những người đã lên.
-  \item Trả về \code{nen_tang}, \code{so_nguoi_choi_cu}, \code{so_len_210}, \code{ty_le_len_210_pct} (phần trăm), \code{so_ngay_cho_tb} (ngày); hai cột cuối làm tròn 2 chữ số.
+  \item Tính cho từng nền tảng: số người chơi cũ, số người chơi cũ đã lên bản 2.1.0, số người lên bản trước sự kiện LiveOps (sự kiện vận hành trực tiếp trong game) đầu tiên sau ngày phát hành, tỷ lệ lên bản và số ngày chờ bình quân của những người đã lên. Các khái niệm này được định nghĩa ở tab Nghiệp vụ.
+  \item Trả về \code{nen_tang}, \code{so_nguoi_choi_cu}, \code{so_len_210}, \code{so_len_truoc_su_kien}, \code{ty_le_len_210_pct} (phần trăm), \code{so_ngay_cho_tb} (ngày); hai cột cuối làm tròn 2 chữ số.
   \item Sắp \code{nen_tang} theo thứ tự chữ cái.
 \end{yeucau}
 \begin{erd}
@@ -493,16 +493,16 @@
   \erdbang{player_daily}{1,0}{user_id:PK, activity_date:PK}
   \erdbang{sessions}{2,0}{session_id:PK, user_id:FK}
   \erdbang{level_attempts}{0,1}{attempt_id:PK, user_id:FK, session_id:FK}
-  \erdbang{tutorial_steps}{1,1}{user_id:PK, step_id:PK, session_id:FK}
-  \erdkhoa{\code{player_daily} nối \code{users} theo \code{user_id}; phiên bản lúc cài ở \code{users}, phiên bản lúc chơi theo từng ngày ở \code{player_daily}. \code{sessions}, \code{level_attempts}, \code{tutorial_steps} không cần.}
+  \erdbang{liveops_events}{1,1}{event_id:PK, start_date, end_date}
+  \erdkhoa{\code{player_daily} nối \code{users} theo \code{user_id}; phiên bản lúc cài ở \code{users}, phiên bản lúc chơi theo từng ngày ở \code{player_daily}. \code{liveops_events} không có khoá chung với các bảng khác, so theo ngày. \code{sessions}, \code{level_attempts} không cần.}
 \end{erd}
 \begin{nghiepvu}{Chọn thời điểm ngừng hỗ trợ bản 2.0.2.}
   \khainiem{phien-ban-luc-choi}
-  \luuy{Phiên bản lúc cài không đổi theo thời gian; phiên bản lúc chơi đổi khi người chơi cập nhật, và không phải ai cũng cập nhật lần lượt từng bản. Một người chơi dùng bản 2.1.0 nhiều ngày nhưng chỉ lên bản này một lần.}
+  \luuy{Người chơi cũ là người cài game trên bản 2.0.2 và còn hoạt động ít nhất một ngày từ ngày phát hành bản 2.1.0 tới hết 29/8. Người chơi cũ đã lên bản 2.1.0 nếu có ít nhất một ngày chơi trên bản này; ngày lên bản là ngày sớm nhất đó, số ngày chờ tính từ 30/7 tới ngày lên bản. Sự kiện LiveOps đầu tiên sau ngày phát hành là sự kiện có ngày bắt đầu sớm nhất, tính từ ngày phát hành trở đi; lên bản trước sự kiện nghĩa là ngày lên bản sớm hơn ngày bắt đầu của sự kiện đó. Lịch sự kiện do nhóm LiveOps cập nhật. Phiên bản lúc cài không đổi theo thời gian; phiên bản lúc chơi đổi khi người chơi cập nhật, và không phải ai cũng cập nhật lần lượt từng bản. Một người chơi dùng bản 2.1.0 nhiều ngày nhưng chỉ lên bản này một lần.}
 \end{nghiepvu}
-\goiy{Tách hai tập, mỗi tập một dòng cho mỗi người chơi: người chơi cũ (điều kiện lúc cài và còn hoạt động) và ngày lên bản 2.1.0 của từng người; ghép bằng phép nối giữ dòng rồi gom theo nền tảng.}
-\goiy{\code{LEFT JOIN (SELECT user_id, MIN(activity_date) AS ngay_len FROM player_daily WHERE app_version = '2.1.0' AND activity_date <= '2026-08-29' GROUP BY user_id) l ON l.user_id = u.user_id}.}
-\ghichuthietke{Khó (v4, viết lại từ Trung bình; mã cũ \code{jelly-q6-phien-ban-dau-tien}): từ đếm người lên bản theo ngày thành tỷ lệ cập nhật của người chơi cũ, có định nghĩa nhiều điều kiện; ERD 5 bảng chỉ khoá, lời giải dùng 2 bảng nên thêm 3 bảng nhiễu cho đủ 5 (QUYET-DINH-CHUNG 1.3). 5 trục: 2 bảng (Khó không bắt buộc ít nhất 3), 4 tầng (tập người chơi cũ có điều kiện tồn tại, ngày lên bản bằng MIN, ghép giữ dòng, gom theo nền tảng), đề bằng ngôn ngữ kinh doanh, 4 bẫy (tính cả người cài mới trên bản 2.1.0, coi bản bất kỳ khác 2.0.2 là lên bản 2.1.0 trong khi có 361 người cài bản 2.0.2 lên thẳng 2.1.1, mẫu số gồm người đã nghỉ trước 30/7, đếm mọi ngày chơi bản 2.1.0 khi tính ngày chờ), chỉ số nhiều điều kiện, nên đạt Khó 4/5 trục; chưa có bẫy chỉ lộ ở hidden-1. Lấy phiên bản theo \code{sessions} cũng ra cùng kết quả. Wrong: không lọc phiên bản lúc cài; lên bản bất kỳ khác 2.0.2; mẫu số mọi người cài bản 2.0.2; ngày chờ bình quân trên mọi ngày chơi bản 2.1.0. Cả bốn rớt ở public. Hidden-1 bỏ 10\% người chơi nên mọi số đổi.}
+\goiy{Tách hai tập, mỗi tập một dòng cho mỗi người chơi: người chơi cũ (điều kiện lúc cài và còn hoạt động) và ngày lên bản 2.1.0 của từng người; ghép bằng phép nối giữ dòng rồi gom theo nền tảng. Ngày bắt đầu của sự kiện lấy từ bảng sự kiện bằng một truy vấn con.}
+\goiy{\code{MIN(activity_date)} trên các ngày có \code{app_version = '2.1.0'}.}
+\ghichuthietke{Khó (v4, viết lại từ Trung bình; mã cũ \code{jelly-q6-phien-ban-dau-tien}): từ đếm người lên bản theo ngày thành tỷ lệ cập nhật của người chơi cũ, có định nghĩa nhiều điều kiện. Sửa theo KIEM-V4 (C: bản trước 2/5 trục Khó, chưa có bẫy chỉ lộ ở hidden-1): thêm cột \code{so_len_truoc_su_kien} so ngày lên bản với ngày bắt đầu của sự kiện LiveOps đầu tiên từ ngày phát hành 2.1.0; chuyển ba định nghĩa (người chơi cũ, đã lên bản, ngày chờ) sang tab Nghiệp vụ để yêu cầu nói bằng lời kinh doanh; ERD thay bảng nhiễu \code{tutorial_steps} bằng \code{liveops_events}. ERD 5 bảng chỉ khoá, lời giải dùng 3 bảng, 2 bảng nhiễu (QUYET-DINH-CHUNG 1.3). 5 trục: 3 bảng, 5 tầng (tập người chơi cũ có điều kiện tồn tại, ngày lên bản bằng MIN, ngày bắt đầu sự kiện bằng truy vấn con, ghép giữ dòng, gom theo nền tảng), mơ hồ Khó (định nghĩa ở tab Nghiệp vụ, tự suy ra sự kiện cần so), 5 bẫy (tính cả người cài mới trên bản 2.1.0; coi bản bất kỳ khác 2.0.2 là lên bản 2.1.0 trong khi có 361 người cài bản 2.0.2 lên thẳng 2.1.1; mẫu số gồm người đã nghỉ trước 30/7; đếm mọi ngày chơi bản 2.1.0 khi tính ngày chờ; chép tay ngày 8/8 của Licorice Rescue), chỉ số nhiều điều kiện: đạt Khó 5/5 trục. Lấy phiên bản theo \code{sessions} cũng ra cùng kết quả. Wrong: không lọc phiên bản lúc cài; lên bản bất kỳ khác 2.0.2; mẫu số mọi người cài bản 2.0.2; ngày chờ bình quân trên mọi ngày chơi bản 2.1.0: cả bốn rớt ở public. Wrong chép tay ngày sự kiện (\code{< '2026-08-08'}) khớp public (Android 2.200, iOS 921) nhưng rớt hidden-1: hidden-1 có thêm sự kiện \code{LIVE_004} Jungle Jam Weekend từ 31/7 (đáp án Android 598, iOS 237; bài sai ra 1.996, 829). Hidden-1 bỏ 10\% người chơi nên mọi số đổi.}
 \end{cauhoi}
 
 % ================================================================ Q7 · debug · Dễ

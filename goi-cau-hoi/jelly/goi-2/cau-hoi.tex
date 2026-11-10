@@ -276,8 +276,8 @@
 \begin{cauhoi}[ma=jelly-s8-su-co-ba-ngay-dau, dulieu=jelly, domain=after_sales,
   hinhthuc=debug, cap=medium, dang=A2, kynang={DATE_ADD, khoảng nửa mở, CTE}, bay={cong-so-vao-ngay, phien-ban-luc-cai},
   tacgia={Agent gói 2}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
-\tieude{Bản 2.1.0 ít sự cố bất ngờ trong ba ngày đầu}
-\boicanh[Bạn Vy · Thực tập sinh phân tích]{Em làm báo cáo sự cố ba ngày đầu sau khi phát hành bản 2.1.0 và bản vá 2.1.1. Số của em cho thấy bản 2.1.0 ổn hơn bản vá, mà anh Duy bên QA nhớ đợt 2.1.0 nhận nhiều phản ánh ứng dụng tự thoát nhất. Em dò mãi chưa ra chỗ sai.}
+\tieude{Số phiên ba ngày đầu của bản 2.1.0 thấp bất thường}
+\boicanh[Bạn Vy · Thực tập sinh phân tích]{Em làm báo cáo sự cố ba ngày đầu sau khi phát hành bản 2.1.0 và bản vá 2.1.1. Số phiên ba ngày đầu của bản 2.1.0 em tính ra chỉ bằng khoảng 60\% bản vá, anh Duy bên QA bảo không thể chênh nhiều vậy. Em kiểm lại mấy lần vẫn chưa thấy sai ở đâu.}
 \begin{yeucau}
   \item Ngày phát hành của một bản là ngày đầu tiên có người chơi cài bản đó (\code{users.app_version_install}). Xét hai bản \code{'2.1.0'} và \code{'2.1.1'}; ba ngày đầu gồm ngày phát hành và hai ngày kế tiếp.
   \item Truy vấn dưới đây tính số phiên, số sự cố và tỷ lệ sự cố trên 1.000 phiên trong ba ngày đầu của mỗi bản, theo phiên bản lúc chơi, nhưng một bản bị tính thiếu ngày.
@@ -395,8 +395,8 @@
   \khainiem{kenh-thu-hut}
   \luuy{Kênh tự nhiên (Organic) không có dòng chi phí nên không có mặt trong kết quả.}
 \end{nghiepvu}
-\goiy{Gom theo \code{channel} và cộng \code{spend_usd}; lọc tháng 7 có cả cận dưới và cận trên.}
-\goiy{\code{SUM(spend_usd)}}
+\goiy{Tháng 7 có 31 ngày. Điều kiện ngày cần cả cận dưới và cận trên.}
+\goiy{\code{date >= '2026-07-01' AND date < '2026-08-01'}.}
 \ghichuthietke{Cơ bản (v4, hạ từ Dễ; module 4 thừa Dễ, thiếu Cơ bản). Bỏ cột chi bình quân một ngày (bẫy \code{AVG} theo dòng của bản cũ) và đổi sang tháng 7 trọn tháng. 5 trục: số bảng 1; số bước 1 tầng; mơ hồ: đề ghi rõ cột và giá trị lọc, ERD có giá trị mẫu; bẫy 0; nghiệp vụ: 1 khái niệm, không công thức. Đạt Cơ bản trên 5/5 trục. Hai bài sai rớt ở public: thiếu cận trên (lẫn chi phí tháng 8); lấy \code{AVG(spend_usd)} thay cho tổng. Hidden-1 tăng chi Video Network ngày 11/7 nên kết quả khác public.}
 \end{cauhoi}
 
@@ -457,14 +457,13 @@
 
 % ================================================================ A6 · write · Khó (v4: nâng từ Dễ)
 \begin{cauhoi}[ma=jelly-a6-su-co-truoc-sau-ban-va, dulieu=jelly, domain=after_sales,
-  hinhthuc=write, cap=hard, dang=C3, kynang={SUM(CASE), tỷ lệ của tổng, CTE}, bay={phien-ban-luc-cai, so-voi-moi-ban-cu, trung-binh-ty-le, quen-cua-so},
+  hinhthuc=write, cap=hard, dang=C3, kynang={SUM(CASE), tỷ lệ của tổng, CTE, so cùng kỳ}, bay={so-ca-ky, phien-ban-luc-cai, so-voi-moi-ban-cu, trung-binh-ty-le, quen-can-tren},
   tacgia={Agent gói 2}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.01]
 \tieude{Bản vá 2.1.1 giảm sự cố ở thị trường nào?}
 \boicanh[Anh Duy · Kỹ sư QA]{Bản 2.1.1 ra ngày 15/8 để sửa lỗi ứng dụng tự thoát của bản 2.1.0. Anh cần biết ở từng thị trường bản vá đã giảm sự cố được bao nhiêu, thị trường nào gần như chưa đổi, để chọn nơi kiểm thử tiếp.}
 \begin{yeucau}
-  \item Xét các ngày hoạt động từ 1/7/2026 tới hết 29/8/2026; một ngày hoạt động thuộc bản mà người chơi dùng trong ngày đó.
-  \item Với mỗi thị trường (\code{country}): số phiên và tỷ lệ sự cố trên 1.000 phiên của bản \code{'2.1.0'}, của bản \code{'2.1.1'}, và mức chênh bằng tỷ lệ của 2.1.1 trừ tỷ lệ của 2.1.0 (âm là giảm).
-  \item Trả về \code{country}, \code{phien_210}, \code{ty_le_210}, \code{phien_211}, \code{ty_le_211}, \code{chenh_lech}; ba cột tỷ lệ làm tròn 2 chữ số, \code{chenh_lech} tính từ hai tỷ lệ chưa làm tròn.
+  \item So tỷ lệ sự cố trên 1.000 phiên của bản vá 2.1.1 với bản 2.1.0 mà bản vá thay thế, tính riêng cho từng thị trường (\code{country}), chỉ trong khoảng thời gian hai bản cùng chạy, tính tới hết ngày 29/8/2026.
+  \item Trả về \code{country}, \code{phien_210}, \code{ty_le_210}, \code{phien_211}, \code{ty_le_211}, \code{chenh_lech} (tỷ lệ của bản vá trừ tỷ lệ của bản 2.1.0, âm là giảm); ba cột tỷ lệ làm tròn 2 chữ số, \code{chenh_lech} tính từ hai tỷ lệ chưa làm tròn.
   \item Sắp \code{chenh_lech} giảm dần (thị trường giảm ít nhất đứng đầu); bằng nhau thì \code{country} theo thứ tự chữ cái.
 \end{yeucau}
 \begin{erd}
@@ -478,11 +477,11 @@
 \begin{nghiepvu}{Chọn thị trường cho đợt kiểm thử tiếp theo của bản vá.}
   \khainiem{ty-le-su-co}
   \khainiem{phien-ban-luc-choi}
-  \luuy{Người chơi cập nhật lên bản vá vào những ngày khác nhau, nên trong cùng một ngày có người dùng bản 2.1.0, có người đã dùng bản 2.1.1.}
+  \luuy{Người chơi cập nhật lên bản vá vào những ngày khác nhau, nên trong cùng một ngày có người dùng bản 2.1.0, có người đã dùng bản 2.1.1. Bản 2.1.0 phát hành ngày 30/7, bản 2.1.1 ngày 15/8. So trên cả cửa sổ dữ liệu thì chênh lệch giữa hai bản lẫn cả chênh lệch theo thời gian.}
 \end{nghiepvu}
-\goiy{Trong cùng một lần gom theo thị trường, cộng số phiên và số sự cố riêng cho từng bản, rồi mới chia.}
+\goiy{Chốt khoảng ngày hai bản cùng chạy trước. Trong khoảng đó, gom một lần theo thị trường, cộng số phiên và số sự cố riêng cho từng bản, rồi mới chia.}
 \goiy{\code{SUM(CASE WHEN app_version = '2.1.1' THEN crash_count ELSE 0 END)}}
-\ghichuthietke{Khó (v4, nâng từ a6 Dễ ``thị trường có tỷ lệ sự cố cao nhất''; module 4 thiếu Khó). 5 trục: số bảng 1 (\code{player_daily}; Khó không bắt buộc nhiều bảng, mẫu o4); số bước 3 tầng (gom có điều kiện theo bản, hai tỷ lệ, hiệu); mơ hồ: đề nói bằng ngôn ngữ kinh doanh, phải tự chọn cột phiên bản, cách nối ở \code{erdkhoa}; bẫy 4, một bẫy chỉ lộ ở hidden-1; nghiệp vụ: chỉ số nhiều điều kiện (theo phiên bản lúc chơi, trên 1.000 phiên, so đúng cặp bản). Đạt Khó trên 3/5 trục (mơ hồ, bẫy, nghiệp vụ). ERD 5 bảng chỉ khoá, 4 bảng nhiễu (lời giải dùng 1 bảng, như mẫu o4). Ba bài sai rớt ở public: lấy phiên bản lúc cài (\code{users.app_version_install}); so bản vá với mọi bản khác, gồm cả 2.0.2 không có sự cố; trung bình tỷ lệ từng dòng. Bài sai bỏ cửa sổ dữ liệu chỉ rớt ở hidden-1 (người chơi GB dùng 2.1.1 có thêm phiên ngày 30/8 và 1/9, cột \code{phien_211} của GB đổi).}
+\ghichuthietke{Khó (v4, nâng từ a6 Dễ ``thị trường có tỷ lệ sự cố cao nhất''; module 4 thiếu Khó). Sửa theo KIEM-V4 (C: bản trước chỉ 1/5 trục Khó): so cùng kỳ từ ngày bản vá ra (15/8) tới hết 29/8, bỏ câu chỉ sẵn cột phiên bản khỏi yêu cầu (khái niệm \code{phien-ban-luc-choi} ở tab Nghiệp vụ), yêu cầu viết bằng lời nghiệp vụ. 5 trục: số bảng 1 (\code{player_daily}; Khó không bắt buộc nhiều bảng, mẫu o4); số bước 3 tầng (chốt kỳ hai bản cùng chạy, gom có điều kiện theo bản, hai tỷ lệ và hiệu); mơ hồ Khó: đề nói bằng ngôn ngữ kinh doanh, tự suy ra kỳ so, tự chọn cột phiên bản, cách nối ở \code{erdkhoa}; bẫy Khó: 5 bẫy, một bẫy chỉ lộ ở hidden-1; nghiệp vụ Khó: chỉ số nhiều điều kiện (theo phiên bản lúc chơi, cùng kỳ, trên 1.000 phiên, so đúng cặp bản). Đạt Khó trên 3/5 trục (mơ hồ, bẫy, nghiệp vụ). So cùng kỳ đổi hẳn thứ hạng (public: BR đứng đầu, PH cuối; hidden-1: TH đổi dấu thành +1,60). ERD 5 bảng chỉ khoá, 4 bảng nhiễu (lời giải dùng 1 bảng, như mẫu o4). Bốn bài sai rớt ở public: so trên cả cửa sổ 1/7--29/8 (lẫn yếu tố thời gian); lấy phiên bản lúc cài (\code{users.app_version_install}); so bản vá với mọi bản khác, gồm cả 2.0.2; trung bình tỷ lệ từng dòng. Bài sai thiếu cận trên chỉ rớt ở hidden-1 (người chơi GB dùng 2.1.1 có thêm phiên ngày 30/8 và 1/9, cột \code{phien_211} của GB đổi).}
 \end{cauhoi}
 
 % ================================================================ A7 · debug · Dễ
@@ -515,7 +514,7 @@
 \tieude{ARPDAU tháng 8 theo nền tảng cao bất thường}
 \boicanh[Chị Lan · Kế toán quản trị]{ARPDAU (doanh thu bình quân trên một người chơi hoạt động trong ngày) tháng 8 theo nền tảng trong báo cáo cao gấp mấy lần tháng 7. Chị nghĩ truy vấn sai hơn một chỗ, em rà lại giúp chị.}
 \begin{yeucau}
-  \item Truy vấn dưới đây tính cho từng nền tảng của ngày hoạt động (\code{platform}) trong tháng 8/2026: tổng doanh thu (doanh thu IAP từ mua hàng trong ứng dụng cộng doanh thu quảng cáo), tổng DAU (số người chơi hoạt động trong ngày) của các ngày trong tháng và ARPDAU của cả tháng. Dữ liệu hiện có tới hết ngày 29/8.
+  \item Truy vấn dưới đây tính cho từng nền tảng của ngày hoạt động (\code{platform}) trong tháng 8/2026: tổng doanh thu (doanh thu IAP từ mua hàng trong ứng dụng cộng doanh thu quảng cáo), tổng DAU (số người chơi hoạt động trong ngày) của các ngày trong tháng và ARPDAU của cả tháng. Tháng 8 tính trọn tháng, tới hết ngày 31/8; dữ liệu dùng khi Chạy thử mới có tới hết ngày 29/8, còn báo cáo thật chạy trên dữ liệu có thêm ngày mới.
   \item Truy vấn có hai lỗi chồng nhau. Sửa cả hai; giữ nguyên cột \code{platform}, \code{tong_doanh_thu_usd} (USD, làm tròn 2 chữ số), \code{tong_dau}, \code{arpdau_usd} (USD, làm tròn 4 chữ số) và thứ tự sắp (\code{platform} theo thứ tự chữ cái).
 \end{yeucau}
 \begin{erd}
@@ -533,7 +532,7 @@
 \end{nghiepvu}
 \goiy{Một người chơi hoạt động 20 ngày trong tháng được tính mấy lần trong tổng DAU của tháng? Kiểm cả hai đầu của điều kiện ngày.}
 \goiy{\code{ROUND(SUM(iap_revenue + ad_revenue) / COUNT(*), 4)}}
-\ghichuthietke{Khó (v4, viết lại từ a8 Trung bình ``ARPDAU cả tháng 7 bị sai''; module 4 thiếu Khó; theo bài Khó của module 4 trong lộ trình là sửa lỗi định nghĩa chỉ số). Starter có hai lỗi chồng nhau: (1) \code{COUNT(DISTINCT user_id)} cả tháng là MAU, không phải tổng DAU (sai định nghĩa chỉ số, rớt ở public, ARPDAU ra gấp khoảng 4 lần); (2) thiếu cận trên của tháng 8 (chỉ lộ ở hidden-1, có hoạt động ngày 1/9, 2/9). Sửa một lỗi vẫn sai: bài sai chỉ thêm cận trên rớt ở public; bài sai chỉ sửa tổng DAU rớt ở hidden-1; bài sai lấy trung bình ARPDAU từng ngày rớt ở cả hai biến thể (public lệch 0,0001; hidden-1 lệch nhiều vì ngày 30/8 chỉ có một người chơi, có giao dịch 4,99 USD). 5 trục: Sửa lỗi Khó (hai lỗi chồng nhau, một là sai định nghĩa chỉ số); bẫy 2, một bẫy chỉ lộ ở hidden-1; nghiệp vụ: ARPDAU nhiều ngày của tháng chưa trọn, phân biệt tổng DAU với MAU; ERD 5 bảng trung tính, chỉ khoá, 4 bảng nhiễu. \code{saiso} 0,00001 cho cột 4 chữ số.}
+\ghichuthietke{Khó (v4, viết lại từ a8 Trung bình ``ARPDAU cả tháng 7 bị sai''; module 4 thiếu Khó; theo bài Khó của module 4 trong lộ trình là sửa lỗi định nghĩa chỉ số). Starter có hai lỗi chồng nhau: (1) \code{COUNT(DISTINCT user_id)} cả tháng là MAU, không phải tổng DAU (sai định nghĩa chỉ số, rớt ở public, ARPDAU ra gấp khoảng 4 lần); (2) thiếu cận trên của tháng 8 (chỉ lộ ở hidden-1, có hoạt động ngày 1/9, 2/9). Sửa một lỗi vẫn sai: bài sai chỉ thêm cận trên rớt ở public; bài sai chỉ sửa tổng DAU rớt ở hidden-1; bài sai lấy trung bình ARPDAU từng ngày rớt ở cả hai biến thể (public lệch 0,0001; hidden-1 lệch nhiều vì ngày 30/8 chỉ có một người chơi, có giao dịch 4,99 USD). 5 trục: Sửa lỗi Khó (hai lỗi chồng nhau, một là sai định nghĩa chỉ số); bẫy 2, một bẫy chỉ lộ ở hidden-1; nghiệp vụ: ARPDAU nhiều ngày của tháng chưa trọn, phân biệt tổng DAU với MAU; ERD 5 bảng trung tính, chỉ khoá, 4 bảng nhiễu. \code{saiso} 0,00001 cho cột 4 chữ số. Sửa theo KIEM-V4 (B): bản trước ghi ``Dữ liệu hiện có tới hết ngày 29/8'', bài gắn cứng cận \code{<= '2026-08-29'} khớp public nhưng rớt hidden-1 (ngày 30/8); nay đề nói rõ tháng 8 tính trọn tháng, cận đúng là \code{< '2026-09-01'}.}
 \end{cauhoi}
 
 % ================================================================ A9 · debug · Trung bình

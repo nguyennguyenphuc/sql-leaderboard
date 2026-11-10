@@ -1045,7 +1045,7 @@ SELECT app_version, platform,
        ROUND(100 * COUNT(CASE WHEN result = 'complete' THEN 1 END) / COUNT(*), 2) AS ty_le_thang_pct
 FROM level_attempts
 WHERE level_id BETWEEN 28 AND 30
-  AND event_date >= '2026-07-01' AND event_date < '2026-08-30'
+  AND event_date >= '2026-08-15' AND event_date < '2026-08-30'
 GROUP BY app_version, platform
 ORDER BY app_version, platform;
 
@@ -1056,9 +1056,20 @@ SELECT u.app_version_install AS app_version, a.platform,
 FROM level_attempts a
 JOIN users u ON u.user_id = a.user_id
 WHERE a.level_id BETWEEN 28 AND 30
-  AND a.event_date >= '2026-07-01' AND a.event_date < '2026-08-30'
+  AND a.event_date >= '2026-08-15' AND a.event_date < '2026-08-30'
 GROUP BY u.app_version_install, a.platform
 ORDER BY app_version, a.platform;
+
+-- [jelly-c10-man-28-30.b1] wrong: ca_cua_so_du_lieu
+-- So trên cả cửa sổ 1/7–29/8 thay cho khoảng ba bản cùng chạy: bản 2.0.2, 2.1.0 có thêm những ngày chưa có bản vá.
+SELECT app_version, platform,
+       COUNT(*) AS so_luot,
+       ROUND(100 * COUNT(CASE WHEN result = 'complete' THEN 1 END) / COUNT(*), 2) AS ty_le_thang_pct
+FROM level_attempts
+WHERE level_id BETWEEN 28 AND 30
+  AND event_date >= '2026-07-01' AND event_date < '2026-08-30'
+GROUP BY app_version, platform
+ORDER BY app_version, platform;
 
 -- [jelly-c10-man-28-30.b2] solution
 SELECT app_version, platform,

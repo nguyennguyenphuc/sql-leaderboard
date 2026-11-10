@@ -86,3 +86,18 @@ Viết lại 7 câu (tối thiểu: M9 thừa 4 Trung bình + 1 Khó, thiếu 2 
 Ô dạng × mảng × cấp × hình thức sau v4: không trùng trong gói. Đã so `BAN-DO-100-CAU.md` (bản đọc lúc 11/11 ~01:45): bảy ô mới (E1·operations·basic·write, E2·customer·easy·write, E2·finance·easy·write, E2·customer·easy·debug, E2·after_sales·basic·debug, D2·customer·basic·optimize, A2·customer·basic·debug) chưa có ở gói khác; ô cũ trùng giữa gói E2·finance·hard·write (t5, k6) nay hết trùng. Gần về chủ đề (khác ô): k7 và `jelly-a1-dau-thang-7` (DAU), k6 và `jelly-t5-doi-soat-kpi` (đối soát `daily_kpi`, Khó), p8 và `jelly-p7-index-ngay` (khoảng ngày có chỉ mục, khác bảng, khác hình thức).
 
 Giọng văn: văn bản mới đọc theo BRIEF-KIEM-GOI bước 6 và STYLE-jelly (A, B, C, K33–K37): không nhắc kỹ thuật SQL ở bối cảnh; người hỏi câu Sửa lỗi Cơ bản là thực tập sinh phân tích (STYLE-jelly B.3); tiêu đề ≤ 13 tiếng.
+
+## Sửa theo KIEM-V4 (11/11/2026)
+
+Căn cứ: `ho-so/KIEM-V4-B.md`, `ho-so/KIEM-V4-C.md`. Không đổi cấp, không đổi mã câu nào. Trùng ô giữa các gói được phép (đính chính của người điều phối 11/11), nên không đổi mảng, dạng của câu nào; trong gói không có ô trùng.
+
+| Mã | Điểm B/C | Đã sửa gì | Kết quả kiểm |
+|---|---|---|---|
+| `jelly-c10-man-28-30` | C: b1 trùng hẳn c7.b2 (cùng truy vấn, cùng kết quả ở hai biến thể); bước 3 không được dùng | b1 so trong khoảng ba bản cùng chạy, từ ngày bản vá ra (15/8) tới hết 29/8, thêm một nấc gợi ý; lời giải b1 đổi cận dưới; wrong `phien_ban_luc_cai` chuyển sang kỳ mới; wrong mới `ca_cua_so_du_lieu` (cả cửa sổ 1/7–29/8, rớt public). b2, b3 ghi rõ "cả cửa sổ dữ liệu", SQL giữ. Lời giải thích phương án 1: "khoảng 4 điểm" → "khoảng 2 điểm" (Android 2.1.1 67,25% so với 2.0.2 69,48%); phương án 3 dẫn thêm bước 3 (lượt được mời thêm lượt đi ở 2.1.0 giảm mạnh). Kết luận giữ chiều ở cả hai biến thể. Không thêm bẫy thiếu cận trên ở b1 vì hidden-1 không có lượt màn 28–30 sau 29/8. | Bộ kiểm cả gói: c10 0 lỗi; 2 wrong b1 rớt public + hidden-1 |
+| `jelly-c9-ab-mua-them-buoc` | B (góp ý không bắt buộc): "doanh thu D0–D6 không tăng" sai ở hidden-1 | Phương án đúng: "doanh thu D0--D6 gần như không đổi" để đúng ở cả hai biến thể. | Chỉ sửa chữ |
+
+Kiểm:
+
+- Bộ kiểm đầy đủ cả gói: `docker compose run --rm tools python cong-cu/kiem_tra_goi.py --goi goi-cau-hoi/jelly/goi-5 --ra cong-cu/ket-qua/sua-v4/jelly-goi-5 --host sqllb-mysql --port 3306` → 20 câu, 85 khối SQL, `KIEM TRA: 0 loi`, 0 cảnh báo, mọi wrong rớt ít nhất một biến thể, mọi solution ra kết quả public khác hidden-1.
+- Biên dịch: `bash cong-cu/bien_dich.sh goi-cau-hoi/jelly/goi-5 <ra>` → 0 lỗi LaTeX, 0 ký tự thiếu, 0 cảnh báo gói lệnh; PDF ở `cong-cu/ket-qua/sua-v4/jelly-goi-5/bien-dich/`.
+- Thư mục gói vẫn đúng 4 file.

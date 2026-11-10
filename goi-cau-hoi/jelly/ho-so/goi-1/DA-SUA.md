@@ -97,3 +97,18 @@ Số câu viết lại: 8 (số tối thiểu: mỗi module 3 câu ở cấp th�
 - Bộ kiểm đầy đủ trên MySQL (public + hidden-1): `cong-cu/ket-qua/cap-do/jelly-goi-1/bao-cao-import.json` → 20 câu, `KIEM TRA: 0 loi`, 0 cảnh báo. Mọi wrong rớt ≥ 1 biến thể; mọi solution mới ra kết quả hidden-1 khác public; solution chậm nhất 1,0 giây (r3).
 - Biên dịch XeLaTeX: `cong-cu/ket-qua/cap-do/jelly-goi-1/bien-dich/` → 0 lỗi LaTeX, 0 ký tự thiếu.
 - Thư mục gói vẫn đúng 4 file.
+
+## Sửa theo KIEM-V4 (11/11/2026)
+
+Căn cứ: `ho-so/KIEM-V4-B.md`, `ho-so/KIEM-V4-C.md`. Không đổi cấp, không đổi mã câu nào. Trùng ô giữa các gói được phép (đính chính của người điều phối 11/11), nên không đổi mảng, dạng của câu nào; trong gói không có ô trùng.
+
+| Mã | Điểm B/C | Đã sửa gì | Kết quả kiểm |
+|---|---|---|---|
+| `jelly-r2-goi-tam-trung-chau-my` | B A.1: khuôn lặp lý do "gửi quà cảm ơn" với t3 (gói 4); tiêu đề hỏi người nhưng kết quả là giao dịch | Tiêu đề → "Giao dịch gói tầm trung ở Mỹ và Brazil tuần cuối tháng 7"; bối cảnh đổi sang đối chiếu giao dịch bị trừ tiền hai lần với cửa hàng ứng dụng; dòng mở tab Nghiệp vụ đổi theo. SQL giữ. | Chỉ sửa chữ |
+| `jelly-r3-luot-bat-thuong-volcano` | C: 2/5 trục Khó vì `\luuy` cho sẵn mọi giá trị lọc; bối cảnh dồn ý | `\luuy` viết bằng lời nghiệp vụ (lượt không thắng mà cũng không thua do hết lượt đi; màn không mang nhãn độ khó thường), học viên tự xem miền giá trị `result`, `difficulty_tag`; nấc gợi ý 2 → `difficulty_tag <> 'normal' AND result NOT IN ('complete', 'fail_out_of_moves')`; bối cảnh "báo rằng …, có lúc đang chơi phải bỏ ngang"; `\ghichuthietke` ghi trục mơ hồ. Đã kiểm cả hai biến thể đúng 4 giá trị `result`, 3 nhãn, không NULL, nên SQL giữ, mọi wrong rớt như cũ. | Chỉ sửa chữ |
+
+Kiểm:
+
+- Bộ kiểm đầy đủ cả gói: `docker compose run --rm tools python cong-cu/kiem_tra_goi.py --goi goi-cau-hoi/jelly/goi-1 --ra cong-cu/ket-qua/sua-v4/jelly-goi-1 --host sqllb-mysql --port 3306` → 20 câu, 77 khối SQL, `KIEM TRA: 0 loi`, 0 cảnh báo, mọi wrong rớt ít nhất một biến thể, mọi solution ra kết quả public khác hidden-1.
+- Biên dịch: `bash cong-cu/bien_dich.sh goi-cau-hoi/jelly/goi-1 <ra>` → 0 lỗi LaTeX, 0 ký tự thiếu, 0 cảnh báo gói lệnh; PDF ở `cong-cu/ket-qua/sua-v4/jelly-goi-1/bien-dich/`.
+- Thư mục gói vẫn đúng 4 file.

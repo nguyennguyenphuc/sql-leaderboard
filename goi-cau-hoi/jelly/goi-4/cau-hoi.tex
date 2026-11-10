@@ -552,22 +552,23 @@
 \tieude{Tỷ trọng doanh thu từng gói không cộng ra 100\%}
 \boicanh[Bạn Nhi · Thực tập sinh phân tích]{Em tính tỷ trọng doanh thu của từng gói vật phẩm trong tháng 8 mà gói nào cũng ra 100\%. Em chưa hiểu sao lại như vậy.}
 \begin{yeucau}
-  \item Truy vấn dưới đây tính doanh thu IAP của từng gói vật phẩm trong tháng 8/2026 (tới hết ngày 29/8) và tỷ trọng của gói trên tổng doanh thu IAP của tháng.
+  \item Truy vấn dưới đây tính doanh thu IAP của từng gói vật phẩm trong tháng 8/2026 (tính trọn tháng; dữ liệu Chạy thử có tới hết ngày 29/8) và tỷ trọng của gói trên tổng doanh thu IAP của tháng.
   \item Sửa để tỷ trọng các gói cộng lại bằng 100\%.
   \item Giữ nguyên cột \code{product_name}, \code{doanh_thu_usd}, \code{ty_trong_pct} (phần trăm, làm tròn 2 chữ số) và thứ tự sắp.
 \end{yeucau}
 \begin{erd}
-  \erdbang{purchases}{0,0}{transaction_id:PK, user_id:FK, event_date*, product_name*, price_usd*}
+  \erdbang{purchases}{0,0}{transaction_id:PK, user_id:FK, event_date*, product_name*, price_usd*, level_id_if_relevant:FK}
   \erdbang{users}{1,0}{user_id:PK}
   \erdbang{level_metadata}{0,1}{level_id:PK}
   \erdnoi[kieu=n-1]{purchases.user_id}{users.user_id}
+  \erdnoi[kieu=n-1]{purchases.level_id_if_relevant}{level_metadata.level_id}
 \end{erd}
 \begin{nghiepvu}{Xếp vị trí trưng bày các gói vật phẩm trong cửa hàng của game.}
   \khainiem{doanh-thu-iap}
   \luuy{Tỷ trọng của một gói bằng doanh thu của gói chia cho tổng doanh thu của mọi gói trong tháng.}
 \end{nghiepvu}
 \goiy{\code{PARTITION BY} trong cửa sổ quyết định tổng ở mẫu số gồm những dòng nào. Mẫu số cần gồm mọi gói.}
-\ghichuthietke{Trung bình (v3 chấm lại, giữ: sai phạm vi cửa sổ là lỗi khó thấy, cùng cách chấm aivb-f7 ở QUYET-DINH-CHUNG 2.3 mục 3): 3 bảng có ký hiệu. Starter chia theo \code{PARTITION BY product_name} nên gói nào cũng 100\%. Wrong sửa đúng mẫu số nhưng thiếu cận trên tháng 8 rớt ở hidden-1 (giao dịch Booster Bundle ngày 2026-09-01); wrong tính tỷ trọng theo số giao dịch rớt ở public.}
+\ghichuthietke{Trung bình (v3 chấm lại, giữ: sai phạm vi cửa sổ là lỗi khó thấy, cùng cách chấm aivb-f7 ở QUYET-DINH-CHUNG 2.3 mục 3): 3 bảng có ký hiệu. Starter chia theo \code{PARTITION BY product_name} nên gói nào cũng 100\%. Wrong sửa đúng mẫu số nhưng thiếu cận trên tháng 8 rớt ở hidden-1 (giao dịch Booster Bundle ngày 2026-09-01); wrong tính tỷ trọng theo số giao dịch rớt ở public. Sửa theo KIEM-V4 (B): đề ghi ``tính trọn tháng'' để khớp cận \code{< '2026-09-01'} của lời giải (bản trước ghi ``tới hết ngày 29/8'', bài gắn cứng 29/8 rớt hidden-1: Booster Bundle 1.646,70 so với 1.651,69); ERD nối \code{level_metadata} qua \code{level_id_if_relevant}.}
 \end{cauhoi}
 
 
@@ -622,7 +623,7 @@
     \phuongan*{Trên Android, bản 2.1.0 có tỷ lệ hoàn thành bước 4, tỷ lệ thắng màn 28--30 và D1 thấp nhất; bản 2.1.1 cải thiện được một phần.}
       {Đúng: ba bước đều cho thấy nhóm Android 2.1.0 thấp nhất, còn Android 2.1.1 cao hơn 2.1.0 nhưng tỷ lệ thắng màn chưa về mức 2.0.2.}
     \phuongan{Vấn đề nằm ở bản 2.1.1 trên iOS, vì nhóm iOS cài bản này có D1 thấp nhất trong các nhóm iOS.}
-      {iOS 2.1.1 có thấp hơn các nhóm iOS khác nhưng vẫn cao hơn Android 2.1.0 ở cả ba chỉ số, và nhóm này nhỏ (583 người cài). Vấn đề rõ nhất ở Android 2.1.0.}
+      {iOS 2.1.1 thấp hơn các nhóm iOS khác nhưng vẫn cao hơn Android 2.1.0 ở cả ba chỉ số, và nhóm này nhỏ (583 người cài). Vấn đề rõ nhất ở Android 2.1.0.}
   \end{luachon}
 \end{buoc}
 \ghichuthietke{Case Trung bình: 4 bảng có ký hiệu; b1 chỉ \code{tutorial_steps}, b2 chỉ \code{level_attempts}, b3 \code{users} + \code{player_daily}. Wrong b1 lấy người bắt đầu bước 1 làm mẫu số, wrong b2 bỏ lượt bỏ cuộc và sự cố khỏi mẫu số, wrong b3 đếm mẫu số trên bảng hoạt động; cả ba rớt ở public. Phương án sai: gán lỗi cho iOS hoặc cho cả hai nền tảng.}
@@ -678,7 +679,7 @@
   \begin{luachon}
     \phuongan{Doanh thu tuần 10/8 giảm vì số người chơi hoạt động giảm sau sự kiện, nên cần tăng chi thu hút người chơi.}
       {Bước 2 cho thấy DAU bình quân tuần 10/8 cao hơn tuần trước; phần do DAU ở bước 4 là số dương.}
-    \phuongan*{Doanh thu giảm vì ARPDAU giảm, chủ yếu ở phần IAP. Tỷ lệ ngày-người có trả tiền và số tiền trên mỗi ngày-người trả tiền đều thấp hơn, còn DAU tăng chỉ bù được một phần.}
+    \phuongan*{Doanh thu giảm vì ARPDAU phần IAP giảm, do tỷ lệ trả tiền và số tiền mỗi ngày-người trả tiền đều thấp hơn; DAU tăng chỉ bù được một phần.}
       {Đúng: ở bước 4, phần do ARPDAU là số âm và có trị tuyệt đối lớn hơn phần do DAU (số dương); bước 2 và 3 chỉ ra phần giảm nằm ở IAP.}
     \phuongan{Sự kiện Licorice Rescue làm người chơi bớt mua gói vật phẩm, nên tháng sau không nên chạy lại sự kiện này.}
       {Sự kiện diễn ra trong cả hai tuần; dữ liệu chỉ cho thấy ARPDAU giảm cùng lúc, chưa đủ để kết luận sự kiện là nguyên nhân.}
