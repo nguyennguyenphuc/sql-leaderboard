@@ -65,134 +65,99 @@ UNION ALL SELECT 3, 'da_giai_ngan', n3, ROUND(100 * n3 / n2, 2) FROM dem
 UNION ALL SELECT 4, 'da_tat_toan', n4, ROUND(100 * n4 / n3, 2) FROM dem
 ORDER BY buoc;
 
--- [aivb-t2-doi-soat-lenh-but-toan] solution
-WITH lenh AS (
-  SELECT payment_order_id, payment_status
-  FROM core_payment_order
-  WHERE transaction_date >= '2026-01-01' AND transaction_date < '2027-01-01'
+-- [aivb-t2-cho-vay-moi-va-thu-goc-quy-4] solution
+WITH cho_vay_moi AS (
+  SELECT DATE_FORMAT(disbursement_date, '%Y-%m') AS thang, COUNT(*) AS so_lan, SUM(principal) AS so_tien
+  FROM core_loan_contract
+  WHERE disbursement_date >= '2026-10-01' AND disbursement_date < '2027-01-01'
+  GROUP BY DATE_FORMAT(disbursement_date, '%Y-%m')
+), thu_goc AS (
+  SELECT DATE_FORMAT(allocation_date, '%Y-%m') AS thang, COUNT(*) AS so_lan, SUM(principal_amount) AS so_tien
+  FROM core_loan_payment_allocation
+  WHERE allocation_date >= '2026-10-01' AND allocation_date < '2027-01-01'
+  GROUP BY DATE_FORMAT(allocation_date, '%Y-%m')
 )
-SELECT 'lenh_thanh_cong_khong_co_but_toan' AS loai, l.payment_status, COUNT(*) AS so_lenh, 0 AS so_but_toan
-FROM lenh l
-WHERE l.payment_status = 'COMPLETED'
-  AND NOT EXISTS (SELECT 1 FROM core_account_posting p WHERE p.payment_order_id = l.payment_order_id)
-GROUP BY l.payment_status
+SELECT thang, 'cho_vay_moi' AS loai, so_lan, ROUND(so_tien / 1000000) AS so_tien_trieu_dong FROM cho_vay_moi
 UNION ALL
-SELECT 'but_toan_cua_lenh_khong_thanh_cong', l.payment_status, COUNT(DISTINCT l.payment_order_id), COUNT(*)
-FROM lenh l
-JOIN core_account_posting p ON p.payment_order_id = l.payment_order_id
-WHERE l.payment_status <> 'COMPLETED'
-GROUP BY l.payment_status
-ORDER BY loai, payment_status;
+SELECT thang, 'thu_goc', so_lan, ROUND(so_tien / 1000000) FROM thu_goc
+ORDER BY thang, loai;
 
--- [aivb-t2-doi-soat-lenh-but-toan] wrong: chi_kiem_lenh_bi_dao
--- Cho rằng lệnh bị từ chối không thể có bút toán nên chỉ kiểm lệnh bị đảo: mất dòng REJECTED (rớt ở public).
-WITH lenh AS (
-  SELECT payment_order_id, payment_status
-  FROM core_payment_order
-  WHERE transaction_date >= '2026-01-01' AND transaction_date < '2027-01-01'
+-- [aivb-t2-cho-vay-moi-va-thu-goc-quy-4] wrong: cong_ca_lai_phi_phat
+-- Coi cả lãi, phí, tiền phạt là thu gốc: số tiền dòng thu_goc lớn hơn thực tế (rớt ở public).
+WITH cho_vay_moi AS (
+  SELECT DATE_FORMAT(disbursement_date, '%Y-%m') AS thang, COUNT(*) AS so_lan, SUM(principal) AS so_tien
+  FROM core_loan_contract
+  WHERE disbursement_date >= '2026-10-01' AND disbursement_date < '2027-01-01'
+  GROUP BY DATE_FORMAT(disbursement_date, '%Y-%m')
+), thu_goc AS (
+  SELECT DATE_FORMAT(allocation_date, '%Y-%m') AS thang, COUNT(*) AS so_lan,
+         SUM(principal_amount + interest_amount + fee_amount + penalty_amount) AS so_tien
+  FROM core_loan_payment_allocation
+  WHERE allocation_date >= '2026-10-01' AND allocation_date < '2027-01-01'
+  GROUP BY DATE_FORMAT(allocation_date, '%Y-%m')
 )
-SELECT 'lenh_thanh_cong_khong_co_but_toan' AS loai, l.payment_status, COUNT(*) AS so_lenh, 0 AS so_but_toan
-FROM lenh l
-WHERE l.payment_status = 'COMPLETED'
-  AND NOT EXISTS (SELECT 1 FROM core_account_posting p WHERE p.payment_order_id = l.payment_order_id)
-GROUP BY l.payment_status
+SELECT thang, 'cho_vay_moi' AS loai, so_lan, ROUND(so_tien / 1000000) AS so_tien_trieu_dong FROM cho_vay_moi
 UNION ALL
-SELECT 'but_toan_cua_lenh_khong_thanh_cong', l.payment_status, COUNT(DISTINCT l.payment_order_id), COUNT(*)
-FROM lenh l
-JOIN core_account_posting p ON p.payment_order_id = l.payment_order_id
-WHERE l.payment_status = 'REVERSED'
-GROUP BY l.payment_status
-ORDER BY loai, payment_status;
+SELECT thang, 'thu_goc', so_lan, ROUND(so_tien / 1000000) FROM thu_goc
+ORDER BY thang, loai;
 
--- [aivb-t2-doi-soat-lenh-but-toan] wrong: inner_join_tim_dong_khong_co_cap
--- Tìm lệnh không có bút toán bằng JOIN rồi lọc IS NULL: không bao giờ ra dòng, nhóm thứ nhất biến mất (rớt ở public).
-WITH lenh AS (
-  SELECT payment_order_id, payment_status
-  FROM core_payment_order
-  WHERE transaction_date >= '2026-01-01' AND transaction_date < '2027-01-01'
+-- [aivb-t2-cho-vay-moi-va-thu-goc-quy-4] wrong: dem_khoan_vay_thay_lan_phan_bo
+-- Đếm số khoản vay có trả nợ thay cho số lần phân bổ (rớt ở public).
+WITH cho_vay_moi AS (
+  SELECT DATE_FORMAT(disbursement_date, '%Y-%m') AS thang, COUNT(*) AS so_lan, SUM(principal) AS so_tien
+  FROM core_loan_contract
+  WHERE disbursement_date >= '2026-10-01' AND disbursement_date < '2027-01-01'
+  GROUP BY DATE_FORMAT(disbursement_date, '%Y-%m')
+), thu_goc AS (
+  SELECT DATE_FORMAT(allocation_date, '%Y-%m') AS thang, COUNT(DISTINCT loan_id) AS so_lan, SUM(principal_amount) AS so_tien
+  FROM core_loan_payment_allocation
+  WHERE allocation_date >= '2026-10-01' AND allocation_date < '2027-01-01'
+  GROUP BY DATE_FORMAT(allocation_date, '%Y-%m')
 )
-SELECT 'lenh_thanh_cong_khong_co_but_toan' AS loai, l.payment_status, COUNT(*) AS so_lenh, 0 AS so_but_toan
-FROM lenh l
-JOIN core_account_posting p ON p.payment_order_id = l.payment_order_id
-WHERE l.payment_status = 'COMPLETED' AND p.posting_id IS NULL
-GROUP BY l.payment_status
+SELECT thang, 'cho_vay_moi' AS loai, so_lan, ROUND(so_tien / 1000000) AS so_tien_trieu_dong FROM cho_vay_moi
 UNION ALL
-SELECT 'but_toan_cua_lenh_khong_thanh_cong', l.payment_status, COUNT(DISTINCT l.payment_order_id), COUNT(*)
-FROM lenh l
-JOIN core_account_posting p ON p.payment_order_id = l.payment_order_id
-WHERE l.payment_status <> 'COMPLETED'
-GROUP BY l.payment_status
-ORDER BY loai, payment_status;
+SELECT thang, 'thu_goc', so_lan, ROUND(so_tien / 1000000) FROM thu_goc
+ORDER BY thang, loai;
 
--- [aivb-t3-phan-nhom-khach-giao-dich] solution
-WITH bt AS (
-  SELECT account_id, COUNT(*) AS so_bt
-  FROM core_account_posting
-  WHERE transaction_date >= '2026-01-01' AND transaction_date < '2027-01-01'
-  GROUP BY account_id
-), kh AS (
-  SELECT c.customer_id, COALESCE(SUM(bt.so_bt), 0) AS so_bt
-  FROM core_customer c
-  LEFT JOIN core_account_party ap ON ap.party_id = c.party_id AND ap.role_code = 'PRIMARY_OWNER'
-  LEFT JOIN bt ON bt.account_id = ap.account_id
-  GROUP BY c.customer_id
-), nhom AS (
-  SELECT 1 AS thu_tu, 'khong_giao_dich' AS nhom_khach, 0 AS tu, 0 AS den
-  UNION ALL SELECT 2, 'tu_1_den_50', 1, 50
-  UNION ALL SELECT 3, 'tu_51_den_200', 51, 200
-  UNION ALL SELECT 4, 'tren_200', 201, 999999999
+-- [aivb-t3-nguoi-vay-theo-so-khoan-vay] solution
+WITH theo_nguoi_vay AS (
+  SELECT a.party_id, COUNT(*) AS so_khoan_vay, SUM(l.outstanding) AS du_no
+  FROM core_loan_contract l
+  JOIN core_loan_application a ON a.application_id = l.application_id
+  WHERE l.outstanding > 0
+  GROUP BY a.party_id
 )
-SELECT n.thu_tu, n.nhom_khach, COUNT(kh.customer_id) AS so_khach
-FROM nhom n
-LEFT JOIN kh ON kh.so_bt BETWEEN n.tu AND n.den
-GROUP BY n.thu_tu, n.nhom_khach
-ORDER BY n.thu_tu;
+SELECT so_khoan_vay, COUNT(*) AS so_nguoi_vay, ROUND(SUM(du_no) / 1000000000, 2) AS du_no_ty_dong
+FROM theo_nguoi_vay
+GROUP BY so_khoan_vay
+ORDER BY so_khoan_vay;
 
--- [aivb-t3-phan-nhom-khach-giao-dich] wrong: inner_join_mat_khach_khong_giao_dich
--- Nối thẳng với bút toán nên khách không có bút toán năm 2026 biến mất (rớt ở public).
-WITH kh AS (
-  SELECT c.customer_id, COUNT(*) AS so_bt
-  FROM core_customer c
-  JOIN core_account_party ap ON ap.party_id = c.party_id AND ap.role_code = 'PRIMARY_OWNER'
-  JOIN core_account_posting p ON p.account_id = ap.account_id
-  WHERE p.transaction_date >= '2026-01-01' AND p.transaction_date < '2027-01-01'
-  GROUP BY c.customer_id
-), nhom AS (
-  SELECT 1 AS thu_tu, 'khong_giao_dich' AS nhom_khach, 0 AS tu, 0 AS den
-  UNION ALL SELECT 2, 'tu_1_den_50', 1, 50
-  UNION ALL SELECT 3, 'tu_51_den_200', 51, 200
-  UNION ALL SELECT 4, 'tren_200', 201, 999999999
+-- [aivb-t3-nguoi-vay-theo-so-khoan-vay] wrong: khong_loc_du_no
+-- Đếm cả khoản vay đã tất toán, đã xử lý rủi ro (dư nợ 0): thêm nhóm 4 khoản vay, số người mỗi nhóm khác (rớt ở public).
+WITH theo_nguoi_vay AS (
+  SELECT a.party_id, COUNT(*) AS so_khoan_vay, SUM(l.outstanding) AS du_no
+  FROM core_loan_contract l
+  JOIN core_loan_application a ON a.application_id = l.application_id
+  GROUP BY a.party_id
 )
-SELECT n.thu_tu, n.nhom_khach, COUNT(kh.customer_id) AS so_khach
-FROM nhom n
-LEFT JOIN kh ON kh.so_bt BETWEEN n.tu AND n.den
-GROUP BY n.thu_tu, n.nhom_khach
-ORDER BY n.thu_tu;
+SELECT so_khoan_vay, COUNT(*) AS so_nguoi_vay, ROUND(SUM(du_no) / 1000000000, 2) AS du_no_ty_dong
+FROM theo_nguoi_vay
+GROUP BY so_khoan_vay
+ORDER BY so_khoan_vay;
 
--- [aivb-t3-phan-nhom-khach-giao-dich] wrong: moi_vai_tro_tai_khoan
--- Không lọc chủ tài khoản: bút toán của tài khoản đồng sở hữu, uỷ quyền cũng tính cho khách (rớt ở public).
-WITH bt AS (
-  SELECT account_id, COUNT(*) AS so_bt
-  FROM core_account_posting
-  WHERE transaction_date >= '2026-01-01' AND transaction_date < '2027-01-01'
-  GROUP BY account_id
-), kh AS (
-  SELECT c.customer_id, COALESCE(SUM(bt.so_bt), 0) AS so_bt
-  FROM core_customer c
-  LEFT JOIN core_account_party ap ON ap.party_id = c.party_id
-  LEFT JOIN bt ON bt.account_id = ap.account_id
-  GROUP BY c.customer_id
-), nhom AS (
-  SELECT 1 AS thu_tu, 'khong_giao_dich' AS nhom_khach, 0 AS tu, 0 AS den
-  UNION ALL SELECT 2, 'tu_1_den_50', 1, 50
-  UNION ALL SELECT 3, 'tu_51_den_200', 51, 200
-  UNION ALL SELECT 4, 'tren_200', 201, 999999999
+-- [aivb-t3-nguoi-vay-theo-so-khoan-vay] wrong: chi_tinh_active
+-- Coi "còn dư nợ" là chỉ khoản đang trả nợ bình thường: bỏ khoản quá hạn, cơ cấu lại (rớt ở public).
+WITH theo_nguoi_vay AS (
+  SELECT a.party_id, COUNT(*) AS so_khoan_vay, SUM(l.outstanding) AS du_no
+  FROM core_loan_contract l
+  JOIN core_loan_application a ON a.application_id = l.application_id
+  WHERE l.loan_status = 'ACTIVE'
+  GROUP BY a.party_id
 )
-SELECT n.thu_tu, n.nhom_khach, COUNT(kh.customer_id) AS so_khach
-FROM nhom n
-LEFT JOIN kh ON kh.so_bt BETWEEN n.tu AND n.den
-GROUP BY n.thu_tu, n.nhom_khach
-ORDER BY n.thu_tu;
+SELECT so_khoan_vay, COUNT(*) AS so_nguoi_vay, ROUND(SUM(du_no) / 1000000000, 2) AS du_no_ty_dong
+FROM theo_nguoi_vay
+GROUP BY so_khoan_vay
+ORDER BY so_khoan_vay;
 
 -- [aivb-t4-du-no-theo-nhom-no] solution
 WITH qua_han AS (
@@ -306,159 +271,115 @@ FROM khoan
 GROUP BY nhom_no
 ORDER BY nhom_no;
 
--- [aivb-t5-kenh-loai-giao-dich-ty-le-hoan] solution
-WITH lenh AS (
-  SELECT channel_code, transaction_type, payment_status
+-- [aivb-t5-lenh-binh-quan-ngay-theo-kenh] solution
+WITH theo_ngay AS (
+  SELECT channel_code, transaction_date, COUNT(*) AS so_lenh
   FROM core_payment_order
-  WHERE transaction_date >= '2026-01-01' AND transaction_date < '2027-01-01'
-    AND transaction_type IN ('TRANSFER', 'QR_PAY', 'BILLPAY', 'POS_PAY')
-), bang AS (
-  SELECT 1 AS thu_tu, channel_code AS kenh,
-         ROUND(100 * COUNT(CASE WHEN transaction_type = 'TRANSFER' AND payment_status = 'REVERSED' THEN 1 END) / NULLIF(COUNT(CASE WHEN transaction_type = 'TRANSFER' THEN 1 END), 0), 2) AS transfer_pct,
-         ROUND(100 * COUNT(CASE WHEN transaction_type = 'QR_PAY' AND payment_status = 'REVERSED' THEN 1 END) / NULLIF(COUNT(CASE WHEN transaction_type = 'QR_PAY' THEN 1 END), 0), 2) AS qr_pay_pct,
-         ROUND(100 * COUNT(CASE WHEN transaction_type = 'BILLPAY' AND payment_status = 'REVERSED' THEN 1 END) / NULLIF(COUNT(CASE WHEN transaction_type = 'BILLPAY' THEN 1 END), 0), 2) AS billpay_pct,
-         ROUND(100 * COUNT(CASE WHEN transaction_type = 'POS_PAY' AND payment_status = 'REVERSED' THEN 1 END) / NULLIF(COUNT(CASE WHEN transaction_type = 'POS_PAY' THEN 1 END), 0), 2) AS pos_pay_pct
-  FROM lenh
-  GROUP BY channel_code
-  UNION ALL
-  SELECT 2, 'TONG',
-         ROUND(100 * COUNT(CASE WHEN transaction_type = 'TRANSFER' AND payment_status = 'REVERSED' THEN 1 END) / NULLIF(COUNT(CASE WHEN transaction_type = 'TRANSFER' THEN 1 END), 0), 2),
-         ROUND(100 * COUNT(CASE WHEN transaction_type = 'QR_PAY' AND payment_status = 'REVERSED' THEN 1 END) / NULLIF(COUNT(CASE WHEN transaction_type = 'QR_PAY' THEN 1 END), 0), 2),
-         ROUND(100 * COUNT(CASE WHEN transaction_type = 'BILLPAY' AND payment_status = 'REVERSED' THEN 1 END) / NULLIF(COUNT(CASE WHEN transaction_type = 'BILLPAY' THEN 1 END), 0), 2),
-         ROUND(100 * COUNT(CASE WHEN transaction_type = 'POS_PAY' AND payment_status = 'REVERSED' THEN 1 END) / NULLIF(COUNT(CASE WHEN transaction_type = 'POS_PAY' THEN 1 END), 0), 2)
-  FROM lenh
+  WHERE payment_status = 'COMPLETED'
+    AND transaction_date >= '2026-12-01' AND transaction_date < '2027-01-01'
+  GROUP BY channel_code, transaction_date
 )
-SELECT kenh, transfer_pct, qr_pay_pct, billpay_pct, pos_pay_pct
-FROM bang
-ORDER BY thu_tu, kenh;
+SELECT channel_code, COUNT(*) AS so_ngay, ROUND(AVG(so_lenh), 2) AS so_lenh_binh_quan
+FROM theo_ngay
+GROUP BY channel_code
+ORDER BY so_lenh_binh_quan DESC, channel_code;
 
--- [aivb-t5-kenh-loai-giao-dich-ty-le-hoan] wrong: dong_tong_la_trung_binh_ty_le
--- Dòng tổng lấy trung bình cộng tỷ lệ của các kênh, không tính lại từ số lệnh (rớt ở public).
-WITH lenh AS (
-  SELECT channel_code, transaction_type, payment_status
+-- [aivb-t5-lenh-binh-quan-ngay-theo-kenh] wrong: chia_so_ngay_lich
+-- Chia tổng số lệnh cho 31 ngày lịch, tính cả ngày nghỉ không có lệnh (rớt ở public).
+WITH theo_ngay AS (
+  SELECT channel_code, transaction_date, COUNT(*) AS so_lenh
   FROM core_payment_order
-  WHERE transaction_date >= '2026-01-01' AND transaction_date < '2027-01-01'
-    AND transaction_type IN ('TRANSFER', 'QR_PAY', 'BILLPAY', 'POS_PAY')
-), kenh AS (
-  SELECT 1 AS thu_tu, channel_code AS kenh,
-         ROUND(100 * COUNT(CASE WHEN transaction_type = 'TRANSFER' AND payment_status = 'REVERSED' THEN 1 END) / NULLIF(COUNT(CASE WHEN transaction_type = 'TRANSFER' THEN 1 END), 0), 2) AS transfer_pct,
-         ROUND(100 * COUNT(CASE WHEN transaction_type = 'QR_PAY' AND payment_status = 'REVERSED' THEN 1 END) / NULLIF(COUNT(CASE WHEN transaction_type = 'QR_PAY' THEN 1 END), 0), 2) AS qr_pay_pct,
-         ROUND(100 * COUNT(CASE WHEN transaction_type = 'BILLPAY' AND payment_status = 'REVERSED' THEN 1 END) / NULLIF(COUNT(CASE WHEN transaction_type = 'BILLPAY' THEN 1 END), 0), 2) AS billpay_pct,
-         ROUND(100 * COUNT(CASE WHEN transaction_type = 'POS_PAY' AND payment_status = 'REVERSED' THEN 1 END) / NULLIF(COUNT(CASE WHEN transaction_type = 'POS_PAY' THEN 1 END), 0), 2) AS pos_pay_pct
-  FROM lenh
-  GROUP BY channel_code
+  WHERE payment_status = 'COMPLETED'
+    AND transaction_date >= '2026-12-01' AND transaction_date < '2027-01-01'
+  GROUP BY channel_code, transaction_date
 )
-SELECT kenh, transfer_pct, qr_pay_pct, billpay_pct, pos_pay_pct FROM (
-  SELECT thu_tu, kenh, transfer_pct, qr_pay_pct, billpay_pct, pos_pay_pct FROM kenh
-  UNION ALL
-  SELECT 2, 'TONG', ROUND(AVG(transfer_pct), 2), ROUND(AVG(qr_pay_pct), 2), ROUND(AVG(billpay_pct), 2), ROUND(AVG(pos_pay_pct), 2) FROM kenh
-) x
-ORDER BY thu_tu, kenh;
+SELECT channel_code, 31 AS so_ngay, ROUND(SUM(so_lenh) / 31, 2) AS so_lenh_binh_quan
+FROM theo_ngay
+GROUP BY channel_code
+ORDER BY so_lenh_binh_quan DESC, channel_code;
 
--- [aivb-t5-kenh-loai-giao-dich-ty-le-hoan] wrong: gop_bi_tu_choi_vao_bi_dao
--- Tính cả lệnh bị từ chối vào tử số (rớt ở public).
-WITH lenh AS (
-  SELECT channel_code, transaction_type, payment_status
+-- [aivb-t5-lenh-binh-quan-ngay-theo-kenh] wrong: dem_moi_trang_thai
+-- Quên lọc lệnh thành công: đếm cả lệnh bị đảo, bị từ chối (rớt ở public).
+WITH theo_ngay AS (
+  SELECT channel_code, transaction_date, COUNT(*) AS so_lenh
   FROM core_payment_order
-  WHERE transaction_date >= '2026-01-01' AND transaction_date < '2027-01-01'
-    AND transaction_type IN ('TRANSFER', 'QR_PAY', 'BILLPAY', 'POS_PAY')
-), bang AS (
-  SELECT 1 AS thu_tu, channel_code AS kenh,
-         ROUND(100 * COUNT(CASE WHEN transaction_type = 'TRANSFER' AND payment_status <> 'COMPLETED' THEN 1 END) / NULLIF(COUNT(CASE WHEN transaction_type = 'TRANSFER' THEN 1 END), 0), 2) AS transfer_pct,
-         ROUND(100 * COUNT(CASE WHEN transaction_type = 'QR_PAY' AND payment_status <> 'COMPLETED' THEN 1 END) / NULLIF(COUNT(CASE WHEN transaction_type = 'QR_PAY' THEN 1 END), 0), 2) AS qr_pay_pct,
-         ROUND(100 * COUNT(CASE WHEN transaction_type = 'BILLPAY' AND payment_status <> 'COMPLETED' THEN 1 END) / NULLIF(COUNT(CASE WHEN transaction_type = 'BILLPAY' THEN 1 END), 0), 2) AS billpay_pct,
-         ROUND(100 * COUNT(CASE WHEN transaction_type = 'POS_PAY' AND payment_status <> 'COMPLETED' THEN 1 END) / NULLIF(COUNT(CASE WHEN transaction_type = 'POS_PAY' THEN 1 END), 0), 2) AS pos_pay_pct
-  FROM lenh
-  GROUP BY channel_code
-  UNION ALL
-  SELECT 2, 'TONG',
-         ROUND(100 * COUNT(CASE WHEN transaction_type = 'TRANSFER' AND payment_status <> 'COMPLETED' THEN 1 END) / NULLIF(COUNT(CASE WHEN transaction_type = 'TRANSFER' THEN 1 END), 0), 2),
-         ROUND(100 * COUNT(CASE WHEN transaction_type = 'QR_PAY' AND payment_status <> 'COMPLETED' THEN 1 END) / NULLIF(COUNT(CASE WHEN transaction_type = 'QR_PAY' THEN 1 END), 0), 2),
-         ROUND(100 * COUNT(CASE WHEN transaction_type = 'BILLPAY' AND payment_status <> 'COMPLETED' THEN 1 END) / NULLIF(COUNT(CASE WHEN transaction_type = 'BILLPAY' THEN 1 END), 0), 2),
-         ROUND(100 * COUNT(CASE WHEN transaction_type = 'POS_PAY' AND payment_status <> 'COMPLETED' THEN 1 END) / NULLIF(COUNT(CASE WHEN transaction_type = 'POS_PAY' THEN 1 END), 0), 2)
-  FROM lenh
+  WHERE transaction_date >= '2026-12-01' AND transaction_date < '2027-01-01'
+  GROUP BY channel_code, transaction_date
 )
-SELECT kenh, transfer_pct, qr_pay_pct, billpay_pct, pos_pay_pct
-FROM bang
-ORDER BY thu_tu, kenh;
+SELECT channel_code, COUNT(*) AS so_ngay, ROUND(AVG(so_lenh), 2) AS so_lenh_binh_quan
+FROM theo_ngay
+GROUP BY channel_code
+ORDER BY so_lenh_binh_quan DESC, channel_code;
 
--- [aivb-t7-khach-co-san-pham] starter
-WITH co_tien_gui AS (
-  SELECT ap.party_id
-  FROM core_deposit_contract d
-  JOIN core_account_party ap ON ap.account_id = d.settlement_account_id AND ap.role_code = 'PRIMARY_OWNER'
-  WHERE d.deposit_status IN ('ACTIVE', 'RENEWED')
-), co_khoan_vay AS (
-  SELECT a.party_id
-  FROM core_loan_contract l
-  JOIN core_loan_application a ON a.application_id = l.application_id
-  WHERE l.loan_status IN ('ACTIVE', 'DELINQUENT', 'RESTRUCTURED')
+-- [aivb-t6-ky-han-tien-gui-tu-200-ty] solution
+WITH theo_ky_han AS (
+  SELECT term_months, COUNT(*) AS so_hop_dong, SUM(principal) AS tong_tien
+  FROM core_deposit_contract
+  WHERE deposit_status IN ('ACTIVE', 'RENEWED')
+  GROUP BY term_months
 )
+SELECT term_months, so_hop_dong, ROUND(tong_tien / 1000000000, 2) AS tong_tien_gui_ty_dong
+FROM theo_ky_han
+WHERE tong_tien >= 200000000000
+ORDER BY tong_tien_gui_ty_dong DESC, term_months;
+
+-- [aivb-t6-ky-han-tien-gui-tu-200-ty] wrong: chi_tinh_active
+-- Bỏ sót tiền gửi đã tái tục: không kỳ hạn nào đạt ngưỡng (rớt ở public).
+WITH theo_ky_han AS (
+  SELECT term_months, COUNT(*) AS so_hop_dong, SUM(principal) AS tong_tien
+  FROM core_deposit_contract
+  WHERE deposit_status = 'ACTIVE'
+  GROUP BY term_months
+)
+SELECT term_months, so_hop_dong, ROUND(tong_tien / 1000000000, 2) AS tong_tien_gui_ty_dong
+FROM theo_ky_han
+WHERE tong_tien >= 200000000000
+ORDER BY tong_tien_gui_ty_dong DESC, term_months;
+
+-- [aivb-t6-ky-han-tien-gui-tu-200-ty] wrong: nguong_thieu_ba_so_0
+-- Viết ngưỡng 200 triệu đồng thay cho 200 tỷ đồng: ra mọi kỳ hạn (rớt ở public).
+WITH theo_ky_han AS (
+  SELECT term_months, COUNT(*) AS so_hop_dong, SUM(principal) AS tong_tien
+  FROM core_deposit_contract
+  WHERE deposit_status IN ('ACTIVE', 'RENEWED')
+  GROUP BY term_months
+)
+SELECT term_months, so_hop_dong, ROUND(tong_tien / 1000000000, 2) AS tong_tien_gui_ty_dong
+FROM theo_ky_han
+WHERE tong_tien >= 200000000
+ORDER BY tong_tien_gui_ty_dong DESC, term_months;
+
+-- [aivb-t7-chu-the-can-ra-soat-dem-trung] starter
 SELECT COUNT(*) AS so_chu_the
 FROM (
-  SELECT party_id FROM co_tien_gui
+  SELECT party_id FROM core_customer WHERE kyc_status = 'FAIL'
   UNION ALL
-  SELECT party_id FROM co_khoan_vay
-) x;
+  SELECT party_id FROM core_loan_application WHERE application_status = 'REJECTED'
+) AS can_ra_soat;
 
--- [aivb-t7-khach-co-san-pham] solution
-WITH co_tien_gui AS (
-  SELECT ap.party_id
-  FROM core_deposit_contract d
-  JOIN core_account_party ap ON ap.account_id = d.settlement_account_id AND ap.role_code = 'PRIMARY_OWNER'
-  WHERE d.deposit_status IN ('ACTIVE', 'RENEWED')
-), co_khoan_vay AS (
-  SELECT a.party_id
-  FROM core_loan_contract l
-  JOIN core_loan_application a ON a.application_id = l.application_id
-  WHERE l.loan_status IN ('ACTIVE', 'DELINQUENT', 'RESTRUCTURED')
-)
+-- [aivb-t7-chu-the-can-ra-soat-dem-trung] solution
 SELECT COUNT(*) AS so_chu_the
 FROM (
-  SELECT party_id FROM co_tien_gui
+  SELECT party_id FROM core_customer WHERE kyc_status = 'FAIL'
   UNION
-  SELECT party_id FROM co_khoan_vay
-) x;
+  SELECT party_id FROM core_loan_application WHERE application_status = 'REJECTED'
+) AS can_ra_soat;
 
--- [aivb-t7-khach-co-san-pham] wrong: distinct_tung_nhanh_van_union_all
--- Bỏ trùng trong từng danh sách nhưng vẫn UNION ALL: chủ thể vừa gửi tiền vừa vay bị đếm hai lần (rớt ở public).
-WITH co_tien_gui AS (
-  SELECT DISTINCT ap.party_id
-  FROM core_deposit_contract d
-  JOIN core_account_party ap ON ap.account_id = d.settlement_account_id AND ap.role_code = 'PRIMARY_OWNER'
-  WHERE d.deposit_status IN ('ACTIVE', 'RENEWED')
-), co_khoan_vay AS (
-  SELECT DISTINCT a.party_id
-  FROM core_loan_contract l
-  JOIN core_loan_application a ON a.application_id = l.application_id
-  WHERE l.loan_status IN ('ACTIVE', 'DELINQUENT', 'RESTRUCTURED')
-)
+-- [aivb-t7-chu-the-can-ra-soat-dem-trung] wrong: distinct_tung_nhanh_van_union_all
+-- Bỏ trùng trong từng danh sách nhưng vẫn UNION ALL: chủ thể có cả hai dấu hiệu bị đếm hai lần (rớt ở public).
 SELECT COUNT(*) AS so_chu_the
 FROM (
-  SELECT party_id FROM co_tien_gui
+  SELECT DISTINCT party_id FROM core_customer WHERE kyc_status = 'FAIL'
   UNION ALL
-  SELECT party_id FROM co_khoan_vay
-) x;
+  SELECT DISTINCT party_id FROM core_loan_application WHERE application_status = 'REJECTED'
+) AS can_ra_soat;
 
--- [aivb-t7-khach-co-san-pham] wrong: moi_vai_tro_tai_khoan
--- Không lọc chủ tài khoản: người được uỷ quyền, người chỉ xem cũng thành người có tiền gửi (rớt ở public).
-WITH co_tien_gui AS (
-  SELECT ap.party_id
-  FROM core_deposit_contract d
-  JOIN core_account_party ap ON ap.account_id = d.settlement_account_id
-  WHERE d.deposit_status IN ('ACTIVE', 'RENEWED')
-), co_khoan_vay AS (
-  SELECT a.party_id
-  FROM core_loan_contract l
-  JOIN core_loan_application a ON a.application_id = l.application_id
-  WHERE l.loan_status IN ('ACTIVE', 'DELINQUENT', 'RESTRUCTURED')
-)
-SELECT COUNT(*) AS so_chu_the
-FROM (
-  SELECT party_id FROM co_tien_gui
-  UNION
-  SELECT party_id FROM co_khoan_vay
-) x;
+-- [aivb-t7-chu-the-can-ra-soat-dem-trung] wrong: chi_dem_co_ca_hai_dau_hieu
+-- Hiểu "hoặc" thành "và": chỉ đếm chủ thể có cả hai dấu hiệu (rớt ở public).
+SELECT COUNT(DISTINCT c.party_id) AS so_chu_the
+FROM core_customer c
+JOIN core_loan_application a ON a.party_id = c.party_id
+WHERE c.kyc_status = 'FAIL' AND a.application_status = 'REJECTED';
 
 -- [aivb-t8-giai-ngan-so-voi-nam-truoc] starter
 WITH nam AS (
@@ -552,167 +473,157 @@ ORDER BY l.loan_status;
 
 -- ################################################################ MODULE 8 · WINDOW FUNCTIONS
 
--- [aivb-f1-top-3-khoan-vay-moi-chi-nhanh] solution
-WITH xep AS (
-  SELECT c.home_branch_id, l.loan_id, l.outstanding,
-         ROW_NUMBER() OVER (PARTITION BY c.home_branch_id ORDER BY l.outstanding DESC, l.loan_id) AS hang
-  FROM core_loan_contract l
-  JOIN core_contract c ON c.contract_id = l.contract_id
-  WHERE l.loan_status = 'ACTIVE'
-)
-SELECT home_branch_id, hang, loan_id, outstanding AS du_no
-FROM xep
-WHERE hang <= 3
-ORDER BY home_branch_id, hang;
+-- [aivb-f1-ty-trong-du-no-co-cau-lai] solution
+SELECT loan_id, outstanding AS du_no,
+       ROUND(100 * outstanding / SUM(outstanding) OVER (), 2) AS ty_trong_pct
+FROM core_loan_contract
+WHERE loan_status = 'RESTRUCTURED'
+ORDER BY du_no DESC, loan_id;
 
--- [aivb-f1-top-3-khoan-vay-moi-chi-nhanh] wrong: thieu_partition_by
--- Xếp hạng trên toàn ngân hàng: chỉ còn 3 khoản vay (rớt ở public).
-WITH xep AS (
-  SELECT c.home_branch_id, l.loan_id, l.outstanding,
-         ROW_NUMBER() OVER (ORDER BY l.outstanding DESC, l.loan_id) AS hang
-  FROM core_loan_contract l
-  JOIN core_contract c ON c.contract_id = l.contract_id
-  WHERE l.loan_status = 'ACTIVE'
-)
-SELECT home_branch_id, hang, loan_id, outstanding AS du_no
-FROM xep
-WHERE hang <= 3
-ORDER BY home_branch_id, hang;
+-- [aivb-f1-ty-trong-du-no-co-cau-lai] wrong: chia_du_no_toan_danh_muc
+-- Chia cho dư nợ của mọi khoản vay, không riêng khoản đã cơ cấu lại (rớt ở public).
+SELECT loan_id, outstanding AS du_no,
+       ROUND(100 * outstanding / (SELECT SUM(outstanding) FROM core_loan_contract), 2) AS ty_trong_pct
+FROM core_loan_contract
+WHERE loan_status = 'RESTRUCTURED'
+ORDER BY du_no DESC, loan_id;
 
--- [aivb-f1-top-3-khoan-vay-moi-chi-nhanh] wrong: xep_theo_so_tien_vay_ban_dau
--- Xếp theo số tiền vay ban đầu thay cho dư nợ (rớt ở public).
-WITH xep AS (
-  SELECT c.home_branch_id, l.loan_id, l.outstanding,
-         ROW_NUMBER() OVER (PARTITION BY c.home_branch_id ORDER BY l.principal DESC, l.loan_id) AS hang
-  FROM core_loan_contract l
-  JOIN core_contract c ON c.contract_id = l.contract_id
-  WHERE l.loan_status = 'ACTIVE'
-)
-SELECT home_branch_id, hang, loan_id, outstanding AS du_no
-FROM xep
-WHERE hang <= 3
-ORDER BY home_branch_id, hang;
+-- [aivb-f1-ty-trong-du-no-co-cau-lai] wrong: over_co_order_by
+-- Thêm ORDER BY vào OVER: mẫu số thành dư nợ luỹ kế tới dòng đó (rớt ở public).
+SELECT loan_id, outstanding AS du_no,
+       ROUND(100 * outstanding / SUM(outstanding) OVER (ORDER BY outstanding DESC, loan_id), 2) AS ty_trong_pct
+FROM core_loan_contract
+WHERE loan_status = 'RESTRUCTURED'
+ORDER BY du_no DESC, loan_id;
 
--- [aivb-f2-mom-gia-tri-theo-kenh] solution
-WITH thang AS (
-  SELECT channel_code, DATE_FORMAT(transaction_date, '%Y-%m') AS thang, SUM(amount) AS gia_tri
+-- [aivb-f2-mom-gia-tri-ung-dung-di-dong] solution
+WITH theo_thang AS (
+  SELECT DATE_FORMAT(transaction_date, '%Y-%m') AS thang, SUM(amount) AS gia_tri
   FROM core_payment_order
-  WHERE payment_status = 'COMPLETED'
+  WHERE channel_code = 'MOBILE' AND payment_status = 'COMPLETED'
     AND transaction_date >= '2026-01-01' AND transaction_date < '2027-01-01'
-  GROUP BY channel_code, DATE_FORMAT(transaction_date, '%Y-%m')
+  GROUP BY DATE_FORMAT(transaction_date, '%Y-%m')
 )
-SELECT channel_code, thang,
-       ROUND(gia_tri / 1000000, 0) AS gia_tri_trieu_dong,
-       ROUND(100 * (gia_tri - LAG(gia_tri) OVER (PARTITION BY channel_code ORDER BY thang))
-             / LAG(gia_tri) OVER (PARTITION BY channel_code ORDER BY thang), 2) AS thay_doi_pct
-FROM thang
-ORDER BY channel_code, thang;
+SELECT thang, ROUND(gia_tri / 1000000) AS gia_tri_trieu_dong,
+       ROUND(100 * (gia_tri - LAG(gia_tri) OVER (ORDER BY thang)) / LAG(gia_tri) OVER (ORDER BY thang), 2) AS thay_doi_pct
+FROM theo_thang
+ORDER BY thang;
 
--- [aivb-f2-mom-gia-tri-theo-kenh] wrong: lag_thieu_partition_by
--- LAG không chia theo kênh: tháng 1 của mỗi kênh bị so với tháng 12 của kênh trước (rớt ở public).
-WITH thang AS (
-  SELECT channel_code, DATE_FORMAT(transaction_date, '%Y-%m') AS thang, SUM(amount) AS gia_tri
+-- [aivb-f2-mom-gia-tri-ung-dung-di-dong] wrong: thieu_can_tren_nam
+-- Chỉ có cận dưới: lệnh ngày 2027-01-01 thêm một dòng tháng 2027-01 (rớt ở hidden-1).
+WITH theo_thang AS (
+  SELECT DATE_FORMAT(transaction_date, '%Y-%m') AS thang, SUM(amount) AS gia_tri
   FROM core_payment_order
-  WHERE payment_status = 'COMPLETED'
-    AND transaction_date >= '2026-01-01' AND transaction_date < '2027-01-01'
-  GROUP BY channel_code, DATE_FORMAT(transaction_date, '%Y-%m')
-)
-SELECT channel_code, thang,
-       ROUND(gia_tri / 1000000, 0) AS gia_tri_trieu_dong,
-       ROUND(100 * (gia_tri - LAG(gia_tri) OVER (ORDER BY channel_code, thang))
-             / LAG(gia_tri) OVER (ORDER BY channel_code, thang), 2) AS thay_doi_pct
-FROM thang
-ORDER BY channel_code, thang;
-
--- [aivb-f2-mom-gia-tri-theo-kenh] wrong: thieu_can_tren_nam
--- Chỉ có cận dưới: lệnh MOBILE ngày 2027-01-01 thành một dòng tháng 2027-01 (rớt ở hidden-1).
-WITH thang AS (
-  SELECT channel_code, DATE_FORMAT(transaction_date, '%Y-%m') AS thang, SUM(amount) AS gia_tri
-  FROM core_payment_order
-  WHERE payment_status = 'COMPLETED'
+  WHERE channel_code = 'MOBILE' AND payment_status = 'COMPLETED'
     AND transaction_date >= '2026-01-01'
-  GROUP BY channel_code, DATE_FORMAT(transaction_date, '%Y-%m')
+  GROUP BY DATE_FORMAT(transaction_date, '%Y-%m')
 )
-SELECT channel_code, thang,
-       ROUND(gia_tri / 1000000, 0) AS gia_tri_trieu_dong,
-       ROUND(100 * (gia_tri - LAG(gia_tri) OVER (PARTITION BY channel_code ORDER BY thang))
-             / LAG(gia_tri) OVER (PARTITION BY channel_code ORDER BY thang), 2) AS thay_doi_pct
-FROM thang
-ORDER BY channel_code, thang;
-
--- [aivb-f3-luy-ke-giai-ngan] solution
-WITH RECURSIVE thang AS (
-  SELECT DATE('2026-01-01') AS dau_thang
-  UNION ALL
-  SELECT DATE_ADD(dau_thang, INTERVAL 1 MONTH) FROM thang WHERE dau_thang < '2026-12-01'
-), gn AS (
-  SELECT DATE_FORMAT(d.disbursement_date, '%Y-%m') AS thang, SUM(d.amount) AS so_tien
-  FROM core_loan_disbursement d
-  JOIN core_loan_contract l ON l.loan_id = d.loan_id
-  JOIN core_contract c ON c.contract_id = l.contract_id
-  JOIN ref_product_version v ON v.product_version_id = c.product_version_id
-  WHERE v.product_id = 'WC_LOAN'
-    AND d.disbursement_date >= '2026-01-01' AND d.disbursement_date < '2027-01-01'
-  GROUP BY DATE_FORMAT(d.disbursement_date, '%Y-%m')
-), du AS (
-  SELECT DATE_FORMAT(t.dau_thang, '%Y-%m') AS thang, COALESCE(gn.so_tien, 0) AS so_tien
-  FROM thang t LEFT JOIN gn ON gn.thang = DATE_FORMAT(t.dau_thang, '%Y-%m')
-)
-SELECT thang,
-       ROUND(so_tien / 1000000, 0) AS giai_ngan_trieu_dong,
-       ROUND(SUM(so_tien) OVER (ORDER BY thang ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) / 1000000, 0) AS luy_ke_trieu_dong,
-       CASE WHEN ROW_NUMBER() OVER (ORDER BY thang) >= 3
-            THEN ROUND(AVG(so_tien) OVER (ORDER BY thang ROWS BETWEEN 2 PRECEDING AND CURRENT ROW) / 1000000, 0)
-       END AS tb_truot_3_thang_trieu_dong
-FROM du
+SELECT thang, ROUND(gia_tri / 1000000) AS gia_tri_trieu_dong,
+       ROUND(100 * (gia_tri - LAG(gia_tri) OVER (ORDER BY thang)) / LAG(gia_tri) OVER (ORDER BY thang), 2) AS thay_doi_pct
+FROM theo_thang
 ORDER BY thang;
 
--- [aivb-f3-luy-ke-giai-ngan] wrong: thieu_thang_khong_giai_ngan
--- Chỉ gom nhóm: tháng không có giải ngân biến mất, bình quân trượt lấy nhầm tháng (rớt ở public).
-WITH gn AS (
-  SELECT DATE_FORMAT(d.disbursement_date, '%Y-%m') AS thang, SUM(d.amount) AS so_tien
-  FROM core_loan_disbursement d
-  JOIN core_loan_contract l ON l.loan_id = d.loan_id
-  JOIN core_contract c ON c.contract_id = l.contract_id
-  JOIN ref_product_version v ON v.product_version_id = c.product_version_id
-  WHERE v.product_id = 'WC_LOAN'
-    AND d.disbursement_date >= '2026-01-01' AND d.disbursement_date < '2027-01-01'
-  GROUP BY DATE_FORMAT(d.disbursement_date, '%Y-%m')
+-- [aivb-f2-mom-gia-tri-ung-dung-di-dong] wrong: lag_sap_giam_dan
+-- LAG trên thứ tự tháng giảm dần: so với tháng sau thay cho tháng trước (rớt ở public).
+WITH theo_thang AS (
+  SELECT DATE_FORMAT(transaction_date, '%Y-%m') AS thang, SUM(amount) AS gia_tri
+  FROM core_payment_order
+  WHERE channel_code = 'MOBILE' AND payment_status = 'COMPLETED'
+    AND transaction_date >= '2026-01-01' AND transaction_date < '2027-01-01'
+  GROUP BY DATE_FORMAT(transaction_date, '%Y-%m')
 )
-SELECT thang,
-       ROUND(so_tien / 1000000, 0) AS giai_ngan_trieu_dong,
-       ROUND(SUM(so_tien) OVER (ORDER BY thang ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) / 1000000, 0) AS luy_ke_trieu_dong,
-       CASE WHEN ROW_NUMBER() OVER (ORDER BY thang) >= 3
-            THEN ROUND(AVG(so_tien) OVER (ORDER BY thang ROWS BETWEEN 2 PRECEDING AND CURRENT ROW) / 1000000, 0)
-       END AS tb_truot_3_thang_trieu_dong
-FROM gn
+SELECT thang, ROUND(gia_tri / 1000000) AS gia_tri_trieu_dong,
+       ROUND(100 * (gia_tri - LAG(gia_tri) OVER (ORDER BY thang DESC)) / LAG(gia_tri) OVER (ORDER BY thang DESC), 2) AS thay_doi_pct
+FROM theo_thang
 ORDER BY thang;
 
--- [aivb-f3-luy-ke-giai-ngan] wrong: tb_truot_hai_thang_dau
--- Hai tháng đầu vẫn ra bình quân của 1 và 2 tháng, đề yêu cầu để trống (rớt ở public).
-WITH RECURSIVE thang AS (
-  SELECT DATE('2026-01-01') AS dau_thang
-  UNION ALL
-  SELECT DATE_ADD(dau_thang, INTERVAL 1 MONTH) FROM thang WHERE dau_thang < '2026-12-01'
-), gn AS (
-  SELECT DATE_FORMAT(d.disbursement_date, '%Y-%m') AS thang, SUM(d.amount) AS so_tien
-  FROM core_loan_disbursement d
-  JOIN core_loan_contract l ON l.loan_id = d.loan_id
+-- [aivb-f3-lai-du-thu-luy-ke-mot-khoan-vay] solution
+SELECT accrual_date, accrued_amount,
+       SUM(accrued_amount) OVER (ORDER BY accrual_date) AS lai_luy_ke
+FROM core_interest_accrual
+WHERE contract_id = 'SYN_CTR_0018613'
+  AND accrual_date >= '2026-01-01' AND accrual_date < '2027-01-01'
+ORDER BY accrual_date;
+
+-- [aivb-f3-lai-du-thu-luy-ke-mot-khoan-vay] wrong: tong_ca_nam
+-- OVER () không có ORDER BY: mọi dòng ra tổng cả năm thay cho luỹ kế (rớt ở public).
+SELECT accrual_date, accrued_amount,
+       SUM(accrued_amount) OVER () AS lai_luy_ke
+FROM core_interest_accrual
+WHERE contract_id = 'SYN_CTR_0018613'
+  AND accrual_date >= '2026-01-01' AND accrual_date < '2027-01-01'
+ORDER BY accrual_date;
+
+-- [aivb-f3-lai-du-thu-luy-ke-mot-khoan-vay] wrong: thieu_can_tren_nam
+-- Chỉ có cận dưới: dòng lãi dự thu ngày 2027-01-01 lọt vào (rớt ở hidden-1).
+SELECT accrual_date, accrued_amount,
+       SUM(accrued_amount) OVER (ORDER BY accrual_date) AS lai_luy_ke
+FROM core_interest_accrual
+WHERE contract_id = 'SYN_CTR_0018613'
+  AND accrual_date >= '2026-01-01'
+ORDER BY accrual_date;
+
+-- [aivb-f4-chuoi-ky-qua-han] solution
+WITH thang AS (
+  SELECT DISTINCT c.home_branch_id,
+         DATE_FORMAT(s.due_date, '%Y-%m') AS thang,
+         YEAR(s.due_date) * 12 + MONTH(s.due_date) AS so_thu_tu_thang
+  FROM core_loan_schedule s
+  JOIN core_loan_contract l ON l.loan_id = s.loan_id
   JOIN core_contract c ON c.contract_id = l.contract_id
-  JOIN ref_product_version v ON v.product_version_id = c.product_version_id
-  WHERE v.product_id = 'WC_LOAN'
-    AND d.disbursement_date >= '2026-01-01' AND d.disbursement_date < '2027-01-01'
-  GROUP BY DATE_FORMAT(d.disbursement_date, '%Y-%m')
-), du AS (
-  SELECT DATE_FORMAT(t.dau_thang, '%Y-%m') AS thang, COALESCE(gn.so_tien, 0) AS so_tien
-  FROM thang t LEFT JOIN gn ON gn.thang = DATE_FORMAT(t.dau_thang, '%Y-%m')
+  WHERE s.schedule_status = 'OVERDUE'
+), dan AS (
+  SELECT home_branch_id, thang,
+         so_thu_tu_thang - CAST(ROW_NUMBER() OVER (PARTITION BY home_branch_id ORDER BY so_thu_tu_thang) AS SIGNED) AS nhom_chuoi
+  FROM thang
+), chuoi AS (
+  SELECT home_branch_id, COUNT(*) AS so_thang, MIN(thang) AS thang_dau, MAX(thang) AS thang_cuoi,
+         ROW_NUMBER() OVER (PARTITION BY home_branch_id ORDER BY COUNT(*) DESC, MIN(thang)) AS thu_tu
+  FROM dan
+  GROUP BY home_branch_id, nhom_chuoi
 )
-SELECT thang,
-       ROUND(so_tien / 1000000, 0) AS giai_ngan_trieu_dong,
-       ROUND(SUM(so_tien) OVER (ORDER BY thang ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) / 1000000, 0) AS luy_ke_trieu_dong,
-       ROUND(AVG(so_tien) OVER (ORDER BY thang ROWS BETWEEN 2 PRECEDING AND CURRENT ROW) / 1000000, 0) AS tb_truot_3_thang_trieu_dong
-FROM du
-ORDER BY thang;
+SELECT home_branch_id, so_thang, thang_dau, thang_cuoi
+FROM chuoi
+WHERE thu_tu = 1
+ORDER BY so_thang DESC, home_branch_id;
+
+-- [aivb-f4-chuoi-ky-qua-han] wrong: khong_tach_chuoi
+-- Đếm mọi tháng có kỳ quá hạn của chi nhánh, coi như một chuỗi từ tháng đầu tới tháng cuối (rớt ở public).
+SELECT c.home_branch_id,
+       COUNT(DISTINCT DATE_FORMAT(s.due_date, '%Y-%m')) AS so_thang,
+       MIN(DATE_FORMAT(s.due_date, '%Y-%m')) AS thang_dau,
+       MAX(DATE_FORMAT(s.due_date, '%Y-%m')) AS thang_cuoi
+FROM core_loan_schedule s
+JOIN core_loan_contract l ON l.loan_id = s.loan_id
+JOIN core_contract c ON c.contract_id = l.contract_id
+WHERE s.schedule_status = 'OVERDUE'
+GROUP BY c.home_branch_id
+ORDER BY so_thang DESC, c.home_branch_id;
+
+-- [aivb-f4-chuoi-ky-qua-han] wrong: quen_distinct_thang
+-- Không gộp các kỳ cùng tháng: một tháng có nhiều kỳ quá hạn làm đứt chuỗi (rớt ở public).
+WITH thang AS (
+  SELECT c.home_branch_id,
+         DATE_FORMAT(s.due_date, '%Y-%m') AS thang,
+         YEAR(s.due_date) * 12 + MONTH(s.due_date) AS so_thu_tu_thang
+  FROM core_loan_schedule s
+  JOIN core_loan_contract l ON l.loan_id = s.loan_id
+  JOIN core_contract c ON c.contract_id = l.contract_id
+  WHERE s.schedule_status = 'OVERDUE'
+), dan AS (
+  SELECT home_branch_id, thang,
+         so_thu_tu_thang - CAST(ROW_NUMBER() OVER (PARTITION BY home_branch_id ORDER BY so_thu_tu_thang) AS SIGNED) AS nhom_chuoi
+  FROM thang
+), chuoi AS (
+  SELECT home_branch_id, COUNT(*) AS so_thang, MIN(thang) AS thang_dau, MAX(thang) AS thang_cuoi,
+         ROW_NUMBER() OVER (PARTITION BY home_branch_id ORDER BY COUNT(*) DESC, MIN(thang)) AS thu_tu
+  FROM dan
+  GROUP BY home_branch_id, nhom_chuoi
+)
+SELECT home_branch_id, so_thang, thang_dau, thang_cuoi
+FROM chuoi
+WHERE thu_tu = 1
+ORDER BY so_thang DESC, home_branch_id;
 
 -- [aivb-f5-cohort-khach-vay] solution
 WITH ho_so AS (
@@ -928,38 +839,51 @@ FROM xep
 WHERE hang <= 5
 ORDER BY hang;
 
--- [aivb-f9-so-du-chay-tai-khoan] starter
+-- [aivb-f9-dong-tien-luy-ke-chi-tang] starter
 SELECT posting_id, transaction_date, debit_credit, amount,
-       SUM(amount) OVER (PARTITION BY account_id ORDER BY transaction_date) AS dong_tien_luy_ke
+       SUM(amount) OVER (ORDER BY transaction_date, posting_id
+                         ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS dong_tien_luy_ke
 FROM core_account_posting
-WHERE account_id = 'SYN_ACC_0003225' AND transaction_date >= '2026-12-01'
+WHERE account_id = 'SYN_ACC_0003225'
+  AND transaction_date >= '2026-12-01' AND transaction_date < '2027-01-01'
 ORDER BY transaction_date, posting_id;
 
--- [aivb-f9-so-du-chay-tai-khoan] solution
+-- [aivb-f9-dong-tien-luy-ke-chi-tang] solution
 SELECT posting_id, transaction_date, debit_credit, amount,
        SUM(CASE WHEN debit_credit = 'CREDIT' THEN amount ELSE -amount END)
-         OVER (PARTITION BY account_id ORDER BY transaction_date, posting_id
+         OVER (ORDER BY transaction_date, posting_id
                ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS dong_tien_luy_ke
 FROM core_account_posting
 WHERE account_id = 'SYN_ACC_0003225'
   AND transaction_date >= '2026-12-01' AND transaction_date < '2027-01-01'
 ORDER BY transaction_date, posting_id;
 
--- [aivb-f9-so-du-chay-tai-khoan] wrong: van_khung_range_mac_dinh
--- Sửa dấu và cận trên nhưng giữ khung mặc định: các bút toán cùng ngày nhận chung một số luỹ kế (rớt ở public).
+-- [aivb-f9-dong-tien-luy-ke-chi-tang] wrong: dau_nguoc_chieu
+-- Đổi dấu ngược: ghi Nợ cộng, ghi Có trừ (rớt ở public).
 SELECT posting_id, transaction_date, debit_credit, amount,
-       SUM(CASE WHEN debit_credit = 'CREDIT' THEN amount ELSE -amount END)
-         OVER (PARTITION BY account_id ORDER BY transaction_date) AS dong_tien_luy_ke
+       SUM(CASE WHEN debit_credit = 'DEBIT' THEN amount ELSE -amount END)
+         OVER (ORDER BY transaction_date, posting_id
+               ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS dong_tien_luy_ke
 FROM core_account_posting
 WHERE account_id = 'SYN_ACC_0003225'
   AND transaction_date >= '2026-12-01' AND transaction_date < '2027-01-01'
 ORDER BY transaction_date, posting_id;
 
--- [aivb-f9-so-du-chay-tai-khoan] wrong: quen_can_tren_thang
--- Sửa dấu và khung nhưng giữ điều kiện ngày chỉ có cận dưới: bút toán ngày 2027-01-01 lọt vào (rớt ở hidden-1).
+-- [aivb-f9-dong-tien-luy-ke-chi-tang] wrong: bo_khung_rows_va_posting_id
+-- Viết lại chỉ sắp theo ngày, bỏ khung ROWS: các bút toán cùng ngày nhận chung một số luỹ kế (rớt ở public).
 SELECT posting_id, transaction_date, debit_credit, amount,
        SUM(CASE WHEN debit_credit = 'CREDIT' THEN amount ELSE -amount END)
-         OVER (PARTITION BY account_id ORDER BY transaction_date, posting_id
+         OVER (ORDER BY transaction_date) AS dong_tien_luy_ke
+FROM core_account_posting
+WHERE account_id = 'SYN_ACC_0003225'
+  AND transaction_date >= '2026-12-01' AND transaction_date < '2027-01-01'
+ORDER BY transaction_date, posting_id;
+
+-- [aivb-f9-dong-tien-luy-ke-chi-tang] wrong: quen_can_tren_thang
+-- Viết lại điều kiện ngày chỉ còn cận dưới: bút toán ngày 2027-01-01 lọt vào (rớt ở hidden-1).
+SELECT posting_id, transaction_date, debit_credit, amount,
+       SUM(CASE WHEN debit_credit = 'CREDIT' THEN amount ELSE -amount END)
+         OVER (ORDER BY transaction_date, posting_id
                ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS dong_tien_luy_ke
 FROM core_account_posting
 WHERE account_id = 'SYN_ACC_0003225' AND transaction_date >= '2026-12-01'
@@ -1076,126 +1000,3 @@ SELECT nam_giai_ngan, so_ky_den_han, so_ky_qua_han,
        RANK() OVER (ORDER BY so_ky_qua_han / so_ky_den_han DESC) AS hang
 FROM ky
 ORDER BY hang, nam_giai_ngan;
-
--- ################################################################ PHIÊN BẢN 2 (sửa sau kiểm B/C)
-
--- [aivb-t6-lai-du-thu-tien-gui-va-vay] solution
-WITH thu AS (
-  SELECT SUM(a.accrued_amount) AS so_tien
-  FROM core_interest_accrual a
-  JOIN core_loan_contract l ON l.contract_id = a.contract_id
-  WHERE a.accrual_date >= '2026-01-01' AND a.accrual_date < '2027-01-01'
-), tra AS (
-  SELECT SUM(a.accrued_amount) AS so_tien
-  FROM core_interest_accrual a
-  JOIN core_deposit_contract d ON d.contract_id = a.contract_id
-  WHERE a.accrual_date >= '2026-01-01' AND a.accrual_date < '2027-01-01'
-)
-SELECT 1 AS thu_tu, 'lai_du_thu_cho_vay' AS chi_tieu, thu.so_tien AS so_tien FROM thu
-UNION ALL
-SELECT 2, 'lai_du_tra_tien_gui', tra.so_tien FROM tra
-UNION ALL
-SELECT 3, 'chenh_lech_thu_tra', thu.so_tien - tra.so_tien FROM thu CROSS JOIN tra
-ORDER BY thu_tu;
-
--- [aivb-f4-chuoi-ky-qua-han] solution
-WITH thang AS (
-  SELECT DISTINCT c.home_branch_id,
-         DATE_FORMAT(s.due_date, '%Y-%m') AS thang,
-         YEAR(s.due_date) * 12 + MONTH(s.due_date) AS so_thu_tu_thang
-  FROM core_loan_schedule s
-  JOIN core_loan_contract l ON l.loan_id = s.loan_id
-  JOIN core_contract c ON c.contract_id = l.contract_id
-  WHERE s.schedule_status = 'OVERDUE'
-), dan AS (
-  SELECT home_branch_id, thang,
-         so_thu_tu_thang - CAST(ROW_NUMBER() OVER (PARTITION BY home_branch_id ORDER BY so_thu_tu_thang) AS SIGNED) AS nhom_chuoi
-  FROM thang
-), chuoi AS (
-  SELECT home_branch_id, COUNT(*) AS so_thang, MIN(thang) AS thang_dau, MAX(thang) AS thang_cuoi,
-         ROW_NUMBER() OVER (PARTITION BY home_branch_id ORDER BY COUNT(*) DESC, MIN(thang)) AS thu_tu
-  FROM dan
-  GROUP BY home_branch_id, nhom_chuoi
-)
-SELECT home_branch_id, so_thang, thang_dau, thang_cuoi
-FROM chuoi
-WHERE thu_tu = 1
-ORDER BY so_thang DESC, home_branch_id;
-
--- [aivb-f4-chuoi-ky-qua-han] wrong: khong_tach_chuoi
--- Đếm mọi tháng có kỳ quá hạn của chi nhánh, coi như một chuỗi từ tháng đầu tới tháng cuối (rớt ở public).
-SELECT c.home_branch_id,
-       COUNT(DISTINCT DATE_FORMAT(s.due_date, '%Y-%m')) AS so_thang,
-       MIN(DATE_FORMAT(s.due_date, '%Y-%m')) AS thang_dau,
-       MAX(DATE_FORMAT(s.due_date, '%Y-%m')) AS thang_cuoi
-FROM core_loan_schedule s
-JOIN core_loan_contract l ON l.loan_id = s.loan_id
-JOIN core_contract c ON c.contract_id = l.contract_id
-WHERE s.schedule_status = 'OVERDUE'
-GROUP BY c.home_branch_id
-ORDER BY so_thang DESC, c.home_branch_id;
-
--- [aivb-f4-chuoi-ky-qua-han] wrong: quen_distinct_thang
--- Không gộp các kỳ cùng tháng: một tháng có nhiều kỳ quá hạn làm đứt chuỗi (rớt ở public).
-WITH thang AS (
-  SELECT c.home_branch_id,
-         DATE_FORMAT(s.due_date, '%Y-%m') AS thang,
-         YEAR(s.due_date) * 12 + MONTH(s.due_date) AS so_thu_tu_thang
-  FROM core_loan_schedule s
-  JOIN core_loan_contract l ON l.loan_id = s.loan_id
-  JOIN core_contract c ON c.contract_id = l.contract_id
-  WHERE s.schedule_status = 'OVERDUE'
-), dan AS (
-  SELECT home_branch_id, thang,
-         so_thu_tu_thang - CAST(ROW_NUMBER() OVER (PARTITION BY home_branch_id ORDER BY so_thu_tu_thang) AS SIGNED) AS nhom_chuoi
-  FROM thang
-), chuoi AS (
-  SELECT home_branch_id, COUNT(*) AS so_thang, MIN(thang) AS thang_dau, MAX(thang) AS thang_cuoi,
-         ROW_NUMBER() OVER (PARTITION BY home_branch_id ORDER BY COUNT(*) DESC, MIN(thang)) AS thu_tu
-  FROM dan
-  GROUP BY home_branch_id, nhom_chuoi
-)
-SELECT home_branch_id, so_thang, thang_dau, thang_cuoi
-FROM chuoi
-WHERE thu_tu = 1
-ORDER BY so_thang DESC, home_branch_id;
-
--- [aivb-t6-lai-du-thu-tien-gui-va-vay] wrong: thieu_can_tren_nam
--- Chỉ có cận dưới: dòng lãi dự thu ngày 2027-01-01 lọt vào (rớt ở hidden-1).
-WITH thu AS (
-  SELECT SUM(a.accrued_amount) AS so_tien
-  FROM core_interest_accrual a
-  JOIN core_loan_contract l ON l.contract_id = a.contract_id
-  WHERE a.accrual_date >= '2026-01-01'
-), tra AS (
-  SELECT SUM(a.accrued_amount) AS so_tien
-  FROM core_interest_accrual a
-  JOIN core_deposit_contract d ON d.contract_id = a.contract_id
-  WHERE a.accrual_date >= '2026-01-01'
-)
-SELECT 1 AS thu_tu, 'lai_du_thu_cho_vay' AS chi_tieu, thu.so_tien AS so_tien FROM thu
-UNION ALL
-SELECT 2, 'lai_du_tra_tien_gui', tra.so_tien FROM tra
-UNION ALL
-SELECT 3, 'chenh_lech_thu_tra', thu.so_tien - tra.so_tien FROM thu CROSS JOIN tra
-ORDER BY thu_tu;
-
--- [aivb-t6-lai-du-thu-tien-gui-va-vay] wrong: chenh_lech_nguoc_chieu
--- Lấy lãi dự trả trừ lãi dự thu: chênh lệch ngược dấu (rớt ở public).
-WITH thu AS (
-  SELECT SUM(a.accrued_amount) AS so_tien
-  FROM core_interest_accrual a
-  JOIN core_loan_contract l ON l.contract_id = a.contract_id
-  WHERE a.accrual_date >= '2026-01-01' AND a.accrual_date < '2027-01-01'
-), tra AS (
-  SELECT SUM(a.accrued_amount) AS so_tien
-  FROM core_interest_accrual a
-  JOIN core_deposit_contract d ON d.contract_id = a.contract_id
-  WHERE a.accrual_date >= '2026-01-01' AND a.accrual_date < '2027-01-01'
-)
-SELECT 1 AS thu_tu, 'lai_du_thu_cho_vay' AS chi_tieu, thu.so_tien AS so_tien FROM thu
-UNION ALL
-SELECT 2, 'lai_du_tra_tien_gui', tra.so_tien FROM tra
-UNION ALL
-SELECT 3, 'chenh_lech_thu_tra', tra.so_tien - thu.so_tien FROM thu CROSS JOIN tra
-ORDER BY thu_tu;

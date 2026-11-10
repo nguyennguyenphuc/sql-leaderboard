@@ -67,97 +67,231 @@ WHERE channel_code = 'MOBILE'
 GROUP BY DATE_FORMAT(transaction_date, '%Y-%m')
 ORDER BY thang;
 
--- [aivb-s4-tai-khoan-mo-giua-nam] solution
-SELECT COUNT(*) AS so_tai_khoan
+-- [aivb-s4-bien-dong-tai-khoan-2026] solution
+SELECT SUBSTRING_INDEX(product_version_id, '_', 2) AS dong_san_pham,
+       SUM(CASE WHEN open_date <= '2025-12-31'
+                 AND (close_date IS NULL OR close_date > '2025-12-31') THEN 1 ELSE 0 END) AS so_dau_ky,
+       SUM(CASE WHEN open_date >= '2026-01-01' AND open_date <= '2026-12-31' THEN 1 ELSE 0 END) AS so_mo_moi,
+       SUM(CASE WHEN close_date >= '2026-01-01' AND close_date <= '2026-12-31' THEN 1 ELSE 0 END) AS so_dong,
+       SUM(CASE WHEN open_date <= '2026-12-31'
+                 AND (close_date IS NULL OR close_date > '2026-12-31') THEN 1 ELSE 0 END) AS so_cuoi_ky,
+       ROUND(100 * SUM(CASE WHEN close_date >= '2026-01-01' AND close_date <= '2026-12-31' THEN 1 ELSE 0 END)
+             / SUM(CASE WHEN open_date <= '2026-12-31'
+                         AND (close_date IS NULL OR close_date >= '2026-01-01') THEN 1 ELSE 0 END), 2) AS ty_le_dong_pct
 FROM core_account
-WHERE open_date <= '2026-06-30'
-  AND (close_date IS NULL OR close_date > '2026-06-30');
+GROUP BY SUBSTRING_INDEX(product_version_id, '_', 2)
+ORDER BY dong_san_pham;
 
--- [aivb-s4-tai-khoan-mo-giua-nam] wrong: dung_trang_thai_hien_tai
--- Trạng thái hiện tại không phải trạng thái tại 30/06/2026: mất tài khoản đóng sau ngày đó và tài khoản không hoạt động.
-SELECT COUNT(*) AS so_tai_khoan
+-- [aivb-s4-bien-dong-tai-khoan-2026] wrong: bo_sot_close_date_null
+-- close_date > '2025-12-31' là NULL với tài khoản chưa đóng: đầu kỳ, cuối kỳ chỉ còn tài khoản đã đóng.
+SELECT SUBSTRING_INDEX(product_version_id, '_', 2) AS dong_san_pham,
+       SUM(CASE WHEN open_date <= '2025-12-31' AND close_date > '2025-12-31' THEN 1 ELSE 0 END) AS so_dau_ky,
+       SUM(CASE WHEN open_date >= '2026-01-01' AND open_date <= '2026-12-31' THEN 1 ELSE 0 END) AS so_mo_moi,
+       SUM(CASE WHEN close_date >= '2026-01-01' AND close_date <= '2026-12-31' THEN 1 ELSE 0 END) AS so_dong,
+       SUM(CASE WHEN open_date <= '2026-12-31' AND close_date > '2026-12-31' THEN 1 ELSE 0 END) AS so_cuoi_ky,
+       ROUND(100 * SUM(CASE WHEN close_date >= '2026-01-01' AND close_date <= '2026-12-31' THEN 1 ELSE 0 END)
+             / SUM(CASE WHEN open_date <= '2026-12-31' AND close_date >= '2026-01-01' THEN 1 ELSE 0 END), 2) AS ty_le_dong_pct
 FROM core_account
-WHERE open_date <= '2026-06-30' AND account_status = 'ACTIVE';
+GROUP BY SUBSTRING_INDEX(product_version_id, '_', 2)
+ORDER BY dong_san_pham;
 
--- [aivb-s4-tai-khoan-mo-giua-nam] wrong: bo_sot_close_date_null
--- close_date > '2026-06-30' là NULL với tài khoản chưa đóng, nên các tài khoản này bị loại.
-SELECT COUNT(*) AS so_tai_khoan
+-- [aivb-s4-bien-dong-tai-khoan-2026] wrong: cuoi_ky_theo_trang_thai
+-- Trạng thái 'ACTIVE' là trạng thái tại ngày chốt dữ liệu và bỏ mất tài khoản không hoạt động vẫn đang mở.
+SELECT SUBSTRING_INDEX(product_version_id, '_', 2) AS dong_san_pham,
+       SUM(CASE WHEN open_date <= '2025-12-31'
+                 AND (close_date IS NULL OR close_date > '2025-12-31') THEN 1 ELSE 0 END) AS so_dau_ky,
+       SUM(CASE WHEN open_date >= '2026-01-01' AND open_date <= '2026-12-31' THEN 1 ELSE 0 END) AS so_mo_moi,
+       SUM(CASE WHEN close_date >= '2026-01-01' AND close_date <= '2026-12-31' THEN 1 ELSE 0 END) AS so_dong,
+       SUM(CASE WHEN account_status = 'ACTIVE' THEN 1 ELSE 0 END) AS so_cuoi_ky,
+       ROUND(100 * SUM(CASE WHEN close_date >= '2026-01-01' AND close_date <= '2026-12-31' THEN 1 ELSE 0 END)
+             / SUM(CASE WHEN open_date <= '2026-12-31'
+                         AND (close_date IS NULL OR close_date >= '2026-01-01') THEN 1 ELSE 0 END), 2) AS ty_le_dong_pct
 FROM core_account
-WHERE open_date <= '2026-06-30' AND close_date > '2026-06-30';
+GROUP BY SUBSTRING_INDEX(product_version_id, '_', 2)
+ORDER BY dong_san_pham;
 
--- [aivb-s5-giai-ngan-ngay-cuoi-thang] solution
-SELECT loan_id, disbursement_date, principal
+-- [aivb-s4-bien-dong-tai-khoan-2026] wrong: cong_dieu_kien_ra_null
+-- SUM của phép so sánh ra NULL khi mọi dòng của nhóm có close_date trống: CASA_BIZ ghi NULL thay vì 0.
+SELECT SUBSTRING_INDEX(product_version_id, '_', 2) AS dong_san_pham,
+       SUM(open_date <= '2025-12-31' AND (close_date IS NULL OR close_date > '2025-12-31')) AS so_dau_ky,
+       SUM(open_date >= '2026-01-01' AND open_date <= '2026-12-31') AS so_mo_moi,
+       SUM(close_date >= '2026-01-01' AND close_date <= '2026-12-31') AS so_dong,
+       SUM(open_date <= '2026-12-31' AND (close_date IS NULL OR close_date > '2026-12-31')) AS so_cuoi_ky,
+       ROUND(100 * SUM(close_date >= '2026-01-01' AND close_date <= '2026-12-31')
+             / SUM(open_date <= '2026-12-31' AND (close_date IS NULL OR close_date >= '2026-01-01')), 2) AS ty_le_dong_pct
+FROM core_account
+GROUP BY SUBSTRING_INDEX(product_version_id, '_', 2)
+ORDER BY dong_san_pham;
+
+-- [aivb-s4-bien-dong-tai-khoan-2026] wrong: giu_ma_phien_ban
+-- Gom theo nguyên mã phiên bản: cột dòng sản phẩm ra 'CASA_IND_V1' thay vì 'CASA_IND'.
+SELECT product_version_id AS dong_san_pham,
+       SUM(CASE WHEN open_date <= '2025-12-31'
+                 AND (close_date IS NULL OR close_date > '2025-12-31') THEN 1 ELSE 0 END) AS so_dau_ky,
+       SUM(CASE WHEN open_date >= '2026-01-01' AND open_date <= '2026-12-31' THEN 1 ELSE 0 END) AS so_mo_moi,
+       SUM(CASE WHEN close_date >= '2026-01-01' AND close_date <= '2026-12-31' THEN 1 ELSE 0 END) AS so_dong,
+       SUM(CASE WHEN open_date <= '2026-12-31'
+                 AND (close_date IS NULL OR close_date > '2026-12-31') THEN 1 ELSE 0 END) AS so_cuoi_ky,
+       ROUND(100 * SUM(CASE WHEN close_date >= '2026-01-01' AND close_date <= '2026-12-31' THEN 1 ELSE 0 END)
+             / SUM(CASE WHEN open_date <= '2026-12-31'
+                         AND (close_date IS NULL OR close_date >= '2026-01-01') THEN 1 ELSE 0 END), 2) AS ty_le_dong_pct
+FROM core_account
+GROUP BY product_version_id
+ORDER BY dong_san_pham;
+
+-- [aivb-s5-giai-ngan-don-cuoi-thang] solution
+SELECT DATE_FORMAT(disbursement_date, '%Y-%m') AS thang,
+       COUNT(*) AS so_lan_giai_ngan,
+       ROUND(SUM(amount) / 1000000, 0) AS tong_giai_ngan_trieu,
+       ROUND(SUM(CASE WHEN DATEDIFF(LAST_DAY(disbursement_date), disbursement_date) < 5
+                      THEN amount ELSE 0 END) / 1000000, 0) AS giai_ngan_cuoi_thang_trieu,
+       ROUND(100 * SUM(CASE WHEN DATEDIFF(LAST_DAY(disbursement_date), disbursement_date) < 5
+                            THEN amount ELSE 0 END) / SUM(amount), 2) AS ty_trong_pct
+FROM core_loan_disbursement
+WHERE disbursement_date >= '2025-01-01' AND disbursement_date < '2026-01-01'
+GROUP BY DATE_FORMAT(disbursement_date, '%Y-%m')
+HAVING SUM(CASE WHEN DATEDIFF(LAST_DAY(disbursement_date), disbursement_date) < 5
+                THEN amount ELSE 0 END) / SUM(amount) >= 0.3
+ORDER BY ty_trong_pct DESC, thang;
+
+-- [aivb-s5-giai-ngan-don-cuoi-thang] wrong: ngay_co_dinh_tu_27
+-- Lấy cố định từ ngày 27: đúng với tháng 31 ngày nhưng sai với tháng 2 và tháng 30 ngày.
+SELECT DATE_FORMAT(disbursement_date, '%Y-%m') AS thang,
+       COUNT(*) AS so_lan_giai_ngan,
+       ROUND(SUM(amount) / 1000000, 0) AS tong_giai_ngan_trieu,
+       ROUND(SUM(CASE WHEN DAY(disbursement_date) >= 27 THEN amount ELSE 0 END) / 1000000, 0) AS giai_ngan_cuoi_thang_trieu,
+       ROUND(100 * SUM(CASE WHEN DAY(disbursement_date) >= 27 THEN amount ELSE 0 END) / SUM(amount), 2) AS ty_trong_pct
+FROM core_loan_disbursement
+WHERE disbursement_date >= '2025-01-01' AND disbursement_date < '2026-01-01'
+GROUP BY DATE_FORMAT(disbursement_date, '%Y-%m')
+HAVING SUM(CASE WHEN DAY(disbursement_date) >= 27 THEN amount ELSE 0 END) / SUM(amount) >= 0.3
+ORDER BY ty_trong_pct DESC, thang;
+
+-- [aivb-s5-giai-ngan-don-cuoi-thang] wrong: thua_mot_ngay
+-- DATEDIFF <= 5 lấy 6 ngày cuối tháng.
+SELECT DATE_FORMAT(disbursement_date, '%Y-%m') AS thang,
+       COUNT(*) AS so_lan_giai_ngan,
+       ROUND(SUM(amount) / 1000000, 0) AS tong_giai_ngan_trieu,
+       ROUND(SUM(CASE WHEN DATEDIFF(LAST_DAY(disbursement_date), disbursement_date) <= 5
+                      THEN amount ELSE 0 END) / 1000000, 0) AS giai_ngan_cuoi_thang_trieu,
+       ROUND(100 * SUM(CASE WHEN DATEDIFF(LAST_DAY(disbursement_date), disbursement_date) <= 5
+                            THEN amount ELSE 0 END) / SUM(amount), 2) AS ty_trong_pct
+FROM core_loan_disbursement
+WHERE disbursement_date >= '2025-01-01' AND disbursement_date < '2026-01-01'
+GROUP BY DATE_FORMAT(disbursement_date, '%Y-%m')
+HAVING SUM(CASE WHEN DATEDIFF(LAST_DAY(disbursement_date), disbursement_date) <= 5
+                THEN amount ELSE 0 END) / SUM(amount) >= 0.3
+ORDER BY ty_trong_pct DESC, thang;
+
+-- [aivb-s5-giai-ngan-don-cuoi-thang] wrong: chi_lan_giai_ngan_dau
+-- Dùng ngày giải ngân đầu và số tiền vay ban đầu trên hợp đồng vay: bỏ sót các lần giải ngân sau.
+SELECT DATE_FORMAT(disbursement_date, '%Y-%m') AS thang,
+       COUNT(*) AS so_lan_giai_ngan,
+       ROUND(SUM(principal) / 1000000, 0) AS tong_giai_ngan_trieu,
+       ROUND(SUM(CASE WHEN DATEDIFF(LAST_DAY(disbursement_date), disbursement_date) < 5
+                      THEN principal ELSE 0 END) / 1000000, 0) AS giai_ngan_cuoi_thang_trieu,
+       ROUND(100 * SUM(CASE WHEN DATEDIFF(LAST_DAY(disbursement_date), disbursement_date) < 5
+                            THEN principal ELSE 0 END) / SUM(principal), 2) AS ty_trong_pct
 FROM core_loan_contract
 WHERE disbursement_date >= '2025-01-01' AND disbursement_date < '2026-01-01'
-  AND disbursement_date = LAST_DAY(disbursement_date)
-ORDER BY disbursement_date, loan_id;
+GROUP BY DATE_FORMAT(disbursement_date, '%Y-%m')
+HAVING SUM(CASE WHEN DATEDIFF(LAST_DAY(disbursement_date), disbursement_date) < 5
+                THEN principal ELSE 0 END) / SUM(principal) >= 0.3
+ORDER BY ty_trong_pct DESC, thang;
 
--- [aivb-s5-giai-ngan-ngay-cuoi-thang] wrong: ngay_31
--- DAY() = 31 bỏ sót tháng 2 và các tháng có 30 ngày.
-SELECT loan_id, disbursement_date, principal
-FROM core_loan_contract
-WHERE disbursement_date >= '2025-01-01' AND disbursement_date < '2026-01-01'
-  AND DAY(disbursement_date) = 31
-ORDER BY disbursement_date, loan_id;
-
--- [aivb-s6-ngay-gia-tri-lech] solution
-SELECT payment_order_id, transaction_type, channel_code, amount,
-       transaction_date, value_date,
-       DATEDIFF(value_date, transaction_date) AS so_ngay_lech,
-       DAYOFWEEK(transaction_date) AS thu_giao_dich
+-- [aivb-s6-ngay-gia-tri-sang-thang-sau] solution
+SELECT DATE_FORMAT(transaction_date, '%Y-%m') AS thang,
+       COUNT(*) AS so_lenh,
+       SUM(CASE WHEN value_date > LAST_DAY(transaction_date) THEN 1 ELSE 0 END) AS so_lenh_sang_thang_sau,
+       ROUND(SUM(CASE WHEN value_date > LAST_DAY(transaction_date) THEN amount ELSE 0 END) / 1000000, 2) AS gia_tri_sang_thang_sau_trieu,
+       ROUND(100 * SUM(CASE WHEN value_date > LAST_DAY(transaction_date) THEN amount ELSE 0 END) / SUM(amount), 2) AS ty_le_gia_tri_pct
 FROM core_payment_order
 WHERE payment_status = 'COMPLETED'
-  AND transaction_date >= '2026-12-01' AND transaction_date < '2027-01-01'
-  AND amount >= 30000000
-  AND DATEDIFF(value_date, transaction_date) >= 2
-ORDER BY so_ngay_lech DESC, amount DESC, payment_order_id;
+  AND transaction_date >= '2026-01-01' AND transaction_date < '2027-01-01'
+GROUP BY DATE_FORMAT(transaction_date, '%Y-%m')
+ORDER BY thang;
 
--- [aivb-s6-ngay-gia-tri-lech] wrong: dao_thu_tu_datediff
--- DATEDIFF(a, b) = a - b; đảo đối số ra số âm nên điều kiện >= 2 không còn dòng nào.
-SELECT payment_order_id, transaction_type, channel_code, amount,
-       transaction_date, value_date,
-       DATEDIFF(transaction_date, value_date) AS so_ngay_lech,
-       DAYOFWEEK(transaction_date) AS thu_giao_dich
+-- [aivb-s6-ngay-gia-tri-sang-thang-sau] wrong: so_sanh_so_thang
+-- So MONTH() bỏ mất lệnh cuối tháng 12 có ngày giá trị tháng 1 năm sau (12 > 1 là sai).
+SELECT DATE_FORMAT(transaction_date, '%Y-%m') AS thang,
+       COUNT(*) AS so_lenh,
+       SUM(CASE WHEN MONTH(value_date) > MONTH(transaction_date) THEN 1 ELSE 0 END) AS so_lenh_sang_thang_sau,
+       ROUND(SUM(CASE WHEN MONTH(value_date) > MONTH(transaction_date) THEN amount ELSE 0 END) / 1000000, 2) AS gia_tri_sang_thang_sau_trieu,
+       ROUND(100 * SUM(CASE WHEN MONTH(value_date) > MONTH(transaction_date) THEN amount ELSE 0 END) / SUM(amount), 2) AS ty_le_gia_tri_pct
 FROM core_payment_order
 WHERE payment_status = 'COMPLETED'
-  AND transaction_date >= '2026-12-01' AND transaction_date < '2027-01-01'
-  AND amount >= 30000000
-  AND DATEDIFF(transaction_date, value_date) >= 2
-ORDER BY so_ngay_lech DESC, amount DESC, payment_order_id;
+  AND transaction_date >= '2026-01-01' AND transaction_date < '2027-01-01'
+GROUP BY DATE_FORMAT(transaction_date, '%Y-%m')
+ORDER BY thang;
 
--- [aivb-s6-ngay-gia-tri-lech] wrong: moi_lenh_lech_ngay
--- Lấy mọi lệnh có ngày giá trị khác ngày giao dịch, lẫn lệnh chỉ lệch 1 ngày.
-SELECT payment_order_id, transaction_type, channel_code, amount,
-       transaction_date, value_date,
-       DATEDIFF(value_date, transaction_date) AS so_ngay_lech,
-       DAYOFWEEK(transaction_date) AS thu_giao_dich
+-- [aivb-s6-ngay-gia-tri-sang-thang-sau] wrong: moi_lenh_lech_ngay
+-- Đếm mọi lệnh có ngày giá trị sau ngày giao dịch, kể cả lệnh vẫn trong cùng tháng.
+SELECT DATE_FORMAT(transaction_date, '%Y-%m') AS thang,
+       COUNT(*) AS so_lenh,
+       SUM(CASE WHEN value_date > transaction_date THEN 1 ELSE 0 END) AS so_lenh_sang_thang_sau,
+       ROUND(SUM(CASE WHEN value_date > transaction_date THEN amount ELSE 0 END) / 1000000, 2) AS gia_tri_sang_thang_sau_trieu,
+       ROUND(100 * SUM(CASE WHEN value_date > transaction_date THEN amount ELSE 0 END) / SUM(amount), 2) AS ty_le_gia_tri_pct
 FROM core_payment_order
 WHERE payment_status = 'COMPLETED'
-  AND transaction_date >= '2026-12-01' AND transaction_date < '2027-01-01'
-  AND amount >= 30000000
-  AND value_date <> transaction_date
-ORDER BY so_ngay_lech DESC, amount DESC, payment_order_id;
+  AND transaction_date >= '2026-01-01' AND transaction_date < '2027-01-01'
+GROUP BY DATE_FORMAT(transaction_date, '%Y-%m')
+ORDER BY thang;
 
--- [aivb-s7-ma-dang-ky-kinh-doanh] starter
-SELECT party_id, registration_number, organization_type
-FROM core_organization
-WHERE registration_number LIKE '010000012'
-ORDER BY registration_number;
+-- [aivb-s6-ngay-gia-tri-sang-thang-sau] wrong: quen_can_tren
+-- Thiếu cận trên: trên hidden-1 có thêm nhóm 2027-01.
+SELECT DATE_FORMAT(transaction_date, '%Y-%m') AS thang,
+       COUNT(*) AS so_lenh,
+       SUM(CASE WHEN value_date > LAST_DAY(transaction_date) THEN 1 ELSE 0 END) AS so_lenh_sang_thang_sau,
+       ROUND(SUM(CASE WHEN value_date > LAST_DAY(transaction_date) THEN amount ELSE 0 END) / 1000000, 2) AS gia_tri_sang_thang_sau_trieu,
+       ROUND(100 * SUM(CASE WHEN value_date > LAST_DAY(transaction_date) THEN amount ELSE 0 END) / SUM(amount), 2) AS ty_le_gia_tri_pct
+FROM core_payment_order
+WHERE payment_status = 'COMPLETED'
+  AND transaction_date >= '2026-01-01'
+GROUP BY DATE_FORMAT(transaction_date, '%Y-%m')
+ORDER BY thang;
 
--- [aivb-s7-ma-dang-ky-kinh-doanh] solution
-SELECT party_id, registration_number, organization_type
-FROM core_organization
-WHERE registration_number LIKE '010000012%'
-ORDER BY registration_number;
+-- [aivb-s6-ngay-gia-tri-sang-thang-sau] wrong: quen_loc_thanh_cong
+SELECT DATE_FORMAT(transaction_date, '%Y-%m') AS thang,
+       COUNT(*) AS so_lenh,
+       SUM(CASE WHEN value_date > LAST_DAY(transaction_date) THEN 1 ELSE 0 END) AS so_lenh_sang_thang_sau,
+       ROUND(SUM(CASE WHEN value_date > LAST_DAY(transaction_date) THEN amount ELSE 0 END) / 1000000, 2) AS gia_tri_sang_thang_sau_trieu,
+       ROUND(100 * SUM(CASE WHEN value_date > LAST_DAY(transaction_date) THEN amount ELSE 0 END) / SUM(amount), 2) AS ty_le_gia_tri_pct
+FROM core_payment_order
+WHERE transaction_date >= '2026-01-01' AND transaction_date < '2027-01-01'
+GROUP BY DATE_FORMAT(transaction_date, '%Y-%m')
+ORDER BY thang;
 
--- [aivb-s7-ma-dang-ky-kinh-doanh] wrong: bang_kem_ky_tu_dai_dien
--- Dấu = so sánh nguyên chuỗi, ký tự % chỉ có nghĩa đại diện trong LIKE.
-SELECT party_id, registration_number, organization_type
-FROM core_organization
-WHERE registration_number = '010000012%'
-ORDER BY registration_number;
+-- [aivb-s7-tham-nien-khach-hang] starter
+SELECT YEAR('2026-06-30') - YEAR(customer_since) AS tham_nien, COUNT(*) AS so_khach
+FROM core_customer
+WHERE customer_status = 'ACTIVE' AND customer_since <= '2026-06-30'
+GROUP BY YEAR('2026-06-30') - YEAR(customer_since)
+ORDER BY tham_nien;
 
--- [aivb-s8-lenh-hoan-theo-thang] starter
+-- [aivb-s7-tham-nien-khach-hang] solution
+SELECT TIMESTAMPDIFF(YEAR, customer_since, '2026-06-30') AS tham_nien, COUNT(*) AS so_khach
+FROM core_customer
+WHERE customer_status = 'ACTIVE' AND customer_since <= '2026-06-30'
+GROUP BY TIMESTAMPDIFF(YEAR, customer_since, '2026-06-30')
+ORDER BY tham_nien;
+
+-- [aivb-s7-tham-nien-khach-hang] wrong: chia_365_ngay
+-- Chia số ngày cho 365 bỏ qua năm nhuận: khách sát ngày kỷ niệm bị tính thừa một năm.
+SELECT FLOOR(DATEDIFF('2026-06-30', customer_since) / 365) AS tham_nien, COUNT(*) AS so_khach
+FROM core_customer
+WHERE customer_status = 'ACTIVE' AND customer_since <= '2026-06-30'
+GROUP BY FLOOR(DATEDIFF('2026-06-30', customer_since) / 365)
+ORDER BY tham_nien;
+
+-- [aivb-s7-tham-nien-khach-hang] wrong: lam_tron_so_nam
+-- ROUND làm tròn lên khi đã qua nửa năm, không phải số năm tròn.
+SELECT ROUND(DATEDIFF('2026-06-30', customer_since) / 365.25) AS tham_nien, COUNT(*) AS so_khach
+FROM core_customer
+WHERE customer_status = 'ACTIVE' AND customer_since <= '2026-06-30'
+GROUP BY ROUND(DATEDIFF('2026-06-30', customer_since) / 365.25)
+ORDER BY tham_nien;
+
+-- [aivb-s8-lenh-bi-dao-theo-thang] starter
 SELECT DATE_FORMAT(transaction_date, '%Y-%d') AS thang, COUNT(*) AS so_lenh_bi_dao
 FROM core_payment_order
 WHERE payment_status = 'REVERSED'
@@ -165,7 +299,7 @@ WHERE payment_status = 'REVERSED'
 GROUP BY DATE_FORMAT(transaction_date, '%Y-%d')
 ORDER BY thang;
 
--- [aivb-s8-lenh-hoan-theo-thang] solution
+-- [aivb-s8-lenh-bi-dao-theo-thang] solution
 SELECT DATE_FORMAT(transaction_date, '%Y-%m') AS thang, COUNT(*) AS so_lenh_bi_dao
 FROM core_payment_order
 WHERE payment_status = 'REVERSED'
@@ -173,7 +307,7 @@ WHERE payment_status = 'REVERSED'
 GROUP BY DATE_FORMAT(transaction_date, '%Y-%m')
 ORDER BY thang;
 
--- [aivb-s8-lenh-hoan-theo-thang] wrong: ten_thang_tieng_anh
+-- [aivb-s8-lenh-bi-dao-theo-thang] wrong: ten_thang_tieng_anh
 -- %M cho tên tháng tiếng Anh: chuỗi '2026-April' đứng trước '2026-January' khi sắp.
 SELECT DATE_FORMAT(transaction_date, '%Y-%M') AS thang, COUNT(*) AS so_lenh_bi_dao
 FROM core_payment_order
@@ -182,7 +316,7 @@ WHERE payment_status = 'REVERSED'
 GROUP BY DATE_FORMAT(transaction_date, '%Y-%M')
 ORDER BY thang;
 
--- [aivb-s8-lenh-hoan-theo-thang] wrong: gom_ca_bi_tu_choi
+-- [aivb-s8-lenh-bi-dao-theo-thang] wrong: gom_ca_bi_tu_choi
 SELECT DATE_FORMAT(transaction_date, '%Y-%m') AS thang, COUNT(*) AS so_lenh_bi_dao
 FROM core_payment_order
 WHERE payment_status IN ('REVERSED', 'REJECTED')
@@ -360,32 +494,87 @@ FROM core_loan_application
 GROUP BY nhom_dti
 ORDER BY nhom_dti;
 
--- [aivb-a6-ty-le-khoan-vay-co-van-de] solution
-SELECT COUNT(*) AS so_khoan_vay,
-       SUM(CASE WHEN loan_status IN ('DELINQUENT', 'RESTRUCTURED', 'WRITTEN_OFF') THEN 1 ELSE 0 END) AS so_khoan_co_van_de,
-       ROUND(100 * SUM(CASE WHEN loan_status IN ('DELINQUENT', 'RESTRUCTURED', 'WRITTEN_OFF') THEN 1 ELSE 0 END) / COUNT(*), 2) AS ty_le_so_khoan_pct,
-       ROUND(100 * SUM(CASE WHEN loan_status IN ('DELINQUENT', 'RESTRUCTURED', 'WRITTEN_OFF') THEN principal ELSE 0 END) / SUM(principal), 2) AS ty_le_goc_pct
-FROM core_loan_contract;
+-- [aivb-a6-khoan-vay-co-van-de-theo-san-pham] solution
+SELECT p.product_id, p.product_name,
+       COUNT(*) AS so_khoan_vay,
+       SUM(CASE WHEN l.loan_status IN ('DELINQUENT', 'RESTRUCTURED', 'WRITTEN_OFF') THEN 1 ELSE 0 END) AS so_khoan_co_van_de,
+       ROUND(100 * SUM(CASE WHEN l.loan_status IN ('DELINQUENT', 'RESTRUCTURED', 'WRITTEN_OFF') THEN 1 ELSE 0 END) / COUNT(*), 2) AS ty_le_so_khoan_pct,
+       ROUND(100 * SUM(CASE WHEN l.loan_status IN ('DELINQUENT', 'RESTRUCTURED', 'WRITTEN_OFF') THEN l.principal ELSE 0 END)
+             / SUM(l.principal), 2) AS ty_le_goc_pct
+FROM core_loan_contract l
+JOIN core_contract c ON c.contract_id = l.contract_id
+JOIN ref_product_version v ON v.product_version_id = c.product_version_id
+JOIN ref_product p ON p.product_id = v.product_id
+WHERE p.product_family = 'LOAN'
+GROUP BY p.product_id, p.product_name
+ORDER BY ty_le_goc_pct DESC, p.product_id;
 
--- [aivb-a6-ty-le-khoan-vay-co-van-de] wrong: tinh_theo_du_no
--- Dư nợ của khoản đã xử lý rủi ro là 0, nên tỷ lệ theo dư nợ không đo được phần vốn đã gặp vấn đề.
-SELECT COUNT(*) AS so_khoan_vay,
-       SUM(CASE WHEN loan_status IN ('DELINQUENT', 'RESTRUCTURED', 'WRITTEN_OFF') THEN 1 ELSE 0 END) AS so_khoan_co_van_de,
-       ROUND(100 * SUM(CASE WHEN loan_status IN ('DELINQUENT', 'RESTRUCTURED', 'WRITTEN_OFF') THEN 1 ELSE 0 END) / COUNT(*), 2) AS ty_le_so_khoan_pct,
-       ROUND(100 * SUM(CASE WHEN loan_status IN ('DELINQUENT', 'RESTRUCTURED', 'WRITTEN_OFF') THEN outstanding ELSE 0 END) / SUM(outstanding), 2) AS ty_le_goc_pct
-FROM core_loan_contract;
+-- [aivb-a6-khoan-vay-co-van-de-theo-san-pham] wrong: tinh_theo_du_no
+-- Dư nợ của khoản đã xử lý rủi ro bằng 0, nên tỷ lệ theo dư nợ bỏ mất phần vốn đã gặp vấn đề.
+SELECT p.product_id, p.product_name,
+       COUNT(*) AS so_khoan_vay,
+       SUM(CASE WHEN l.loan_status IN ('DELINQUENT', 'RESTRUCTURED', 'WRITTEN_OFF') THEN 1 ELSE 0 END) AS so_khoan_co_van_de,
+       ROUND(100 * SUM(CASE WHEN l.loan_status IN ('DELINQUENT', 'RESTRUCTURED', 'WRITTEN_OFF') THEN 1 ELSE 0 END) / COUNT(*), 2) AS ty_le_so_khoan_pct,
+       ROUND(100 * SUM(CASE WHEN l.loan_status IN ('DELINQUENT', 'RESTRUCTURED', 'WRITTEN_OFF') THEN l.outstanding ELSE 0 END)
+             / SUM(l.outstanding), 2) AS ty_le_goc_pct
+FROM core_loan_contract l
+JOIN core_contract c ON c.contract_id = l.contract_id
+JOIN ref_product_version v ON v.product_version_id = c.product_version_id
+JOIN ref_product p ON p.product_id = v.product_id
+WHERE p.product_family = 'LOAN'
+GROUP BY p.product_id, p.product_name
+ORDER BY ty_le_goc_pct DESC, p.product_id;
 
--- [aivb-a6-ty-le-khoan-vay-co-van-de] wrong: thieu_xu_ly_rui_ro
-SELECT COUNT(*) AS so_khoan_vay,
-       SUM(CASE WHEN loan_status IN ('DELINQUENT', 'RESTRUCTURED') THEN 1 ELSE 0 END) AS so_khoan_co_van_de,
-       ROUND(100 * SUM(CASE WHEN loan_status IN ('DELINQUENT', 'RESTRUCTURED') THEN 1 ELSE 0 END) / COUNT(*), 2) AS ty_le_so_khoan_pct,
-       ROUND(100 * SUM(CASE WHEN loan_status IN ('DELINQUENT', 'RESTRUCTURED') THEN principal ELSE 0 END) / SUM(principal), 2) AS ty_le_goc_pct
-FROM core_loan_contract;
+-- [aivb-a6-khoan-vay-co-van-de-theo-san-pham] wrong: thieu_xu_ly_rui_ro
+SELECT p.product_id, p.product_name,
+       COUNT(*) AS so_khoan_vay,
+       SUM(CASE WHEN l.loan_status IN ('DELINQUENT', 'RESTRUCTURED') THEN 1 ELSE 0 END) AS so_khoan_co_van_de,
+       ROUND(100 * SUM(CASE WHEN l.loan_status IN ('DELINQUENT', 'RESTRUCTURED') THEN 1 ELSE 0 END) / COUNT(*), 2) AS ty_le_so_khoan_pct,
+       ROUND(100 * SUM(CASE WHEN l.loan_status IN ('DELINQUENT', 'RESTRUCTURED') THEN l.principal ELSE 0 END)
+             / SUM(l.principal), 2) AS ty_le_goc_pct
+FROM core_loan_contract l
+JOIN core_contract c ON c.contract_id = l.contract_id
+JOIN ref_product_version v ON v.product_version_id = c.product_version_id
+JOIN ref_product p ON p.product_id = v.product_id
+WHERE p.product_family = 'LOAN'
+GROUP BY p.product_id, p.product_name
+ORDER BY ty_le_goc_pct DESC, p.product_id;
+
+-- [aivb-a6-khoan-vay-co-van-de-theo-san-pham] wrong: gom_ca_thau_chi
+-- Không loại thấu chi: số tiền vay ban đầu của thấu chi là hạn mức, không phải vốn đã cho vay.
+SELECT p.product_id, p.product_name,
+       COUNT(*) AS so_khoan_vay,
+       SUM(CASE WHEN l.loan_status IN ('DELINQUENT', 'RESTRUCTURED', 'WRITTEN_OFF') THEN 1 ELSE 0 END) AS so_khoan_co_van_de,
+       ROUND(100 * SUM(CASE WHEN l.loan_status IN ('DELINQUENT', 'RESTRUCTURED', 'WRITTEN_OFF') THEN 1 ELSE 0 END) / COUNT(*), 2) AS ty_le_so_khoan_pct,
+       ROUND(100 * SUM(CASE WHEN l.loan_status IN ('DELINQUENT', 'RESTRUCTURED', 'WRITTEN_OFF') THEN l.principal ELSE 0 END)
+             / SUM(l.principal), 2) AS ty_le_goc_pct
+FROM core_loan_contract l
+JOIN core_contract c ON c.contract_id = l.contract_id
+JOIN ref_product_version v ON v.product_version_id = c.product_version_id
+JOIN ref_product p ON p.product_id = v.product_id
+GROUP BY p.product_id, p.product_name
+ORDER BY ty_le_goc_pct DESC, p.product_id;
+
+-- [aivb-a6-khoan-vay-co-van-de-theo-san-pham] wrong: sap_theo_so_khoan
+-- Sắp theo tỷ lệ số khoản: thứ tự vay mua xe và vay tiêu dùng đảo nhau.
+SELECT p.product_id, p.product_name,
+       COUNT(*) AS so_khoan_vay,
+       SUM(CASE WHEN l.loan_status IN ('DELINQUENT', 'RESTRUCTURED', 'WRITTEN_OFF') THEN 1 ELSE 0 END) AS so_khoan_co_van_de,
+       ROUND(100 * SUM(CASE WHEN l.loan_status IN ('DELINQUENT', 'RESTRUCTURED', 'WRITTEN_OFF') THEN 1 ELSE 0 END) / COUNT(*), 2) AS ty_le_so_khoan_pct,
+       ROUND(100 * SUM(CASE WHEN l.loan_status IN ('DELINQUENT', 'RESTRUCTURED', 'WRITTEN_OFF') THEN l.principal ELSE 0 END)
+             / SUM(l.principal), 2) AS ty_le_goc_pct
+FROM core_loan_contract l
+JOIN core_contract c ON c.contract_id = l.contract_id
+JOIN ref_product_version v ON v.product_version_id = c.product_version_id
+JOIN ref_product p ON p.product_id = v.product_id
+WHERE p.product_family = 'LOAN'
+GROUP BY p.product_id, p.product_name
+ORDER BY ty_le_so_khoan_pct DESC, p.product_id;
 
 -- [aivb-a7-lenh-thanh-cong-2026] starter
 SELECT COUNT(*) AS so_lenh, SUM(amount) AS tong_gia_tri
 FROM core_payment_order
-WHERE transaction_date >= '2026-01-01';
+WHERE transaction_date >= '2026-01-01' AND transaction_date < '2027-01-01';
 
 -- [aivb-a7-lenh-thanh-cong-2026] solution
 SELECT COUNT(*) AS so_lenh, SUM(amount) AS tong_gia_tri
@@ -393,17 +582,18 @@ FROM core_payment_order
 WHERE payment_status = 'COMPLETED'
   AND transaction_date >= '2026-01-01' AND transaction_date < '2027-01-01';
 
--- [aivb-a7-lenh-thanh-cong-2026] wrong: quen_can_tren
--- Đã lọc trạng thái nhưng thiếu cận trên: trên hidden-1 lẫn lệnh ngày 2027-01-01.
-SELECT COUNT(*) AS so_lenh, SUM(amount) AS tong_gia_tri
-FROM core_payment_order
-WHERE payment_status = 'COMPLETED'
-  AND transaction_date >= '2026-01-01';
-
 -- [aivb-a7-lenh-thanh-cong-2026] wrong: chi_bo_bi_tu_choi
+-- Chỉ bỏ lệnh bị từ chối: lệnh bị đảo vẫn bị cộng vào.
 SELECT COUNT(*) AS so_lenh, SUM(amount) AS tong_gia_tri
 FROM core_payment_order
 WHERE payment_status <> 'REJECTED'
+  AND transaction_date >= '2026-01-01' AND transaction_date < '2027-01-01';
+
+-- [aivb-a7-lenh-thanh-cong-2026] wrong: chi_bo_bi_dao
+-- Chỉ bỏ lệnh bị đảo: lệnh bị từ chối vẫn bị cộng vào.
+SELECT COUNT(*) AS so_lenh, SUM(amount) AS tong_gia_tri
+FROM core_payment_order
+WHERE payment_status <> 'REVERSED'
   AND transaction_date >= '2026-01-01' AND transaction_date < '2027-01-01';
 
 -- [aivb-a8-khach-nop-ho-so-theo-nam] starter
@@ -425,43 +615,88 @@ FROM core_loan_application
 GROUP BY YEAR(application_date)
 ORDER BY nam;
 
--- [aivb-a9-thieu-nghe-nghiep-theo-thu-nhap] starter
-SELECT income_band,
-       COUNT(*) AS tong_ca_nhan,
-       COUNT(occupation_code) AS so_thieu_nghe_nghiep,
-       ROUND(100 * COUNT(occupation_code) / COUNT(*), 2) AS ty_le_thieu_pct
-FROM core_person
-GROUP BY income_band
-ORDER BY income_band;
+-- [aivb-a9-ty-le-thieu-nghe-nghiep-toan-hang] starter
+WITH theo_khoang AS (
+  SELECT income_band,
+         COUNT(*) AS tong,
+         COUNT(occupation_code) AS thieu
+  FROM core_person
+  GROUP BY income_band
+)
+SELECT SUM(tong) AS so_khach,
+       SUM(thieu) AS so_thieu,
+       ROUND(AVG(100 * thieu / tong), 2) AS ty_le_thieu_pct
+FROM theo_khoang;
 
--- [aivb-a9-thieu-nghe-nghiep-theo-thu-nhap] solution
-SELECT income_band,
-       COUNT(*) AS tong_ca_nhan,
-       COUNT(*) - COUNT(occupation_code) AS so_thieu_nghe_nghiep,
-       ROUND(100 * (COUNT(*) - COUNT(occupation_code)) / COUNT(*), 2) AS ty_le_thieu_pct
-FROM core_person
-GROUP BY income_band
-ORDER BY income_band;
+-- [aivb-a9-ty-le-thieu-nghe-nghiep-toan-hang] solution
+WITH theo_khoang AS (
+  SELECT p.income_band,
+         COUNT(*) AS tong,
+         COUNT(*) - COUNT(p.occupation_code) AS thieu
+  FROM core_person p
+  JOIN core_customer c ON c.party_id = p.party_id
+  WHERE c.customer_status = 'ACTIVE'
+  GROUP BY p.income_band
+)
+SELECT SUM(tong) AS so_khach,
+       SUM(thieu) AS so_thieu,
+       ROUND(100 * SUM(thieu) / SUM(tong), 2) AS ty_le_thieu_pct
+FROM theo_khoang;
 
--- [aivb-a9-thieu-nghe-nghiep-theo-thu-nhap] wrong: count_bieu_thuc_is_null
--- occupation_code IS NULL cho ra 1 hoặc 0, không bao giờ NULL, nên COUNT đếm mọi dòng.
-SELECT income_band,
-       COUNT(*) AS tong_ca_nhan,
-       COUNT(occupation_code IS NULL) AS so_thieu_nghe_nghiep,
-       ROUND(100 * COUNT(occupation_code IS NULL) / COUNT(*), 2) AS ty_le_thieu_pct
-FROM core_person
-GROUP BY income_band
-ORDER BY income_band;
+-- [aivb-a9-ty-le-thieu-nghe-nghiep-toan-hang] wrong: binh_quan_cac_ty_le
+-- Đã sửa phạm vi và cách đếm nhưng vẫn lấy bình quân tỷ lệ các khoảng thu nhập: khoảng ít khách nặng ngang khoảng đông khách.
+WITH theo_khoang AS (
+  SELECT p.income_band,
+         COUNT(*) AS tong,
+         COUNT(*) - COUNT(p.occupation_code) AS thieu
+  FROM core_person p
+  JOIN core_customer c ON c.party_id = p.party_id
+  WHERE c.customer_status = 'ACTIVE'
+  GROUP BY p.income_band
+)
+SELECT SUM(tong) AS so_khach,
+       SUM(thieu) AS so_thieu,
+       ROUND(AVG(100 * thieu / tong), 2) AS ty_le_thieu_pct
+FROM theo_khoang;
 
--- [aivb-a9-thieu-nghe-nghiep-theo-thu-nhap] wrong: so_sanh_bang_null
--- occupation_code = NULL luôn cho NULL, không bao giờ đúng.
-SELECT income_band,
-       COUNT(*) AS tong_ca_nhan,
-       SUM(CASE WHEN occupation_code = NULL THEN 1 ELSE 0 END) AS so_thieu_nghe_nghiep,
-       ROUND(100 * SUM(CASE WHEN occupation_code = NULL THEN 1 ELSE 0 END) / COUNT(*), 2) AS ty_le_thieu_pct
-FROM core_person
-GROUP BY income_band
-ORDER BY income_band;
+-- [aivb-a9-ty-le-thieu-nghe-nghiep-toan-hang] wrong: quen_pham_vi_dang_hoat_dong
+-- Tính trên mọi cá nhân, lẫn khách không hoạt động và đã đóng.
+WITH theo_khoang AS (
+  SELECT income_band,
+         COUNT(*) AS tong,
+         COUNT(*) - COUNT(occupation_code) AS thieu
+  FROM core_person
+  GROUP BY income_band
+)
+SELECT SUM(tong) AS so_khach,
+       SUM(thieu) AS so_thieu,
+       ROUND(100 * SUM(thieu) / SUM(tong), 2) AS ty_le_thieu_pct
+FROM theo_khoang;
+
+-- [aivb-a9-ty-le-thieu-nghe-nghiep-toan-hang] wrong: noi_trai_tu_khach_hang
+-- Đi từ bảng khách hàng và nối trái sang cá nhân: khách tổ chức không có dòng cá nhân nên bị đếm là thiếu nghề nghiệp.
+SELECT COUNT(*) AS so_khach,
+       COUNT(*) - COUNT(p.occupation_code) AS so_thieu,
+       ROUND(100 * (COUNT(*) - COUNT(p.occupation_code)) / COUNT(*), 2) AS ty_le_thieu_pct
+FROM core_customer c
+LEFT JOIN core_person p ON p.party_id = c.party_id
+WHERE c.customer_status = 'ACTIVE';
+
+-- [aivb-a9-ty-le-thieu-nghe-nghiep-toan-hang] wrong: dem_so_da_co
+-- Sửa phạm vi và cách gộp nhưng COUNT(occupation_code) vẫn đếm số khách đã có nghề nghiệp.
+WITH theo_khoang AS (
+  SELECT p.income_band,
+         COUNT(*) AS tong,
+         COUNT(p.occupation_code) AS thieu
+  FROM core_person p
+  JOIN core_customer c ON c.party_id = p.party_id
+  WHERE c.customer_status = 'ACTIVE'
+  GROUP BY p.income_band
+)
+SELECT SUM(tong) AS so_khach,
+       SUM(thieu) AS so_thieu,
+       ROUND(100 * SUM(thieu) / SUM(tong), 2) AS ty_le_thieu_pct
+FROM theo_khoang;
 
 -- ================================================================ CASE STUDY
 

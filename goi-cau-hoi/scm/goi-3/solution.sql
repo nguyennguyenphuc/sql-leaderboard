@@ -59,29 +59,29 @@ WHERE p.received_date IS NULL
 GROUP BY i.family
 ORDER BY so_ma DESC, i.family;
 
--- [scm-j3-giao-dich-cua-hang-loai-a] solution
-SELECT COUNT(DISTINCT t.store_nbr) AS so_cua_hang,
-       ROUND(AVG(t.transactions), 1) AS luot_gd_tb_ngay
+-- [scm-j3-giao-dich-loai-a-ngay-15-7] solution
+SELECT COUNT(*) AS so_cua_hang,
+       SUM(t.transactions) AS tong_luot_gd
 FROM transactions t
 JOIN stores st ON st.store_nbr = t.store_nbr
 WHERE st.type = 'A'
-  AND t.`date` >= '2017-07-01' AND t.`date` < '2017-08-01';
+  AND t.`date` = '2017-07-15';
 
--- [scm-j3-giao-dich-cua-hang-loai-a] wrong: thieu_can_tren
-SELECT COUNT(DISTINCT t.store_nbr) AS so_cua_hang,
-       ROUND(AVG(t.transactions), 1) AS luot_gd_tb_ngay
+-- [scm-j3-giao-dich-loai-a-ngay-15-7] wrong: quen_loc_loai
+SELECT COUNT(*) AS so_cua_hang,
+       SUM(t.transactions) AS tong_luot_gd
 FROM transactions t
 JOIN stores st ON st.store_nbr = t.store_nbr
-WHERE st.type = 'A'
-  AND t.`date` >= '2017-07-01';
+WHERE t.`date` = '2017-07-15';
 
--- [scm-j3-giao-dich-cua-hang-loai-a] wrong: chia_cho_31_ngay_cua_ca_chuoi
-SELECT COUNT(DISTINCT t.store_nbr) AS so_cua_hang,
-       ROUND(SUM(t.transactions) / 31, 1) AS luot_gd_tb_ngay
-FROM transactions t
-JOIN stores st ON st.store_nbr = t.store_nbr
-WHERE st.type = 'A'
-  AND t.`date` >= '2017-07-01' AND t.`date` < '2017-08-01';
+-- [scm-j3-giao-dich-loai-a-ngay-15-7] wrong: dem_cua_hang_trong_danh_muc
+-- Đi từ bảng cửa hàng nên đếm cả cửa hàng loại A không có số liệu ngày đó (rớt ở hidden-1).
+SELECT COUNT(*) AS so_cua_hang,
+       SUM(t.transactions) AS tong_luot_gd
+FROM stores st
+LEFT JOIN transactions t
+       ON t.store_nbr = st.store_nbr AND t.`date` = '2017-07-15'
+WHERE st.type = 'A';
 
 -- [scm-j4-ncc-co-lo-truot-theo-dc] starter
 SELECT s.warehouse_id, COUNT(*) AS so_ncc
@@ -151,37 +151,110 @@ WHERE o.is_cancelled = 0
 GROUP BY kd.city
 ORDER BY lead_time_tb DESC, kho_xuat, kho_dich;
 
--- [scm-j6-bien-ln-gop-nganh-hang] solution
-SELECT c.family,
-       ROUND(SUM(s.unit_sales * c.unit_price), 0) AS doanh_thu,
-       ROUND(100 * SUM(s.unit_sales * (c.unit_price - c.unit_cost))
-                 / SUM(s.unit_sales * c.unit_price), 2) AS bien_ln_gop_pct
-FROM sales s
-JOIN item_costs c ON c.item_nbr = s.item_nbr
-WHERE s.`date` >= '2017-07-01' AND s.`date` < '2017-08-01'
-GROUP BY c.family
-ORDER BY bien_ln_gop_pct DESC, c.family;
+-- [scm-j6-doanh-thu-m2-theo-loai-cua-hang] solution
+WITH dt AS (
+  SELECT s.store_nbr, SUM(s.unit_sales * c.unit_price) AS doanh_thu
+  FROM sales s
+  JOIN item_costs c ON c.item_nbr = s.item_nbr
+  WHERE s.`date` >= '2017-07-01' AND s.`date` < '2017-08-01'
+  GROUP BY s.store_nbr
+),
+loai AS (
+  SELECT st.type AS loai_cua_hang, COUNT(*) AS so_cua_hang,
+         SUM(dt.doanh_thu) AS doanh_thu, SUM(a.area_m2) AS dien_tich
+  FROM dt
+  JOIN stores st ON st.store_nbr = dt.store_nbr
+  JOIN store_attributes a ON a.store_nbr = dt.store_nbr
+  GROUP BY st.type
+),
+chuoi AS (
+  SELECT SUM(doanh_thu) / SUM(dien_tich) AS dt_m2_chuoi FROM loai
+)
+SELECT l.loai_cua_hang, l.so_cua_hang,
+       ROUND(l.doanh_thu, 0) AS doanh_thu,
+       ROUND(l.doanh_thu / l.dien_tich, 2) AS doanh_thu_m2,
+       ROUND(100 * (l.doanh_thu / l.dien_tich / c.dt_m2_chuoi - 1), 2) AS chenh_lech_pct
+FROM loai l
+CROSS JOIN chuoi c
+ORDER BY doanh_thu_m2 DESC, l.loai_cua_hang;
 
--- [scm-j6-bien-ln-gop-nganh-hang] wrong: thieu_can_tren
-SELECT c.family,
-       ROUND(SUM(s.unit_sales * c.unit_price), 0) AS doanh_thu,
-       ROUND(100 * SUM(s.unit_sales * (c.unit_price - c.unit_cost))
-                 / SUM(s.unit_sales * c.unit_price), 2) AS bien_ln_gop_pct
-FROM sales s
-JOIN item_costs c ON c.item_nbr = s.item_nbr
-WHERE s.`date` >= '2017-07-01'
-GROUP BY c.family
-ORDER BY bien_ln_gop_pct DESC, c.family;
+-- [scm-j6-doanh-thu-m2-theo-loai-cua-hang] wrong: cong_dien_tich_tren_tung_dong_ban
+-- Nối diện tích vào từng dòng bán rồi cộng: mỗi cửa hàng góp diện tích hàng nghìn lần (fan-out).
+WITH loai AS (
+  SELECT st.type AS loai_cua_hang, COUNT(DISTINCT s.store_nbr) AS so_cua_hang,
+         SUM(s.unit_sales * c.unit_price) AS doanh_thu, SUM(a.area_m2) AS dien_tich
+  FROM sales s
+  JOIN item_costs c ON c.item_nbr = s.item_nbr
+  JOIN stores st ON st.store_nbr = s.store_nbr
+  JOIN store_attributes a ON a.store_nbr = s.store_nbr
+  WHERE s.`date` >= '2017-07-01' AND s.`date` < '2017-08-01'
+  GROUP BY st.type
+),
+chuoi AS (
+  SELECT SUM(doanh_thu) / SUM(dien_tich) AS dt_m2_chuoi FROM loai
+)
+SELECT l.loai_cua_hang, l.so_cua_hang,
+       ROUND(l.doanh_thu, 0) AS doanh_thu,
+       ROUND(l.doanh_thu / l.dien_tich, 2) AS doanh_thu_m2,
+       ROUND(100 * (l.doanh_thu / l.dien_tich / c.dt_m2_chuoi - 1), 2) AS chenh_lech_pct
+FROM loai l
+CROSS JOIN chuoi c
+ORDER BY doanh_thu_m2 DESC, l.loai_cua_hang;
 
--- [scm-j6-bien-ln-gop-nganh-hang] wrong: trung_binh_bien_tung_dong
-SELECT c.family,
-       ROUND(SUM(s.unit_sales * c.unit_price), 0) AS doanh_thu,
-       ROUND(100 * AVG((c.unit_price - c.unit_cost) / c.unit_price), 2) AS bien_ln_gop_pct
-FROM sales s
-JOIN item_costs c ON c.item_nbr = s.item_nbr
-WHERE s.`date` >= '2017-07-01' AND s.`date` < '2017-08-01'
-GROUP BY c.family
-ORDER BY bien_ln_gop_pct DESC, c.family;
+-- [scm-j6-doanh-thu-m2-theo-loai-cua-hang] wrong: trung_binh_ty_so_tung_cua_hang
+-- Lấy trung bình doanh thu trên m² của từng cửa hàng: cửa hàng nhỏ và lớn có trọng số như nhau.
+WITH dt AS (
+  SELECT s.store_nbr, SUM(s.unit_sales * c.unit_price) AS doanh_thu
+  FROM sales s
+  JOIN item_costs c ON c.item_nbr = s.item_nbr
+  WHERE s.`date` >= '2017-07-01' AND s.`date` < '2017-08-01'
+  GROUP BY s.store_nbr
+),
+ch AS (
+  SELECT st.type AS loai_cua_hang, dt.doanh_thu, dt.doanh_thu / a.area_m2 AS dt_m2
+  FROM dt
+  JOIN stores st ON st.store_nbr = dt.store_nbr
+  JOIN store_attributes a ON a.store_nbr = dt.store_nbr
+),
+chuoi AS (
+  SELECT AVG(dt_m2) AS dt_m2_chuoi FROM ch
+)
+SELECT ch.loai_cua_hang, COUNT(*) AS so_cua_hang,
+       ROUND(SUM(ch.doanh_thu), 0) AS doanh_thu,
+       ROUND(AVG(ch.dt_m2), 2) AS doanh_thu_m2,
+       ROUND(100 * (AVG(ch.dt_m2) / MAX(c.dt_m2_chuoi) - 1), 2) AS chenh_lech_pct
+FROM ch
+CROSS JOIN chuoi c
+GROUP BY ch.loai_cua_hang
+ORDER BY doanh_thu_m2 DESC, ch.loai_cua_hang;
+
+-- [scm-j6-doanh-thu-m2-theo-loai-cua-hang] wrong: thieu_can_tren
+-- Rớt ở hidden-1: biến thể có thêm một dòng bán ngày 2017-08-01 ở cửa hàng 44 (loại A).
+WITH dt AS (
+  SELECT s.store_nbr, SUM(s.unit_sales * c.unit_price) AS doanh_thu
+  FROM sales s
+  JOIN item_costs c ON c.item_nbr = s.item_nbr
+  WHERE s.`date` >= '2017-07-01'
+  GROUP BY s.store_nbr
+),
+loai AS (
+  SELECT st.type AS loai_cua_hang, COUNT(*) AS so_cua_hang,
+         SUM(dt.doanh_thu) AS doanh_thu, SUM(a.area_m2) AS dien_tich
+  FROM dt
+  JOIN stores st ON st.store_nbr = dt.store_nbr
+  JOIN store_attributes a ON a.store_nbr = dt.store_nbr
+  GROUP BY st.type
+),
+chuoi AS (
+  SELECT SUM(doanh_thu) / SUM(dien_tich) AS dt_m2_chuoi FROM loai
+)
+SELECT l.loai_cua_hang, l.so_cua_hang,
+       ROUND(l.doanh_thu, 0) AS doanh_thu,
+       ROUND(l.doanh_thu / l.dien_tich, 2) AS doanh_thu_m2,
+       ROUND(100 * (l.doanh_thu / l.dien_tich / c.dt_m2_chuoi - 1), 2) AS chenh_lech_pct
+FROM loai l
+CROSS JOIN chuoi c
+ORDER BY doanh_thu_m2 DESC, l.loai_cua_hang;
 
 -- [scm-j7-hang-loi-theo-dc-gap-doi] starter
 SELECT s.warehouse_id,
@@ -222,46 +295,118 @@ WHERE p.received_date IS NOT NULL
 GROUP BY s.warehouse_id
 ORDER BY s.warehouse_id;
 
--- [scm-j8-ty-trong-ban-khuyen-mai] solution
-SELECT i.family,
-       ROUND(SUM(CASE WHEN s.onpromotion = 1 THEN s.unit_sales ELSE 0 END), 0) AS ban_km,
-       ROUND(SUM(CASE WHEN s.onpromotion = 0 THEN s.unit_sales ELSE 0 END), 0) AS ban_thuong,
-       ROUND(100 * SUM(CASE WHEN s.onpromotion = 1 THEN s.unit_sales ELSE 0 END)
-                 / SUM(s.unit_sales), 2) AS ty_trong_km_pct
-FROM sales s
-JOIN items i ON i.item_nbr = s.item_nbr
-WHERE s.`date` >= '2017-07-01' AND s.`date` < '2017-08-01'
-GROUP BY i.family
-ORDER BY ty_trong_km_pct DESC, i.family;
+-- [scm-j8-giao-dich-ngay-le-dia-phuong] solution
+WITH ngay_le AS (
+  SELECT DISTINCT st.store_nbr, h.`date`
+  FROM holidays h
+  JOIN stores st ON st.city = h.locale_name
+  WHERE h.locale = 'Local' AND h.type = 'Holiday' AND h.transferred = 0
+    AND h.`date` >= '2016-01-01' AND h.`date` < '2017-01-01'
+),
+gd AS (
+  SELECT t.store_nbr, t.transactions,
+         CASE WHEN l.store_nbr IS NULL THEN 0 ELSE 1 END AS la_ngay_le
+  FROM transactions t
+  LEFT JOIN ngay_le l ON l.store_nbr = t.store_nbr AND l.`date` = t.`date`
+  WHERE t.`date` >= '2016-01-01' AND t.`date` < '2017-01-01'
+)
+SELECT st.city AS thanh_pho,
+       SUM(gd.la_ngay_le) AS so_ngay_le,
+       ROUND(AVG(CASE WHEN gd.la_ngay_le = 1 THEN gd.transactions END), 0) AS gd_ngay_le,
+       ROUND(AVG(CASE WHEN gd.la_ngay_le = 0 THEN gd.transactions END), 0) AS gd_ngay_khac,
+       ROUND(100 * (AVG(CASE WHEN gd.la_ngay_le = 1 THEN gd.transactions END)
+                    / AVG(CASE WHEN gd.la_ngay_le = 0 THEN gd.transactions END) - 1), 2) AS muc_tang_pct
+FROM gd
+JOIN stores st ON st.store_nbr = gd.store_nbr
+GROUP BY st.city
+HAVING SUM(gd.la_ngay_le) > 0
+ORDER BY muc_tang_pct DESC, thanh_pho;
 
--- [scm-j8-ty-trong-ban-khuyen-mai] wrong: thieu_can_tren
-SELECT i.family,
-       ROUND(SUM(CASE WHEN s.onpromotion = 1 THEN s.unit_sales ELSE 0 END), 0) AS ban_km,
-       ROUND(SUM(CASE WHEN s.onpromotion = 0 THEN s.unit_sales ELSE 0 END), 0) AS ban_thuong,
-       ROUND(100 * SUM(CASE WHEN s.onpromotion = 1 THEN s.unit_sales ELSE 0 END)
-                 / SUM(s.unit_sales), 2) AS ty_trong_km_pct
-FROM sales s
-JOIN items i ON i.item_nbr = s.item_nbr
-WHERE s.`date` >= '2017-07-01'
-GROUP BY i.family
-ORDER BY ty_trong_km_pct DESC, i.family;
+-- [scm-j8-giao-dich-ngay-le-dia-phuong] wrong: noi_chi_theo_ngay
+-- Chỉ nối theo ngày: lễ của thành phố này bị gán cho cửa hàng ở mọi thành phố.
+WITH ngay_le AS (
+  SELECT DISTINCT h.`date`
+  FROM holidays h
+  WHERE h.locale = 'Local' AND h.type = 'Holiday' AND h.transferred = 0
+    AND h.`date` >= '2016-01-01' AND h.`date` < '2017-01-01'
+),
+gd AS (
+  SELECT t.store_nbr, t.transactions,
+         CASE WHEN l.`date` IS NULL THEN 0 ELSE 1 END AS la_ngay_le
+  FROM transactions t
+  LEFT JOIN ngay_le l ON l.`date` = t.`date`
+  WHERE t.`date` >= '2016-01-01' AND t.`date` < '2017-01-01'
+)
+SELECT st.city AS thanh_pho,
+       SUM(gd.la_ngay_le) AS so_ngay_le,
+       ROUND(AVG(CASE WHEN gd.la_ngay_le = 1 THEN gd.transactions END), 0) AS gd_ngay_le,
+       ROUND(AVG(CASE WHEN gd.la_ngay_le = 0 THEN gd.transactions END), 0) AS gd_ngay_khac,
+       ROUND(100 * (AVG(CASE WHEN gd.la_ngay_le = 1 THEN gd.transactions END)
+                    / AVG(CASE WHEN gd.la_ngay_le = 0 THEN gd.transactions END) - 1), 2) AS muc_tang_pct
+FROM gd
+JOIN stores st ON st.store_nbr = gd.store_nbr
+GROUP BY st.city
+HAVING SUM(gd.la_ngay_le) > 0
+ORDER BY muc_tang_pct DESC, thanh_pho;
 
--- [scm-j8-ty-trong-ban-khuyen-mai] wrong: ty_trong_theo_so_dong
-SELECT i.family,
-       ROUND(SUM(CASE WHEN s.onpromotion = 1 THEN s.unit_sales ELSE 0 END), 0) AS ban_km,
-       ROUND(SUM(CASE WHEN s.onpromotion = 0 THEN s.unit_sales ELSE 0 END), 0) AS ban_thuong,
-       ROUND(100 * COUNT(CASE WHEN s.onpromotion = 1 THEN 1 END) / COUNT(*), 2) AS ty_trong_km_pct
-FROM sales s
-JOIN items i ON i.item_nbr = s.item_nbr
-WHERE s.`date` >= '2017-07-01' AND s.`date` < '2017-08-01'
-GROUP BY i.family
-ORDER BY ty_trong_km_pct DESC, i.family;
+-- [scm-j8-giao-dich-ngay-le-dia-phuong] wrong: tinh_ca_le_bi_doi
+-- Không loại dòng transferred = 1: ngày 25/7/2016 của TP.HCM bị tính là ngày lễ.
+WITH ngay_le AS (
+  SELECT DISTINCT st.store_nbr, h.`date`
+  FROM holidays h
+  JOIN stores st ON st.city = h.locale_name
+  WHERE h.locale = 'Local' AND h.type = 'Holiday'
+    AND h.`date` >= '2016-01-01' AND h.`date` < '2017-01-01'
+),
+gd AS (
+  SELECT t.store_nbr, t.transactions,
+         CASE WHEN l.store_nbr IS NULL THEN 0 ELSE 1 END AS la_ngay_le
+  FROM transactions t
+  LEFT JOIN ngay_le l ON l.store_nbr = t.store_nbr AND l.`date` = t.`date`
+  WHERE t.`date` >= '2016-01-01' AND t.`date` < '2017-01-01'
+)
+SELECT st.city AS thanh_pho,
+       SUM(gd.la_ngay_le) AS so_ngay_le,
+       ROUND(AVG(CASE WHEN gd.la_ngay_le = 1 THEN gd.transactions END), 0) AS gd_ngay_le,
+       ROUND(AVG(CASE WHEN gd.la_ngay_le = 0 THEN gd.transactions END), 0) AS gd_ngay_khac,
+       ROUND(100 * (AVG(CASE WHEN gd.la_ngay_le = 1 THEN gd.transactions END)
+                    / AVG(CASE WHEN gd.la_ngay_le = 0 THEN gd.transactions END) - 1), 2) AS muc_tang_pct
+FROM gd
+JOIN stores st ON st.store_nbr = gd.store_nbr
+GROUP BY st.city
+HAVING SUM(gd.la_ngay_le) > 0
+ORDER BY muc_tang_pct DESC, thanh_pho;
+
+-- [scm-j8-giao-dich-ngay-le-dia-phuong] wrong: khong_bo_dong_le_trung
+-- Nối thẳng bảng ngày lễ, không gộp cặp cửa hàng – ngày: rớt ở hidden-1, nơi lễ Phan Thiết 2/3/2016 ghi hai dòng.
+WITH gd AS (
+  SELECT t.store_nbr, t.transactions,
+         CASE WHEN h.`date` IS NULL THEN 0 ELSE 1 END AS la_ngay_le
+  FROM transactions t
+  JOIN stores st ON st.store_nbr = t.store_nbr
+  LEFT JOIN holidays h
+         ON h.`date` = t.`date` AND h.locale_name = st.city
+        AND h.locale = 'Local' AND h.type = 'Holiday' AND h.transferred = 0
+  WHERE t.`date` >= '2016-01-01' AND t.`date` < '2017-01-01'
+)
+SELECT st.city AS thanh_pho,
+       SUM(gd.la_ngay_le) AS so_ngay_le,
+       ROUND(AVG(CASE WHEN gd.la_ngay_le = 1 THEN gd.transactions END), 0) AS gd_ngay_le,
+       ROUND(AVG(CASE WHEN gd.la_ngay_le = 0 THEN gd.transactions END), 0) AS gd_ngay_khac,
+       ROUND(100 * (AVG(CASE WHEN gd.la_ngay_le = 1 THEN gd.transactions END)
+                    / AVG(CASE WHEN gd.la_ngay_le = 0 THEN gd.transactions END) - 1), 2) AS muc_tang_pct
+FROM gd
+JOIN stores st ON st.store_nbr = gd.store_nbr
+GROUP BY st.city
+HAVING SUM(gd.la_ngay_le) > 0
+ORDER BY muc_tang_pct DESC, thanh_pho;
 
 -- [scm-j9-don-mua-thang-7-moi-ncc] starter
-SELECT s.supplier_id, COUNT(*) AS so_don
+SELECT s.supplier_id, COUNT(p.po_id) AS so_don
 FROM suppliers s
-LEFT JOIN purchase_orders p ON p.supplier_id = s.supplier_id
-WHERE p.po_date >= '2017-07-01' AND p.po_date < '2017-08-01'
+JOIN purchase_orders p
+  ON p.supplier_id = s.supplier_id
+ AND p.po_date >= '2017-07-01' AND p.po_date < '2017-08-01'
 GROUP BY s.supplier_id
 ORDER BY so_don DESC, s.supplier_id;
 
@@ -275,12 +420,21 @@ GROUP BY s.supplier_id
 ORDER BY so_don DESC, s.supplier_id;
 
 -- [scm-j9-don-mua-thang-7-moi-ncc] wrong: dem_sao_tinh_ncc_trong_la_1
--- Đã chuyển điều kiện vào ON nhưng vẫn đếm COUNT(*): NCC không có đơn nào ra 1.
+-- Đã đổi sang LEFT JOIN nhưng đếm COUNT(*): NCC không có đơn nào ra 1.
 SELECT s.supplier_id, COUNT(*) AS so_don
 FROM suppliers s
 LEFT JOIN purchase_orders p
        ON p.supplier_id = s.supplier_id
       AND p.po_date >= '2017-07-01' AND p.po_date < '2017-08-01'
+GROUP BY s.supplier_id
+ORDER BY so_don DESC, s.supplier_id;
+
+-- [scm-j9-don-mua-thang-7-moi-ncc] wrong: loc_ngay_trong_where
+-- Đổi sang LEFT JOIN nhưng chuyển điều kiện ngày xuống WHERE: dòng NCC không có đơn bị lọc mất.
+SELECT s.supplier_id, COUNT(p.po_id) AS so_don
+FROM suppliers s
+LEFT JOIN purchase_orders p ON p.supplier_id = s.supplier_id
+WHERE p.po_date >= '2017-07-01' AND p.po_date < '2017-08-01'
 GROUP BY s.supplier_id
 ORDER BY so_don DESC, s.supplier_id;
 
@@ -356,23 +510,25 @@ WHERE s.supplier_id IN (SELECT p.supplier_id
                           AND p.po_date >= '2017-07-01')
 ORDER BY s.supplier_id;
 
--- [scm-q3-ban-hang-kho-thang-7] solution
+-- [scm-q3-hang-tuoi-song-cua-hang-44] solution
 SELECT ROUND(SUM(unit_sales), 0) AS tong_ban
 FROM sales
-WHERE item_nbr IN (SELECT item_nbr FROM items WHERE perishable = 0)
-  AND `date` >= '2017-07-01' AND `date` < '2017-08-01';
+WHERE store_nbr = 44
+  AND `date` = '2017-07-01'
+  AND item_nbr IN (SELECT item_nbr FROM items WHERE perishable = 1);
 
--- [scm-q3-ban-hang-kho-thang-7] wrong: thieu_can_tren
+-- [scm-q3-hang-tuoi-song-cua-hang-44] wrong: nham_hang_kho
 SELECT ROUND(SUM(unit_sales), 0) AS tong_ban
 FROM sales
-WHERE item_nbr IN (SELECT item_nbr FROM items WHERE perishable = 0)
-  AND `date` >= '2017-07-01';
+WHERE store_nbr = 44
+  AND `date` = '2017-07-01'
+  AND item_nbr IN (SELECT item_nbr FROM items WHERE perishable = 0);
 
--- [scm-q3-ban-hang-kho-thang-7] wrong: nham_hang_tuoi_song
+-- [scm-q3-hang-tuoi-song-cua-hang-44] wrong: quen_loc_cua_hang
 SELECT ROUND(SUM(unit_sales), 0) AS tong_ban
 FROM sales
-WHERE item_nbr IN (SELECT item_nbr FROM items WHERE perishable = 1)
-  AND `date` >= '2017-07-01' AND `date` < '2017-08-01';
+WHERE `date` = '2017-07-01'
+  AND item_nbr IN (SELECT item_nbr FROM items WHERE perishable = 1);
 
 -- [scm-q4-cua-hang-tren-binh-quan-loai] solution
 SELECT t.store_nbr, t.type AS loai_cua_hang,
@@ -428,55 +584,89 @@ JOIN (SELECT st.type, AVG(s.unit_sales) AS tb_loai
 WHERE t.tong_ban > b.tb_loai
 ORDER BY loai_cua_hang, tong_ban DESC, t.store_nbr;
 
--- [scm-q5-don-mua-gan-nhat-moi-ncc] solution
-SELECT s.supplier_id, p.po_id, p.po_date, p.inspection_result
+-- [scm-q5-don-da-ve-gan-nhat-moi-ncc] solution
+SELECT s.supplier_id, w.city AS dc_nhan,
+       p.po_id, p.po_date,
+       DATEDIFF(p.received_date, p.promised_date) AS so_ngay_tre,
+       p.inspection_result
 FROM suppliers s
+JOIN warehouses w ON w.warehouse_id = s.warehouse_id
+JOIN purchase_orders p
+  ON p.po_id = (SELECT p2.po_id
+                FROM purchase_orders p2
+                WHERE p2.supplier_id = s.supplier_id
+                  AND p2.received_date IS NOT NULL
+                ORDER BY p2.po_date DESC, p2.po_id DESC
+                LIMIT 1)
+ORDER BY so_ngay_tre DESC, s.supplier_id;
+
+-- [scm-q5-don-da-ve-gan-nhat-moi-ncc] wrong: lay_ca_don_chua_ve
+-- Không loại đơn chưa về: nhà cung cấp có đơn mới nhất đang chờ ra số ngày trễ NULL.
+SELECT s.supplier_id, w.city AS dc_nhan,
+       p.po_id, p.po_date,
+       DATEDIFF(p.received_date, p.promised_date) AS so_ngay_tre,
+       p.inspection_result
+FROM suppliers s
+JOIN warehouses w ON w.warehouse_id = s.warehouse_id
 JOIN purchase_orders p
   ON p.po_id = (SELECT p2.po_id
                 FROM purchase_orders p2
                 WHERE p2.supplier_id = s.supplier_id
                 ORDER BY p2.po_date DESC, p2.po_id DESC
                 LIMIT 1)
-ORDER BY s.supplier_id;
+ORDER BY so_ngay_tre DESC, s.supplier_id;
 
--- [scm-q5-don-mua-gan-nhat-moi-ncc] wrong: noi_theo_ngay_lon_nhat
--- Lấy mọi đơn có ngày đặt bằng ngày lớn nhất: NCC đặt nhiều đơn cùng ngày ra nhiều dòng.
-SELECT p.supplier_id, p.po_id, p.po_date, p.inspection_result
+-- [scm-q5-don-da-ve-gan-nhat-moi-ncc] wrong: noi_theo_ngay_lon_nhat
+-- Lấy mọi đơn đã về có ngày đặt bằng ngày lớn nhất: NCC đặt nhiều đơn cùng ngày ra nhiều dòng.
+SELECT s.supplier_id, w.city AS dc_nhan,
+       p.po_id, p.po_date,
+       DATEDIFF(p.received_date, p.promised_date) AS so_ngay_tre,
+       p.inspection_result
 FROM purchase_orders p
 JOIN (SELECT supplier_id, MAX(po_date) AS ngay_cuoi
       FROM purchase_orders
+      WHERE received_date IS NOT NULL
       GROUP BY supplier_id) m
   ON m.supplier_id = p.supplier_id AND m.ngay_cuoi = p.po_date
-ORDER BY p.supplier_id, p.po_id;
+JOIN suppliers s ON s.supplier_id = p.supplier_id
+JOIN warehouses w ON w.warehouse_id = s.warehouse_id
+WHERE p.received_date IS NOT NULL
+ORDER BY so_ngay_tre DESC, s.supplier_id;
 
--- [scm-q5-don-mua-gan-nhat-moi-ncc] wrong: max_tung_cot_rieng
--- Lấy MAX của từng cột riêng: mã đơn và kết quả kiểm định không cùng một đơn.
-SELECT supplier_id, MAX(po_id) AS po_id, MAX(po_date) AS po_date, MAX(inspection_result) AS inspection_result
-FROM purchase_orders
-GROUP BY supplier_id
-ORDER BY supplier_id;
+-- [scm-q5-don-da-ve-gan-nhat-moi-ncc] wrong: max_tung_cot_rieng
+-- Lấy MAX của từng cột riêng: mã đơn, số ngày trễ và kết quả kiểm định không cùng một đơn.
+SELECT s.supplier_id, w.city AS dc_nhan,
+       MAX(p.po_id) AS po_id, MAX(p.po_date) AS po_date,
+       MAX(DATEDIFF(p.received_date, p.promised_date)) AS so_ngay_tre,
+       MAX(p.inspection_result) AS inspection_result
+FROM purchase_orders p
+JOIN suppliers s ON s.supplier_id = p.supplier_id
+JOIN warehouses w ON w.warehouse_id = s.warehouse_id
+WHERE p.received_date IS NOT NULL
+GROUP BY s.supplier_id, w.city
+ORDER BY so_ngay_tre DESC, s.supplier_id;
 
--- [scm-q6-ty-trong-von-ton-nganh-hang] solution
-SELECT i.family,
-       ROUND(SUM(v.inventory_value), 0) AS von_ton,
-       ROUND(100 * SUM(v.inventory_value)
+-- [scm-q6-ty-trong-von-ton-cua-hang-45] solution
+SELECT ROUND(SUM(inventory_value), 0) AS von_ton,
+       ROUND(100 * SUM(inventory_value)
                  / (SELECT SUM(inventory_value) FROM inventory_snapshots WHERE ym = '2017-07'), 2) AS ty_trong_pct
-FROM inventory_snapshots v
-JOIN items i ON i.item_nbr = v.item_nbr
-WHERE v.ym = '2017-07'
-GROUP BY i.family
-ORDER BY SUM(v.inventory_value) DESC;
+FROM inventory_snapshots
+WHERE ym = '2017-07' AND store_nbr = 45;
 
--- [scm-q6-ty-trong-von-ton-nganh-hang] wrong: mau_so_tat_ca_cac_ky
-SELECT i.family,
-       ROUND(SUM(v.inventory_value), 0) AS von_ton,
-       ROUND(100 * SUM(v.inventory_value)
+-- [scm-q6-ty-trong-von-ton-cua-hang-45] wrong: mau_so_tat_ca_cac_ky
+SELECT ROUND(SUM(inventory_value), 0) AS von_ton,
+       ROUND(100 * SUM(inventory_value)
                  / (SELECT SUM(inventory_value) FROM inventory_snapshots), 2) AS ty_trong_pct
-FROM inventory_snapshots v
-JOIN items i ON i.item_nbr = v.item_nbr
-WHERE v.ym = '2017-07'
-GROUP BY i.family
-ORDER BY SUM(v.inventory_value) DESC;
+FROM inventory_snapshots
+WHERE ym = '2017-07' AND store_nbr = 45;
+
+-- [scm-q6-ty-trong-von-ton-cua-hang-45] wrong: ty_le_0_1
+-- Quên nhân 100: trả tỷ lệ 0–1 thay cho phần trăm.
+SELECT ROUND(SUM(inventory_value), 0) AS von_ton,
+       ROUND(SUM(inventory_value)
+             / (SELECT SUM(inventory_value) FROM inventory_snapshots WHERE ym = '2017-07'), 2) AS ty_trong_pct
+FROM inventory_snapshots
+WHERE ym = '2017-07' AND store_nbr = 45;
 
 -- [scm-q7-ma-khong-ban-duoc-ra-0] starter
 SELECT COUNT(*) AS so_ma
@@ -502,14 +692,14 @@ WHERE ym = '2017-07' AND sold = 0;
 
 -- [scm-q8-ncc-loi-cao-hon-nganh] starter
 SELECT s.supplier_id, s.family,
-       ROUND(100 * SUM(p.qty_defect) / SUM(p.qty_received), 2) AS ty_le_loi_pct
+       ROUND(100 * AVG(p.defect_rate), 2) AS ty_le_loi_pct
 FROM purchase_orders p
 JOIN suppliers s ON s.supplier_id = p.supplier_id
 WHERE p.received_date IS NOT NULL
   AND p.po_date >= '2016-01-01' AND p.po_date < '2017-01-01'
 GROUP BY s.supplier_id, s.family
-HAVING SUM(p.qty_defect) / SUM(p.qty_received) >
-       (SELECT SUM(p2.qty_defect) / SUM(p2.qty_received)
+HAVING AVG(p.defect_rate) >
+       (SELECT AVG(p2.defect_rate)
         FROM purchase_orders p2
         JOIN suppliers s2 ON s2.supplier_id = p2.supplier_id
         WHERE p2.received_date IS NOT NULL
@@ -548,6 +738,41 @@ HAVING SUM(p.qty_defect) / SUM(p.qty_received) >
         JOIN suppliers s2 ON s2.supplier_id = p2.supplier_id
         WHERE s2.supplier_id = s.supplier_id
           AND p2.received_date IS NOT NULL
+          AND p2.po_date >= '2016-01-01' AND p2.po_date < '2017-01-01')
+ORDER BY s.family, s.supplier_id;
+
+-- [scm-q8-ncc-loi-cao-hon-nganh] wrong: chi_sua_tuong_quan
+-- Đã so với ngành của mình nhưng vẫn lấy trung bình defect_rate của từng đơn: tỷ lệ lệch với tỷ lệ tính từ tổng số lượng.
+SELECT s.supplier_id, s.family,
+       ROUND(100 * AVG(p.defect_rate), 2) AS ty_le_loi_pct
+FROM purchase_orders p
+JOIN suppliers s ON s.supplier_id = p.supplier_id
+WHERE p.received_date IS NOT NULL
+  AND p.po_date >= '2016-01-01' AND p.po_date < '2017-01-01'
+GROUP BY s.supplier_id, s.family
+HAVING AVG(p.defect_rate) >
+       (SELECT AVG(p2.defect_rate)
+        FROM purchase_orders p2
+        JOIN suppliers s2 ON s2.supplier_id = p2.supplier_id
+        WHERE s2.family = s.family
+          AND p2.received_date IS NOT NULL
+          AND p2.po_date >= '2016-01-01' AND p2.po_date < '2017-01-01')
+ORDER BY s.family, s.supplier_id;
+
+-- [scm-q8-ncc-loi-cao-hon-nganh] wrong: chi_sua_dinh_nghia_ty_le
+-- Đã tính tỷ lệ từ tổng số lượng nhưng truy vấn con vẫn không tương quan: so với mức của cả công ty.
+SELECT s.supplier_id, s.family,
+       ROUND(100 * SUM(p.qty_defect) / SUM(p.qty_received), 2) AS ty_le_loi_pct
+FROM purchase_orders p
+JOIN suppliers s ON s.supplier_id = p.supplier_id
+WHERE p.received_date IS NOT NULL
+  AND p.po_date >= '2016-01-01' AND p.po_date < '2017-01-01'
+GROUP BY s.supplier_id, s.family
+HAVING SUM(p.qty_defect) / SUM(p.qty_received) >
+       (SELECT SUM(p2.qty_defect) / SUM(p2.qty_received)
+        FROM purchase_orders p2
+        JOIN suppliers s2 ON s2.supplier_id = p2.supplier_id
+        WHERE p2.received_date IS NOT NULL
           AND p2.po_date >= '2016-01-01' AND p2.po_date < '2017-01-01')
 ORDER BY s.family, s.supplier_id;
 

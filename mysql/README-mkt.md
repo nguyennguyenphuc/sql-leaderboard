@@ -137,3 +137,19 @@ Lưu ý cho người soạn:
 - `campaigns_raw` không có FK tới `campaigns` (vì trùng); nối bằng `campaign_id` sẽ nhân dòng ở 150 chiến dịch trùng.
 - Bỏ dòng ở (a) không làm mồ côi khoá: mọi bảng con bị lọc cùng điều kiện; dòng thêm ở (b) chép khoá có sẵn.
 - Muốn bẫy mới (ví dụ chuỗi có khoảng trắng ở bản sạch, NULL ở `campaigns`) thì thêm `mkt_hidden_2` theo cùng cách và ghi vào bảng này.
+
+## Chế độ SQL (`sql_mode`) của máy chấm
+
+Quyết định v3 (10/11/2026, câu `mkt-k4-phan-loai-ngay-loi`): máy chấm chạy với **`sql_mode` mặc định của MySQL 8.0**, không đặt lại
+ở mức máy chủ hay phiên:
+
+```text
+ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION
+```
+
+- Kiểm ngày 10/11/2026 trên `sqllb-mysql` (MySQL 8.0.46): `SELECT @@GLOBAL.sql_mode;` ra đúng chuỗi trên. `docker-compose.yml`
+  không truyền `--sql-mode`, nên dựng lại vẫn giữ mặc định. Nếu sau này thêm `--sql-mode` vào `command`, phải giữ nguyên chuỗi trên.
+- Vì sao cần: với `NO_ZERO_DATE`/`NO_ZERO_IN_DATE`, `STR_TO_DATE('00-00-0000', '%d-%m-%Y')` trả `NULL`, nên 7 dòng `date_raw =
+  '00-00-0000'` rơi vào nhánh `'khong_ton_tai'` của k4. Đặt `sql_mode = ''` thì hàm trả `0000-00-00`, các dòng này chuyển sang
+  nhánh `'ngoai_ky'` và lời giải k4 đổi kết quả (đã thử trên phiên riêng). Câu khác của bộ không phụ thuộc chế độ này.
+- Môi trường chấm thật (nếu khác container này) phải chạy cùng `sql_mode`; kiểm bằng câu `SELECT` ở trên trước khi nhập gói 5.

@@ -132,54 +132,43 @@
 \ghichuthietke{Trung bình: 3 bảng, ký hiệu quan hệ. Wrong 1 lấy mức thay đổi tương đối thay điểm phần trăm; wrong 2 chia cho tổng số dòng của năm thay quân số bình quân; cả hai rớt public. Lời giải gom theo năm nên dòng 2026-01 của E00002 ở hidden-1 nằm ở nhóm 2026, không ảnh hưởng kết quả; đề vẫn ghi rõ cận trên.}
 \end{cauhoi}
 
-% ================================================================ t2 · write · Trung bình
-\begin{cauhoi}[ma=hr-t2-doi-soat-dinh-bien, dulieu=hr, domain=operations,
-  hinhthuc=write, cap=medium, dang=E2, kynang={nhiều CTE, UNION ALL, NOT EXISTS, LEFT JOIN}, bay={dem-ca-nguoi-nghi, doi-soat-mot-chieu},
+% ================================================================ t2 · write · Cơ bản
+\begin{cauhoi}[ma=hr-t2-vi-tri-moi-ke-hoach-2025, dulieu=hr, domain=operations,
+  hinhthuc=write, cap=basic, dang=E2, kynang={EXCEPT}, bay={dao-hai-ve},
   tacgia={Agent gói 4}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
-\tieude{Kế hoạch định biên có khớp danh sách nhân viên?}
-\boicanh[Anh Long · Chuyên viên phân tích nhân sự]{Kế hoạch định biên năm sau lấy số chỗ trống từ bảng kế hoạch hiện có. Em đối chiếu giúp anh bảng này với danh sách nhân viên cuối năm, xem bên nào thiếu, bên nào thừa.}
+\tieude{Kế hoạch định biên 2025 có thêm vị trí nào?}
+\boicanh[Anh Long · Chuyên viên phân tích nhân sự]{Kế hoạch định biên năm 2025 có mở thêm vài vị trí so với năm 2024. Em lập giúp anh danh sách các vị trí mới đó để anh báo trưởng phòng.}
 \begin{yeucau}
-  \item Đối chiếu cho năm kế hoạch 2024 và 2025, theo vị trí.
-  \item Chiều thứ nhất: liệt kê vị trí trong kế hoạch có \code{actual_headcount} khác quân số cuối tháng 12 của năm đó (theo tab Nghiệp vụ; vị trí không có ai tính là 0), với \code{loai_lech} = \code{'lech_quan_so'} và \code{so_nv_danh_sach} là quân số cuối tháng 12 đó.
-  \item Chiều thứ hai: liệt kê vị trí có nhân viên ở bất kỳ tháng nào của năm nhưng không có trong kế hoạch của năm đó, với \code{loai_lech} = \code{'khong_co_ke_hoach'}; \code{so_nv_danh_sach} là số nhân viên khác nhau của vị trí trong năm, \code{actual_headcount} để trống.
-  \item Trả về \code{plan_period} (năm, kiểu số), \code{position_id}, \code{loai_lech}, \code{so_nv_danh_sach}, \code{actual_headcount}.
-  \item Sắp theo \code{plan_period} rồi \code{position_id}.
+  \item Lấy các vị trí có trong kế hoạch năm 2025 (\code{plan_period} = 2025) mà không có trong kế hoạch năm 2024 (\code{plan_period} = 2024).
+  \item Trả về \code{position_id}, \code{country}, \code{department}; sắp theo \code{position_id}.
 \end{yeucau}
 \begin{erd}
-  \erdbang{employee_monthly_snapshot}{0,0}{employee_id:PK, snapshot_month:PK*, position_id:FK*, attrition_this_month*}
-  \erdbang{positions}{1,0}{position_id:PK}
-  \erdbang{position_plan}{2,0}{plan_period:PK*, position_id:PK*, actual_headcount*}
-  \erdnoi[kieu=n-1]{employee_monthly_snapshot.position_id}{positions.position_id}
-  \erdnoi[kieu=1-n]{positions.position_id}{position_plan.position_id}
+  \erdbang{position_plan}{0,0}{plan_period:PK*=2025, position_id:PK*='P0001', country*='Indonesia', department*='Customer Support', planned_headcount=22, actual_headcount}
 \end{erd}
-\begin{nghiepvu}{Sửa số chỗ trống trong kế hoạch định biên trước khi lập kế hoạch tuyển dụng năm sau.}
+\begin{nghiepvu}{Rà các vị trí mới mở trước khi giao chỉ tiêu tuyển dụng năm 2025.}
   \khainiem{dinh-bien}
-  \khainiem{thang-du-lieu}
-  \luuy{Quân số thực tế trong kế hoạch chốt theo danh sách tháng 12, còn quân số cuối tháng chỉ tính người còn làm việc vào ngày cuối tháng. Hai cách đếm khác nhau ở người nghỉ trong tháng 12.}
+  \luuy{Mỗi năm kế hoạch có một danh sách vị trí riêng, mỗi dòng là một vị trí trong một năm. Định biên của cùng một vị trí có thể khác nhau giữa hai năm.}
 \end{nghiepvu}
-\goiy{MySQL không có \code{FULL OUTER JOIN}. Hai chiều đối soát có thể tính riêng rồi ghép theo chiều dọc bằng \code{UNION ALL}.}
-\goiy{Chiều thứ hai là tìm dòng không có cặp trên khoá (năm, vị trí): \code{NOT EXISTS} hoặc \code{LEFT JOIN ... IS NULL}. Năm lấy từ \code{LEFT(snapshot_month, 4)} rồi đổi sang số.}
-\ghichuthietke{Trung bình: 3 bảng có ký hiệu. Trên public mọi vị trí khớp nếu đếm cả người nghỉ tháng 12; lệch chỉ do người nghỉ trong tháng 12 và vị trí vắng kế hoạch (P0107 năm 2024; P0125, P0239, P0327 năm 2025). Ở hidden-1 bỏ khoảng 10\% nhân viên nên lệch nhiều hơn, lời giải vẫn tất định. Wrong đếm cả người nghỉ và wrong chỉ đối soát một chiều đều rớt public.}
+\goiy{Lấy danh sách vị trí của năm 2025 rồi bỏ đi những vị trí đã có ở năm 2024.}
+\goiy{Phép trừ tập hợp \code{SELECT ... WHERE plan_period = 2025 EXCEPT SELECT ... WHERE plan_period = 2024}, hai vế cùng ba cột.}
+\ghichuthietke{Cơ bản (v4, viết lại từ hr-t2-doi-soat-dinh-bien Trung bình), theo phần ghép tập của M7 trên lộ trình. Năm trục: 1 bảng; 1 tầng (hai lần lọc ghép bằng EXCEPT); đề ghi rõ cột và giá trị lọc, ERD có giá trị mẫu; 0 bẫy dữ liệu; 1 khái niệm (định biên), không công thức. Đạt Cơ bản 5/5. Public 7 vị trí; hidden-1 thêm P0901 (mở mới năm 2025) nên 8. Wrong đảo hai vế (ra các vị trí có ở 2024 mà vắng ở 2025) và wrong so cả \code{planned_headcount} (ra mọi vị trí đổi định biên) đều rớt cả hai biến thể. EXCEPT có từ MySQL 8.0.31 (máy chấm 8.0.46).}
 \end{cauhoi}
 
-% ================================================================ t3 · write · Trung bình
+% ================================================================ t3 · write · Dễ
 \begin{cauhoi}[ma=hr-t3-pheu-tuyen-dung, dulieu=hr, domain=marketing,
-  hinhthuc=write, cap=medium, dang=D1, kynang={CTE, UNION ALL, MAX OVER}, bay={ngay-sau-cua-so, quen-can-tren},
-  tacgia={Agent gói 4}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.01]
+  hinhthuc=write, cap=easy, dang=D1, kynang={CTE, UNION ALL}, bay={ngay-sau-cua-so},
+  tacgia={Agent gói 4}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
 \tieude{Yêu cầu tuyển dụng năm 2025 dừng ở khâu nào?}
 \boicanh[Chị Mai · Trưởng nhóm tuyển dụng]{Chị chuẩn bị báo cáo tuyển dụng năm 2025. Trong các yêu cầu duyệt năm nay, bao nhiêu yêu cầu đã có người nhận lời và bao nhiêu đã có người đi làm trước cuối năm?}
 \begin{yeucau}
   \item Xét yêu cầu tuyển dụng có ngày duyệt trong năm 2025 (từ \code{'2025-01-01'} tới hết \code{'2025-12-31'}).
-  \item Đếm ba bước của phễu: bước 1 \code{'duyet'} gồm mọi yêu cầu trên; bước 2 \code{'nhan_loi'} gồm yêu cầu có ngày nhận lời trước \code{'2026-01-01'}; bước 3 \code{'di_lam'} gồm yêu cầu có ngày bắt đầu làm việc trước \code{'2026-01-01'}.
-  \item Trả về 3 dòng: \code{buoc} (1, 2, 3), \code{ten_buoc}, \code{so_yeu_cau}, \code{ty_le_pct} (phần trăm so với bước 1, làm tròn 2 chữ số).
-  \item Sắp theo \code{buoc}.
+  \item Đếm ba bước của phễu trên cùng tập yêu cầu đó: bước 1 \code{'duyet'} gồm mọi yêu cầu; bước 2 \code{'nhan_loi'} gồm yêu cầu có ngày nhận lời trước \code{'2026-01-01'}; bước 3 \code{'di_lam'} gồm yêu cầu có ngày bắt đầu làm việc trước \code{'2026-01-01'}.
+  \item Trả về 3 dòng: \code{buoc} (1, 2, 3), \code{ten_buoc}, \code{so_yeu_cau}; sắp theo \code{buoc}.
 \end{yeucau}
 \begin{erd}
   \erdbang{recruiting_pipeline}{0,0}{requisition_id:PK, position_id:FK, approval_date*, offer_accept_date*, start_date*}
-  \erdbang{positions}{1,0}{position_id:PK}
-  \erdbang{position_plan}{2,0}{plan_period:PK, position_id:PK}
-  \erdnoi[kieu=n-1]{recruiting_pipeline.position_id}{positions.position_id}
-  \erdnoi[kieu=1-n]{positions.position_id}{position_plan.position_id}
+  \erdbang{positions}{1,0}{position_id:PK, department}
+  \erdnoi[kieu=n-1, tren={\code{recruiting_pipeline.position_id = positions.position_id}}]{recruiting_pipeline.position_id}{positions.position_id}
 \end{erd}
 \begin{nghiepvu}{Chọn khâu cần rút ngắn trong quy trình tuyển dụng để người mới đi làm sớm hơn.}
   \quytrinh{Một yêu cầu tuyển dụng}{duyệt yêu cầu, nhận lời mời làm việc, bắt đầu làm việc}{chưa có người nhận lời, đã nhận lời nhưng chưa đi làm}
@@ -188,35 +177,31 @@
   \luuy{Ngày bắt đầu làm việc có thể sau tháng 12/2025. Yêu cầu như vậy chưa có người đi làm trong năm, dù có thể đã có người nhận lời.}
 \end{nghiepvu}
 \goiy{Mỗi bước là một số đếm trên cùng tập yêu cầu. Ngày bắt đầu làm việc không trống có nghĩa là người mới đã đi làm trong năm 2025 chưa?}
-\goiy{Ba số đếm ghép thành ba dòng bằng \code{UNION ALL}; tỷ lệ so với bước 1 lấy bằng \code{MAX(...) OVER ()} hoặc một truy vấn con trả về một giá trị.}
-\ghichuthietke{Trung bình: 3 bảng có ký hiệu. Wrong đếm mọi \code{start_date} không trống (gồm ngày sau 2025) rớt public; wrong thiếu cận trên ngày duyệt rớt hidden-1 (R0801 duyệt 2026-01-05).}
+\goiy{Đặt tập yêu cầu năm 2025 vào một CTE, rồi ghép ba số đếm thành ba dòng bằng \code{UNION ALL}.}
+\ghichuthietke{Dễ (v4, hạ từ Trung bình): bỏ cột tỷ lệ so với bước 1 (cần hàm cửa sổ hoặc truy vấn con), ERD còn 2 bảng có chữ trên đường nối. Năm trục: 1 bảng; 2 tầng (lọc trong CTE, ba số đếm ghép bằng UNION ALL); đề ghi rõ điều kiện từng bước và cột; 1 bẫy (ngày bắt đầu làm việc sau cửa sổ); khái niệm phễu, không công thức. Đạt Dễ 4/5 (nghiệp vụ ở mức Cơ bản). \code{positions} là bảng nhiễu. Wrong đếm mọi \code{start_date} không trống (gồm ngày sau 2025) rớt public; wrong thiếu cận trên ngày duyệt rớt hidden-1 (R0801 duyệt 2026-01-05).}
 \end{cauhoi}
 
-% ================================================================ t4 · write · Khó
-\begin{cauhoi}[ma=hr-t4-cay-duoi-mot-giam-doc, dulieu=hr, domain=operations,
-  hinhthuc=write, cap=hard, dang=E3, kynang={WITH RECURSIVE, tự nối, chặn độ sâu}, bay={quen-cung-thang, noi-nguoc-chieu, chu-trinh},
+% ================================================================ t4 · write · Cơ bản
+\begin{cauhoi}[ma=hr-t4-so-cap-duoi-truc-tiep, dulieu=hr, domain=operations,
+  hinhthuc=write, cap=basic, dang=A3, kynang={CTE, GROUP BY hai lượt}, bay={giu-quan-ly-trong},
   tacgia={Agent gói 4}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
-\tieude{Ai nằm dưới quyền quản lý E01688 tháng 12/2025?}
-\boicanh[Anh Dũng · Giám đốc quốc gia]{Anh đang tính sắp xếp lại phòng Tài chính ở Indonesia. Những ai đang nằm dưới quyền nhân viên E01688, và mỗi người cách E01688 mấy cấp?}
+\tieude{Quản lý thường phụ trách bao nhiêu cấp dưới trực tiếp?}
+\boicanh[Chị Hạnh · Trưởng phòng Nhân sự]{Chị đang rà cơ cấu tổ chức cuối năm 2025. Em thống kê giúp chị có bao nhiêu quản lý phụ trách 1 người, bao nhiêu quản lý phụ trách 2 người, và cứ thế.}
 \begin{yeucau}
-  \item Lập cây quản lý tháng 12/2025 bắt đầu từ nhân viên \code{E01688} (tầng 0). Cấp dưới trực tiếp là tầng 1, cấp dưới của họ là tầng 2, và cứ thế tới hết cây.
-  \item Chỉ dùng quan hệ quản lý ghi trong tháng 12/2025; tính mọi người có tên trong tháng này, gồm cả người nghỉ việc trong tháng.
-  \item Trả về \code{tang}, \code{employee_id}, \code{manager_id} (người gốc có \code{manager_id} trống).
-  \item Sắp theo \code{tang} rồi \code{employee_id}.
+  \item Xét tháng 12/2025 (\code{snapshot_month} = \code{'2025-12'}), tính mọi nhân viên có tên trong tháng, gồm cả người nghỉ trong tháng. Bỏ dòng có \code{manager_id} trống.
+  \item Đếm số cấp dưới trực tiếp của từng quản lý (số dòng có \code{manager_id} là mã của quản lý đó), rồi đếm số quản lý theo số cấp dưới.
+  \item Trả về \code{so_cap_duoi}, \code{so_quan_ly}; sắp theo \code{so_cap_duoi}.
 \end{yeucau}
 \begin{erd}
-  \erdbang{employee_monthly_snapshot}{0,0}{employee_id:PK, snapshot_month:PK, manager_id, position_id:FK}
-  \erdbang{positions}{1,0}{position_id:PK}
-  \erdbang{engagement_survey}{0,1}{employee_id:PK, survey_quarter:PK}
-  \erdkhoa{\code{employee_monthly_snapshot.manager_id} trỏ tới \code{employee_id} của chính bảng này, trong cùng \code{snapshot_month}. Câu này chỉ cần \code{employee_monthly_snapshot}; hai bảng còn lại không cần.}
+  \erdbang{employee_monthly_snapshot}{0,0}{employee_id:PK='E00041', snapshot_month:PK*='2025-12', department, manager_id*='E01206', position_id:FK}
 \end{erd}
-\begin{nghiepvu}{Xác định phạm vi người chịu ảnh hưởng trước khi sắp xếp lại một khối.}
+\begin{nghiepvu}{Tìm quản lý phụ trách quá ít hoặc quá nhiều người trước khi sắp xếp lại tổ chức năm 2026.}
   \khainiem{quan-ly-truc-tiep}
-  \luuy{Mỗi tháng có một danh sách quan hệ quản lý riêng; người đã nghỉ không còn dòng ở tháng sau. Cây quản lý có cặp hai người ghi là quản lý của nhau, nên khi duyệt cây phải đặt giới hạn số tầng.}
+  \luuy{Số cấp dưới trực tiếp của một quản lý là số nhân viên ghi người đó ở cột quản lý trực tiếp, không tính cấp dưới của cấp dưới.}
 \end{nghiepvu}
-\goiy{Cây nhiều tầng duyệt bằng CTE đệ quy (\code{WITH RECURSIVE}): phần neo là người gốc, phần đệ quy tìm người có \code{manager_id} bằng \code{employee_id} của tầng trước.}
-\goiy{Giữ điều kiện \code{snapshot_month = '2025-12'} ở cả phần neo và phần đệ quy, và chặn số tầng, ví dụ \code{tang < 20}.}
-\ghichuthietke{Khó: 3 bảng chỉ khoá, 2 bảng nhiễu, erdkhoa. Đề tính cả 2 người nghỉ trong tháng 12 (E02172, E03770). Tiêu đề đổi so với bản đồ (``giám đốc quốc gia'') vì E01688 là gốc của khối Tài chính Indonesia (bậc L5, \code{manager_id} trống), không phải giám đốc quốc gia; người hỏi là giám đốc quốc gia. Cây từ gốc này không chạm cặp báo cáo vòng, nhưng lời giải vẫn chặn 20 tầng (STYLE-hr A.7). Wrong nối ngược chiều ra 1 dòng; wrong quên cùng tháng ở phần đệ quy lấy cả người đã nghỉ; cả hai rớt public.}
+\goiy{Có hai lượt đếm nối nhau: lượt đầu theo quản lý, lượt sau theo kết quả của lượt đầu. Đặt lượt đầu trong một CTE.}
+\goiy{CTE gom theo \code{manager_id} với \code{COUNT(*) AS so_cap_duoi}; truy vấn ngoài gom theo \code{so_cap_duoi}.}
+\ghichuthietke{Cơ bản (v4, viết lại từ hr-t4-cay-duoi-mot-giam-doc Khó; CTE đệ quy vẫn có ở t5), theo bài Cơ bản ``viết lại bảng dẫn xuất thành CTE'' của M7 trên lộ trình. Năm trục: 1 bảng; 1 tầng mỗi lượt gom, lượt đầu đặt trong CTE; đề ghi rõ tháng, cột, cách bỏ ô trống, ERD có giá trị mẫu; 0 bẫy (ô trống \code{manager_id} đã nêu trong đề); 1 khái niệm, không công thức. Đạt Cơ bản 5/5. Public 20 dòng, hidden-1 18 dòng. Wrong giữ ô trống (thêm một nhóm cho \code{manager_id} trống) và wrong quên lọc tháng (đếm qua 24 tháng) đều rớt cả hai biến thể.}
 \end{cauhoi}
 
 % ================================================================ t5 · debug · Khó
@@ -236,6 +221,7 @@
   \erdbang{position_plan}{2,0}{plan_period:PK, position_id:PK}
   \erdbang{engagement_survey}{0,1}{employee_id:PK, survey_quarter:PK}
   \erdbang{recruiting_pipeline}{1,1}{requisition_id:PK, position_id:FK}
+  \erdkhoa{\code{employee_monthly_snapshot.manager_id} trỏ tới \code{employee_id} của chính bảng này, trong cùng \code{snapshot_month}. Câu này chỉ cần \code{employee_monthly_snapshot}; bốn bảng còn lại không cần.}
 \end{erd}
 \begin{nghiepvu}{Xác định đúng tuyến phê duyệt của một nhân viên khi dữ liệu quản lý có báo cáo vòng.}
   \khainiem{quan-ly-truc-tiep}
@@ -243,34 +229,34 @@
 \end{nghiepvu}
 \goiy{Phần đệ quy chỉ thấy dòng ngay trước. Làm sao để bước sau biết những ai đã có trong chuỗi, kể cả người xuất phát?}
 \goiy{Thêm cột đường đi kiểu chuỗi (khai báo đủ dài bằng \code{CAST(... AS CHAR(500))} ở phần neo), nối thêm mỗi bước bằng \code{CONCAT}, và chỉ đi tiếp khi \code{FIND_IN_SET(...)} bằng 0.}
-\ghichuthietke{Khó: 5 bảng chỉ khoá, ERD trung tính. Chọn E00041: public đi E00041, E01206, E02178 rồi vào vòng ba người E02554 – E00975 – E02287 (6 dòng); hidden-1 bỏ E02287 nên chuỗi dừng ở 5 dòng, hai biến thể khác nhau. Bản đồ gợi ý E00027 nhưng E00027 bị bỏ ở hidden-1. Starter ra 10 dòng ở public. Wrong chỉ dừng khi quay về người xuất phát vẫn ra 10 dòng; wrong dừng sớm một bước mất người cuối; cả hai rớt public.}
+\ghichuthietke{Khó: 5 bảng chỉ khoá, ERD trung tính, erdkhoa chỉ nêu khoá (chuẩn hoá: thêm erdkhoa như mẫu d4). Chọn E00041: public đi E00041, E01206, E02178 rồi vào vòng ba người E02554 – E00975 – E02287 (6 dòng); hidden-1 bỏ E02287 nên chuỗi dừng ở 5 dòng, hai biến thể khác nhau. Bản đồ gợi ý E00027 nhưng E00027 bị bỏ ở hidden-1. Starter ra 10 dòng ở public. Wrong chỉ dừng khi quay về người xuất phát vẫn ra 10 dòng; wrong dừng sớm một bước mất người cuối; cả hai rớt public. ERD v3: giữ 5 bảng chỉ khoá (lời giải dùng 1 bảng; QUYET-DINH-CHUNG 1.3 sửa theo quy chuẩn 23:05 cho thêm bảng nhiễu cho đủ 5 bảng, như mẫu d4, o4).}
 \end{cauhoi}
 
-% ================================================================ t6 · write · Trung bình
+% ================================================================ t6 · write · Dễ
 \begin{cauhoi}[ma=hr-t6-ty-trong-quy-luong, dulieu=hr, domain=finance,
-  hinhthuc=write, cap=medium, dang=C2, kynang={CTE, CROSS JOIN, tỷ trọng}, bay={mau-so-sai-pham-vi, bo-nguoi-nghi},
+  hinhthuc=write, cap=easy, dang=C2, kynang={CTE, truy vấn con một giá trị, tỷ trọng}, bay={mau-so-sai-pham-vi},
   tacgia={Agent gói 4}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.01]
 \tieude{Mỗi phòng ban chiếm bao nhiêu phần quỹ lương?}
-\boicanh[Anh Quân · Chuyên viên tiền lương – phúc lợi]{Anh đang lập ngân sách lương năm 2026. Tháng 12/2025 mỗi phòng ban chiếm bao nhiêu phần quỹ lương và bao nhiêu phần quân số?}
+\boicanh[Anh Quân · Chuyên viên tiền lương – phúc lợi]{Anh đang lập ngân sách lương năm 2026. Tháng 12/2025 mỗi phòng ban chiếm bao nhiêu phần quỹ lương của công ty?}
 \begin{yeucau}
-  \item Xét tháng 12/2025 (\code{'2025-12'}); quân số và quỹ lương tính trên mọi nhân viên có tên trong tháng, gồm cả người nghỉ trong tháng.
-  \item Tính quân số, quỹ lương của từng phòng ban, rồi tỷ trọng của từng phòng ban so với toàn công ty.
-  \item Trả về \code{department}, \code{quan_so}, \code{quy_luong} (USD), \code{ty_trong_quy_luong_pct}, \code{ty_trong_quan_so_pct} (phần trăm, làm tròn 2 chữ số).
+  \item Xét tháng 12/2025 (\code{'2025-12'}); quỹ lương tính trên mọi nhân viên có tên trong tháng, gồm cả người nghỉ trong tháng.
+  \item Tính quỹ lương của từng phòng ban, rồi tỷ trọng bằng quỹ lương của phòng chia tổng quỹ lương toàn công ty của cùng tháng.
+  \item Trả về \code{department}, \code{quy_luong} (USD), \code{ty_trong_pct} (phần trăm, làm tròn 2 chữ số).
   \item Sắp \code{quy_luong} giảm dần; bằng nhau thì \code{department} theo thứ tự chữ cái.
 \end{yeucau}
 \begin{erd}
   \erdbang{employee_monthly_snapshot}{0,0}{employee_id:PK, snapshot_month:PK*, department*, monthly_salary_usd*, position_id:FK}
   \erdbang{positions}{1,0}{position_id:PK, department}
-  \erdbang{country_market_benchmark}{2,0}{benchmark_year:PK, country:PK, job_role:PK, job_level:PK}
-  \erdnoi[kieu=n-1]{employee_monthly_snapshot.position_id}{positions.position_id}
+  \erdnoi[kieu=n-1, tren={\code{employee_monthly_snapshot.position_id = positions.position_id}}]{employee_monthly_snapshot.position_id}{positions.position_id}
 \end{erd}
 \begin{nghiepvu}{Phân bổ ngân sách lương năm sau giữa các phòng ban.}
   \khainiem{luong-thang}
   \khainiem{thang-du-lieu}
-  \luuy{Tỷ trọng của một phòng ban chia cho tổng toàn công ty trong cùng tháng. Phòng ban có tỷ trọng quỹ lương cao hơn tỷ trọng quân số là nơi có tiền lương bình quân cao hơn mặt bằng chung.}
+  \luuy{Tỷ trọng của một phòng ban chia cho tổng quỹ lương toàn công ty trong cùng tháng, không phải tổng của mọi tháng có trong bảng.}
 \end{nghiepvu}
-\goiy{Tính bảng quỹ lương theo phòng ban trong một CTE, rồi lấy tổng toàn công ty từ chính CTE đó để mẫu số cùng tháng với tử số.}
-\ghichuthietke{Trung bình: 3 bảng, \code{country_market_benchmark} là bảng nhiễu. Wrong CTE tổng không lọc tháng (chia cho 24 tháng) và wrong bỏ người nghỉ trong tháng đều rớt public.}
+\goiy{Tính quỹ lương theo phòng ban trong một CTE, rồi lấy tổng toàn công ty từ chính CTE đó để mẫu số cùng tháng với tử số.}
+\goiy{Với CTE tên \code{phong}, tỷ trọng là \code{100 * quy_luong / (SELECT SUM(quy_luong) FROM phong)}.}
+\ghichuthietke{Dễ (v4, hạ từ Trung bình): bỏ cột quân số và tỷ trọng quân số, công thức ghi ngay trong đề, ERD còn 2 bảng có chữ trên đường nối. Năm trục: 1 bảng; 2 tầng (gom trong CTE, chia cho tổng); đề ghi rõ cột và công thức; 1 bẫy (mẫu số khác phạm vi tháng); 1 công thức một phép chia. Đạt Dễ 5/5. \code{positions} là bảng nhiễu. Wrong mẫu số lấy cả 24 tháng và wrong bỏ người nghỉ trong tháng 12 đều rớt public.}
 \end{cauhoi}
 
 % ================================================================ t7 · write · Khó
@@ -301,34 +287,32 @@
 \end{nghiepvu}
 \goiy{Tháng vào làm là tháng đầu tiên có \code{tenure_months} = 0. Theo tab Nghiệp vụ, người có thâm niên 0 ở tháng 2024-01 có được tính là nhân viên mới không?}
 \goiy{Số tháng giữa hai chuỗi \code{'YYYY-MM'} tính bằng \code{PERIOD_DIFF} sau khi bỏ dấu gạch; quý lấy bằng \code{QUARTER(CONCAT(thang, '-01'))}.}
-\ghichuthietke{Khó: 5 bảng chỉ khoá, 4 bảng nhiễu, erdkhoa. Cohort hợp lệ: vào làm từ 2024-02 tới 2025-06 (6 quý, 2024-Q1 chỉ gồm tháng 2, 3). Wrong coi có dòng là còn làm; wrong lấy cả 2024-01 và cohort chưa đủ quan sát; cả hai rớt public.}
+\ghichuthietke{Khó: 5 bảng chỉ khoá, 4 bảng nhiễu, erdkhoa. Cohort hợp lệ: vào làm từ 2024-02 tới 2025-06 (6 quý, 2024-Q1 chỉ gồm tháng 2, 3). Wrong coi có dòng là còn làm; wrong lấy cả 2024-01 và cohort chưa đủ quan sát; cả hai rớt public. Quyết định v3: giữ khái niệm \code{nhan-vien-moi} (loại 140 người có \code{tenure_months = 0} ở 2024-01; hidden-1 129 người). Căn cứ cách sinh dữ liệu: tháng 2024-01 là nhóm nhân viên ban đầu (không phải người được tuyển trong kỳ), thâm niên rút ngẫu nhiên rồi làm tròn xuống nên có người ra 0; người tuyển mới chỉ xuất hiện từ tháng thứ hai (2024-02). Ở 2024-01 không phân biệt được người mới vào tháng đó với người vào cuối 2023. ERD v3: giữ 5 bảng chỉ khoá (lời giải dùng 1 bảng; QUYET-DINH-CHUNG 1.3 sửa theo quy chuẩn 23:05 cho thêm bảng nhiễu cho đủ 5 bảng, như mẫu d4, o4).}
 \end{cauhoi}
 
-% ================================================================ t8 · debug · Trung bình
+% ================================================================ t8 · debug · Dễ
 \begin{cauhoi}[ma=hr-t8-union-mat-dong, dulieu=hr, domain=marketing,
-  hinhthuc=debug, cap=medium, dang=A3, kynang={UNION và UNION ALL, CTE}, bay={union-mat-dong, quen-can-tren},
+  hinhthuc=debug, cap=easy, dang=A3, kynang={UNION và UNION ALL, CTE}, bay={union-mat-dong},
   tacgia={Agent gói 4}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
 \tieude{Tổng yêu cầu tuyển hai năm của vài nguồn bị thiếu}
-\boicanh[Chị Mai · Trưởng nhóm tuyển dụng]{Chị cộng số yêu cầu tuyển dụng hai năm 2024 và 2025 theo nguồn tuyển, mà vài nguồn ra ít hơn sổ theo dõi. Em tìm giúp chị chỗ sai trước buổi họp ngân sách.}
+\boicanh[Bạn Nam · Thực tập sinh nhân sự]{Em cộng số yêu cầu tuyển dụng hai năm 2024 và 2025 theo nguồn tuyển, mà vài nguồn ra ít hơn sổ theo dõi của chị Mai. Em chưa tìm ra chỗ sai.}
 \begin{yeucau}
-  \item Truy vấn dưới đây cộng số yêu cầu tuyển dụng duyệt trong năm 2024 và trong năm 2025 theo nguồn tuyển dụng, nhưng có nguồn bị thiếu số.
+  \item Truy vấn dưới đây đếm số yêu cầu tuyển dụng duyệt trong năm 2024 và trong năm 2025 theo nguồn tuyển dụng, ghép hai kết quả rồi cộng theo nguồn, nhưng có nguồn bị thiếu số.
   \item Sửa để \code{tong_yeu_cau} bằng số yêu cầu năm 2024 cộng số yêu cầu năm 2025 của từng nguồn.
   \item Giữ nguyên cột \code{recruitment_source}, \code{tong_yeu_cau}, khoảng ngày duyệt của từng năm và thứ tự sắp.
 \end{yeucau}
 \begin{erd}
-  \erdbang{recruiting_pipeline}{0,0}{requisition_id:PK, position_id:FK, recruitment_source, approval_date}
-  \erdbang{positions}{1,0}{position_id:PK}
-  \erdbang{position_plan}{2,0}{plan_period:PK, position_id:PK}
-  \erdnoi[kieu=n-1]{recruiting_pipeline.position_id}{positions.position_id}
-  \erdnoi[kieu=1-n]{positions.position_id}{position_plan.position_id}
+  \erdbang{recruiting_pipeline}{0,0}{requisition_id:PK, position_id:FK, recruitment_source*, approval_date*}
+  \erdbang{positions}{1,0}{position_id:PK, department}
+  \erdnoi[kieu=n-1, tren={\code{recruiting_pipeline.position_id = positions.position_id}}]{recruiting_pipeline.position_id}{positions.position_id}
 \end{erd}
 \begin{nghiepvu}{Chọn nguồn tuyển dụng cần giữ hoặc tăng ngân sách năm sau.}
   \khainiem{yeu-cau-tuyen-dung}
   \luuy{Tổng hai năm của một nguồn bằng số yêu cầu năm 2024 cộng số yêu cầu năm 2025, kể cả khi hai năm có cùng số yêu cầu.}
 \end{nghiepvu}
 \goiy{Nguồn nào có số yêu cầu năm 2024 bằng đúng năm 2025? Hai dòng đó sau phép ghép còn mấy dòng?}
-\goiy{Phép ghép theo chiều dọc đang dùng bỏ các dòng giống hệt nhau. Kiểu ghép nào giữ mọi dòng?}
-\ghichuthietke{Trung bình: 3 bảng có ký hiệu. Public: nguồn 'On-line Web application' có 1 yêu cầu mỗi năm nên UNION còn 1 dòng (starter rớt public); hidden-1 thêm 'Website' 13 = 13. Người hỏi đổi sang trưởng nhóm tuyển dụng (vai thực tập sinh dành cho Sửa lỗi cấp thấp). Wrong đổi sang UNION ALL nhưng bỏ phép cộng ở truy vấn ngoài (mỗi nguồn hai dòng) rớt public.}
+\goiy{\code{UNION} bỏ các dòng giống hệt nhau, \code{UNION ALL} giữ mọi dòng.}
+\ghichuthietke{Dễ (v4, hạ từ Trung bình), theo bài Sửa lỗi Dễ t3-union-mat-dong của M7 trên lộ trình (quy chuẩn đứng trên QUYET-DINH-CHUNG 2.1, nơi xếp lỗi UNION vào Trung bình). Một lỗi logic một chỗ: \code{UNION} thay \code{UNION ALL}, sửa một từ. Năm trục: 1 bảng; 2 tầng (gom theo năm, cộng hai năm); đề nêu rõ cách tính tổng; 1 bẫy (UNION bỏ dòng trùng); 1 khái niệm, không công thức. Đạt Dễ 5/5. Người hỏi đổi lại thực tập sinh (Sửa lỗi cấp thấp, STYLE-hr B.1); ERD còn 2 bảng có chữ trên đường nối, \code{positions} nhiễu. Public: nguồn 'On-line Web application' có 1 yêu cầu mỗi năm nên UNION còn 1 dòng (starter rớt public); hidden-1 thêm 'Website' 13 = 13. Wrong đổi sang UNION ALL nhưng bỏ phép cộng ở truy vấn ngoài (mỗi nguồn hai dòng) rớt public.}
 \end{cauhoi}
 
 % ================================================================ t9 · debug · Trung bình
@@ -390,60 +374,55 @@
 \ghichuthietke{Trung bình: 3 bảng có ký hiệu. Public đã có hoà hạng 3 ở Indonesia (E02063 = E02302 = 160 giờ); hidden-1 thêm hoà hạng 3 ở Malaysia (E01799 = E02682 = 849). Wrong RANK() ra 4 dòng ở một nước (rớt cả hai biến thể); wrong thiếu PARTITION BY rớt public.}
 \end{cauhoi}
 
-% ================================================================ f2 · write · Trung bình
-\begin{cauhoi}[ma=hr-f2-luy-ke-nghi-viec, dulieu=hr, domain=after_sales,
-  hinhthuc=write, cap=medium, dang=B3, kynang={SUM OVER luỹ kế, SUM OVER ()}, bay={quen-can-tren, dem-dong},
-  tacgia={Agent gói 4}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.01]
-\tieude{Luỹ kế người nghỉ việc qua các tháng năm 2025}
-\boicanh[Chị Hạnh · Trưởng phòng Nhân sự]{Chị muốn xem số người nghỉ việc năm 2025 cộng dồn qua từng tháng, để biết tới tháng nào thì số người nghỉ đã bằng một nửa của cả năm.}
+% ================================================================ f2 · write · Dễ
+\begin{cauhoi}[ma=hr-f2-luy-ke-chi-phi-tuyen-dung, dulieu=hr, domain=marketing,
+  hinhthuc=write, cap=easy, dang=B3, kynang={SUM OVER luỹ kế, CTE}, bay={quen-can-tren},
+  tacgia={Agent gói 4}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
+\tieude{Chi phí tuyển dụng luỹ kế qua các tháng năm 2025}
+\boicanh[Chị Mai · Trưởng nhóm tuyển dụng]{Chị cần biết năm 2025 tính tới cuối mỗi tháng mình đã chi bao nhiêu cho tuyển dụng, để đối chiếu với ngân sách cả năm.}
 \begin{yeucau}
-  \item Xét các tháng từ \code{'2025-01'} tới \code{'2025-12'}; người nghỉ việc gồm mọi loại, kể cả nghỉ hưu.
-  \item Tính số người nghỉ của từng tháng, số luỹ kế từ tháng 1 tới tháng đó, và tỷ lệ luỹ kế so với tổng người nghỉ cả năm.
-  \item Trả về \code{thang}, \code{so_nguoi_nghi}, \code{luy_ke}, \code{ty_le_luy_ke_pct} (phần trăm, làm tròn 2 chữ số).
-  \item Sắp theo \code{thang}.
+  \item Xét yêu cầu tuyển dụng có ngày duyệt trong năm 2025 (từ \code{'2025-01-01'} tới hết \code{'2025-12-31'}); chi phí của một yêu cầu tính vào tháng duyệt.
+  \item Tính chi phí tuyển dụng của từng tháng, và chi phí luỹ kế từ tháng 1 tới hết tháng đó.
+  \item Trả về \code{thang} (chuỗi dạng \code{'2025-01'}), \code{chi_phi}, \code{chi_phi_luy_ke} (USD); sắp theo \code{thang}.
 \end{yeucau}
 \begin{erd}
-  \erdbang{employee_monthly_snapshot}{0,0}{employee_id:PK, snapshot_month:PK*, attrition_this_month*, position_id:FK}
-  \erdbang{positions}{1,0}{position_id:PK}
-  \erdbang{recruiting_pipeline}{2,0}{requisition_id:PK, position_id:FK}
-  \erdnoi[kieu=n-1]{employee_monthly_snapshot.position_id}{positions.position_id}
-  \erdnoi[kieu=1-n]{positions.position_id}{recruiting_pipeline.position_id}
+  \erdbang{recruiting_pipeline}{0,0}{requisition_id:PK, position_id:FK, approval_date*, recruiting_cost_usd*}
+  \erdbang{positions}{1,0}{position_id:PK, department}
+  \erdnoi[kieu=n-1, tren={\code{recruiting_pipeline.position_id = positions.position_id}}]{recruiting_pipeline.position_id}{positions.position_id}
 \end{erd}
-\begin{nghiepvu}{Lên lịch tuyển thay thế theo nhịp nghỉ việc trong năm.}
-  \khainiem{nghi-viec}
-  \khainiem{thang-du-lieu}
-  \luuy{Tháng nhân viên nghỉ việc vẫn có một dòng trong bảng. Số người nghỉ của tháng đếm theo cờ nghỉ việc, không đếm số dòng.}
+\begin{nghiepvu}{Theo dõi tiến độ chi ngân sách tuyển dụng trong năm để quyết định có tạm hoãn một phần yêu cầu tuyển mới hay không.}
+  \khainiem{chi-phi-tuyen-dung}
+  \khainiem{yeu-cau-tuyen-dung}
+  \luuy{Chi phí luỹ kế của một tháng là tổng chi phí từ tháng 1 tới hết tháng đó trong cùng năm. Yêu cầu duyệt sau ngày 31/12/2025 thuộc ngân sách năm sau.}
 \end{nghiepvu}
-\goiy{Gom theo tháng trong một CTE, rồi cộng dồn bằng \code{SUM(...) OVER (ORDER BY thang)}; tổng cả năm là \code{SUM(...) OVER ()}.}
-\ghichuthietke{Trung bình: 3 bảng có ký hiệu. Wrong thiếu cận trên ra 13 dòng ở hidden-1 (tháng '2026-01' của E00002); wrong COUNT(*) đếm dòng rớt public.}
+\goiy{Gom chi phí theo tháng duyệt trong một CTE; tháng dạng \code{'2025-01'} lấy bằng \code{LEFT(approval_date, 7)} hoặc \code{DATE_FORMAT}.}
+\goiy{Cộng dồn bằng \code{SUM(chi_phi) OVER (ORDER BY thang)}.}
+\ghichuthietke{Dễ (v4, viết lại từ hr-f2-luy-ke-nghi-viec Trung bình): bỏ cột tỷ lệ luỹ kế; đổi sang chi phí tuyển dụng để không lặp câu luỹ kế người nghỉ ở f9. Năm trục: 1 bảng; 2 tầng (gom theo tháng trong CTE, cộng dồn); đề ghi rõ cột, kỳ, dạng tháng; 1 bẫy (thiếu cận trên ngày duyệt, chỉ lộ ở hidden-1); khái niệm luỹ kế, không công thức chia. Đạt Dễ 5/5. ERD 2 bảng, \code{positions} nhiễu. Wrong thiếu cận trên ra 13 dòng ở hidden-1 (R0801 duyệt 2026-01-05); wrong bỏ \code{ORDER BY} trong \code{OVER} (mọi tháng bằng tổng năm) rớt public.}
 \end{cauhoi}
 
-% ================================================================ f3 · write · Trung bình
+% ================================================================ f3 · write · Dễ
 \begin{cauhoi}[ma=hr-f3-de-bat-theo-thang, dulieu=hr, domain=finance,
-  hinhthuc=write, cap=medium, dang=B2, kynang={LAG, PARTITION BY, CTE}, bay={thieu-partition-by, loc-truoc-khi-lag},
-  tacgia={Agent gói 4}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.01]
+  hinhthuc=write, cap=easy, dang=B2, kynang={LAG, PARTITION BY}, bay={loc-truoc-khi-lag},
+  tacgia={Agent gói 4}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
 \tieude{Mỗi tháng năm 2025 bao nhiêu người được đề bạt?}
-\boicanh[Anh Quân · Chuyên viên tiền lương – phúc lợi]{Anh cần ước tính ngân sách tăng lương do đề bạt năm 2026. Năm 2025 mỗi tháng có bao nhiêu người được đề bạt, và lương của họ tăng bình quân bao nhiêu?}
+\boicanh[Anh Quân · Chuyên viên tiền lương – phúc lợi]{Anh cần ước tính số quyết định đề bạt cho năm 2026. Năm 2025 mỗi tháng có bao nhiêu người được đề bạt?}
 \begin{yeucau}
-  \item Một nhân viên được đề bạt trong tháng khi bậc của tháng đó cao hơn bậc ở tháng liền trước của chính người đó (khái niệm đề bạt ở tab Nghiệp vụ).
-  \item Xét tháng đề bạt từ \code{'2025-01'} tới \code{'2025-12'}.
-  \item Tính phần trăm tăng tiền lương tháng của từng lần đề bạt so với tháng liền trước, rồi lấy bình quân các lần đề bạt trong cùng tháng (mỗi lần đề bạt một giá trị).
-  \item Trả về \code{thang}, \code{so_nguoi_de_bat}, \code{tang_luong_bq_pct} (phần trăm, làm tròn 2 chữ số); sắp theo \code{thang}.
+  \item Một nhân viên được đề bạt trong tháng khi \code{job_level} của tháng đó cao hơn \code{job_level} ở tháng liền trước của chính người đó.
+  \item Xét tháng đề bạt từ \code{'2025-01'} tới \code{'2025-12'}; tháng 1/2025 so với tháng 12/2024.
+  \item Trả về \code{thang}, \code{so_nguoi_de_bat}; sắp theo \code{thang}.
 \end{yeucau}
 \begin{erd}
-  \erdbang{employee_monthly_snapshot}{0,0}{employee_id:PK*, snapshot_month:PK*, job_level*, monthly_salary_usd*, position_id:FK}
+  \erdbang{employee_monthly_snapshot}{0,0}{employee_id:PK*, snapshot_month:PK*, job_level*, position_id:FK}
   \erdbang{positions}{1,0}{position_id:PK, job_level}
-  \erdbang{country_market_benchmark}{2,0}{benchmark_year:PK, country:PK, job_role:PK, job_level:PK}
-  \erdnoi[kieu=n-1]{employee_monthly_snapshot.position_id}{positions.position_id}
+  \erdnoi[kieu=n-1, tren={\code{employee_monthly_snapshot.position_id = positions.position_id}}]{employee_monthly_snapshot.position_id}{positions.position_id}
 \end{erd}
-\begin{nghiepvu}{Ước tính ngân sách tăng lương do đề bạt cho năm sau.}
+\begin{nghiepvu}{Ước tính số quyết định đề bạt và ngân sách tăng lương kèm theo cho năm sau.}
   \khainiem{de-bat}
-  \khainiem{luong-thang}
-  \luuy{Bậc và tiền lương chỉ so được với tháng trước của cùng một người. Đề bạt thường kèm mức tăng lương lớn hơn tăng lương theo kết quả thực hiện công việc.}
+  \luuy{Bậc chỉ so được với tháng trước của cùng một người. Người mới vào làm không có tháng trước, nên tháng đầu tiên của họ không phải tháng đề bạt.}
 \end{nghiepvu}
 \goiy{Lọc năm 2025 trước khi lấy tháng liền trước thì tháng 1/2025 so với dòng nào?}
-\goiy{\code{LAG(job_level)} và \code{LAG(monthly_salary_usd)} cần chia nhóm theo \code{employee_id}; lọc tháng 2025 ở truy vấn ngoài.}
-\ghichuthietke{Trung bình: 3 bảng, \code{country_market_benchmark} nhiễu. Wrong LAG không chia theo nhân viên và wrong lọc 2025 trước khi LAG (mất tháng 1) đều rớt public.}
+\goiy{\code{LAG(job_level) OVER (PARTITION BY employee_id ORDER BY snapshot_month)}; lọc tháng 2025 ở truy vấn ngoài.}
+\ghichuthietke{Dễ (v4, hạ từ Trung bình): bỏ cột tăng lương bình quân (công thức hai thành phần), định nghĩa đề bạt ghi ngay trong đề, ERD còn 2 bảng có chữ trên đường nối. Năm trục: 1 bảng; 2 tầng (LAG trong CTE, đếm ở ngoài); đề ghi rõ cột và mốc so sánh; 1 bẫy (lọc trước khi LAG làm mất tháng 1); 1 khái niệm, không công thức. Đạt Dễ 5/5. \code{positions} là bảng nhiễu. Wrong LAG không chia theo nhân viên và wrong lọc 2025 trước khi LAG đều rớt public. f8 (Sửa lỗi Khó) dùng lại lỗi lọc trước khi LAG nhưng chồng thêm lỗi thiếu PARTITION BY.}
 \end{cauhoi}
 
 % ================================================================ f4 · write · Khó
@@ -474,64 +453,56 @@
 \end{nghiepvu}
 \goiy{Đánh dấu tháng giảm bằng \code{LAG}, rồi gom các tháng giảm liền nhau thành một đoạn. Mỗi tháng không giảm mở một đoạn mới.}
 \goiy{Mã đoạn là tổng luỹ kế của cờ ``không giảm''; trong mỗi đoạn, \code{ROW_NUMBER()} trừ 1 là số tháng giảm tính tới dòng đó.}
-\ghichuthietke{Khó: 5 bảng chỉ khoá, erdkhoa, engagement\_survey là bẫy nguồn. Dạng gom chuỗi liên tiếp. Wrong đếm tháng giảm trong 6 tháng không cần liền nhau và wrong bỏ tháng điểm trống trước khi so (NULL không còn cắt chuỗi) đều rớt public.}
+\ghichuthietke{Khó: 5 bảng chỉ khoá, erdkhoa, engagement\_survey là bẫy nguồn. Dạng gom chuỗi liên tiếp. Wrong đếm tháng giảm trong 6 tháng không cần liền nhau và wrong bỏ tháng điểm trống trước khi so (NULL không còn cắt chuỗi) đều rớt public. ERD v3: giữ 5 bảng chỉ khoá (lời giải dùng 1 bảng; QUYET-DINH-CHUNG 1.3 sửa theo quy chuẩn 23:05 cho thêm bảng nhiễu cho đủ 5 bảng, như mẫu d4, o4).}
 \end{cauhoi}
 
-% ================================================================ f5 · write · Khó
-\begin{cauhoi}[ma=hr-f5-gan-ket-truot-sales-indonesia, dulieu=hr, domain=sales,
-  hinhthuc=write, cap=hard, dang=B3, kynang={AVG OVER, ROWS BETWEEN, nhiều CTE}, bay={truot-tren-dong-chi-tiet, khung-chua-du},
-  tacgia={Agent gói 4}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.01]
-\tieude{Gắn kết phòng Kinh doanh Indonesia biến động ra sao?}
-\boicanh[Anh Bình · Trưởng phòng Kinh doanh]{Hai năm qua đội kinh doanh ở Indonesia nghỉ việc nhiều. Anh muốn xem điểm gắn kết của đội từng tháng, và trung bình ba tháng gần nhất để thấy xu hướng.}
+% ================================================================ f5 · write · Dễ
+\begin{cauhoi}[ma=hr-f5-hang-nghi-viec-sales-theo-chuc-danh, dulieu=hr, domain=sales,
+  hinhthuc=write, cap=easy, dang=C1, kynang={RANK, PARTITION BY}, bay={mat-nhom-khong-ai-nghi},
+  tacgia={Agent gói 4}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
+\tieude{Mỗi nước, chức danh kinh doanh nào mất nhiều người nhất?}
+\boicanh[Anh Bình · Trưởng phòng Kinh doanh]{Hai năm qua đội kinh doanh có nhiều người nghỉ việc. Ở mỗi nước, chức danh nào mất nhiều người nhất thì anh rà trước.}
 \begin{yeucau}
-  \item Xét nhân viên phòng \code{'Sales'} ở \code{'Indonesia'}, từ tháng 1/2024 tới tháng 12/2025; dùng điểm gắn kết hằng tháng của ảnh chụp nhân sự.
-  \item Tính điểm gắn kết bình quân của từng tháng (bỏ ô trống), rồi trung bình trượt 3 tháng gồm tháng đó và hai tháng liền trước, tính trên điểm bình quân tháng chưa làm tròn.
-  \item Tháng chưa đủ 3 tháng dữ liệu thì để trống trung bình trượt.
-  \item Trả về \code{thang}, \code{diem_bq}, \code{diem_truot_3t} (điểm, làm tròn 1 chữ số); sắp theo \code{thang}.
+  \item Xét nhân viên phòng \code{'Sales'}, các tháng từ \code{'2024-01'} tới \code{'2025-12'}; chỉ tính người nghỉ việc tự nguyện (\code{attrition_type} = \code{'Voluntary'}).
+  \item Đếm số người nghỉ của từng cặp nước và chức danh (\code{country}, \code{job_family}); cặp không có ai nghỉ vẫn hiện, với số người nghỉ bằng 0.
+  \item Xếp hạng chức danh trong từng nước theo số người nghỉ giảm dần; bằng nhau thì cùng hạng, hạng kế tiếp bỏ qua số (1, 2, 2, 4).
+  \item Trả về \code{country}, \code{job_family}, \code{so_nguoi_nghi}, \code{hang}; sắp theo \code{country}, \code{hang}, rồi \code{job_family}.
 \end{yeucau}
 \begin{erd}
-  \erdbang{employee_monthly_snapshot}{0,0}{employee_id:PK, snapshot_month:PK, position_id:FK}
-  \erdbang{engagement_survey}{1,0}{employee_id:PK, survey_quarter:PK}
-  \erdbang{positions}{2,0}{position_id:PK}
-  \erdkhoa{Chỉ cần \code{employee_monthly_snapshot} (nước, phòng ban, điểm gắn kết hằng tháng). \code{engagement_survey} là khảo sát quý, nguồn khác; \code{positions} không cần.}
+  \erdbang{employee_monthly_snapshot}{0,0}{employee_id:PK, snapshot_month:PK*, country*, department*, job_family*, attrition_type*, position_id:FK}
+  \erdbang{positions}{1,0}{position_id:PK, country, department, job_family}
+  \erdnoi[kieu=n-1, tren={\code{employee_monthly_snapshot.position_id = positions.position_id}}]{employee_monthly_snapshot.position_id}{positions.position_id}
 \end{erd}
-\begin{nghiepvu}{Xét mở chương trình giữ chân riêng cho đội kinh doanh Indonesia.}
-  \khainiem{diem-gan-ket}
-  \khainiem{diem-nong-nghi-viec}
-  \luuy{Trung bình trượt tính trên chuỗi điểm theo tháng: mỗi tháng có một giá trị, bất kể đội có bao nhiêu người trong tháng đó.}
+\begin{nghiepvu}{Chọn chức danh kinh doanh ở từng nước để phỏng vấn thôi việc và rà soát trước.}
+  \khainiem{nghi-viec}
+  \luuy{Số người nghỉ của một chức danh còn phụ thuộc quy mô đội, nên chỉ dùng để chọn nơi rà trước, chưa thay được tỷ lệ nghỉ việc.}
 \end{nghiepvu}
-\goiy{Mỗi tháng chỉ có một điểm bình quân. Trượt trên điểm tháng hay trên từng dòng nhân viên – tháng?}
-\goiy{Gom về một dòng mỗi tháng trước, rồi trượt bằng \code{AVG(...) OVER (ORDER BY thang ROWS BETWEEN 2 PRECEDING AND CURRENT ROW)}; tháng chưa đủ 3 tháng nhận ra bằng \code{ROW_NUMBER()}.}
-\ghichuthietke{Khó: 3 bảng chỉ khoá, 2 bảng nhiễu, erdkhoa, engagement\_survey là bẫy nguồn. Lời giải dùng ROWS (tháng duy nhất nên RANGE cho cùng kết quả). Wrong để khung mặc định ở hai tháng đầu và wrong trượt trên dòng nhân viên đều rớt public.}
+\goiy{Lọc người nghỉ tự nguyện ở \code{WHERE} trước khi gom thì cặp nước và chức danh nào biến mất khỏi kết quả?}
+\goiy{\code{RANK() OVER (PARTITION BY country ORDER BY so_nguoi_nghi DESC)} trên bảng đã gom theo nước và chức danh.}
+\ghichuthietke{Dễ (v4, viết lại từ hr-f5-gan-ket-truot-sales-indonesia Khó), theo bài Dễ f3-hang-nhom-hang (RANK) của M8 trên lộ trình; giữ mảng Khối Kinh doanh. Năm trục: 1 bảng; 2 tầng (gom có điều kiện, RANK); đề nêu rõ cột và quy tắc hoà; 1 bẫy (lọc người nghỉ trước khi gom làm mất cặp 0 người: public Singapore · Sales Development Rep, hidden-1 thêm Singapore · Country Sales Lead); 1 khái niệm, không công thức. Đạt Dễ 5/5. ERD 2 bảng, \code{positions} nhiễu. Hoà ở hạng 2 (Malaysia, Thailand ở public; thêm Vietnam, Singapore ở hidden-1) nên wrong ROW\_NUMBER rớt cả hai biến thể; wrong lọc trước khi gom rớt cả hai. Trung bình trượt (ROWS BETWEEN) không còn trong gói; luỹ kế còn ở f2, f9. Câu chỉ đếm người nghỉ, không dùng mức luật của Việt Nam cho nước khác.}
 \end{cauhoi}
 
-% ================================================================ f6 · write · Trung bình
-\begin{cauhoi}[ma=hr-f6-yeu-cau-dat-nhat-moi-phong, dulieu=hr, domain=marketing,
-  hinhthuc=write, cap=medium, dang=C1, kynang={ROW\_NUMBER, AVG OVER, PARTITION BY}, bay={quen-can-tren, avg-over-khong-chia-nhom},
-  tacgia={Agent gói 4}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.01]
-\tieude{Yêu cầu tuyển đắt nhất mỗi phòng ban năm 2025}
-\boicanh[Chị Mai · Trưởng nhóm tuyển dụng]{Năm 2026 chị muốn giảm chi phí tuyển dụng. Năm 2025 mỗi phòng ban có yêu cầu nào tốn kém nhất, và yêu cầu đó cao gấp mấy lần mức bình quân của phòng?}
+% ================================================================ f6 · write · Cơ bản
+\begin{cauhoi}[ma=hr-f6-thu-tu-yeu-cau-singapore, dulieu=hr, domain=marketing,
+  hinhthuc=write, cap=basic, dang=A1, kynang={ROW\_NUMBER, PARTITION BY}, bay={sap-theo-ma},
+  tacgia={Agent gói 4}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
+\tieude{Yêu cầu tuyển dụng thứ mấy của phòng ở Singapore năm 2025?}
+\boicanh[Chị Mai · Trưởng nhóm tuyển dụng]{Chị đang lập sổ theo dõi tuyển dụng năm 2025 của văn phòng Singapore. Em đánh số giúp chị các yêu cầu của từng phòng ban theo thứ tự ngày duyệt.}
 \begin{yeucau}
-  \item Xét yêu cầu tuyển dụng có ngày duyệt trong năm 2025.
-  \item Chọn yêu cầu có chi phí tuyển dụng cao nhất của từng phòng ban; bằng nhau thì \code{requisition_id} nhỏ hơn đứng trước.
-  \item Tính chi phí bình quân mỗi yêu cầu của phòng ban trong năm 2025, và chi phí của yêu cầu được chọn gấp bao nhiêu lần mức bình quân đó.
-  \item Trả về \code{department}, \code{requisition_id}, \code{recruiting_cost_usd}, \code{chi_phi_bq_phong} (USD, làm tròn đến hàng đơn vị), \code{so_lan_binh_quan} (làm tròn 2 chữ số).
-  \item Sắp \code{recruiting_cost_usd} giảm dần; bằng nhau thì \code{department} theo thứ tự chữ cái.
+  \item Xét yêu cầu tuyển dụng ở \code{'Singapore'} có ngày duyệt trong năm 2025 (từ \code{'2025-01-01'} tới hết \code{'2025-12-31'}).
+  \item Đánh số thứ tự các yêu cầu trong từng phòng ban, bắt đầu từ 1, theo \code{approval_date} tăng dần; cùng ngày duyệt thì \code{requisition_id} nhỏ hơn đứng trước.
+  \item Trả về \code{department}, \code{requisition_id}, \code{approval_date}, \code{thu_tu}; sắp theo \code{department} rồi \code{thu_tu}.
 \end{yeucau}
 \begin{erd}
-  \erdbang{recruiting_pipeline}{0,0}{requisition_id:PK*, position_id:FK, department*, approval_date*, recruiting_cost_usd*}
-  \erdbang{positions}{1,0}{position_id:PK, department}
-  \erdbang{position_plan}{2,0}{plan_period:PK, position_id:PK}
-  \erdnoi[kieu=n-1]{recruiting_pipeline.position_id}{positions.position_id}
-  \erdnoi[kieu=1-n]{positions.position_id}{position_plan.position_id}
+  \erdbang{recruiting_pipeline}{0,0}{requisition_id:PK*='R0036', position_id:FK, country*='Singapore', department*='Customer Support', approval_date*=2024-03-06, recruiting_cost_usd}
 \end{erd}
-\begin{nghiepvu}{Chọn yêu cầu tuyển dụng cần xem lại nguồn tuyển và mức phí trung gian.}
-  \khainiem{chi-phi-tuyen-dung}
+\begin{nghiepvu}{Lập sổ theo dõi yêu cầu tuyển dụng theo từng phòng ban của một văn phòng.}
   \khainiem{yeu-cau-tuyen-dung}
-  \luuy{Mức bình quân của phòng ban tính trên mọi yêu cầu của phòng trong năm, gồm cả yêu cầu được chọn.}
+  \luuy{Mã yêu cầu tuyển dụng không cấp theo ngày duyệt, nên thứ tự mã khác thứ tự duyệt.}
 \end{nghiepvu}
-\goiy{\code{ROW_NUMBER()} và \code{AVG()} cùng chia nhóm theo \code{department} trong một CTE; lọc hạng 1 ở truy vấn ngoài.}
-\ghichuthietke{Trung bình: 3 bảng có ký hiệu. Không có hoà chi phí ở hạng 1 trên public. Wrong thiếu cận trên ngày duyệt rớt hidden-1 (R0801 làm đổi bình quân phòng Operations); wrong AVG OVER () không chia nhóm rớt public.}
+\goiy{Số thứ tự bắt đầu lại từ 1 ở mỗi phòng ban.}
+\goiy{\code{ROW_NUMBER() OVER (PARTITION BY department ORDER BY approval_date, requisition_id)}.}
+\ghichuthietke{Cơ bản (v4, viết lại từ hr-f6-yeu-cau-dat-nhat-moi-phong Trung bình), theo bài Cơ bản f1-thu-tu-don (ROW\_NUMBER) của M8 trên lộ trình. Năm trục: 1 bảng; 1 tầng (lọc rồi một hàm cửa sổ); đề ghi rõ cột, giá trị lọc, tiêu chí phụ, ERD có giá trị mẫu (R0036 duyệt năm 2024, không nằm trong kết quả); 0 bẫy dữ liệu; 1 khái niệm. Đạt Cơ bản 5/5. Public 28 dòng; hidden-1 bỏ R0447, R0787 và thêm R9001 (phòng Engineering, duyệt 2025-08-14) nên 27 dòng, số thứ tự đổi. Wrong thiếu PARTITION BY (đánh số chung cả văn phòng) và wrong sắp theo mã yêu cầu đều rớt cả hai biến thể. Ô A1 · marketing · Cơ bản · write trùng với r3, s2 (gói 1, 2); khác gói nên giữ.}
 \end{cauhoi}
 
 % ================================================================ f7 · debug · Trung bình
@@ -580,6 +551,7 @@
   \erdbang{country_market_benchmark}{2,0}{benchmark_year:PK, country:PK, job_role:PK, job_level:PK}
   \erdbang{position_plan}{0,1}{plan_period:PK, position_id:PK}
   \erdbang{engagement_survey}{1,1}{employee_id:PK, survey_quarter:PK}
+  \erdkhoa{Chỉ cần \code{employee_monthly_snapshot}: tiền lương tháng nằm trên dòng nhân viên – tháng, theo \code{employee_id} và \code{snapshot_month}. Bốn bảng còn lại không cần.}
 \end{erd}
 \begin{nghiepvu}{Đối chiếu các lần tăng lương lớn với quyết định đề bạt trước khi chốt ngân sách lương.}
   \khainiem{de-bat}
@@ -588,33 +560,29 @@
 \end{nghiepvu}
 \goiy{Dòng đầu tiên của mỗi nhân viên trong cửa sổ \code{OVER} đang lấy lương của ai làm lương tháng trước?}
 \goiy{\code{WHERE} chạy trước hàm cửa sổ. Để tháng 1/2025 có tháng trước mà so, dòng nào phải còn trong dữ liệu khi tính \code{LAG}?}
-\ghichuthietke{Khó: 5 bảng chỉ khoá, ERD trung tính. Hai lỗi: thiếu PARTITION BY (dòng đầu mỗi người so với lương người khác, sinh lần tăng giả) và lọc 2025 trước khi LAG (mất lần tăng tháng 1). Mỗi wrong chỉ sửa một lỗi, cả hai rớt public.}
+\ghichuthietke{Khó: 5 bảng chỉ khoá, ERD trung tính, erdkhoa chỉ nêu khoá (chuẩn hoá: thêm erdkhoa như mẫu d4). Hai lỗi: thiếu PARTITION BY (dòng đầu mỗi người so với lương người khác, sinh lần tăng giả) và lọc 2025 trước khi LAG (mất lần tăng tháng 1). Mỗi wrong chỉ sửa một lỗi, cả hai rớt public. ERD v3: giữ 5 bảng chỉ khoá (lời giải dùng 1 bảng; QUYET-DINH-CHUNG 1.3 sửa theo quy chuẩn 23:05 cho thêm bảng nhiễu cho đủ 5 bảng, như mẫu d4, o4).}
 \end{cauhoi}
 
-% ================================================================ f9 · debug · Trung bình
-\begin{cauhoi}[ma=hr-f9-luy-ke-khong-reset, dulieu=hr, domain=after_sales,
-  hinhthuc=debug, cap=medium, dang=B3, kynang={SUM OVER, PARTITION BY năm}, bay={thieu-partition-by},
+% ================================================================ f9 · debug · Cơ bản
+\begin{cauhoi}[ma=hr-f9-luy-ke-chay-nguoc, dulieu=hr, domain=after_sales,
+  hinhthuc=debug, cap=basic, dang=B3, kynang={SUM OVER, ORDER BY trong OVER}, bay={sap-nguoc-trong-over},
   tacgia={Agent gói 4}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
-\tieude{Luỹ kế nghỉ tự nguyện 2025 cộng cả năm 2024}
-\boicanh[Bạn Vy · Thực tập sinh nhân sự]{Em lập bảng luỹ kế người nghỉ tự nguyện trong năm cho hai năm 2024 và 2025, mà số của tháng 1/2025 lại lớn hơn tổng cả năm 2024. Chị trưởng phòng cần bảng này trong tuần.}
+\tieude{Luỹ kế nghỉ tự nguyện tháng 1/2025 lại bằng cả năm}
+\boicanh[Bạn Vy · Thực tập sinh nhân sự]{Em lập bảng luỹ kế người nghỉ tự nguyện năm 2025, mà tháng 1 ra bằng tổng cả năm, còn tháng 12 lại nhỏ nhất. Anh chị xem giúp em sai ở đâu.}
 \begin{yeucau}
-  \item Truy vấn dưới đây đếm người nghỉ việc tự nguyện từng tháng từ \code{'2024-01'} tới \code{'2025-12'} và tính luỹ kế trong năm, nhưng luỹ kế năm 2025 cộng tiếp từ năm 2024.
-  \item Sửa để luỹ kế bắt đầu lại từ tháng 1 của mỗi năm.
-  \item Giữ nguyên cột \code{thang}, \code{so_nghi_tu_nguyen}, \code{luy_ke_trong_nam} và thứ tự sắp.
+  \item Truy vấn dưới đây đếm người nghỉ việc tự nguyện từng tháng từ \code{'2025-01'} tới \code{'2025-12'} và tính luỹ kế từ tháng 1, nhưng tháng 1 ra bằng tổng cả năm.
+  \item Sửa để \code{luy_ke} của mỗi tháng bằng tổng số người nghỉ tự nguyện từ tháng 1 tới hết tháng đó.
+  \item Giữ nguyên cột \code{thang}, \code{so_nghi_tu_nguyen}, \code{luy_ke} và thứ tự sắp.
 \end{yeucau}
 \begin{erd}
-  \erdbang{employee_monthly_snapshot}{0,0}{employee_id:PK, snapshot_month:PK, attrition_type, position_id:FK}
-  \erdbang{positions}{1,0}{position_id:PK}
-  \erdbang{recruiting_pipeline}{2,0}{requisition_id:PK, position_id:FK}
-  \erdnoi[kieu=n-1]{employee_monthly_snapshot.position_id}{positions.position_id}
-  \erdnoi[kieu=1-n]{positions.position_id}{recruiting_pipeline.position_id}
+  \erdbang{employee_monthly_snapshot}{0,0}{employee_id:PK, snapshot_month:PK*='2025-01', attrition_this_month=1, attrition_type*='Voluntary', position_id:FK}
 \end{erd}
 \begin{nghiepvu}{Theo dõi số người nghỉ tự nguyện cộng dồn trong năm so với chỉ tiêu nghỉ việc của năm.}
   \khainiem{nghi-viec}
-  \luuy{Luỹ kế trong năm bắt đầu lại từ tháng 1; luỹ kế qua nhiều năm là một chỉ số khác.}
+  \luuy{Luỹ kế của một tháng cộng từ tháng đầu năm tới hết tháng đó, nên tăng dần theo tháng và tháng 12 bằng tổng cả năm.}
 \end{nghiepvu}
-\goiy{Năm của một tháng lấy bằng \code{LEFT(thang, 4)}. Hàm cửa sổ cần chia nhóm theo cột nào?}
-\ghichuthietke{Trung bình: 3 bảng có ký hiệu. Wrong chia nhóm theo tháng (luỹ kế bằng số của tháng) và wrong đếm mọi loại nghỉ đều rớt public.}
+\goiy{Thứ tự cộng dồn do \code{ORDER BY} bên trong \code{OVER (...)} quyết định, không phải \code{ORDER BY} ở cuối truy vấn.}
+\ghichuthietke{Cơ bản (v4, viết lại từ hr-f9-luy-ke-khong-reset Trung bình; lỗi thiếu PARTITION BY theo năm là sai phạm vi cửa sổ, mức Trung bình theo QUYET-DINH-CHUNG 2.2, lỗi cùng loại còn ở f7, f8). Lỗi một chỗ dễ thấy: \code{ORDER BY thang DESC} trong \code{OVER}, sửa một từ; triệu chứng thấy ngay trên kết quả (tháng 1 bằng cả năm). Năm trục: 1 bảng; truy vấn khởi đầu 2 tầng nhưng chỉ sửa một chỗ; đề nêu rõ cách tính luỹ kế, ERD có giá trị mẫu; 0 bẫy dữ liệu; 1 khái niệm, không công thức. Đạt Cơ bản 4/5 (số tầng ở mức Dễ). Người hỏi là thực tập sinh (Sửa lỗi cấp thấp). Starter rớt cả hai biến thể; wrong bỏ \code{ORDER BY} trong \code{OVER} (mọi tháng bằng tổng năm) và wrong sắp theo số người nghỉ đều rớt cả hai.}
 \end{cauhoi}
 
 
@@ -662,7 +630,7 @@
     \phuongan{Chỉ cần theo dõi điểm gắn kết của tháng gần nhất, vì điểm chỉ giảm mạnh ở tháng ngay trước khi nghỉ.}
       {Bước 2 cho thấy điểm của người nghỉ đã thấp từ sáu tháng trước và giảm dần đều, không dồn vào tháng cuối.}
     \phuongan*{Người nghỉ tự nguyện có điểm gắn kết thấp hơn từ sáu tháng trước khi nghỉ, và ý định ở lại trong khảo sát cùng quý cũng thấp hơn.}
-      {Đúng. Bước 1 và 2 cho thấy khoảng cách lớn và có sớm; bước 3 đo hai nhóm trong cùng quý nên bỏ được phần chênh do đo ở hai thời điểm khác nhau.}
+      {Đúng: bước 1, 2 cho thấy khoảng cách lớn, có sớm; bước 3 đo cùng quý, bỏ được chênh do khác thời điểm nhưng chưa bỏ thiên lệch người ở lại.}
     \phuongan{Điểm gắn kết thấp là nguyên nhân khiến nhân viên nghỉ, nên nâng điểm của mỗi người lên mức của người ở lại sẽ giữ được phần lớn số người nghỉ.}
       {Các bước chỉ cho thấy hai nhóm khác nhau; số liệu quan sát chưa đủ để kết luận về nguyên nhân.}
   \end{luachon}
@@ -680,7 +648,8 @@
   \erdbang{positions}{1,0}{position_id:PK}
   \erdbang{country_market_benchmark}{2,0}{benchmark_year:PK, country:PK, job_role:PK, job_level:PK}
   \erdbang{engagement_survey}{0,1}{employee_id:PK, survey_quarter:PK}
-  \erdkhoa{Mọi bước chỉ cần \code{employee_monthly_snapshot}: giờ làm thêm, \code{compa_ratio} và \code{manager_effectiveness_score} đều có sẵn trên dòng nhân viên – tháng. Hai bảng còn lại không cần.}
+  \erdbang{position_plan}{1,1}{plan_period:PK, position_id:PK}
+  \erdkhoa{Mọi bước chỉ cần \code{employee_monthly_snapshot}: giờ làm thêm, \code{compa_ratio} và \code{manager_effectiveness_score} đều có sẵn trên dòng nhân viên – tháng. Bốn bảng còn lại không cần.}
 \end{erd}
 \begin{nghiepvu}{Chọn hướng ưu tiên cho kế hoạch giữ chân nhân viên phòng Kỹ thuật (\code{'Engineering'}) ở Việt Nam.}
   \khainiem{diem-nong-nghi-viec}
@@ -688,7 +657,7 @@
   \khainiem{lam-them-gio}
   \khainiem{compa-ratio}
   \khainiem{quan-ly-truc-tiep}
-  \luuy{Số người nghỉ nhiều có thể chỉ vì nhóm đông người. Bước 1 xếp theo số người để tìm nhóm mất nhiều người nhất; cột tỷ lệ cho biết nhóm đó có cao thật so với quy mô hay không. Bộ dữ liệu là dữ liệu mô phỏng, nên khác biệt giữa các nhóm chỉ cho thấy tương quan, không chứng minh nguyên nhân.}
+  \luuy{Số người nghỉ nhiều có thể chỉ vì nhóm đông người. Bước 1 xếp theo số người để tìm nhóm mất nhiều người nhất; cột tỷ lệ cho biết nhóm đó có cao thật so với quy mô hay không. Ở bước 3, người nghỉ được đo ở tháng nghỉ (rải trong 24 tháng), người ở lại đo ở tháng 12/2025, nên hai nhóm đo ở hai thời điểm khác nhau. Bộ dữ liệu là dữ liệu mô phỏng, nên khác biệt giữa các nhóm chỉ cho thấy tương quan, không chứng minh nguyên nhân.}
 \end{nghiepvu}
 \begin{buoc}[ma=b1, diem=10, hinhthuc=write, bang={employee_monthly_snapshot}]{Nhóm nào mất nhiều người nhất?}
   \begin{yeucau}
@@ -723,10 +692,10 @@
     \phuongan{Điểm năng lực quản lý của phòng Kỹ thuật thấp nhất ở Việt Nam, nên đội ngũ quản lý là nguyên nhân chính và cần ưu tiên đào tạo quản lý.}
       {Bước 4 cho thấy điểm bình quân chỉ sát nhóm kế tiếp, còn tỷ lệ dưới 55 của phòng Kỹ thuật thấp hơn ba trong năm phòng còn lại.}
     \phuongan*{Người nghỉ ở phòng Kỹ thuật có compa-ratio thấp hơn người ở lại và phòng làm thêm nhiều hơn các phòng khác, nên ưu tiên rà soát tiền lương và khối lượng việc.}
-      {Đúng. Bước 1 xác nhận nhóm có tỷ lệ cao, bước 2 và bước 3 chỉ ra hai khác biệt lớn nhất; đây là tương quan nên cần xác nhận thêm.}
+      {Đúng: bước 1 xác nhận nhóm có tỷ lệ cao, bước 2 và bước 3 chỉ ra hai khác biệt lớn nhất; đây là tương quan nên cần xác nhận thêm.}
   \end{luachon}
 \end{buoc}
-\ghichuthietke{Case Khó: 3 bảng chỉ khoá, 2 bảng nhiễu, erdkhoa; bước 2 sắp theo bình quân chưa làm tròn (Sales và Finance cùng 10,8 sau làm tròn); 4 bước SQL (ROW\_NUMBER với tiêu chí phụ, đếm có điều kiện, UNION ALL, COUNT(cột)) và 1 bước kết luận. Bước 1 có hoà hạng 3 ngay ở public (Indonesia·Sales = Philippines·Customer Support = 37 người), wrong RANK() ra 4 dòng. Phương án sai: vượt giới hạn 40 giờ (không có số liệu ủng hộ); đọc thứ hạng điểm bình quân mà bỏ qua tỷ lệ dưới 55. Chờ giảng viên: bước 3 so người nghỉ của 24 tháng với người ở lại tháng 12/2025 (khác thời điểm đo).}
+\ghichuthietke{Case Khó: 5 bảng chỉ khoá, 4 bảng nhiễu, erdkhoa; bước 2 sắp theo bình quân chưa làm tròn (Sales và Finance cùng 10,8 sau làm tròn); 4 bước SQL (ROW\_NUMBER với tiêu chí phụ, đếm có điều kiện, UNION ALL, COUNT(cột)) và 1 bước kết luận. Bước 1 có hoà hạng 3 ngay ở public (Indonesia·Sales = Philippines·Customer Support = 37 người), wrong RANK() ra 4 dòng. Phương án sai: vượt giới hạn 40 giờ (không có số liệu ủng hộ); đọc thứ hạng điểm bình quân mà bỏ qua tỷ lệ dưới 55. Quyết định v3: giữ cách so ở bước 3 (người nghỉ của 24 tháng, dòng tháng nghỉ, với người ở lại tháng 12/2025), thêm câu lưu ý nêu hai nhóm đo ở hai thời điểm khác nhau; mức lương thị trường đổi theo năm (\code{country_market_benchmark} có hai năm) nên compa-ratio của hai thời điểm không hoàn toàn cùng chuẩn. Cấp giữ Khó (QUYET-DINH-CHUNG 2.3 mục 13). K32: phương án đúng không có câu rào; câu ``xác nhận'' nằm ở một phương án sai (phỏng vấn thôi việc) và ở lời giải thích. ERD v3: 5 bảng chỉ khoá theo CHOT mục 3 (Khó 5–7 bảng) và QUYET-DINH-CHUNG 1.3 sửa 23:05 (lời giải dùng ít bảng thì thêm bảng nhiễu cho đủ 5).}
 \end{cauhoi}
 
 \end{document}

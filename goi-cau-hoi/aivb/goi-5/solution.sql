@@ -5,33 +5,19 @@
 -- ================================================================ MODULE 9 · DATA QUALITY
 
 -- [aivb-k1-ten-phap-ly-dung-chung] solution
-SELECT pa.legal_name AS ten_phap_ly,
-       COUNT(DISTINCT pa.party_id) AS so_chu_the,
-       COUNT(DISTINCT c.customer_id) AS so_khach_hang
-FROM core_party pa
-LEFT JOIN core_customer c ON c.party_id = pa.party_id
-GROUP BY pa.legal_name
-HAVING COUNT(DISTINCT pa.party_id) > 1
+SELECT legal_name AS ten_phap_ly,
+       COUNT(*) AS so_chu_the
+FROM core_party
+GROUP BY legal_name
+HAVING COUNT(*) >= 4
 ORDER BY so_chu_the DESC, ten_phap_ly;
 
--- [aivb-k1-ten-phap-ly-dung-chung] wrong: inner_join_mat_chu_the
-SELECT pa.legal_name AS ten_phap_ly,
-       COUNT(DISTINCT pa.party_id) AS so_chu_the,
-       COUNT(DISTINCT c.customer_id) AS so_khach_hang
-FROM core_party pa
-JOIN core_customer c ON c.party_id = pa.party_id
-GROUP BY pa.legal_name
-HAVING COUNT(DISTINCT pa.party_id) > 1
-ORDER BY so_chu_the DESC, ten_phap_ly;
-
--- [aivb-k1-ten-phap-ly-dung-chung] wrong: dem_dong_thay_khach
-SELECT pa.legal_name AS ten_phap_ly,
-       COUNT(DISTINCT pa.party_id) AS so_chu_the,
-       COUNT(*) AS so_khach_hang
-FROM core_party pa
-LEFT JOIN core_customer c ON c.party_id = pa.party_id
-GROUP BY pa.legal_name
-HAVING COUNT(DISTINCT pa.party_id) > 1
+-- [aivb-k1-ten-phap-ly-dung-chung] wrong: bo_moc_4
+SELECT legal_name AS ten_phap_ly,
+       COUNT(*) AS so_chu_the
+FROM core_party
+GROUP BY legal_name
+HAVING COUNT(*) > 4
 ORDER BY so_chu_the DESC, ten_phap_ly;
 
 -- [aivb-k2-phan-bo-thu-no-khong-co-lenh] solution
@@ -151,103 +137,61 @@ SELECT COUNT(*) AS so_hop_dong,
        (SELECT so_hd FROM khong_co_lai) AS so_hd_khong_co_lai
 FROM doi_soat;
 
--- [aivb-k4-tinh-thieu-nghe-nghiep] solution
-WITH theo_tinh AS (
-  SELECT residence_province,
-         COUNT(*) AS so_ca_nhan,
-         COUNT(CASE WHEN occupation_code IS NULL THEN 1 END) AS so_thieu
-  FROM core_person
-  GROUP BY residence_province
-),
-muc_chung AS (
-  SELECT 100 * SUM(so_thieu) / SUM(so_ca_nhan) AS ty_le_chung FROM theo_tinh
-)
-SELECT t.residence_province, t.so_ca_nhan, t.so_thieu,
-       ROUND(100 * t.so_thieu / t.so_ca_nhan, 2) AS ty_le_thieu_pct,
-       ROUND(m.ty_le_chung, 2) AS ty_le_chung_pct
-FROM theo_tinh t
-CROSS JOIN muc_chung m
-WHERE 100 * t.so_thieu / t.so_ca_nhan > m.ty_le_chung
-ORDER BY ty_le_thieu_pct DESC, t.residence_province;
+-- [aivb-k4-thieu-nghe-nghiep-theo-viec-lam] solution
+SELECT employment_status,
+       COUNT(*) AS so_thieu
+FROM core_person
+WHERE occupation_code IS NULL
+GROUP BY employment_status
+ORDER BY so_thieu DESC, employment_status;
 
--- [aivb-k4-tinh-thieu-nghe-nghiep] wrong: binh_quan_cac_tinh
-WITH theo_tinh AS (
-  SELECT residence_province,
-         COUNT(*) AS so_ca_nhan,
-         COUNT(CASE WHEN occupation_code IS NULL THEN 1 END) AS so_thieu
-  FROM core_person
-  GROUP BY residence_province
-),
-muc_chung AS (
-  SELECT AVG(100 * so_thieu / so_ca_nhan) AS ty_le_chung FROM theo_tinh
-)
-SELECT t.residence_province, t.so_ca_nhan, t.so_thieu,
-       ROUND(100 * t.so_thieu / t.so_ca_nhan, 2) AS ty_le_thieu_pct,
-       ROUND(m.ty_le_chung, 2) AS ty_le_chung_pct
-FROM theo_tinh t
-CROSS JOIN muc_chung m
-WHERE 100 * t.so_thieu / t.so_ca_nhan > m.ty_le_chung
-ORDER BY ty_le_thieu_pct DESC, t.residence_province;
+-- [aivb-k4-thieu-nghe-nghiep-theo-viec-lam] wrong: so_sanh_bang_null
+SELECT employment_status,
+       COUNT(*) AS so_thieu
+FROM core_person
+WHERE occupation_code = NULL
+GROUP BY employment_status
+ORDER BY so_thieu DESC, employment_status;
 
--- [aivb-k4-tinh-thieu-nghe-nghiep] wrong: count_cot_bo_null
-WITH theo_tinh AS (
-  SELECT residence_province,
-         COUNT(*) AS so_ca_nhan,
-         COUNT(occupation_code) AS so_thieu
-  FROM core_person
-  GROUP BY residence_province
-),
-muc_chung AS (
-  SELECT 100 * SUM(so_thieu) / SUM(so_ca_nhan) AS ty_le_chung FROM theo_tinh
-)
-SELECT t.residence_province, t.so_ca_nhan, t.so_thieu,
-       ROUND(100 * t.so_thieu / t.so_ca_nhan, 2) AS ty_le_thieu_pct,
-       ROUND(m.ty_le_chung, 2) AS ty_le_chung_pct
-FROM theo_tinh t
-CROSS JOIN muc_chung m
-WHERE 100 * t.so_thieu / t.so_ca_nhan > m.ty_le_chung
-ORDER BY ty_le_thieu_pct DESC, t.residence_province;
+-- [aivb-k4-thieu-nghe-nghiep-theo-viec-lam] wrong: count_cot_bo_null
+SELECT employment_status,
+       COUNT(occupation_code) AS so_thieu
+FROM core_person
+WHERE occupation_code IS NULL
+GROUP BY employment_status
+ORDER BY so_thieu DESC, employment_status;
 
--- [aivb-k5-trang-thai-khoan-vay-mau-thuan] solution
-WITH ky AS (
-  SELECT loan_id, COUNT(CASE WHEN schedule_status = 'OVERDUE' THEN 1 END) AS so_ky_qua_han
-  FROM core_loan_schedule
-  GROUP BY loan_id
-)
-SELECT l.loan_status,
-       COUNT(*) AS so_khoan_vay,
-       COUNT(CASE WHEN COALESCE(ky.so_ky_qua_han, 0) > 0 THEN 1 END) AS so_co_ky_qua_han,
-       COUNT(CASE WHEN l.outstanding = 0 THEN 1 END) AS so_du_no_bang_0
+-- [aivb-k5-du-no-lech-lich-tra-no] solution
+SELECT l.loan_id, l.loan_status,
+       l.outstanding AS du_no,
+       SUM(s.principal_due - s.principal_paid) AS goc_con_lai
 FROM core_loan_contract l
-LEFT JOIN ky ON ky.loan_id = l.loan_id
-GROUP BY l.loan_status
-ORDER BY l.loan_status;
+JOIN core_loan_schedule s ON s.loan_id = l.loan_id
+WHERE s.schedule_status <> 'CANCELLED'
+GROUP BY l.loan_id, l.loan_status, l.outstanding
+HAVING l.outstanding <> SUM(s.principal_due - s.principal_paid)
+ORDER BY l.loan_id;
 
--- [aivb-k5-trang-thai-khoan-vay-mau-thuan] wrong: dem_ky_thay_vi_khoan
-SELECT l.loan_status,
-       COUNT(DISTINCT l.loan_id) AS so_khoan_vay,
-       COUNT(CASE WHEN s.schedule_status = 'OVERDUE' THEN 1 END) AS so_co_ky_qua_han,
-       COUNT(DISTINCT CASE WHEN l.outstanding = 0 THEN l.loan_id END) AS so_du_no_bang_0
+-- [aivb-k5-du-no-lech-lich-tra-no] wrong: cong_ca_ky_da_huy
+SELECT l.loan_id, l.loan_status,
+       l.outstanding AS du_no,
+       SUM(s.principal_due - s.principal_paid) AS goc_con_lai
 FROM core_loan_contract l
-LEFT JOIN core_loan_schedule s ON s.loan_id = l.loan_id
-GROUP BY l.loan_status
-ORDER BY l.loan_status;
+JOIN core_loan_schedule s ON s.loan_id = l.loan_id
+GROUP BY l.loan_id, l.loan_status, l.outstanding
+HAVING l.outstanding <> SUM(s.principal_due - s.principal_paid)
+ORDER BY l.loan_id;
 
--- [aivb-k5-trang-thai-khoan-vay-mau-thuan] wrong: inner_join_mat_trang_thai
-WITH ky AS (
-  SELECT loan_id, COUNT(CASE WHEN schedule_status = 'OVERDUE' THEN 1 END) AS so_ky_qua_han
-  FROM core_loan_schedule
-  WHERE schedule_status = 'OVERDUE'
-  GROUP BY loan_id
-)
-SELECT l.loan_status,
-       COUNT(*) AS so_khoan_vay,
-       COUNT(CASE WHEN ky.so_ky_qua_han > 0 THEN 1 END) AS so_co_ky_qua_han,
-       COUNT(CASE WHEN l.outstanding = 0 THEN 1 END) AS so_du_no_bang_0
+-- [aivb-k5-du-no-lech-lich-tra-no] wrong: chi_cong_goc_ky_chua_tra
+SELECT l.loan_id, l.loan_status,
+       l.outstanding AS du_no,
+       SUM(s.principal_due) AS goc_con_lai
 FROM core_loan_contract l
-JOIN ky ON ky.loan_id = l.loan_id
-GROUP BY l.loan_status
-ORDER BY l.loan_status;
+JOIN core_loan_schedule s ON s.loan_id = l.loan_id
+WHERE s.schedule_status IN ('DUE', 'OVERDUE')
+GROUP BY l.loan_id, l.loan_status, l.outstanding
+HAVING l.outstanding <> SUM(s.principal_due)
+ORDER BY l.loan_id;
 
 -- [aivb-k6-ho-so-ngoai-hieu-luc-chinh-sach] solution
 SELECT a.policy_version_id AS chinh_sach_gan,
@@ -290,7 +234,7 @@ WITH theo_ngay AS (
   GROUP BY channel_code, transaction_date
 ),
 binh_quan AS (
-  SELECT channel_code, SUM(so_lenh_tu_choi) / 365 AS bq_ngay
+  SELECT channel_code, AVG(so_lenh_tu_choi) AS bq_ngay
   FROM theo_ngay
   GROUP BY channel_code
 )
@@ -319,30 +263,12 @@ JOIN binh_quan b ON b.channel_code = n.channel_code
 WHERE n.so_lenh_tu_choi > 3 * b.bq_ngay
 ORDER BY n.channel_code, n.transaction_date;
 
--- [aivb-k7-ngay-tu-choi-bat-thuong] wrong: chia_365_ngay
+-- [aivb-k7-ngay-tu-choi-bat-thuong] wrong: gop_ca_lenh_bi_dao
 WITH theo_ngay AS (
   SELECT channel_code, transaction_date, COUNT(*) AS so_lenh_tu_choi
   FROM core_payment_order
-  WHERE payment_status = 'REJECTED'
+  WHERE payment_status <> 'COMPLETED'
     AND transaction_date >= '2026-01-01' AND transaction_date < '2027-01-01'
-  GROUP BY channel_code, transaction_date
-),
-binh_quan AS (
-  SELECT channel_code, SUM(so_lenh_tu_choi) / 365 AS bq_ngay
-  FROM theo_ngay
-  GROUP BY channel_code
-)
-SELECT n.channel_code, n.transaction_date, n.so_lenh_tu_choi, ROUND(b.bq_ngay, 2) AS bq_ngay_kenh
-FROM theo_ngay n
-JOIN binh_quan b ON b.channel_code = n.channel_code
-WHERE n.so_lenh_tu_choi > 3 * b.bq_ngay
-ORDER BY n.channel_code, n.transaction_date;
-
--- [aivb-k7-ngay-tu-choi-bat-thuong] wrong: quen_loc_tu_choi
-WITH theo_ngay AS (
-  SELECT channel_code, transaction_date, COUNT(*) AS so_lenh_tu_choi
-  FROM core_payment_order
-  WHERE transaction_date >= '2026-01-01' AND transaction_date < '2027-01-01'
   GROUP BY channel_code, transaction_date
 ),
 binh_quan AS (
@@ -657,73 +583,38 @@ WHERE a.application_status = 'APPROVED'
 GROUP BY a.product_id
 ORDER BY a.product_id;
 
--- [aivb-p6-lich-tra-no-mot-lan-quet] starter
-SELECT p.product_id,
-       (SELECT COUNT(*) FROM core_loan_schedule s
-          JOIN core_loan_contract l ON l.loan_id = s.loan_id
-          JOIN core_contract c ON c.contract_id = l.contract_id
-          JOIN ref_product_version v ON v.product_version_id = c.product_version_id
-         WHERE v.product_id = p.product_id AND s.schedule_status = 'PAID') AS so_ky_da_tra,
-       (SELECT COUNT(*) FROM core_loan_schedule s
-          JOIN core_loan_contract l ON l.loan_id = s.loan_id
-          JOIN core_contract c ON c.contract_id = l.contract_id
-          JOIN ref_product_version v ON v.product_version_id = c.product_version_id
-         WHERE v.product_id = p.product_id AND s.schedule_status = 'DUE') AS so_ky_den_han,
-       (SELECT COUNT(*) FROM core_loan_schedule s
-          JOIN core_loan_contract l ON l.loan_id = s.loan_id
-          JOIN core_contract c ON c.contract_id = l.contract_id
-          JOIN ref_product_version v ON v.product_version_id = c.product_version_id
-         WHERE v.product_id = p.product_id AND s.schedule_status = 'OVERDUE') AS so_ky_qua_han,
-       (SELECT COUNT(*) FROM core_loan_schedule s
-          JOIN core_loan_contract l ON l.loan_id = s.loan_id
-          JOIN core_contract c ON c.contract_id = l.contract_id
-          JOIN ref_product_version v ON v.product_version_id = c.product_version_id
-         WHERE v.product_id = p.product_id AND s.schedule_status = 'CANCELLED') AS so_ky_da_huy
-FROM ref_product p
-WHERE EXISTS (SELECT 1 FROM core_loan_contract l
-                JOIN core_contract c ON c.contract_id = l.contract_id
-                JOIN ref_product_version v ON v.product_version_id = c.product_version_id
-               WHERE v.product_id = p.product_id)
-ORDER BY p.product_id;
+-- [aivb-p6-ky-tra-no-2026-mot-lan-quet] starter
+SELECT
+  (SELECT COUNT(*) FROM core_loan_schedule WHERE schedule_status = 'PAID'
+     AND due_date >= '2026-01-01' AND due_date < '2027-01-01') AS so_ky_da_tra,
+  (SELECT COUNT(*) FROM core_loan_schedule WHERE schedule_status = 'DUE'
+     AND due_date >= '2026-01-01' AND due_date < '2027-01-01') AS so_ky_den_han,
+  (SELECT COUNT(*) FROM core_loan_schedule WHERE schedule_status = 'OVERDUE'
+     AND due_date >= '2026-01-01' AND due_date < '2027-01-01') AS so_ky_qua_han,
+  (SELECT COUNT(*) FROM core_loan_schedule WHERE schedule_status = 'CANCELLED'
+     AND due_date >= '2026-01-01' AND due_date < '2027-01-01') AS so_ky_da_huy;
 
--- [aivb-p6-lich-tra-no-mot-lan-quet] solution
-SELECT v.product_id,
-       COUNT(CASE WHEN s.schedule_status = 'PAID' THEN 1 END) AS so_ky_da_tra,
-       COUNT(CASE WHEN s.schedule_status = 'DUE' THEN 1 END) AS so_ky_den_han,
-       COUNT(CASE WHEN s.schedule_status = 'OVERDUE' THEN 1 END) AS so_ky_qua_han,
-       COUNT(CASE WHEN s.schedule_status = 'CANCELLED' THEN 1 END) AS so_ky_da_huy
-FROM core_loan_contract l
-JOIN core_contract c ON c.contract_id = l.contract_id
-JOIN ref_product_version v ON v.product_version_id = c.product_version_id
-LEFT JOIN core_loan_schedule s ON s.loan_id = l.loan_id
-GROUP BY v.product_id
-ORDER BY v.product_id;
+-- [aivb-p6-ky-tra-no-2026-mot-lan-quet] solution
+SELECT COUNT(CASE WHEN schedule_status = 'PAID' THEN 1 END) AS so_ky_da_tra,
+       COUNT(CASE WHEN schedule_status = 'DUE' THEN 1 END) AS so_ky_den_han,
+       COUNT(CASE WHEN schedule_status = 'OVERDUE' THEN 1 END) AS so_ky_qua_han,
+       COUNT(CASE WHEN schedule_status = 'CANCELLED' THEN 1 END) AS so_ky_da_huy
+FROM core_loan_schedule
+WHERE due_date >= '2026-01-01' AND due_date < '2027-01-01';
 
--- [aivb-p6-lich-tra-no-mot-lan-quet] wrong: dem_khong_dieu_kien
-SELECT v.product_id,
-       COUNT(*) AS so_ky_da_tra,
-       COUNT(CASE WHEN s.schedule_status = 'DUE' THEN 1 END) AS so_ky_den_han,
-       COUNT(CASE WHEN s.schedule_status = 'OVERDUE' THEN 1 END) AS so_ky_qua_han,
-       COUNT(CASE WHEN s.schedule_status = 'CANCELLED' THEN 1 END) AS so_ky_da_huy
-FROM core_loan_contract l
-JOIN core_contract c ON c.contract_id = l.contract_id
-JOIN ref_product_version v ON v.product_version_id = c.product_version_id
-LEFT JOIN core_loan_schedule s ON s.loan_id = l.loan_id
-GROUP BY v.product_id
-ORDER BY v.product_id;
+-- [aivb-p6-ky-tra-no-2026-mot-lan-quet] wrong: group_by_ra_nhieu_dong
+SELECT schedule_status, COUNT(*) AS so_ky
+FROM core_loan_schedule
+WHERE due_date >= '2026-01-01' AND due_date < '2027-01-01'
+GROUP BY schedule_status;
 
--- [aivb-p6-lich-tra-no-mot-lan-quet] wrong: dem_khoan_vay_thay_ky
-SELECT v.product_id,
-       COUNT(DISTINCT CASE WHEN s.schedule_status = 'PAID' THEN l.loan_id END) AS so_ky_da_tra,
-       COUNT(DISTINCT CASE WHEN s.schedule_status = 'DUE' THEN l.loan_id END) AS so_ky_den_han,
-       COUNT(DISTINCT CASE WHEN s.schedule_status = 'OVERDUE' THEN l.loan_id END) AS so_ky_qua_han,
-       COUNT(DISTINCT CASE WHEN s.schedule_status = 'CANCELLED' THEN l.loan_id END) AS so_ky_da_huy
-FROM core_loan_contract l
-JOIN core_contract c ON c.contract_id = l.contract_id
-JOIN ref_product_version v ON v.product_version_id = c.product_version_id
-LEFT JOIN core_loan_schedule s ON s.loan_id = l.loan_id
-GROUP BY v.product_id
-ORDER BY v.product_id;
+-- [aivb-p6-ky-tra-no-2026-mot-lan-quet] wrong: thieu_can_tren
+SELECT COUNT(CASE WHEN schedule_status = 'PAID' THEN 1 END) AS so_ky_da_tra,
+       COUNT(CASE WHEN schedule_status = 'DUE' THEN 1 END) AS so_ky_den_han,
+       COUNT(CASE WHEN schedule_status = 'OVERDUE' THEN 1 END) AS so_ky_qua_han,
+       COUNT(CASE WHEN schedule_status = 'CANCELLED' THEN 1 END) AS so_ky_da_huy
+FROM core_loan_schedule
+WHERE due_date >= '2026-01-01';
 
 -- [aivb-p7-but-toan-tuan-cuoi-nam] solution
 SELECT business_date AS ngay_lam_viec,
@@ -752,95 +643,50 @@ WHERE value_date >= '2026-12-25' AND value_date <= '2026-12-31'
 GROUP BY value_date
 ORDER BY value_date;
 
--- [aivb-p8-cohort-toi-uu-sai] starter
-SELECT YEAR(c.customer_since) AS nam_cohort,
-       COUNT(DISTINCT c.customer_id) AS so_khach,
-       COUNT(a.application_id) AS so_khach_vay_nam_dau,
-       ROUND(100 * COUNT(a.application_id) / COUNT(DISTINCT c.customer_id), 2) AS ty_le_pct
-FROM core_customer c
-JOIN core_loan_application a
-  ON a.party_id = c.party_id
- AND a.application_date >= c.customer_since
- AND a.application_date < DATE_ADD(c.customer_since, INTERVAL 1 YEAR)
-GROUP BY YEAR(c.customer_since)
-ORDER BY nam_cohort;
+-- [aivb-p8-lenh-tra-no-thang-12-ra-0] starter
+SELECT COUNT(*) AS so_lenh, SUM(amount) AS tong_tien
+FROM core_payment_order
+WHERE transaction_type = 'LOAN_PAYMENT'
+  AND transaction_date >= '2026-12-01' AND transaction_date < '2027-01-01'
+  AND payment_status = 'COMPLETED';
 
--- [aivb-p8-cohort-toi-uu-sai] solution
-SELECT YEAR(c.customer_since) AS nam_cohort,
-       COUNT(DISTINCT c.customer_id) AS so_khach,
-       COUNT(DISTINCT a.party_id) AS so_khach_vay_nam_dau,
-       ROUND(100 * COUNT(DISTINCT a.party_id) / COUNT(DISTINCT c.customer_id), 2) AS ty_le_pct
-FROM core_customer c
-LEFT JOIN core_loan_application a
-  ON a.party_id = c.party_id
- AND a.application_date >= c.customer_since
- AND a.application_date < DATE_ADD(c.customer_since, INTERVAL 1 YEAR)
-GROUP BY YEAR(c.customer_since)
-ORDER BY nam_cohort;
+-- [aivb-p8-lenh-tra-no-thang-12-ra-0] solution
+SELECT COUNT(*) AS so_lenh, SUM(amount) AS tong_tien
+FROM core_payment_order
+WHERE transaction_type = 'LOAN_REPAYMENT'
+  AND transaction_date >= '2026-12-01' AND transaction_date < '2027-01-01'
+  AND payment_status = 'COMPLETED';
 
--- [aivb-p8-cohort-toi-uu-sai] wrong: dieu_kien_ngay_o_where
-SELECT YEAR(c.customer_since) AS nam_cohort,
-       COUNT(DISTINCT c.customer_id) AS so_khach,
-       COUNT(DISTINCT a.party_id) AS so_khach_vay_nam_dau,
-       ROUND(100 * COUNT(DISTINCT a.party_id) / COUNT(DISTINCT c.customer_id), 2) AS ty_le_pct
-FROM core_customer c
-LEFT JOIN core_loan_application a ON a.party_id = c.party_id
-WHERE a.application_date >= c.customer_since
-  AND a.application_date < DATE_ADD(c.customer_since, INTERVAL 1 YEAR)
-GROUP BY YEAR(c.customer_since)
-ORDER BY nam_cohort;
+-- [aivb-p8-lenh-tra-no-thang-12-ra-0] wrong: like_bat_ca_giai_ngan
+SELECT COUNT(*) AS so_lenh, SUM(amount) AS tong_tien
+FROM core_payment_order
+WHERE transaction_type LIKE 'LOAN%'
+  AND transaction_date >= '2026-12-01' AND transaction_date < '2027-01-01'
+  AND payment_status = 'COMPLETED';
 
--- [aivb-p8-cohort-toi-uu-sai] wrong: dem_ho_so_thay_khach
-SELECT YEAR(c.customer_since) AS nam_cohort,
-       COUNT(DISTINCT c.customer_id) AS so_khach,
-       COUNT(a.application_id) AS so_khach_vay_nam_dau,
-       ROUND(100 * COUNT(a.application_id) / COUNT(DISTINCT c.customer_id), 2) AS ty_le_pct
-FROM core_customer c
-LEFT JOIN core_loan_application a
-  ON a.party_id = c.party_id
- AND a.application_date >= c.customer_since
- AND a.application_date < DATE_ADD(c.customer_since, INTERVAL 1 YEAR)
-GROUP BY YEAR(c.customer_since)
-ORDER BY nam_cohort;
+-- [aivb-p9-lai-du-thu-cho-vay-theo-thang] starter
+SELECT MONTH(a.accrual_date) AS thang, SUM(a.accrued_amount) AS lai_du_thu
+FROM core_interest_accrual a
+JOIN core_contract c ON c.contract_id = a.contract_id
+WHERE a.accrual_date >= '2026-01-01' AND a.accrual_date < '2027-01-01'
+GROUP BY MONTH(a.accrual_date)
+ORDER BY thang;
 
--- [aivb-p9-tong-hop-truoc-loc-sau] starter
-WITH theo_hop_dong AS (
-  SELECT contract_id, MONTH(accrual_date) AS thang, SUM(accrued_amount) AS lai
-  FROM core_interest_accrual
-  WHERE accrual_date >= '2026-01-01'
-  GROUP BY contract_id, MONTH(accrual_date)
-)
-SELECT t.thang, SUM(t.lai) AS lai_du_thu
-FROM theo_hop_dong t
-JOIN core_contract c ON c.contract_id = t.contract_id
-GROUP BY t.thang
-ORDER BY t.thang;
+-- [aivb-p9-lai-du-thu-cho-vay-theo-thang] solution
+SELECT MONTH(a.accrual_date) AS thang, SUM(a.accrued_amount) AS lai_du_thu
+FROM core_interest_accrual a
+JOIN core_loan_contract l ON l.contract_id = a.contract_id
+WHERE a.accrual_date >= '2026-01-01' AND a.accrual_date < '2027-01-01'
+GROUP BY MONTH(a.accrual_date)
+ORDER BY thang;
 
--- [aivb-p9-tong-hop-truoc-loc-sau] solution
-WITH theo_hop_dong AS (
-  SELECT contract_id, MONTH(accrual_date) AS thang, SUM(accrued_amount) AS lai
-  FROM core_interest_accrual
-  WHERE accrual_date >= '2026-01-01' AND accrual_date < '2027-01-01'
-  GROUP BY contract_id, MONTH(accrual_date)
-)
-SELECT t.thang, SUM(t.lai) AS lai_du_thu
-FROM theo_hop_dong t
-JOIN core_loan_contract l ON l.contract_id = t.contract_id
-GROUP BY t.thang
-ORDER BY t.thang;
-
--- [aivb-p9-tong-hop-truoc-loc-sau] wrong: chi_sua_bang_noi
-WITH theo_hop_dong AS (
-  SELECT contract_id, MONTH(accrual_date) AS thang, SUM(accrued_amount) AS lai
-  FROM core_interest_accrual
-  WHERE accrual_date >= '2026-01-01'
-  GROUP BY contract_id, MONTH(accrual_date)
-)
-SELECT t.thang, SUM(t.lai) AS lai_du_thu
-FROM theo_hop_dong t
-JOIN core_loan_contract l ON l.contract_id = t.contract_id
-GROUP BY t.thang
-ORDER BY t.thang;
+-- [aivb-p9-lai-du-thu-cho-vay-theo-thang] wrong: left_join_giu_moi_dong
+SELECT MONTH(a.accrual_date) AS thang, SUM(a.accrued_amount) AS lai_du_thu
+FROM core_interest_accrual a
+LEFT JOIN core_loan_contract l ON l.contract_id = a.contract_id
+WHERE a.accrual_date >= '2026-01-01' AND a.accrual_date < '2027-01-01'
+GROUP BY MONTH(a.accrual_date)
+ORDER BY thang;
 
 -- ================================================================ CASE
 

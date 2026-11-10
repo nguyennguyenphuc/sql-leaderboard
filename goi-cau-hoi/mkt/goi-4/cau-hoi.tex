@@ -211,7 +211,7 @@ Mã danh mục dùng trong đề: thương hiệu \code{brand_id} 1 Nykaa, 2 Pur
 \end{cauhoi}
 
 % ================================================================ T4 · Viết · Khó · E2 · operations
-\begin{cauhoi}[ma=mkt-t4-luat-phat-hien-so-nhat-ky, dulieu=mkt, domain=operations,
+\begin{cauhoi}[ma=mkt-t4-quy-tac-doi-chieu-nhat-ky, dulieu=mkt, domain=operations,
   hinhthuc=write, cap=hard, dang=E2, kynang={nhiều CTE, UNION ALL, EXISTS, LEFT JOIN}, bay={khoa-kep, ngay-ngoai-ky, pheu-bat-ca-so-am},
   tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
 \tieude{Quy tắc kiểm tra bắt được bao nhiêu nhiễu đã ghi?}
@@ -245,12 +245,12 @@ Mã danh mục dùng trong đề: thương hiệu \code{brand_id} 1 Nykaa, 2 Pur
 
 % ================================================================ T5 · Viết · Khó · B4 · operations
 \begin{cauhoi}[ma=mkt-t5-dang-chay-binh-quan-theo-tuan, dulieu=mkt, domain=operations,
-  hinhthuc=write, cap=hard, dang=B4, kynang={CTE, LEFT JOIN khoảng ngày, AVG}, bay={ngay-trong, lech-bien-ngay-cuoi, thieu-can-tren, tuan-chua-du},
+  hinhthuc=write, cap=hard, dang=B4, kynang={CTE, LEFT JOIN khoảng ngày, AVG}, bay={bo-chien-dich-bat-dau-truoc-ky, lech-bien-ngay-cuoi, thieu-can-tren, tuan-chua-du},
   tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.1]
 \tieude{Bình quân mỗi ngày có bao nhiêu chiến dịch đang chạy?}
-\boicanh[Chị Hạnh · Trưởng phòng marketing số]{Chị đang xếp người theo dõi chiến dịch cho quý 3. Chị cần biết quý 2 vừa rồi bình quân mỗi ngày phòng mình có bao nhiêu chiến dịch đang chạy, tính theo từng tuần.}
+\boicanh[Chị Hạnh · Trưởng phòng marketing số]{Chị đang xếp người theo dõi chiến dịch cho quý 2/2025. Chị cần biết quý 1 vừa rồi bình quân mỗi ngày phòng mình có bao nhiêu chiến dịch đang chạy, tính theo từng tuần.}
 \begin{yeucau}
-  \item Xét mọi ngày trong lịch từ ngày 1/4/2025 tới hết ngày 30/6/2025, kể cả ngày không có chiến dịch nào đang chạy.
+  \item Xét mọi ngày trong lịch từ ngày 1/1/2025 tới hết ngày 31/3/2025.
   \item Đếm cho mỗi ngày số chiến dịch đang chạy (cả ba thương hiệu) như định nghĩa ở tab Nghiệp vụ, rồi gom các ngày theo tuần.
   \item Trả về \code{week_start}, \code{so_ngay} (số ngày của tuần nằm trong khoảng xét), \code{bq_dang_chay_moi_ngay} (làm tròn 1 chữ số).
   \item Sắp \code{week_start} tăng dần.
@@ -267,11 +267,11 @@ Mã danh mục dùng trong đề: thương hiệu \code{brand_id} 1 Nykaa, 2 Pur
   \quytrinh{Vòng đời chiến dịch}{lên kế hoạch, khởi chạy, đang chạy, kết thúc, đánh giá}{}
   \khainiem{chien-dich-dang-chay}
   \khainiem{ky-va-thang-du}
-  \luuy{Tuần trong lịch bắt đầu thứ Hai, nên tuần đầu và tuần cuối của quý có thể không đủ bảy ngày. Ngày không có chiến dịch nào đang chạy vẫn là một ngày của tuần và phải tính vào bình quân. Dữ liệu chỉ có chiến dịch bắt đầu tới 24/6/2025, nên các tuần cuối tháng 6 thấp hơn thực tế; khi xếp người, chỉ nên dựa vào các tuần trước đó.}
+  \luuy{Tuần trong lịch bắt đầu thứ Hai, nên tuần đầu và tuần cuối của quý có thể không đủ bảy ngày. Bình quân của một tuần chỉ tính trên các ngày của tuần đó nằm trong quý.}
 \end{nghiepvu}
-\goiy{Cuối tháng 6 có những ngày không còn chiến dịch nào chạy. Cách nối của em có giữ được các ngày đó với số 0 không?}
+\goiy{Một chiến dịch bắt đầu cuối tháng 12/2024 vẫn có thể còn chạy vào những ngày đầu tháng 1/2025. Điều kiện lọc của em có giữ được các chiến dịch đó không?}
 \goiy{Trong CTE, lấy \code{calendar} \code{LEFT JOIN campaigns} với điều kiện \code{start_date <= cal_date} và \code{cal_date <= start_date + INTERVAL duration_days - 1 DAY}, đếm \code{COUNT(campaign_id)} theo ngày; ngoài CTE gom theo \code{week_start}.}
-\ghichuthietke{Khó: 5 bảng chỉ khoá, 3 bảng nhiễu, quan hệ mở bằng \code{erdkhoa}. Bẫy ở public: nối trong bỏ mất ngày 29/6, 30/6 (không chiến dịch nào chạy, ngày cuối muộn nhất là 28/6), tuần cuối mất hẳn và tuần 23/6 sai bình quân; lấy ngày cuối bằng ngày bắt đầu cộng thời lượng (thừa một ngày). Bẫy ở hidden-1: thiếu cận trên của lịch lấy thêm ngày 1/7/2025 vào tuần bắt đầu 30/6. Tuần đầu (31/3) chỉ có 6 ngày trong khoảng xét, tuần cuối 1 ngày.}
+\ghichuthietke{Khó: 5 bảng chỉ khoá, 3 bảng nhiễu (đủ 5 bảng theo CHOT-FORMAT mục 3; QUYET-DINH-CHUNG 1.3 bản 23:05 cho thêm bảng nhiễu khi lời giải dùng ít bảng), quan hệ mở bằng \code{erdkhoa}. Khoảng xét là quý 1/2025 (không phải quý 2) để tránh các tuần cuối tháng 6/2025 giảm về 0 chỉ vì dữ liệu dừng ở chiến dịch bắt đầu ngày 24/6/2025. Bẫy ở public: lọc chiến dịch theo ngày bắt đầu trong quý làm mất các chiến dịch bắt đầu cuối tháng 12/2024 còn chạy sang tháng 1; lấy ngày cuối bằng ngày bắt đầu cộng thời lượng (thừa một ngày); thiếu cận trên của lịch lấy thêm các tuần quý 2; chia tổng cho 7 ở tuần không đủ ngày. Tuần đầu (30/12/2024) chỉ có 5 ngày trong khoảng xét, tuần cuối (31/3/2025) 1 ngày. Mọi ngày trong quý 1 đều có chiến dịch đang chạy nên nối trong cho cùng kết quả; dùng \code{LEFT JOIN} vẫn là cách viết an toàn.}
 \end{cauhoi}
 
 % ================================================================ T6 · Viết · Khó · C4 · customer
@@ -305,9 +305,9 @@ Mã danh mục dùng trong đề: thương hiệu \code{brand_id} 1 Nykaa, 2 Pur
 \ghichuthietke{Khó: 5 bảng chỉ khoá, 4 bảng nhiễu. Bẫy ở public: ngưỡng là bình quân giản đơn (ROI khoảng 2,7 so với khoảng 1,94) làm nhóm ROI cao nhỏ đi nhiều; ngưỡng tính trên cả ba thương hiệu. Nhãn ROI theo cột \code{roi} (đã làm tròn 2 chữ số) so với ngưỡng chưa làm tròn, không lệch ở biên. v2: CTR so theo phần trăm làm tròn 2 chữ số ở cả hai vế, vì MySQL chỉ giữ 4 chữ số thập phân khi chia nên so tỷ lệ thô lệch nhãn 15 chiến dịch giữa các cách viết (người kiểm C); ba cách viết (DECIMAL, DOUBLE, chia rồi nhân 100) nay cho cùng kết quả. Mảng đổi từ customer (bản đồ) sang finance vì câu phân nhóm theo ROI, không dùng đối tượng hay phân khúc. hidden-1 bỏ chiến dịch đuôi 7.}
 \end{cauhoi}
 
-% ================================================================ T7 · Sửa lỗi · Trung bình · A3 · sales
+% ================================================================ T7 · Sửa lỗi · Dễ · A3 · sales
 \begin{cauhoi}[ma=mkt-t7-union-mat-doanh-thu, dulieu=mkt, domain=sales,
-  hinhthuc=debug, cap=medium, dang=A3, kynang={UNION, UNION ALL, CTE}, bay={union-bo-trung},
+  hinhthuc=debug, cap=easy, dang=A3, kynang={UNION, UNION ALL, CTE}, bay={union-bo-trung},
   tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
 \tieude{Doanh thu gộp quý 4/2024 và quý 1/2025 bị thiếu}
 \boicanh[Chị Mai · Kế toán quản trị]{Chị gộp doanh thu hai quý gần nhất của ba thương hiệu để lập báo cáo nửa năm, mà tổng thấp hơn hẳn so với khi cộng tay hai báo cáo quý. Em tìm giúp chị phần doanh thu bị hụt nằm ở đâu.}
@@ -318,9 +318,7 @@ Mã danh mục dùng trong đề: thương hiệu \code{brand_id} 1 Nykaa, 2 Pur
 \begin{erd}
   \erdbang{campaigns}{0,0}{campaign_id:PK, brand_id:FK*, type_id:FK, start_date*, revenue*}
   \erdbang{brands}{2,0}{brand_id:PK, brand_name}
-  \erdbang{campaign_types}{0,1}{type_id:PK, type_name}
-  \erdnoi[kieu=n-1]{campaigns.brand_id}{brands.brand_id}
-  \erdnoi[kieu=n-1]{campaigns.type_id}{campaign_types.type_id}
+  \erdnoi[kieu=n-1, tren={\code{campaigns.brand_id = brands.brand_id}}]{campaigns.brand_id}{brands.brand_id}
 \end{erd}
 \begin{nghiepvu}{Lập báo cáo doanh thu sáu tháng gần nhất để so với kế hoạch.}
   \khainiem{chien-dich}
@@ -328,7 +326,7 @@ Mã danh mục dùng trong đề: thương hiệu \code{brand_id} 1 Nykaa, 2 Pur
 \end{nghiepvu}
 \goiy{Hai chiến dịch Nykaa cùng doanh thu, một ở quý 4 và một ở quý 1, còn lại mấy dòng sau phép ghép hiện tại?}
 \goiy{Phép ghép bỏ dòng trùng là \code{UNION}; phép ghép giữ mọi dòng là \code{UNION ALL}.}
-\ghichuthietke{Trung bình: 3 bảng, ký hiệu n-1. Starter ghép bằng \code{UNION} trên (\code{brand_id}, \code{revenue}) nên mất khoảng 1.800 dòng mỗi thương hiệu có doanh thu trùng. Bài sai: bỏ ghép, lọc một khoảng tới trước 31/3 (mất ngày 31/3); đổi sang \code{UNION ALL} nhưng đếm và cộng giá trị khác nhau. Cả hai rớt ở public. Thêm \code{campaign_id} vào hai nhánh \code{UNION} cũng sửa đúng. v2: bài sai đếm và cộng giá trị khác nhau (lỗi ít gặp) thay bằng bài sai giữ \code{UNION} và thêm \code{start_date} vào hai nhánh (vẫn mất chiến dịch cùng ngày, cùng doanh thu). Cấp: cách sửa chỉ đổi một từ khoá, người duyệt cân nhắc hạ Dễ. hidden-1 bỏ chiến dịch đuôi 7.}
+\ghichuthietke{Dễ (quyết định v3, QUYET-DINH-CHUNG 2.3 mục 17 bản 23:05: bỏ ngoại lệ M7 không có Dễ; sửa một chỗ dễ thấy là Sửa lỗi Dễ): 2 bảng, chữ trên đường nối; v2 vẽ thêm \code{campaign_types}. Starter ghép bằng \code{UNION} trên (\code{brand_id}, \code{revenue}) nên mất khoảng 1.800 dòng mỗi thương hiệu có doanh thu trùng. Bài sai: bỏ ghép, lọc một khoảng tới trước 31/3 (mất ngày 31/3); đổi sang \code{UNION ALL} nhưng đếm và cộng giá trị khác nhau. Cả hai rớt ở public. Thêm \code{campaign_id} vào hai nhánh \code{UNION} cũng sửa đúng. v2: bài sai đếm và cộng giá trị khác nhau (lỗi ít gặp) thay bằng bài sai giữ \code{UNION} và thêm \code{start_date} vào hai nhánh (vẫn mất chiến dịch cùng ngày, cùng doanh thu). Cấp: cách sửa chỉ đổi một từ khoá, người duyệt cân nhắc hạ Dễ. hidden-1 bỏ chiến dịch đuôi 7.}
 \end{cauhoi}
 
 % ================================================================ T8 · Sửa lỗi · Trung bình · D1 · marketing
@@ -386,7 +384,7 @@ Mã danh mục dùng trong đề: thương hiệu \code{brand_id} 1 Nykaa, 2 Pur
 \end{nghiepvu}
 \goiy{\code{SELECT DISTINCT *} so cả những cột nào? Có hai dòng nào của bản thô giống nhau ở mọi cột đó không?}
 \goiy{Liệt kê các cột nghiệp vụ sau \code{SELECT DISTINCT}, bỏ \code{raw_id} và \code{row_index}.}
-\ghichuthietke{Khó: 5 bảng chỉ khoá, 4 bảng nhiễu. Starter \code{DISTINCT *} giữ \code{raw_id} nên không bỏ được dòng nào. Bài sai: không bỏ dòng mà đếm mã khác nhau và cộng doanh thu khác nhau (số dòng đúng, doanh thu mất các chiến dịch khác nhau có cùng doanh thu, rớt ở public); cắt cứng \code{row_index < 55555} vì thấy dòng chép nằm cuối file (qua public, rớt ở hidden-1: dòng thật \code{NY-CMP-56555} ở vị trí 55605 bị bỏ). Dòng trùng ở bản thô chép nguyên mọi cột, kể cả ô trống, nên \code{DISTINCT} gộp đúng. v2: vai đổi từ Thực tập sinh sang Chuyên viên phân tích (STYLE B.2, câu Khó); bài sai cũ (bỏ \code{raw_id}, giữ \code{row_index}) trùng kết quả starter nên đã thay. Cấp Khó do có bẫy ẩn ở hidden-1 và phải tự chọn cột nghiệp vụ; người duyệt cân nhắc hạ Trung bình.}
+\ghichuthietke{Khó: 5 bảng chỉ khoá, 4 bảng nhiễu (đủ 5 bảng theo CHOT-FORMAT mục 3; QUYET-DINH-CHUNG 1.3 bản 23:05 cho thêm bảng nhiễu khi lời giải dùng ít bảng). Giữ Khó (quyết định v3, QUYET-DINH-CHUNG 2.3 mục 17): lỗi của starter là sai định nghĩa dòng trùng (so cả cột vị trí), và bài sai cắt cứng theo vị trí chỉ lộ ở hidden-1. Starter \code{DISTINCT *} giữ \code{raw_id} nên không bỏ được dòng nào. Bài sai: không bỏ dòng mà đếm mã khác nhau và cộng doanh thu khác nhau (số dòng đúng, doanh thu mất các chiến dịch khác nhau có cùng doanh thu, rớt ở public); cắt cứng \code{row_index < 55555} vì thấy dòng chép nằm cuối file (qua public, rớt ở hidden-1: dòng thật \code{NY-CMP-56555} ở vị trí 55605 bị bỏ). Dòng trùng ở bản thô chép nguyên mọi cột, kể cả ô trống, nên \code{DISTINCT} gộp đúng. v2: vai đổi từ Thực tập sinh sang Chuyên viên phân tích (STYLE B.2, câu Khó); bài sai cũ (bỏ \code{raw_id}, giữ \code{row_index}) trùng kết quả starter nên đã thay. Cấp Khó do có bẫy ẩn ở hidden-1 và phải tự chọn cột nghiệp vụ; người duyệt cân nhắc hạ Trung bình.}
 \end{cauhoi}
 
 
@@ -445,7 +443,7 @@ Mã danh mục dùng trong đề: thương hiệu \code{brand_id} 1 Nykaa, 2 Pur
 \end{nghiepvu}
 \goiy{Mẫu số của phần trăm thay đổi là tháng này hay tháng trước?}
 \goiy{Gom doanh thu theo \code{DATE_FORMAT(start_date, '\%Y-\%m')} trong CTE, rồi lấy tháng trước bằng \code{LAG(doanh_thu) OVER (ORDER BY thang)}.}
-\ghichuthietke{Trung bình: 3 bảng, ký hiệu n-1. Bẫy ở public: tính cả tháng 6/2025 chưa đủ; chia cho tháng này. Purplle không có dòng 1/7/2025 ở hidden-1 nên bẫy thiếu cận trên của bản đồ không lộ ở câu này; đề chọn kỳ tới hết tháng 5 để bẫy tháng chưa đủ lộ ở public. hidden-1 bỏ chiến dịch đuôi 7.}
+\ghichuthietke{Trung bình: 3 bảng, ký hiệu n-1. Bẫy ở public: tính cả tháng 6/2025 chưa đủ; chia cho tháng này. Purplle không có dòng 1/7/2025 ở hidden-1 nên bẫy thiếu cận trên của bản đồ không lộ ở câu này; đề chọn kỳ tới hết tháng 5 để bẫy tháng chưa đủ lộ ở public. hidden-1 bỏ chiến dịch đuôi 7. Trùng một phần kết quả với f8, giữ vì kỹ năng khác (QUYET-DINH-CHUNG 1.6).}
 \end{cauhoi}
 
 % ================================================================ F3 · Viết · Khó · B3 · marketing
@@ -690,11 +688,11 @@ Mã danh mục dùng trong đề: thương hiệu \code{brand_id} 1 Nykaa, 2 Pur
 \begin{buoc}[ma=b4, diem=5, hinhthuc=ketluan, bang={campaigns}]{Kết luận}
   \begin{luachon}
     \phuongan*{Doanh thu tháng 2 và tháng 6 thấp vì ít chiến dịch hơn, do tháng 2 ít ngày còn tháng 6 thiếu ngày và mở thưa; doanh thu mỗi chiến dịch gần như không đổi.}
-      {Đúng. Bước 3 cho thấy số chiến dịch mỗi ngày tháng 2 ngang các tháng khác, tháng 6 thiếu ngày và thưa chiến dịch, còn doanh thu mỗi chiến dịch chỉ chênh vài phần trăm.}
+      {Đúng: Bước 3 cho thấy số chiến dịch mỗi ngày tháng 2 ngang các tháng khác, tháng 6 thiếu ngày và thưa chiến dịch, còn doanh thu mỗi chiến dịch chỉ chênh vài phần trăm.}
     \phuongan{Doanh thu tháng 6 giảm gần hai phần ba so với tháng 5, nên hiệu quả chiến dịch Nykaa đang sụt mạnh. Cần làm việc ngay với đội Nykaa trước quý 3.}
-      {Chưa đúng. Tháng 6 chưa đủ ngày và có ít chiến dịch hơn; bước 3 cho thấy doanh thu mỗi chiến dịch tháng 6 gần bằng các tháng trước.}
+      {Tháng 6 chưa đủ ngày và có ít chiến dịch hơn; bước 3 cho thấy doanh thu mỗi chiến dịch tháng 6 gần bằng các tháng trước.}
     \phuongan{Doanh thu tháng 2 giảm so với tháng 1 rồi tăng lại ở tháng 3, nên chiến dịch tháng 2 của Nykaa kém hiệu quả hơn hẳn hai tháng bên cạnh.}
-      {Chưa đúng. Tháng 2 có 28 ngày; bước 3 cho thấy số chiến dịch mỗi ngày tháng 2 không thấp hơn tháng 1 và tháng 3, còn doanh thu mỗi chiến dịch gần bằng hai tháng đó.}
+      {Tháng 2 có 28 ngày; bước 3 cho thấy số chiến dịch mỗi ngày tháng 2 không thấp hơn tháng 1 và tháng 3, còn doanh thu mỗi chiến dịch gần bằng hai tháng đó.}
   \end{luachon}
 \end{buoc}
 \ghichuthietke{Case Trung bình: 3 bảng, ký hiệu n-1, \code{[hl]} bảng đang dùng. Bài sai: bước 1 thiếu cận trên (rớt ở hidden-1, thêm tháng 2025-07); bước 2 chia cho tháng này (rớt ở public); bước 3 lấy số ngày theo lịch (tháng 6 thành 30 ngày, rớt ở public). Trên public doanh thu tháng 2 giảm khoảng 7\%, tháng 6 giảm khoảng 65\%; số chiến dịch mỗi ngày tháng 6 khoảng một nửa các tháng khác; doanh thu mỗi chiến dịch các tháng chênh dưới 5\%. Kết luận đúng không khẳng định nguyên nhân vì sao tháng 6 thưa chiến dịch (dữ liệu tổng hợp). Ở hidden-1 các nhận xét trên vẫn giữ. v2: cân độ dài ba phương án, sửa lời giải thích phương án 3 (doanh thu mỗi chiến dịch tháng 2 thấp hơn tháng 3 một chút, nên chỉ so số chiến dịch mỗi ngày), đổi người hỏi thành Anh Khánh để không trùng Anh Quân ở f3.}
@@ -753,11 +751,11 @@ Mã danh mục dùng trong đề: thương hiệu \code{brand_id} 1 Nykaa, 2 Pur
 \begin{buoc}[ma=b5, diem=10, hinhthuc=ketluan, bang={campaigns, audiences}]{Kết luận}
   \begin{luachon}
     \phuongan{Premium Shoppers có ROI cao hơn mức chung khoảng 0,8, một khoảng cách rất lớn, nên là nhóm đáng dồn thêm ngân sách năm sau cho cả ba thương hiệu.}
-      {Chưa đúng. Mức 0,8 đến từ bình quân cột \code{roi}; bước 1 tính theo tỷ lệ của tổng cho thấy Premium Shoppers chỉ hơn mức chung chưa tới 0,02.}
+      {Mức 0,8 đến từ bình quân cột \code{roi}; bước 1 tính theo tỷ lệ của tổng cho thấy Premium Shoppers chỉ hơn mức chung chưa tới 0,02.}
     \phuongan*{Premium Shoppers có ROI tổng cao nhất nhưng hơn nhóm thứ hai chưa tới 0,02, đổi hạng theo thương hiệu, vượt mức chung khoảng nửa số tháng, nên chưa hơn hẳn.}
-      {Đúng. Bước 1 cho khoảng cách nhỏ, bước 3 cho thấy thứ hạng đổi theo thương hiệu, bước 4 cho thấy nhóm này không vượt mức chung đều đặn.}
+      {Đúng: Bước 1 cho khoảng cách nhỏ, bước 3 cho thấy thứ hạng đổi theo thương hiệu, bước 4 cho thấy nhóm này không vượt mức chung đều đặn.}
     \phuongan{Premium Shoppers có ROI tổng cao nhất và CPA thấp nhất trong năm nhóm, vì vậy nhóm này hiệu quả hơn hẳn và cần được thêm ngân sách ở mọi thương hiệu.}
-      {Chưa đúng. Chênh lệch ROI và CPA giữa các nhóm rất nhỏ; bước 3 cho thấy Premium Shoppers xếp gần cuối ở Purplle.}
+      {Chênh lệch ROI và CPA giữa các nhóm rất nhỏ; bước 3 cho thấy Premium Shoppers xếp gần cuối ở Purplle.}
   \end{luachon}
 \end{buoc}
 \ghichuthietke{Case Khó: 6 bảng chỉ khoá, 2 bảng nhiễu, \code{[hl]} hai bảng chính, quan hệ mở bằng \code{erdkhoa}. Trên public ROI tổng theo đối tượng từ khoảng 1,93 tới 1,96 (Premium Shoppers cao nhất), bình quân cột \code{roi} khoảng 2,67 tới 2,71. Premium Shoppers hạng 1 ở Nykaa và Tira Beauty nhưng hạng 5 ở Purplle (hidden-1: hạng 2, 4, 2); vượt mức chung 6 trên 11 tháng ở cả hai biến thể. Bài sai: bước 1 bình quân cột \code{roi}, nối \code{audiences} qua \code{segment_id}; bước 2 bình quân \code{acquisition_cost}; bước 3 xếp hạng chung không chia theo thương hiệu; bước 4 tính cả tháng 6/2025. Tất cả rớt ở public. Kết luận không khẳng định nguyên nhân (dữ liệu tổng hợp, STYLE-mkt B.6). v2: ba phương án cân độ dài, cả hai phương án sai cũng nêu số và mức độ; người hỏi thống nhất là Anh Khánh · Giám đốc marketing như c7; b4 ghi so trên ROI chưa làm tròn vì ở hidden-1 Youth có một tháng chỉ hơn mức chung khoảng 0,00005.}

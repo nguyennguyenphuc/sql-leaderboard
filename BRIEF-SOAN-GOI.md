@@ -27,7 +27,7 @@ Thư mục gốc: C:\Cong viec\ProjectDA\sql-leaderboard\
 
 ## Đầu ra
 - goi-cau-hoi\<bo>\goi-<k>\ đúng 4 file: cau-hoi.tex, solution.sql, aio-sql-cauhoi.sty và HUONG_DAN.md (2 file sau chép nguyên từ quy_chuan\goi-cau-hoi-mau\).
-- goi-cau-hoi\<bo>\goi-<k>\BANG-PHAN-CONG.md: mã | người soạn A | người kiểm (B) | phiên bản v1 | kiểm SQL | kiểm nội dung (2 cột cuối để trống).
+- goi-cau-hoi\<bo>\ho-so\goi-<k>\BANG-PHAN-CONG.md: mã | người soạn A | người kiểm (B) | phiên bản v1 | kiểm SQL | kiểm nội dung (2 cột cuối để trống).
 - Không viết vào thư mục của gói khác.
 
 ## Tự kiểm (bắt buộc, tới khi đạt)

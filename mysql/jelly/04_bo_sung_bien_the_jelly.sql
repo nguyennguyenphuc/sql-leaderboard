@@ -16,16 +16,20 @@
 --       2026-08-10 Licorice Rescue) -> hai ngày chi bất thường của Video Network, chỉ thấy khi lấy mức nền theo từng chiến dịch
 --   (i) player_daily jta_user_003773 · 2026-08-24: install_date ghi lệch 1 ngày (2026-07-14 thay 2026-07-15),
 --       cohort_day 41 tính theo ngày ghi lệch -> chỉ đối chiếu với users mới thấy lệch
+--   (j) v3 10/11: jta_user_000648 (GB, Organic) có thêm hoạt động 2026-08-30 (1 phiên, 1 giao dịch Booster Bundle 4,99 USD
+--       gắn màn 57 = max_level trong ngày, 1 dòng player_daily) -> ngày 30/8 nằm trong tháng 8 nhưng sau ngày cuối của public:
+--       bài gắn cứng event_date <= '2026-08-29' (jelly-r8) rớt ở hidden-1; daily_kpi có thêm dòng 2026-08-30
 
 USE jelly_hidden_1;
 
 -- ------------------------------------------------------------------ xoá dòng giả cũ (theo khoá riêng)
-DELETE FROM purchases      WHERE transaction_id = 'jta_txn_00002663';
+DELETE FROM purchases      WHERE transaction_id IN ('jta_txn_00002663', 'jta_txn_00002664');
 DELETE FROM level_attempts WHERE attempt_id IN ('jta_attempt_000249779', 'jta_attempt_000249780');
 DELETE FROM player_daily   WHERE user_id = 'jta_user_001174' AND activity_date IN ('2026-09-01', '2026-09-02');
-DELETE FROM sessions       WHERE session_id IN ('jta_session_00122700', 'jta_session_00122701');
+DELETE FROM player_daily   WHERE user_id = 'jta_user_000648' AND activity_date = '2026-08-30';
+DELETE FROM sessions       WHERE session_id IN ('jta_session_00122700', 'jta_session_00122701', 'jta_session_00122702');
 DELETE FROM liveops_events WHERE event_id = 'LIVE_004';
-DELETE FROM daily_kpi      WHERE `date` >= '2026-09-01';
+DELETE FROM daily_kpi      WHERE `date` >= '2026-08-30';
 
 -- ------------------------------------------------------------------ (d) gắn màn cho giao dịch Booster Bundle 2026-09-01
 UPDATE purchases SET level_id_if_relevant = 58 WHERE transaction_id = 'jta_txn_00002662';
@@ -52,6 +56,15 @@ INSERT INTO player_daily VALUES
   ('jta_user_001174', '2026-07-05', '2026-09-02', 59, 'iOS', 'VN', 'Social Ads', 'JTA-SOCIAL-204',
    '2.0.2', 1, 7, 60, 0, 0, 0, 0.00, 0.0000);
 
+-- ------------------------------------------------------------------ (j) jta_user_000648: giao dịch GB ngày 2026-08-30
+INSERT INTO sessions VALUES
+  ('jta_session_00122702', 'jta_user_000648', '2026-08-30 10:22:00', '2026-08-30', '2026-08-30 10:22:00', 9, 'shop', '2.1.1', 'Android', 'GB');
+INSERT INTO purchases VALUES ('jta_txn_00002664', 'jta_user_000648', '2026-08-30', '2026-08-30 10:25:40',
+  'jta_session_00122702', 'booster_bundle', 'Booster Bundle', 4.99, 57, 'Shop screen', 'USD', 0, '2.1.1', 'Android', 'GB');
+INSERT INTO player_daily VALUES
+  ('jta_user_000648', '2026-07-03', '2026-08-30', 58, 'Android', 'GB', 'Organic', 'ORG-000',
+   '2.1.1', 1, 9, 57, 0, 0, 0, 4.99, 0.0000);
+
 -- ------------------------------------------------------------------ (f) đổi nhãn độ khó màn 45, 59
 UPDATE level_metadata SET difficulty_tag = 'super_hard' WHERE level_id = 45;
 UPDATE level_attempts SET difficulty_tag = 'super_hard' WHERE level_id = 45;
@@ -73,14 +86,14 @@ WHERE h.`date` IN ('2026-07-11', '2026-08-10') AND h.campaign_id = 'JTA-VIDEO-33
 UPDATE player_daily SET install_date = '2026-07-14', cohort_day = 41
 WHERE user_id = 'jta_user_003773' AND activity_date = '2026-08-24';
 
--- ------------------------------------------------------------------ daily_kpi tháng 9 tính lại (công thức của public / 03)
+-- ------------------------------------------------------------------ daily_kpi từ 30/8 tính lại (công thức của public / 03)
 INSERT INTO daily_kpi (`date`, dau, new_users, sessions, playtime_minutes, iap_revenue, ad_revenue, crash_count, arpdau)
 SELECT p.activity_date, COUNT(*), COALESCE(MAX(u.n), 0), SUM(p.sessions), SUM(p.playtime_minutes),
        ROUND(SUM(p.iap_revenue), 2), ROUND(SUM(p.ad_revenue), 2), SUM(p.crash_count),
        ROUND((SUM(p.iap_revenue) + SUM(p.ad_revenue)) / COUNT(*), 4)
 FROM player_daily p
 LEFT JOIN (SELECT install_date, COUNT(*) AS n FROM users GROUP BY install_date) u ON u.install_date = p.activity_date
-WHERE p.activity_date >= '2026-09-01'
+WHERE p.activity_date >= '2026-08-30'
 GROUP BY p.activity_date;
 
 ANALYZE TABLE sessions, level_attempts, purchases, player_daily, level_metadata, liveops_events, campaign_spend, daily_kpi;

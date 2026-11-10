@@ -52,9 +52,7 @@ WHERE NOT EXISTS (SELECT 1 FROM inventory_snapshots v
 ORDER BY b.store_nbr, b.item_nbr;
 
 -- [scm-k2-ngay-le-ghi-hai-dong] solution
-SELECT `date` AS ngay, locale_name,
-       COUNT(*)                    AS so_dong,
-       COUNT(DISTINCT description) AS so_mo_ta
+SELECT `date` AS ngay, locale_name, COUNT(*) AS so_dong
 FROM holidays
 GROUP BY `date`, locale_name
 HAVING COUNT(*) > 1
@@ -62,22 +60,18 @@ ORDER BY ngay, locale_name;
 
 -- [scm-k2-ngay-le-ghi-hai-dong] wrong: khoa_chi_co_ngay
 -- Gom theo ngày: hai địa phương khác nhau cùng ngày cũng bị tính là trùng.
-SELECT `date` AS ngay, MIN(locale_name) AS locale_name,
-       COUNT(*)                    AS so_dong,
-       COUNT(DISTINCT description) AS so_mo_ta
+SELECT `date` AS ngay, MIN(locale_name) AS locale_name, COUNT(*) AS so_dong
 FROM holidays
 GROUP BY `date`
 HAVING COUNT(*) > 1
 ORDER BY ngay, locale_name;
 
--- [scm-k2-ngay-le-ghi-hai-dong] wrong: khoa_them_loai_ngay
--- Thêm type vào khoá: bỏ sót cặp ngày, địa phương có hai dòng khác loại ngày.
-SELECT `date` AS ngay, locale_name,
-       COUNT(*)                    AS so_dong,
-       COUNT(DISTINCT description) AS so_mo_ta
+-- [scm-k2-ngay-le-ghi-hai-dong] wrong: loc_theo_so_mo_ta
+-- Chỉ giữ cặp có hai mô tả khác nhau: bỏ sót dòng chép y hệt (hidden-1, Phan Thiết 2/3/2016).
+SELECT `date` AS ngay, locale_name, COUNT(*) AS so_dong
 FROM holidays
-GROUP BY `date`, locale_name, type
-HAVING COUNT(*) > 1
+GROUP BY `date`, locale_name
+HAVING COUNT(DISTINCT description) > 1
 ORDER BY ngay, locale_name;
 
 -- [scm-k3-co-dung-han-mau-thuan] starter
@@ -102,32 +96,31 @@ WHERE is_cancelled = 0
   AND on_time <> (TIMESTAMPDIFF(HOUR, created_at, delivered_at) <= promised_h)
 ORDER BY order_id;
 
--- [scm-k4-giao-dich-thap-bat-thuong] solution
-WITH tb AS (
-  SELECT store_nbr, `date`, transactions,
-         AVG(transactions) OVER (PARTITION BY store_nbr) AS tb_cua_hang
-  FROM transactions
-)
-SELECT store_nbr, `date` AS ngay, transactions,
-       ROUND(tb_cua_hang, 1)                       AS tb_cua_hang,
-       ROUND(100 * transactions / tb_cua_hang, 1)  AS ty_le_pct
-FROM tb
-WHERE transactions < 0.2 * tb_cua_hang
-ORDER BY ty_le_pct, store_nbr;
+-- [scm-k4-mien-gia-tri-giao-dich-2016] solution
+SELECT COUNT(*)                     AS so_dong,
+       MIN(transactions)            AS gd_nho_nhat,
+       MAX(transactions)            AS gd_lon_nhat,
+       ROUND(AVG(transactions), 1)  AS gd_trung_binh
+FROM transactions
+WHERE `date` >= '2016-01-01' AND `date` < '2017-01-01';
 
--- [scm-k4-giao-dich-thap-bat-thuong] wrong: trung_binh_toan_chuoi
--- So với trung bình của cả chuỗi: cửa hàng nhỏ ngày nào cũng bị gắn cờ, cửa hàng lớn thì sót.
-WITH tb AS (
-  SELECT store_nbr, `date`, transactions,
-         AVG(transactions) OVER () AS tb_cua_hang
-  FROM transactions
-)
-SELECT store_nbr, `date` AS ngay, transactions,
-       ROUND(tb_cua_hang, 1)                       AS tb_cua_hang,
-       ROUND(100 * transactions / tb_cua_hang, 1)  AS ty_le_pct
-FROM tb
-WHERE transactions < 0.2 * tb_cua_hang
-ORDER BY ty_le_pct, store_nbr;
+-- [scm-k4-mien-gia-tri-giao-dich-2016] wrong: thieu_can_tren
+-- Chỉ có cận dưới: lấy cả các ngày năm 2017.
+SELECT COUNT(*)                     AS so_dong,
+       MIN(transactions)            AS gd_nho_nhat,
+       MAX(transactions)            AS gd_lon_nhat,
+       ROUND(AVG(transactions), 1)  AS gd_trung_binh
+FROM transactions
+WHERE `date` >= '2016-01-01';
+
+-- [scm-k4-mien-gia-tri-giao-dich-2016] wrong: dem_ngay_thay_so_dong
+-- Đếm số ngày khác nhau: mỗi ngày có nhiều cửa hàng nên số này nhỏ hơn số dòng rất nhiều.
+SELECT COUNT(DISTINCT `date`)       AS so_dong,
+       MIN(transactions)            AS gd_nho_nhat,
+       MAX(transactions)            AS gd_lon_nhat,
+       ROUND(AVG(transactions), 1)  AS gd_trung_binh
+FROM transactions
+WHERE `date` >= '2016-01-01' AND `date` < '2017-01-01';
 
 -- [scm-k5-tuan-khong-co-chuyen-giao] solution
 WITH t AS (
@@ -160,58 +153,43 @@ FROM t
 WHERE DATEDIFF(tuan_cuoi, '2012-12-31') DIV 7 + 1 > so_tuan_co_chuyen
 ORDER BY so_tuan_thieu DESC, store_nbr;
 
--- [scm-k6-doi-soat-don-can-xu-ly] solution
-WITH d AS (
-  SELECT dest_hub_id, order_date,
-         COUNT(*)                                 AS so_don,
-         COUNT(CASE WHEN is_cancelled = 0 THEN 1 END) AS so_don_khong_huy
-  FROM orders
-  GROUP BY dest_hub_id, order_date
-)
-SELECT w.hub_id,
-       COUNT(*) AS so_ngay,
-       SUM(w.orders_to_process <> COALESCE(d.so_don, 0))           AS ngay_lech_moi_don,
-       SUM(w.orders_to_process <> COALESCE(d.so_don_khong_huy, 0)) AS ngay_lech_khong_huy
+-- [scm-k6-don-can-xu-ly-kho-hue] solution
+SELECT w.`date` AS ngay,
+       w.orders_to_process                            AS don_can_xu_ly,
+       COUNT(*)                                       AS so_don,
+       COUNT(CASE WHEN o.is_cancelled = 0 THEN 1 END) AS so_don_khong_huy
 FROM warehouse_daily_ops w
-LEFT JOIN d ON d.dest_hub_id = w.hub_id AND d.order_date = w.`date`
-GROUP BY w.hub_id
-ORDER BY w.hub_id;
+JOIN orders o ON o.dest_hub_id = w.hub_id AND o.order_date = w.`date`
+WHERE w.hub_id = 'HUB_HUE'
+  AND w.`date` >= '2017-07-01' AND w.`date` < '2017-08-01'
+GROUP BY w.`date`, w.orders_to_process
+ORDER BY ngay;
 
--- [scm-k6-doi-soat-don-can-xu-ly] wrong: inner_join_mat_ngay_khong_co_don
--- INNER JOIN bỏ mất những ngày kho có dòng vận hành nhưng không có đơn nào.
-WITH d AS (
-  SELECT dest_hub_id, order_date,
-         COUNT(*)                                 AS so_don,
-         COUNT(CASE WHEN is_cancelled = 0 THEN 1 END) AS so_don_khong_huy
-  FROM orders
-  GROUP BY dest_hub_id, order_date
-)
-SELECT w.hub_id,
-       COUNT(*) AS so_ngay,
-       SUM(w.orders_to_process <> d.so_don)           AS ngay_lech_moi_don,
-       SUM(w.orders_to_process <> d.so_don_khong_huy) AS ngay_lech_khong_huy
+-- [scm-k6-don-can-xu-ly-kho-hue] wrong: else_0_trong_count
+-- ELSE 0 vẫn là giá trị khác NULL nên COUNT đếm cả đơn huỷ: cột cuối bằng số mọi đơn.
+SELECT w.`date` AS ngay,
+       w.orders_to_process                                   AS don_can_xu_ly,
+       COUNT(*)                                              AS so_don,
+       COUNT(CASE WHEN o.is_cancelled = 0 THEN 1 ELSE 0 END) AS so_don_khong_huy
 FROM warehouse_daily_ops w
-JOIN d ON d.dest_hub_id = w.hub_id AND d.order_date = w.`date`
-GROUP BY w.hub_id
-ORDER BY w.hub_id;
+JOIN orders o ON o.dest_hub_id = w.hub_id AND o.order_date = w.`date`
+WHERE w.hub_id = 'HUB_HUE'
+  AND w.`date` >= '2017-07-01' AND w.`date` < '2017-08-01'
+GROUP BY w.`date`, w.orders_to_process
+ORDER BY ngay;
 
--- [scm-k6-doi-soat-don-can-xu-ly] wrong: gan_don_cho_kho_xuat
--- Gán đơn cho kho xuất (origin_hub_id): kho vệ tinh không có đơn nào, kho chính bị cộng cả đơn của kho vệ tinh.
-WITH d AS (
-  SELECT origin_hub_id, order_date,
-         COUNT(*)                                 AS so_don,
-         COUNT(CASE WHEN is_cancelled = 0 THEN 1 END) AS so_don_khong_huy
-  FROM orders
-  GROUP BY origin_hub_id, order_date
-)
-SELECT w.hub_id,
-       COUNT(*) AS so_ngay,
-       SUM(w.orders_to_process <> COALESCE(d.so_don, 0))           AS ngay_lech_moi_don,
-       SUM(w.orders_to_process <> COALESCE(d.so_don_khong_huy, 0)) AS ngay_lech_khong_huy
+-- [scm-k6-don-can-xu-ly-kho-hue] wrong: noi_theo_kho_xuat
+-- Nối theo kho xuất: kho Huế không xuất đơn nào nên kết quả rỗng.
+SELECT w.`date` AS ngay,
+       w.orders_to_process                            AS don_can_xu_ly,
+       COUNT(*)                                       AS so_don,
+       COUNT(CASE WHEN o.is_cancelled = 0 THEN 1 END) AS so_don_khong_huy
 FROM warehouse_daily_ops w
-LEFT JOIN d ON d.origin_hub_id = w.hub_id AND d.order_date = w.`date`
-GROUP BY w.hub_id
-ORDER BY w.hub_id;
+JOIN orders o ON o.origin_hub_id = w.hub_id AND o.order_date = w.`date`
+WHERE w.hub_id = 'HUB_HUE'
+  AND w.`date` >= '2017-07-01' AND w.`date` < '2017-08-01'
+GROUP BY w.`date`, w.orders_to_process
+ORDER BY ngay;
 
 -- [scm-k7-doi-soat-nhan-su] starter
 SELECT w.hub_id,
@@ -584,76 +562,90 @@ FROM kq
 WHERE lt_tb > tb_nganh
 ORDER BY family, lt_tb DESC, supplier_id;
 
--- [scm-p4-ty-trong-von-ton-nganh] starter
-SELECT i.family,
-       ROUND(SUM(v.inventory_value), 0) AS von_ton,
-       ROUND(100 * SUM(v.inventory_value)
-             / (SELECT SUM(inventory_value) FROM inventory_snapshots
-                WHERE ym = (SELECT MAX(ym) FROM inventory_snapshots)), 2) AS ty_trong_pct
-FROM inventory_snapshots v
-JOIN items i ON i.item_nbr = v.item_nbr
-WHERE v.ym = (SELECT MAX(ym) FROM inventory_snapshots)
-GROUP BY i.family
-ORDER BY von_ton DESC, i.family;
+-- [scm-p4-von-ton-hang-khong-ban] starter
+SELECT
+  (SELECT ROUND(SUM(inventory_value), 0) FROM inventory_snapshots
+     WHERE ym = '2017-07') AS von_ton,
+  (SELECT ROUND(SUM(inventory_value), 0) FROM inventory_snapshots
+     WHERE ym = '2017-07' AND sold = 0) AS von_ton_khong_ban,
+  (SELECT COUNT(*) FROM inventory_snapshots
+     WHERE ym = '2017-07' AND sold = 0) AS so_dong_khong_ban;
 
--- [scm-p4-ty-trong-von-ton-nganh] solution
-SELECT i.family,
-       ROUND(SUM(v.inventory_value), 0) AS von_ton,
-       ROUND(100 * SUM(v.inventory_value) / SUM(SUM(v.inventory_value)) OVER (), 2) AS ty_trong_pct
-FROM inventory_snapshots v
-JOIN items i ON i.item_nbr = v.item_nbr
-WHERE v.ym = (SELECT MAX(ym) FROM inventory_snapshots)
-GROUP BY i.family
-ORDER BY von_ton DESC, i.family;
+-- [scm-p4-von-ton-hang-khong-ban] solution
+SELECT ROUND(SUM(inventory_value), 0)                             AS von_ton,
+       ROUND(SUM(CASE WHEN sold = 0 THEN inventory_value END), 0) AS von_ton_khong_ban,
+       COUNT(CASE WHEN sold = 0 THEN 1 END)                       AS so_dong_khong_ban
+FROM inventory_snapshots
+WHERE ym = '2017-07';
 
--- [scm-p4-ty-trong-von-ton-nganh] wrong: ghi_cung_ky_2017_08
--- Ghi cứng kỳ đang thấy khi Chạy thử: báo cáo không tự sang kỳ mới (rớt ở hidden-1, có kỳ 2017-09).
-SELECT i.family,
-       ROUND(SUM(v.inventory_value), 0) AS von_ton,
-       ROUND(100 * SUM(v.inventory_value) / SUM(SUM(v.inventory_value)) OVER (), 2) AS ty_trong_pct
-FROM inventory_snapshots v
-JOIN items i ON i.item_nbr = v.item_nbr
-WHERE v.ym = '2017-08'
-GROUP BY i.family
-ORDER BY von_ton DESC, i.family;
+-- [scm-p4-von-ton-hang-khong-ban] wrong: quen_loc_ky
+-- Bỏ điều kiện kỳ: cộng vốn tồn của mọi kỳ từ 2017-01 tới 2017-08.
+SELECT ROUND(SUM(inventory_value), 0)                             AS von_ton,
+       ROUND(SUM(CASE WHEN sold = 0 THEN inventory_value END), 0) AS von_ton_khong_ban,
+       COUNT(CASE WHEN sold = 0 THEN 1 END)                       AS so_dong_khong_ban
+FROM inventory_snapshots;
 
--- [scm-p4-ty-trong-von-ton-nganh] wrong: tong_moi_ky
--- Mẫu số lấy tổng vốn tồn của mọi kỳ: tỷ trọng cộng lại không ra 100%.
-SELECT i.family,
-       ROUND(SUM(v.inventory_value), 0) AS von_ton,
-       ROUND(100 * SUM(v.inventory_value)
-             / (SELECT SUM(inventory_value) FROM inventory_snapshots), 2) AS ty_trong_pct
-FROM inventory_snapshots v
-JOIN items i ON i.item_nbr = v.item_nbr
-WHERE v.ym = (SELECT MAX(ym) FROM inventory_snapshots)
-GROUP BY i.family
-ORDER BY von_ton DESC, i.family;
+-- [scm-p4-von-ton-hang-khong-ban] wrong: cong_ton_cuoi_ky_thay_von_ton
+-- Cộng tồn cuối kỳ (số lượng) thay cho vốn tồn (tiền).
+SELECT ROUND(SUM(on_hand_end), 0)                             AS von_ton,
+       ROUND(SUM(CASE WHEN sold = 0 THEN on_hand_end END), 0) AS von_ton_khong_ban,
+       COUNT(CASE WHEN sold = 0 THEN 1 END)                   AS so_dong_khong_ban
+FROM inventory_snapshots
+WHERE ym = '2017-07';
 
--- [scm-p5-luy-ke-giao-dich-thang-7] starter
-SELECT a.store_nbr, a.`date` AS ngay, a.transactions AS giao_dich,
-       SUM(b.transactions) AS luy_ke
-FROM transactions a
-JOIN transactions b
-  ON b.store_nbr = a.store_nbr
- AND b.`date` >= '2017-07-01'
- AND b.`date` <= a.`date`
-WHERE a.`date` >= '2017-07-01' AND a.`date` < '2017-08-01'
-GROUP BY a.store_nbr, a.`date`, a.transactions
-ORDER BY a.store_nbr, ngay;
+-- [scm-p5-giao-dich-theo-loai-cua-hang] starter
+SELECT 'A' AS type, COUNT(DISTINCT t.store_nbr) AS so_cua_hang, ROUND(AVG(t.transactions), 1) AS gd_tb
+FROM transactions t JOIN stores s ON s.store_nbr = t.store_nbr
+WHERE s.type = 'A' AND t.`date` >= '2016-01-01' AND t.`date` < '2017-01-01'
+UNION ALL
+SELECT 'B', COUNT(DISTINCT t.store_nbr), ROUND(AVG(t.transactions), 1)
+FROM transactions t JOIN stores s ON s.store_nbr = t.store_nbr
+WHERE s.type = 'B' AND t.`date` >= '2016-01-01' AND t.`date` < '2017-01-01'
+UNION ALL
+SELECT 'C', COUNT(DISTINCT t.store_nbr), ROUND(AVG(t.transactions), 1)
+FROM transactions t JOIN stores s ON s.store_nbr = t.store_nbr
+WHERE s.type = 'C' AND t.`date` >= '2016-01-01' AND t.`date` < '2017-01-01'
+UNION ALL
+SELECT 'D', COUNT(DISTINCT t.store_nbr), ROUND(AVG(t.transactions), 1)
+FROM transactions t JOIN stores s ON s.store_nbr = t.store_nbr
+WHERE s.type = 'D' AND t.`date` >= '2016-01-01' AND t.`date` < '2017-01-01'
+UNION ALL
+SELECT 'E', COUNT(DISTINCT t.store_nbr), ROUND(AVG(t.transactions), 1)
+FROM transactions t JOIN stores s ON s.store_nbr = t.store_nbr
+WHERE s.type = 'E' AND t.`date` >= '2016-01-01' AND t.`date` < '2017-01-01'
+ORDER BY type;
 
--- [scm-p5-luy-ke-giao-dich-thang-7] solution
-SELECT store_nbr, `date` AS ngay, transactions AS giao_dich,
-       SUM(transactions) OVER (PARTITION BY store_nbr ORDER BY `date`) AS luy_ke
-FROM transactions
-WHERE `date` >= '2017-07-01' AND `date` < '2017-08-01'
-ORDER BY store_nbr, ngay;
+-- [scm-p5-giao-dich-theo-loai-cua-hang] solution
+SELECT s.type,
+       COUNT(DISTINCT t.store_nbr)    AS so_cua_hang,
+       ROUND(AVG(t.transactions), 1)  AS gd_tb
+FROM transactions t
+JOIN stores s ON s.store_nbr = t.store_nbr
+WHERE t.`date` >= '2016-01-01' AND t.`date` < '2017-01-01'
+GROUP BY s.type
+ORDER BY s.type;
 
--- [scm-p5-luy-ke-giao-dich-thang-7] wrong: quen_partition_theo_cua_hang
-SELECT store_nbr, `date` AS ngay, transactions AS giao_dich,
-       SUM(transactions) OVER (ORDER BY `date`) AS luy_ke
-FROM transactions
-WHERE `date` >= '2017-07-01' AND `date` < '2017-08-01'
-ORDER BY store_nbr, ngay;
+-- [scm-p5-giao-dich-theo-loai-cua-hang] wrong: dem_dong_thay_cua_hang
+-- COUNT(*) đếm số dòng (cửa hàng trong ngày), không đếm số cửa hàng.
+SELECT s.type,
+       COUNT(*)                       AS so_cua_hang,
+       ROUND(AVG(t.transactions), 1)  AS gd_tb
+FROM transactions t
+JOIN stores s ON s.store_nbr = t.store_nbr
+WHERE t.`date` >= '2016-01-01' AND t.`date` < '2017-01-01'
+GROUP BY s.type
+ORDER BY s.type;
+
+-- [scm-p5-giao-dich-theo-loai-cua-hang] wrong: thieu_can_tren
+-- Chỉ có cận dưới: lấy cả các ngày năm 2017.
+SELECT s.type,
+       COUNT(DISTINCT t.store_nbr)    AS so_cua_hang,
+       ROUND(AVG(t.transactions), 1)  AS gd_tb
+FROM transactions t
+JOIN stores s ON s.store_nbr = t.store_nbr
+WHERE t.`date` >= '2016-01-01'
+GROUP BY s.type
+ORDER BY s.type;
 
 -- [scm-p6-don-truot-7-ngay] starter
 SELECT a.hub_id, a.`date` AS ngay, a.orders_to_process AS don_can_xu_ly,

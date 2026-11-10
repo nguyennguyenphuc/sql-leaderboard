@@ -100,7 +100,7 @@ Mã danh mục dùng trong đề: thương hiệu \code{brand_id} 1 Nykaa, 2 Pur
 \begin{cauhoi}[ma=mkt-r1-influencer-purplle-thang-1, dulieu=mkt, domain=marketing,
   hinhthuc=write, cap=basic, dang=A1, kynang={WHERE, AND, ORDER BY}, bay={thieu-can-tren, chieu-sap-xep},
   tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, socot=vitri]
-\tieude{Chiến dịch Influencer nào của Purplle có trên 98.000 lượt hiển thị trong tháng 1/2025?}
+\tieude{Chiến dịch Influencer nào của Purplle vượt 98.000 lượt hiển thị tháng 1/2025?}
 \boicanh[Chị Ngân · Quản lý thương hiệu Purplle]{Tháng sau Purplle ký lại hợp đồng với người ảnh hưởng. Chị cần danh sách chiến dịch Influencer tháng 1 có lượt hiển thị trên 98.000.}
 \begin{yeucau}
   \item Xét các chiến dịch của Purplle (\code{brand_id = 2}), loại Influencer (marketing người ảnh hưởng, \code{type_id = 2}), bắt đầu từ ngày 1/1/2025 tới hết ngày 31/1/2025.
@@ -125,7 +125,7 @@ Mã danh mục dùng trong đề: thương hiệu \code{brand_id} 1 Nykaa, 2 Pur
 \begin{cauhoi}[ma=mkt-r2-working-women-tamil-tira, dulieu=mkt, domain=customer,
   hinhthuc=write, cap=basic, dang=A1, kynang={WHERE, AND}, bay={nham-doi-tuong-voi-phan-khuc},
   tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, socot=vitri]
-\tieude{Chiến dịch tiếng Hindi nào của Tira Beauty dành cho phụ nữ đi làm?}
+\tieude{Chiến dịch tiếng Hindi nào của Tira Beauty nhắm phụ nữ đi làm?}
 \boicanh[Anh Tùng · Chuyên viên phân tích marketing]{Dịp 8/3 vừa rồi Tira Beauty mở nhiều chiến dịch cho khách nữ. Anh cần danh sách chiến dịch tiếng Hindi nhắm phụ nữ đi làm mở đúng ngày đó.}
 \begin{yeucau}
   \item Xét các chiến dịch của Tira Beauty (\code{brand_id = 3}) bắt đầu ngày 8/3/2025.
@@ -220,7 +220,7 @@ Mã danh mục dùng trong đề: thương hiệu \code{brand_id} 1 Nykaa, 2 Pur
 \end{nghiepvu}
 \goiy{Điều kiện ``từ ngày 28/5'' có gồm chính ngày 28/5 không? Dấu \code{>} và \code{>=} khác nhau ở đâu?}
 \goiy{Lọc \code{start_date >= '2025-05-28'}; sắp bằng \code{ORDER BY start_date, campaign_id}.}
-\ghichuthietke{Dễ: 2 bảng, chữ trên đường nối; câu chỉ cần \code{campaigns}. Bản đồ ghi ``từ 15/6/2025'' nhưng kiểm lại thì Purplle không có chiến dịch 30 ngày nào bắt đầu sau 30/5/2025 (ngày cuối muộn nhất của mọi chiến dịch là 28/6/2025; chiến dịch Purplle mở từ 15/6 dài tối đa 14 ngày), nên đổi mốc thành 28/5 và giữ mã. Bẫy ở public: \code{>} bỏ các chiến dịch mở đúng 28/5; chỉ sắp theo \code{campaign_id} sai thứ tự. Không cần cận trên vì đề hỏi tới hết kỳ. Cấp Dễ: v2 bỏ cụm ``kể cả ngày 28/5/2025'' khỏi yêu cầu để học viên tự đọc biên \code{>}/\code{>=}; trục số bảng vẫn là 1 (bảng \code{brands} chỉ để tra mã), chờ giảng viên chốt giữ Dễ hay hạ.}
+\ghichuthietke{Dễ: 2 bảng, chữ trên đường nối; câu chỉ cần \code{campaigns}. Bản đồ ghi ``từ 15/6/2025'' nhưng kiểm lại thì Purplle không có chiến dịch 30 ngày nào bắt đầu sau 30/5/2025 (ngày cuối muộn nhất của mọi chiến dịch là 28/6/2025; chiến dịch Purplle mở từ 15/6 dài tối đa 14 ngày), nên đổi mốc thành 28/5 và giữ mã. Bẫy ở public: \code{>} bỏ các chiến dịch mở đúng 28/5; chỉ sắp theo \code{campaign_id} sai thứ tự. Không cần cận trên vì đề hỏi tới hết kỳ. Cấp Dễ: v2 bỏ cụm ``kể cả ngày 28/5/2025'' khỏi yêu cầu để học viên tự đọc biên \code{>}/\code{>=}; trục số bảng vẫn là 1 (bảng \code{brands} chỉ để tra mã); giữ Dễ theo quyết định v3 (QUYET-DINH-CHUNG 2.3 mục 16).}
 \end{cauhoi}
 
 % ================================================================ R6 · Viết · Dễ · A1 · marketing
@@ -246,7 +246,7 @@ Mã danh mục dùng trong đề: thương hiệu \code{brand_id} 1 Nykaa, 2 Pur
 \end{nghiepvu}
 \goiy{Chiến dịch có điểm đúng 30,00 có nằm trong danh sách không?}
 \goiy{Lọc \code{engagement_score >= 30}; sắp bằng \code{ORDER BY engagement_score DESC, campaign_id}.}
-\ghichuthietke{Dễ: 2 bảng, chữ trên đường nối; câu chỉ cần \code{campaigns}. Bẫy ở public: có một chiến dịch điểm đúng 30,00, dùng \code{>} bỏ sót chiến dịch đó; quy tắc hoà ngược chiều đổi thứ tự các chiến dịch cùng điểm (hoà ở 30,56). v2 bỏ câu lưu ý ở tab Nghiệp vụ nói sẵn ``gồm cả điểm đúng 30'' để bẫy chỉ mở bằng gợi ý. Cấp Dễ mỏng (trục số bảng thực tế là 1): không hạ được xuống Cơ bản vì trùng ô với r1 (write, basic, A1, marketing); chờ giảng viên chốt. hidden-1: 36 dòng so với 34.}
+\ghichuthietke{Dễ: 2 bảng, chữ trên đường nối; câu chỉ cần \code{campaigns}. Bẫy ở public: có một chiến dịch điểm đúng 30,00, dùng \code{>} bỏ sót chiến dịch đó; quy tắc hoà ngược chiều đổi thứ tự các chiến dịch cùng điểm (hoà ở 30,56). v2 bỏ câu lưu ý ở tab Nghiệp vụ nói sẵn ``gồm cả điểm đúng 30'' để bẫy chỉ mở bằng gợi ý. Cấp Dễ mỏng (trục số bảng thực tế là 1): không hạ được xuống Cơ bản vì trùng ô với r1 (write, basic, A1, marketing); giữ Dễ theo quyết định v3 (QUYET-DINH-CHUNG 2.3 mục 16). hidden-1: 36 dòng so với 34.}
 \end{cauhoi}
 
 % ================================================================ R7 · Sửa lỗi · Cơ bản · A1 · marketing
@@ -350,7 +350,7 @@ Mã danh mục dùng trong đề: thương hiệu \code{brand_id} 1 Nykaa, 2 Pur
 \begin{cauhoi}[ma=mkt-n2-thieu-hien-thi-co-nhap, dulieu=mkt, domain=operations,
   hinhthuc=write, cap=basic, dang=A1, kynang={IS NULL, IS NOT NULL}, bay={so-bang-null},
   tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, socot=vitri]
-\tieude{Dòng nào của dữ liệu thô có lượt nhấp mà thiếu lượt hiển thị?}
+\tieude{Dòng dữ liệu thô nào có lượt nhấp mà thiếu lượt hiển thị?}
 \boicanh[Anh Bảo · Chuyên viên phân tích marketing]{Anh đang làm sạch ba file chiến dịch nhận từ các thương hiệu. Dòng nào ghi lượt nhấp mà để trống lượt hiển thị thì anh phải hỏi lại bên nhập liệu, em liệt kê ra cho anh nhé.}
 \begin{yeucau}
   \item Xét mọi dòng của dữ liệu thô \code{campaigns_raw}.
@@ -571,23 +571,23 @@ Mã danh mục dùng trong đề: thương hiệu \code{brand_id} 1 Nykaa, 2 Pur
     \item Trả về \code{type_id}, \code{so_chien_dich}, \code{ctr_pct} (phần trăm, làm tròn 2 chữ số).
     \item Sắp \code{ctr_pct} giảm dần; bằng nhau thì \code{type_id} nhỏ hơn đứng trước.
   \end{yeucau}
-  \goiy{CTR của một loại bằng tổng lượt nhấp chia tổng lượt hiển thị của mọi chiến dịch thuộc loại đó.}
+  \goiy{CTR của một loại là \code{ROUND(SUM(clicks) * 100 / SUM(impressions), 2)} trên các chiến dịch của loại đó.}
 \end{buoc}
 \begin{buoc}[ma=b2, diem=5, hinhthuc=ketluan, bang={campaigns}]{Kết luận}
   \begin{luachon}
     \phuongan*{Email có CTR cao nhất tháng 5/2025, nhưng năm loại chiến dịch chênh nhau chưa tới nửa điểm phần trăm.}
-      {Đúng. Bước 1 cho thấy Email đứng đầu, còn khoảng cách giữa loại cao nhất và thấp nhất rất nhỏ so với mức CTR chung.}
+      {Đúng: Bước 1 cho thấy Email đứng đầu, còn khoảng cách giữa loại cao nhất và thấp nhất rất nhỏ so với mức CTR chung.}
     \phuongan{Email có CTR cao nhất vì tháng 5/2025 Email mở nhiều chiến dịch nhất, nên dồn ngân sách nội dung sang Email.}
-      {Chưa đúng. CTR là tỷ lệ, không tăng theo số chiến dịch; bước 1 cho thấy số chiến dịch của các loại gần bằng nhau và Email không đông nhất.}
+      {CTR là tỷ lệ, không tăng theo số chiến dịch; bước 1 cho thấy số chiến dịch của các loại gần bằng nhau và Email không đông nhất.}
     \phuongan{Email có CTR cao nhất nên nhiều khả năng cũng có ROI cao nhất tháng 5/2025; có thể cân nhắc chuyển ngân sách từ SEO sang Email.}
-      {Chưa đúng. CTR chỉ đo tầng nhận biết sang quan tâm; bước 1 không xét doanh thu hay chi phí nên chưa nói được gì về ROI.}
+      {CTR chỉ đo tầng nhận biết sang quan tâm; bước 1 không xét doanh thu hay chi phí nên chưa nói được gì về ROI.}
   \end{luachon}
 \end{buoc}
-\ghichuthietke{Case Cơ bản: 1 bảng, 1 bước SQL, 1 bước kết luận. Bước 1 dùng \code{GROUP BY} như case mẫu \code{c1-kenh-nhieu-don} (case Cơ bản được dùng gom nhóm theo một mã). v2 cân độ dài ba phương án và đưa từ rào sang một phương án sai (K32). Trên public CTR theo loại từ khoảng 8,4\% tới 8,7\%, Email cao nhất; bình quân giản đơn đổi thứ hạng các loại giữa. Bài sai ở bước 1: bình quân CTR từng chiến dịch (rớt ở public); thiếu cận trên gộp tháng 6 (rớt ở public). Kết luận không khẳng định nguyên nhân (dữ liệu tổng hợp, STYLE-mkt B.6). Ở hidden-1 Email vẫn cao nhất và khoảng cách vẫn dưới nửa điểm phần trăm.}
+\ghichuthietke{Case Cơ bản: 1 bảng, 1 bước SQL, 1 bước kết luận. Bước 1 dùng \code{GROUP BY} như case mẫu \code{c1-kenh-nhieu-don} (case Cơ bản được dùng gom nhóm theo một mã). v2 cân độ dài ba phương án và đưa từ rào sang một phương án sai (K32). Trên public CTR theo loại từ khoảng 8,4\% tới 8,7\%, Email cao nhất; bình quân giản đơn đổi thứ hạng các loại giữa. Bài sai ở bước 1: bình quân CTR từng chiến dịch (rớt ở public); thiếu cận trên gộp tháng 6 (rớt ở public). Kết luận không khẳng định nguyên nhân (dữ liệu tổng hợp, STYLE-mkt B.6). Ở hidden-1 Email vẫn cao nhất và khoảng cách vẫn dưới nửa điểm phần trăm. Case Cơ bản: GROUP BY một cột trên một bảng, theo case mẫu c1 (QUYET-DINH-CHUNG 1.2).}
 \end{cauhoi}
 
 % ================================================================ C2 · Case · Cơ bản · operations
-\begin{cauhoi}[ma=mkt-c2-nhieu-don-vao-thuong-hieu-nao, dulieu=mkt, domain=operations,
+\begin{cauhoi}[ma=mkt-c2-file-tho-thieu-nhieu-nhat, dulieu=mkt, domain=operations,
   hinhthuc=case, cap=basic, diem=10, tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
 \tieude{Dữ liệu thô của thương hiệu nào thiếu nhiều nhất?}
 \boicanh[Chị Hạnh · Trưởng phòng marketing số]{Ba thương hiệu gửi file chiến dịch riêng cho phòng mình. Trước buổi làm việc với bên nhập liệu, chị cần biết file của thương hiệu nào có nhiều dòng bị trống số liệu nhất.}
@@ -609,14 +609,14 @@ Mã danh mục dùng trong đề: thương hiệu \code{brand_id} 1 Nykaa, 2 Pur
 \begin{buoc}[ma=b2, diem=5, hinhthuc=ketluan, bang={campaigns_raw}]{Kết luận}
   \begin{luachon}
     \phuongan*{Ba thương hiệu có số dòng thiếu bằng nhau, nên số dòng trống không cho thấy file nào được nhập kém hơn.}
-      {Đúng. Bước 1 cho ba con số như nhau; khác biệt về chất lượng nhập liệu, nếu có, không nằm ở số dòng trống.}
+      {Đúng: Bước 1 cho ba con số như nhau; khác biệt về chất lượng nhập liệu, nếu có, không nằm ở số dòng trống.}
     \phuongan{Purplle có file thô kém nhất vì có nhiều dòng trống ở bốn cột phễu nhất trong ba thương hiệu.}
-      {Chưa đúng. Phương án này chỉ xét bốn cột phễu; xét đủ sáu cột như bước 1 thì ba thương hiệu bằng nhau.}
+      {Phương án này chỉ xét bốn cột phễu; xét đủ sáu cột như bước 1 thì ba thương hiệu bằng nhau.}
     \phuongan{Số dòng thiếu rất nhỏ so với cỡ mỗi file, nên có thể tính ROI (lợi tức đầu tư) tổng trên bản thô mà chưa cần xử lý.}
-      {Chưa đúng. Tổng doanh thu và tổng chi phí bỏ qua ô trống ở những dòng khác nhau, nên ROI tổng bị lệch nếu không lọc cùng dòng.}
+      {Tổng doanh thu và tổng chi phí bỏ qua ô trống ở những dòng khác nhau, nên ROI tổng bị lệch nếu không lọc cùng dòng.}
   \end{luachon}
 \end{buoc}
-\ghichuthietke{Case Cơ bản: 1 bảng, 1 bước SQL, 1 bước kết luận. Mã \code{nhieu-don} giữ theo bản đồ (câu hỏi về dòng trống; đổi mã chờ giảng viên quyết, BRIEF-SUA không đổi mã). v2 sửa câu ``sáu cột số'' (bản thô còn \code{duration}, \code{roi}, \code{engagement_score} là cột số), cân độ dài và từ rào ba phương án (K32). Trên public ba thương hiệu đều 200 dòng thiếu (mỗi dòng nhiễu chỉ trống một ô, nên đếm ô và đếm dòng trùng nhau; bẫy ``đếm ô'' của bản đồ không dùng được). Bài sai ở bước 1: chỉ xét bốn cột phễu (ra số khác nhau, Purplle cao nhất; chính là phương án sai thứ hai); \code{COUNT(revenue)} đếm dòng có giá trị. Cả hai rớt ở public. Ở hidden-1 số dòng thiếu ba thương hiệu không còn bằng nhau vì bỏ chiến dịch đuôi 7; kết luận đọc theo kết quả Chạy thử trên public.}
+\ghichuthietke{Case Cơ bản: 1 bảng, 1 bước SQL, 1 bước kết luận. Mã đổi thành \code{mkt-c2-file-tho-thieu-nhieu-nhat} cho khớp nội dung (quyết định v3, 10/11). Case Cơ bản: GROUP BY một cột trên một bảng, theo case mẫu c1 (QUYET-DINH-CHUNG 1.2). v2 sửa câu ``sáu cột số'' (bản thô còn \code{duration}, \code{roi}, \code{engagement_score} là cột số), cân độ dài và từ rào ba phương án (K32). Trên public ba thương hiệu đều 200 dòng thiếu (mỗi dòng nhiễu chỉ trống một ô, nên đếm ô và đếm dòng trùng nhau; bẫy ``đếm ô'' của bản đồ không dùng được). Bài sai ở bước 1: chỉ xét bốn cột phễu (ra số khác nhau, Purplle cao nhất; chính là phương án sai thứ hai); \code{COUNT(revenue)} đếm dòng có giá trị. Cả hai rớt ở public. Ở hidden-1 số dòng thiếu ba thương hiệu không còn bằng nhau vì bỏ chiến dịch đuôi 7; kết luận đọc theo kết quả Chạy thử trên public.}
 \end{cauhoi}
 
 \end{document}

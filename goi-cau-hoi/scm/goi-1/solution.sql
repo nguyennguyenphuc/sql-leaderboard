@@ -29,28 +29,46 @@ FROM stores
 WHERE city = 'TP HCM'
 ORDER BY store_nbr;
 
--- [scm-r2-don-mua-loi-cao-thang-7] solution
-SELECT po_id, supplier_id, qty_received, qty_defect, defect_rate
+-- [scm-r2-lo-truot-ve-tre-rau-cu-thang-7] solution
+-- Hai nhà cung cấp ngành PRODUCE tra ở suppliers: SUP_061, SUP_062.
+SELECT po_id, supplier_id, po_date, promised_date, received_date, defect_rate
 FROM purchase_orders
-WHERE po_date >= '2017-07-01' AND po_date < '2017-08-01'
-  AND defect_rate >= 0.05
-ORDER BY defect_rate DESC, po_id;
-
--- [scm-r2-don-mua-loi-cao-thang-7] wrong: hieu_ty_le_la_phan_tram
--- Rớt ở public: defect_rate là tỷ lệ (0,05 là 5%), so với 5 ra 0 dòng.
-SELECT po_id, supplier_id, qty_received, qty_defect, defect_rate
-FROM purchase_orders
-WHERE po_date >= '2017-07-01' AND po_date < '2017-08-01'
-  AND defect_rate >= 5
-ORDER BY defect_rate DESC, po_id;
-
--- [scm-r2-don-mua-loi-cao-thang-7] wrong: nham_voi_lo_truot
--- Rớt ở public: lô trượt là ngưỡng 2%, lấy mọi lô trượt ra gần 900 dòng.
-SELECT po_id, supplier_id, qty_received, qty_defect, defect_rate
-FROM purchase_orders
-WHERE po_date >= '2017-07-01' AND po_date < '2017-08-01'
+WHERE supplier_id IN ('SUP_061', 'SUP_062')
+  AND received_date >= '2017-07-01' AND received_date < '2017-08-01'
+  AND received_date > promised_date
   AND inspection_result = 'Fail'
-ORDER BY defect_rate DESC, po_id;
+ORDER BY received_date, po_id;
+
+-- [scm-r2-lo-truot-ve-tre-rau-cu-thang-7] wrong: loc_thang_theo_ngay_dat
+-- Rớt ở public: đơn về trong tháng 7 nhiều đơn đặt từ tháng 6, còn đơn đặt
+-- tháng 7 phần lớn về tháng 8; danh sách khác hẳn.
+SELECT po_id, supplier_id, po_date, promised_date, received_date, defect_rate
+FROM purchase_orders
+WHERE supplier_id IN ('SUP_061', 'SUP_062')
+  AND po_date >= '2017-07-01' AND po_date < '2017-08-01'
+  AND received_date > promised_date
+  AND inspection_result = 'Fail'
+ORDER BY received_date, po_id;
+
+-- [scm-r2-lo-truot-ve-tre-rau-cu-thang-7] wrong: tinh_ca_ngay_hen
+-- Rớt ở public: đơn về đúng ngày hẹn vẫn là đúng hạn, so >= lấy thừa một đơn.
+SELECT po_id, supplier_id, po_date, promised_date, received_date, defect_rate
+FROM purchase_orders
+WHERE supplier_id IN ('SUP_061', 'SUP_062')
+  AND received_date >= '2017-07-01' AND received_date < '2017-08-01'
+  AND received_date >= promised_date
+  AND inspection_result = 'Fail'
+ORDER BY received_date, po_id;
+
+-- [scm-r2-lo-truot-ve-tre-rau-cu-thang-7] wrong: chi_mot_nha_cung_cap
+-- Rớt ở public: chỉ lấy "NCC Rau củ quả 1", thiếu đơn của SUP_062.
+SELECT po_id, supplier_id, po_date, promised_date, received_date, defect_rate
+FROM purchase_orders
+WHERE supplier_id = 'SUP_061'
+  AND received_date >= '2017-07-01' AND received_date < '2017-08-01'
+  AND received_date > promised_date
+  AND inspection_result = 'Fail'
+ORDER BY received_date, po_id;
 
 -- [scm-r3-dong-tra-hang-cua-hang-2-3] solution
 SELECT `date`, store_nbr, item_nbr, unit_sales
@@ -105,54 +123,79 @@ WHERE store_nbr = 44
 ORDER BY unit_sales, item_nbr
 LIMIT 5;
 
--- [scm-r5-von-ton-cua-hang-51] solution
-SELECT item_nbr, on_hand_end, inventory_value AS von_ton
+-- [scm-r5-hang-dong-von-cum-14-ha-noi] solution
+-- Cửa hàng cụm 14 ở Hà Nội tra ở stores: 46, 47, 48 (cụm 14 còn cửa hàng 50 ở Bắc Kạn).
+SELECT store_nbr, item_nbr, on_hand_end, inventory_value AS von_ton
 FROM inventory_snapshots
-WHERE store_nbr = 51
+WHERE store_nbr IN (46, 47, 48)
   AND ym = '2017-07'
-ORDER BY inventory_value DESC, item_nbr
-LIMIT 10;
+  AND sold = 0
+  AND inventory_value >= 1000
+ORDER BY von_ton DESC, store_nbr, item_nbr;
 
--- [scm-r5-von-ton-cua-hang-51] wrong: sap_theo_luong_ton
--- Rớt ở public: mã tồn nhiều đơn vị chưa chắc có vốn tồn lớn.
-SELECT item_nbr, on_hand_end, inventory_value AS von_ton
+-- [scm-r5-hang-dong-von-cum-14-ha-noi] wrong: lay_ca_cum_14_ngoai_ha_noi
+-- Rớt ở public: cụm 14 còn cửa hàng 50 ở Bắc Kạn, số dòng gấp đôi.
+SELECT store_nbr, item_nbr, on_hand_end, inventory_value AS von_ton
 FROM inventory_snapshots
-WHERE store_nbr = 51
+WHERE store_nbr IN (46, 47, 48, 50)
   AND ym = '2017-07'
-ORDER BY on_hand_end DESC, item_nbr
-LIMIT 10;
+  AND sold = 0
+  AND inventory_value >= 1000
+ORDER BY von_ton DESC, store_nbr, item_nbr;
 
--- [scm-r5-von-ton-cua-hang-51] wrong: ky_thieu_so_0
--- Rớt ở public: ym là chuỗi '2017-07', viết '2017-7' ra 0 dòng.
-SELECT item_nbr, on_hand_end, inventory_value AS von_ton
+-- [scm-r5-hang-dong-von-cum-14-ha-noi] wrong: nguong_theo_luong_ton
+-- Rớt ở public: ngưỡng 1.000 là vốn tồn, đặt lên lượng tồn ra danh sách khác.
+SELECT store_nbr, item_nbr, on_hand_end, inventory_value AS von_ton
 FROM inventory_snapshots
-WHERE store_nbr = 51
-  AND ym = '2017-7'
-ORDER BY inventory_value DESC, item_nbr
-LIMIT 10;
+WHERE store_nbr IN (46, 47, 48)
+  AND ym = '2017-07'
+  AND sold = 0
+  AND on_hand_end >= 1000
+ORDER BY von_ton DESC, store_nbr, item_nbr;
 
--- [scm-r6-giao-dich-cua-hang-24] solution
-SELECT `date`, transactions
-FROM transactions
-WHERE store_nbr = 24
-  AND `date` BETWEEN '2017-07-03' AND '2017-07-09'
-ORDER BY `date`;
+-- [scm-r6-ngay-ban-manh-ba-ma-do-uong] solution
+SELECT `date`, item_nbr, unit_sales
+FROM sales
+WHERE store_nbr = 44
+  AND item_nbr IN (2042941, 2042947, 1047679)
+  AND unit_sales >= 500
+  AND onpromotion = 0
+  AND `date` >= '2017-07-01' AND `date` < '2017-08-01'
+ORDER BY `date`, item_nbr;
 
--- [scm-r6-giao-dich-cua-hang-24] wrong: bo_sot_ngay_cuoi
--- Rớt ở public: cận trên mở nên mất Chủ nhật 9/7.
-SELECT `date`, transactions
-FROM transactions
-WHERE store_nbr = 24
-  AND `date` >= '2017-07-03' AND `date` < '2017-07-09'
-ORDER BY `date`;
+-- [scm-r6-ngay-ban-manh-ba-ma-do-uong] wrong: quen_loai_khuyen_mai
+-- Rớt ở public: thêm các ngày mã đang khuyến mãi (cuối tháng 7).
+SELECT `date`, item_nbr, unit_sales
+FROM sales
+WHERE store_nbr = 44
+  AND item_nbr IN (2042941, 2042947, 1047679)
+  AND unit_sales >= 500
+  AND `date` >= '2017-07-01' AND `date` < '2017-08-01'
+ORDER BY `date`, item_nbr;
 
--- [scm-r6-giao-dich-cua-hang-24] wrong: bo_sot_ngay_dau
--- Rớt ở public: cận dưới mở nên mất thứ Hai 3/7.
-SELECT `date`, transactions
-FROM transactions
-WHERE store_nbr = 24
-  AND `date` > '2017-07-03' AND `date` <= '2017-07-09'
-ORDER BY `date`;
+-- [scm-r6-ngay-ban-manh-ba-ma-do-uong] wrong: or_khong_ngoac
+-- Rớt ở public: AND tính trước OR, lấy mọi dòng bán mạnh không khuyến mãi
+-- của mã 1047679 ở mọi cửa hàng và mọi dòng của hai mã kia ở cửa hàng 44.
+SELECT `date`, item_nbr, unit_sales
+FROM sales
+WHERE store_nbr = 44
+  AND item_nbr = 2042941 OR item_nbr = 2042947 OR item_nbr = 1047679
+  AND unit_sales >= 500
+  AND onpromotion = 0
+  AND `date` >= '2017-07-01' AND `date` < '2017-08-01'
+ORDER BY `date`, item_nbr;
+
+-- [scm-r6-ngay-ban-manh-ba-ma-do-uong] wrong: thieu_can_tren
+-- Qua public (sales public chỉ có tháng 7/2017), rớt ở hidden-1:
+-- lấy thêm dòng ngày 1/8/2017 của mã 2042941 (500 đơn vị, không khuyến mãi).
+SELECT `date`, item_nbr, unit_sales
+FROM sales
+WHERE store_nbr = 44
+  AND item_nbr IN (2042941, 2042947, 1047679)
+  AND unit_sales >= 500
+  AND onpromotion = 0
+  AND `date` >= '2017-07-01'
+ORDER BY `date`, item_nbr;
 
 -- [scm-r7-lo-truot-rau-cu-ra-0] starter
 SELECT COUNT(*) AS so_lo_truot
@@ -185,24 +228,36 @@ WHERE supplier_id = 'SUP_061'
   AND defect_rate >= 0.02
   AND po_date >= '2016-01-01' AND po_date < '2017-01-01';
 
--- [scm-r8-don-da-nang-thang-7-thieu] starter
-SELECT COUNT(*) AS so_don
-FROM orders
-WHERE dest_city = 'Đà Nẵng'
-  AND created_at BETWEEN '2017-07-01' AND '2017-07-31';
+-- [scm-r8-don-mua-do-uong-cho-hang-thang-8] starter
+SELECT COUNT(*) AS so_don_cho_hang
+FROM purchase_orders
+WHERE supplier_id = 'SUP_007' OR supplier_id = 'SUP_008'
+  AND inspection_result = 'Pending'
+  AND po_date >= '2017-08-01';
 
--- [scm-r8-don-da-nang-thang-7-thieu] solution
-SELECT COUNT(*) AS so_don
-FROM orders
-WHERE dest_city = 'Đà Nẵng'
-  AND created_at >= '2017-07-01' AND created_at < '2017-08-01';
+-- [scm-r8-don-mua-do-uong-cho-hang-thang-8] solution
+SELECT COUNT(*) AS so_don_cho_hang
+FROM purchase_orders
+WHERE supplier_id IN ('SUP_007', 'SUP_008')
+  AND inspection_result = 'Pending'
+  AND po_date >= '2017-08-01' AND po_date < '2017-09-01';
 
--- [scm-r8-don-da-nang-thang-7-thieu] wrong: loc_theo_kho_dich
--- Rớt ở public: kho Đà Nẵng còn nhận đơn của các thành phố lân cận.
-SELECT COUNT(*) AS so_don
-FROM orders
-WHERE dest_hub_id = 'DC_DANANG'
-  AND created_at >= '2017-07-01' AND created_at < '2017-08-01';
+-- [scm-r8-don-mua-do-uong-cho-hang-thang-8] wrong: chi_sua_ngoac
+-- Qua public, rớt ở hidden-1: còn thiếu cận trên, đếm thêm đơn PO_0158799
+-- của SUP_007 đặt ngày 1/9/2017, chưa về.
+SELECT COUNT(*) AS so_don_cho_hang
+FROM purchase_orders
+WHERE supplier_id IN ('SUP_007', 'SUP_008')
+  AND inspection_result = 'Pending'
+  AND po_date >= '2017-08-01';
+
+-- [scm-r8-don-mua-do-uong-cho-hang-thang-8] wrong: chi_them_can_tren
+-- Rớt ở public: còn thiếu ngoặc quanh OR, đếm mọi đơn của SUP_007 từ trước tới nay.
+SELECT COUNT(*) AS so_don_cho_hang
+FROM purchase_orders
+WHERE supplier_id = 'SUP_007' OR supplier_id = 'SUP_008'
+  AND inspection_result = 'Pending'
+  AND po_date >= '2017-08-01' AND po_date < '2017-09-01';
 
 -- [scm-r9-otif-da-nang-lan-tuan-2016] starter
 SELECT shipment_id, store_nbr, week, on_time, in_full
@@ -294,37 +349,73 @@ WHERE supplier_id = 'SUP_007'
   AND po_date >= '2017-08-01'
 ORDER BY po_date, po_id;
 
--- [scm-n3-muc-tai-kho-ha-noi] solution
-SELECT `date`, workload_ratio,
-       CASE WHEN workload_ratio > 1 THEN 'qua_tai'
-            WHEN workload_ratio >= 0.8 THEN 'sat_nguong'
-            ELSE 'binh_thuong' END AS muc_tai
-FROM warehouse_daily_ops
-WHERE hub_id = 'DC_HANOI'
-  AND `date` >= '2017-07-01' AND `date` < '2017-08-01'
-ORDER BY `date`;
+-- [scm-n3-trang-thai-giao-don-toi-15-7-2016] solution
+SELECT order_id, lead_time_total_h, promised_h,
+       CASE WHEN is_cancelled = 1 THEN NULL
+            ELSE ROUND(promised_h - lead_time_total_h, 2) END AS con_du_h,
+       CASE WHEN is_cancelled = 1 THEN 'huy'
+            WHEN lead_time_total_h > promised_h THEN 'tre'
+            WHEN lead_time_total_h > promised_h - 1 THEN 'sat_han'
+            ELSE 'dung_han' END AS trang_thai
+FROM orders
+WHERE dest_city = 'Hà Nội'
+  AND created_at >= '2016-07-15 20:30:00' AND created_at < '2016-07-15 21:00:00'
+ORDER BY order_id;
 
--- [scm-n3-muc-tai-kho-ha-noi] wrong: dieu_kien_rong_dat_truoc
--- Rớt ở public: CASE dừng ở điều kiện đúng đầu tiên, ngày quá tải bị gán 'sat_nguong'.
-SELECT `date`, workload_ratio,
-       CASE WHEN workload_ratio >= 0.8 THEN 'sat_nguong'
-            WHEN workload_ratio > 1 THEN 'qua_tai'
-            ELSE 'binh_thuong' END AS muc_tai
-FROM warehouse_daily_ops
-WHERE hub_id = 'DC_HANOI'
-  AND `date` >= '2017-07-01' AND `date` < '2017-08-01'
-ORDER BY `date`;
+-- [scm-n3-trang-thai-giao-don-toi-15-7-2016] wrong: dung_co_on_time
+-- Qua public, rớt ở hidden-1: đơn ORD2_00422150 giao đúng bằng cam kết
+-- nhưng cờ on_time bị ghi 0, nên bị xếp 'tre'.
+SELECT order_id, lead_time_total_h, promised_h,
+       CASE WHEN is_cancelled = 1 THEN NULL
+            ELSE ROUND(promised_h - lead_time_total_h, 2) END AS con_du_h,
+       CASE WHEN is_cancelled = 1 THEN 'huy'
+            WHEN on_time = 0 THEN 'tre'
+            WHEN lead_time_total_h > promised_h - 1 THEN 'sat_han'
+            ELSE 'dung_han' END AS trang_thai
+FROM orders
+WHERE dest_city = 'Hà Nội'
+  AND created_at >= '2016-07-15 20:30:00' AND created_at < '2016-07-15 21:00:00'
+ORDER BY order_id;
 
--- [scm-n3-muc-tai-kho-ha-noi] wrong: thieu_can_tren
--- Rớt ở public: lấy cả các ngày của tháng 8/2017.
-SELECT `date`, workload_ratio,
-       CASE WHEN workload_ratio > 1 THEN 'qua_tai'
-            WHEN workload_ratio >= 0.8 THEN 'sat_nguong'
-            ELSE 'binh_thuong' END AS muc_tai
-FROM warehouse_daily_ops
-WHERE hub_id = 'DC_HANOI'
-  AND `date` >= '2017-07-01'
-ORDER BY `date`;
+-- [scm-n3-trang-thai-giao-don-toi-15-7-2016] wrong: giao_dung_bang_cam_ket_la_tre
+-- Rớt ở public: so >= xếp đơn giao đúng bằng 60 giờ cam kết vào 'tre'.
+SELECT order_id, lead_time_total_h, promised_h,
+       CASE WHEN is_cancelled = 1 THEN NULL
+            ELSE ROUND(promised_h - lead_time_total_h, 2) END AS con_du_h,
+       CASE WHEN is_cancelled = 1 THEN 'huy'
+            WHEN lead_time_total_h >= promised_h THEN 'tre'
+            WHEN lead_time_total_h > promised_h - 1 THEN 'sat_han'
+            ELSE 'dung_han' END AS trang_thai
+FROM orders
+WHERE dest_city = 'Hà Nội'
+  AND created_at >= '2016-07-15 20:30:00' AND created_at < '2016-07-15 21:00:00'
+ORDER BY order_id;
+
+-- [scm-n3-trang-thai-giao-don-toi-15-7-2016] wrong: quen_trang_thai_huy
+-- Rớt ở public: chỉ xét số giờ, ba đơn huỷ (lead time khoảng 36 giờ) thành 'dung_han'.
+SELECT order_id, lead_time_total_h, promised_h,
+       CASE WHEN is_cancelled = 1 THEN NULL
+            ELSE ROUND(promised_h - lead_time_total_h, 2) END AS con_du_h,
+       CASE WHEN lead_time_total_h > promised_h THEN 'tre'
+            WHEN lead_time_total_h > promised_h - 1 THEN 'sat_han'
+            ELSE 'dung_han' END AS trang_thai
+FROM orders
+WHERE dest_city = 'Hà Nội'
+  AND created_at >= '2016-07-15 20:30:00' AND created_at < '2016-07-15 21:00:00'
+ORDER BY order_id;
+
+-- [scm-n3-trang-thai-giao-don-toi-15-7-2016] wrong: con_du_cua_don_huy
+-- Rớt ở public: đơn huỷ vẫn có số giờ, nhưng cột còn dư phải để trống.
+SELECT order_id, lead_time_total_h, promised_h,
+       ROUND(promised_h - lead_time_total_h, 2) AS con_du_h,
+       CASE WHEN is_cancelled = 1 THEN 'huy'
+            WHEN lead_time_total_h > promised_h THEN 'tre'
+            WHEN lead_time_total_h > promised_h - 1 THEN 'sat_han'
+            ELSE 'dung_han' END AS trang_thai
+FROM orders
+WHERE dest_city = 'Hà Nội'
+  AND created_at >= '2016-07-15 20:30:00' AND created_at < '2016-07-15 21:00:00'
+ORDER BY order_id;
 
 -- [scm-n4-fill-rate-cua-hang-52] solution
 SELECT item_nbr, sold, thieu_hut,
@@ -400,32 +491,89 @@ WHERE dest_hub_id = 'HUB_HUE'
       + t3b_sorting_h + t4_kho_giao_h) >= 50
 ORDER BY order_id;
 
--- [scm-n6-ngay-cao-diem-gap-doi-2016] solution
-SELECT `date`, event_name, tier,
-       ROUND((demand_multiplier - 1) * 100, 0) AS muc_tang_pct
-FROM event_calendar
-WHERE `date` >= '2016-01-01' AND `date` < '2017-01-01'
-  AND (demand_multiplier - 1) * 100 >= 100
-ORDER BY muc_tang_pct DESC, `date`;
+-- [scm-n6-voucher-den-bu-don-tre-bac-giang] solution
+SELECT order_id, order_value_usd,
+       ROUND(lead_time_total_h - promised_h, 2) AS so_gio_tre,
+       CASE WHEN lead_time_total_h - promised_h >= 5 THEN 20
+            WHEN lead_time_total_h - promised_h >= 2 THEN 10
+            ELSE 0 END AS muc_den_bu_pct,
+       ROUND(order_value_usd * CASE WHEN lead_time_total_h - promised_h >= 5 THEN 0.20
+                                    WHEN lead_time_total_h - promised_h >= 2 THEN 0.10
+                                    ELSE 0 END, 2) AS gia_tri_voucher
+FROM orders
+WHERE dest_city = 'Bắc Giang'
+  AND created_at >= '2017-08-01' AND created_at < '2017-09-01'
+  AND is_cancelled = 0
+  AND lead_time_total_h > promised_h
+ORDER BY so_gio_tre DESC, order_id;
 
--- [scm-n6-ngay-cao-diem-gap-doi-2016] wrong: lay_he_so_lam_muc_tang
--- Rớt ở public: hệ số 1,6 nhân 100 ra 160, không phải mức tăng 60%;
--- mọi ngày đều lọt.
-SELECT `date`, event_name, tier,
-       ROUND(demand_multiplier * 100, 0) AS muc_tang_pct
-FROM event_calendar
-WHERE `date` >= '2016-01-01' AND `date` < '2017-01-01'
-  AND demand_multiplier * 100 >= 100
-ORDER BY muc_tang_pct DESC, `date`;
+-- [scm-n6-voucher-den-bu-don-tre-bac-giang] wrong: tinh_ca_don_huy
+-- Rớt ở public: đơn huỷ vẫn có số giờ, lọt thêm ba đơn huỷ "giao trễ".
+SELECT order_id, order_value_usd,
+       ROUND(lead_time_total_h - promised_h, 2) AS so_gio_tre,
+       CASE WHEN lead_time_total_h - promised_h >= 5 THEN 20
+            WHEN lead_time_total_h - promised_h >= 2 THEN 10
+            ELSE 0 END AS muc_den_bu_pct,
+       ROUND(order_value_usd * CASE WHEN lead_time_total_h - promised_h >= 5 THEN 0.20
+                                    WHEN lead_time_total_h - promised_h >= 2 THEN 0.10
+                                    ELSE 0 END, 2) AS gia_tri_voucher
+FROM orders
+WHERE dest_city = 'Bắc Giang'
+  AND created_at >= '2017-08-01' AND created_at < '2017-09-01'
+  AND lead_time_total_h > promised_h
+ORDER BY so_gio_tre DESC, order_id;
 
--- [scm-n6-ngay-cao-diem-gap-doi-2016] wrong: thieu_can_tren_nam
--- Rớt ở public: lấy cả ngày cao điểm năm 2017.
-SELECT `date`, event_name, tier,
-       ROUND((demand_multiplier - 1) * 100, 0) AS muc_tang_pct
-FROM event_calendar
-WHERE `date` >= '2016-01-01'
-  AND (demand_multiplier - 1) * 100 >= 100
-ORDER BY muc_tang_pct DESC, `date`;
+-- [scm-n6-voucher-den-bu-don-tre-bac-giang] wrong: xet_muc_thap_truoc
+-- Rớt ở public: CASE dừng ở điều kiện đúng đầu tiên, đơn trễ từ 5 giờ chỉ được 10%.
+SELECT order_id, order_value_usd,
+       ROUND(lead_time_total_h - promised_h, 2) AS so_gio_tre,
+       CASE WHEN lead_time_total_h - promised_h >= 2 THEN 10
+            WHEN lead_time_total_h - promised_h >= 5 THEN 20
+            ELSE 0 END AS muc_den_bu_pct,
+       ROUND(order_value_usd * CASE WHEN lead_time_total_h - promised_h >= 2 THEN 0.10
+                                    WHEN lead_time_total_h - promised_h >= 5 THEN 0.20
+                                    ELSE 0 END, 2) AS gia_tri_voucher
+FROM orders
+WHERE dest_city = 'Bắc Giang'
+  AND created_at >= '2017-08-01' AND created_at < '2017-09-01'
+  AND is_cancelled = 0
+  AND lead_time_total_h > promised_h
+ORDER BY so_gio_tre DESC, order_id;
+
+-- [scm-n6-voucher-den-bu-don-tre-bac-giang] wrong: nhan_so_phan_tram
+-- Rớt ở public: nhân giá trị đơn với 10, 20 thay vì 10%, 20%.
+SELECT order_id, order_value_usd,
+       ROUND(lead_time_total_h - promised_h, 2) AS so_gio_tre,
+       CASE WHEN lead_time_total_h - promised_h >= 5 THEN 20
+            WHEN lead_time_total_h - promised_h >= 2 THEN 10
+            ELSE 0 END AS muc_den_bu_pct,
+       ROUND(order_value_usd * CASE WHEN lead_time_total_h - promised_h >= 5 THEN 20
+                                    WHEN lead_time_total_h - promised_h >= 2 THEN 10
+                                    ELSE 0 END, 2) AS gia_tri_voucher
+FROM orders
+WHERE dest_city = 'Bắc Giang'
+  AND created_at >= '2017-08-01' AND created_at < '2017-09-01'
+  AND is_cancelled = 0
+  AND lead_time_total_h > promised_h
+ORDER BY so_gio_tre DESC, order_id;
+
+-- [scm-n6-voucher-den-bu-don-tre-bac-giang] wrong: thieu_can_tren
+-- Qua public (đơn public tới 13/8/2017), rớt ở hidden-1: thêm đơn ORD2_01033328
+-- tới Bắc Giang tạo ngày 1/9/2017, giao trễ.
+SELECT order_id, order_value_usd,
+       ROUND(lead_time_total_h - promised_h, 2) AS so_gio_tre,
+       CASE WHEN lead_time_total_h - promised_h >= 5 THEN 20
+            WHEN lead_time_total_h - promised_h >= 2 THEN 10
+            ELSE 0 END AS muc_den_bu_pct,
+       ROUND(order_value_usd * CASE WHEN lead_time_total_h - promised_h >= 5 THEN 0.20
+                                    WHEN lead_time_total_h - promised_h >= 2 THEN 0.10
+                                    ELSE 0 END, 2) AS gia_tri_voucher
+FROM orders
+WHERE dest_city = 'Bắc Giang'
+  AND created_at >= '2017-08-01'
+  AND is_cancelled = 0
+  AND lead_time_total_h > promised_h
+ORDER BY so_gio_tre DESC, order_id;
 
 -- [scm-n7-gia-dau-thang-7-thap] starter
 SELECT ROUND(AVG(COALESCE(dcoilwtico, 0)), 2) AS gia_dau_tb

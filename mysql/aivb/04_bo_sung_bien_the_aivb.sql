@@ -19,6 +19,8 @@
 --       loan_id nhỏ nhất nên vào top 5 khi bằng nhau thì loan_id nhỏ hơn trước; giải ngân 2025-04-30 (ngày cuối tháng)
 --   (j) khoản vay SYN_LON_H000003 RESTRUCTURED (CONS 150 triệu, giải ngân 2025-12-31): 2 kỳ OVERDUE (1 kỳ trả một phần)
 --   (k) khoản vay SYN_LON_H000004 ACTIVE (WC_LOAN 1,5 tỷ, CN13), giải ngân 2 lần năm 2026; 2 lệnh giải ngân COMPLETED không có bút toán
+--   (l) 2 quan hệ JOINT_OWNER đúng biên 30/06/2026: SYN_APT_H000005 (valid_to = 2026-06-30), SYN_APT_H000006 (valid_from = 2026-06-30)
+--       Tiền gửi ACTIVE đến hạn đúng 2027-02-01 (biên trên aivb-c2) đã có sẵn ở cả public và hidden-1, không thêm.
 
 USE aivb_hidden_1;
 SET NAMES utf8mb4;
@@ -100,7 +102,11 @@ INSERT INTO core_account_party VALUES
   ('SYN_APT_H000001', 'SYN_ACC_H000001', 'SYN_PTY_PH00002', 'PRIMARY_OWNER', 'A', NULL, '2024-06-15', NULL),
   ('SYN_APT_H000002', 'SYN_ACC_H000001', 'SYN_PTY_PH00001', 'JOINT_OWNER',   'A', NULL, '2026-03-02', NULL),
   ('SYN_APT_H000003', 'SYN_ACC_H000002', 'SYN_PTY_PH00003', 'PRIMARY_OWNER', 'A', NULL, '2025-12-10', '2026-09-15'),
-  ('SYN_APT_H000004', 'SYN_ACC_H000003', 'SYN_PTY_OH00001', 'PRIMARY_OWNER', 'A', NULL, '2024-02-01', NULL);
+  ('SYN_APT_H000004', 'SYN_ACC_H000003', 'SYN_PTY_OH00001', 'PRIMARY_OWNER', 'A', NULL, '2024-02-01', NULL),
+  -- (l) hai quan hệ đồng chủ tài khoản đúng biên ngày tham chiếu 30/06/2026 (aivb-n9): H000005 kết thúc đúng ngày đó
+  --     (không còn hiệu lực), H000006 bắt đầu đúng ngày đó (đã có hiệu lực)
+  ('SYN_APT_H000005', 'SYN_ACC_H000001', 'SYN_PTY_PH00003', 'JOINT_OWNER',   'A', NULL, '2025-12-15', '2026-06-30'),
+  ('SYN_APT_H000006', 'SYN_ACC_H000002', 'SYN_PTY_PH00002', 'JOINT_OWNER',   'A', NULL, '2026-06-30', '2026-09-15');
 INSERT INTO core_account_balance VALUES
   ('SYN_ACC_H000001', 2486500000, '2026-12-31'),
   ('SYN_ACC_H000002',          0, '2026-09-15'),

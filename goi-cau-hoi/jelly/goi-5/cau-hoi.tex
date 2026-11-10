@@ -118,32 +118,27 @@
 
 % ################################################################ MODULE 9 · DATA QUALITY
 
-% ================================================================ k1 · write · Trung bình
-\begin{cauhoi}[ma=jelly-k1-trung-khoa, dulieu=jelly, domain=customer,
-  hinhthuc=write, cap=medium, dang=E1, kynang={COUNT DISTINCT nhiều cột, UNION ALL}, bay={khoa-thieu-cot, ket-qua-0-dong},
+% ================================================================ k1 · write · Cơ bản
+\begin{cauhoi}[ma=jelly-k1-phien-ghi-hai-lan, dulieu=jelly, domain=operations,
+  hinhthuc=write, cap=basic, dang=E1, kynang={GROUP BY hai cột, HAVING COUNT(*) > 1}, bay={khoa-ky-thuat},
   tacgia={Agent gói 5}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
-\tieude{Hai bảng nguồn của báo cáo giữ chân có dòng ghi trùng không?}
-\boicanh[Chị Thảo · Trưởng nhóm phân tích dữ liệu]{Trước khi gửi báo cáo giữ chân cho ban giám đốc, chị muốn chắc chắn dữ liệu hoạt động hằng ngày và dữ liệu phần hướng dẫn không có dòng ghi trùng. Chiều nay em gửi chị con số cụ thể nhé.}
+\tieude{Phiên chơi nào bị ghi hai lần?}
+\boicanh[Anh Long · Kỹ sư QA]{Anh nghi phần ghi nhật ký phiên có lúc ghi một phiên thành hai dòng. Em lấy giúp anh danh sách các phiên bị ghi lặp để anh gửi kèm phiếu lỗi.}
 \begin{yeucau}
-  \item Kiểm hai bảng: \code{player_daily} theo khoá (\code{user_id}, \code{activity_date}) và \code{tutorial_steps} theo khoá (\code{user_id}, \code{step_id}).
-  \item Mỗi bảng một dòng, kể cả khi không có dòng trùng: \code{bang} (tên bảng), \code{so_dong}, \code{so_khoa_khac_nhau}, \code{so_dong_thua} (số dòng trừ số khoá khác nhau).
-  \item Dòng \code{'player_daily'} trước, dòng \code{'tutorial_steps'} sau.
+  \item Một phiên bị ghi lặp khi cùng \code{user_id} và cùng \code{session_start} xuất hiện ở từ 2 dòng trở lên trong \code{sessions}, dù \code{session_id} khác nhau.
+  \item Trả về \code{user_id}, \code{session_start}, \code{so_dong} (số dòng có cùng cặp giá trị đó); chỉ giữ các cặp có \code{so_dong} từ 2 trở lên.
+  \item Sắp theo \code{user_id}, rồi \code{session_start}.
 \end{yeucau}
 \begin{erd}
-  \erdbang{users}{0,0}{user_id:PK, install_date}
-  \erdbang{player_daily}{1,0}{user_id, activity_date, cohort_day}
-  \erdbang{tutorial_steps}{1,1}{user_id, step_id, step_completed}
-  \erdnoi[kieu=1-n]{users.user_id}{player_daily.user_id}
-  \erdnoi[kieu=1-n]{users.user_id}{tutorial_steps.user_id}
+  \erdbang{sessions}{0,0}{session_id:PK='jta_session_00000533', user_id*='jta_user_000048', session_start*=2026-07-01 10:10:00, duration_minutes=10}
 \end{erd}
-\begin{nghiepvu}{Xác nhận hai bảng nguồn của báo cáo giữ chân và phễu hướng dẫn không bị đếm trùng người chơi.}
+\begin{nghiepvu}{Mở phiếu lỗi cho phần ghi nhật ký phiên và loại dòng lặp trước khi tính số phiên trên mỗi người chơi.}
   \khainiem{khoa-hat-du-lieu}
-  \luuy{Một người chơi có nhiều dòng trong \code{player_daily} (mỗi ngày có hoạt động một dòng) là bình thường; chỉ trùng khi cùng người chơi và cùng ngày.}
-  \luuy{Kiểm tra không thấy lỗi cũng phải trả về một dòng tóm tắt, để người đọc biết đã kiểm bao nhiêu dòng.}
+  \luuy{Mỗi lần ghi phiên, hệ thống sinh một \code{session_id} mới, nên mã phiên không bao giờ trùng. Phiên bị ghi lặp chỉ lộ ra khi xét người chơi và thời điểm bắt đầu.}
 \end{nghiepvu}
-\goiy{\code{COUNT(DISTINCT a, b)} đếm số cặp giá trị khác nhau của hai cột.}
-\goiy{Viết một truy vấn cho mỗi bảng rồi nối hai kết quả bằng \code{UNION ALL}.}
-\ghichuthietke{Trung bình: 3 bảng, ký hiệu 1-n; ERD không ghi nhãn khoá ở hai bảng cần kiểm để không lộ đáp án. Hai bảng có khoá chính nên đáp án là 0 dòng thừa; câu dạy viết kiểm tra luôn trả dòng tóm tắt. Giới hạn: bài viết hằng \code{COUNT(*), COUNT(*), 0} vẫn qua; bài sai đếm khoá chỉ theo \code{user_id} rớt trên public.}
+\goiy{Gom theo hai cột \code{user_id}, \code{session_start} rồi đếm số dòng của mỗi nhóm.}
+\goiy{Giữ nhóm có từ 2 dòng: \code{HAVING COUNT(*) > 1}.}
+\ghichuthietke{Cơ bản (v4, hạ từ Trung bình; mã cũ \code{jelly-k1-trung-khoa}): theo bài \code{k1-dong-trung} của lộ trình (\code{data.js} Module 9, cấp basic: \code{GROUP BY ... HAVING COUNT(*) > 1} trên một bảng). 5 trục: 1 bảng · 1 tầng gom và lọc nhóm · đề ghi rõ cột và khoá · 0 bẫy dữ liệu · 1 khái niệm (khoá theo hạt). Bỏ phần \code{player_daily}, \code{UNION ALL}, dòng tóm tắt. ERD 1 bảng có giá trị mẫu (một phiên thường của dữ liệu). Dòng lặp có thật: 57 cặp ở public, 52 ở hidden-1 (cùng người chơi, cùng phút bắt đầu, hai mã phiên). Hai bài sai: gom theo khoá kỹ thuật \code{session_id} (0 dòng), gom theo \code{user_id} và ngày \code{event_date} (lẫn mọi người chơi có hơn một phiên trong ngày); cả hai rớt trên public.}
 \end{cauhoi}
 
 % ================================================================ k2 · write · Trung bình
@@ -174,30 +169,29 @@
 \ghichuthietke{Trung bình: 3 bảng, ký hiệu 1-n. Đổi phạm vi so với v1 (v1 kiểm mã phiên, cả hai biến thể đều 0 dòng mồ côi). Nay có dòng thiếu cặp thật ở cả public và hidden-1 (khoảng ba phần tư giao dịch gắn màn). Ba bài sai rớt trên public: nối thẳng \code{level_attempts} (nhân dòng), nối thiếu cột màn, INNER JOIN (mất dòng thiếu cặp).}
 \end{cauhoi}
 
-% ================================================================ k3 · write · Trung bình
+% ================================================================ k3 · write · Dễ
 \begin{cauhoi}[ma=jelly-k3-cohort-day-kiem, dulieu=jelly, domain=customer,
-  hinhthuc=write, cap=medium, dang=E2, kynang={JOIN, DATEDIFF, COUNT(CASE)}, bay={datediff-dao-doi-so},
+  hinhthuc=write, cap=easy, dang=E2, kynang={JOIN, DATEDIFF, COUNT(CASE)}, bay={datediff-dao-doi-so},
   tacgia={Agent gói 5}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
 \tieude{Số ngày kể từ lúc cài có được tính đúng?}
 \boicanh[Chị Thảo · Trưởng nhóm phân tích dữ liệu]{Cả nhóm đang dùng số ngày kể từ ngày cài, ghi sẵn trong dữ liệu hoạt động hằng ngày, để tính giữ chân. Trước khi dùng tiếp, em đối chiếu số ngày này và ngày cài ghi kèm với ngày cài trong hồ sơ người chơi giúp chị.}
 \begin{yeucau}
-  \item Nối mỗi dòng \code{player_daily} với người chơi trong \code{users}.
-  \item Trả về một dòng: \code{so_dong_kiem}; \code{so_lech_cohort_day} (dòng có \code{cohort_day} khác số ngày từ \code{users.install_date} tới \code{activity_date}); \code{so_lech_ngay_cai} (dòng có \code{player_daily.install_date} khác \code{users.install_date}); \code{so_hoat_dong_truoc_ngay_cai} (dòng có ngày hoạt động trước ngày cài).
+  \item Nối mỗi dòng \code{player_daily} với người chơi trong \code{users} theo \code{user_id}.
+  \item Trả về một dòng ba cột: \code{so_dong_kiem} (số dòng \code{player_daily} đã nối); \code{so_lech_ngay_cai} (số dòng có \code{player_daily.install_date} khác \code{users.install_date}); \code{so_lech_cohort_day} (số dòng có \code{cohort_day} khác số ngày từ \code{users.install_date} tới \code{activity_date}).
 \end{yeucau}
 \begin{erd}
-  \erdbang{users}{0,0}{user_id:PK, install_date*}
-  \erdbang{player_daily}{1,0}{user_id:PK, activity_date:PK, install_date*, cohort_day*}
-  \erdbang{sessions}{2,0}{session_id:PK, user_id:FK, event_date}
-  \erdnoi[kieu=1-n]{users.user_id}{player_daily.user_id}
-  \erdnoi[kieu=1-n]{users.user_id}{sessions.user_id}
+  \erdbang{player_daily}{0,0}{user_id:FK, activity_date, install_date*, cohort_day*}
+  \erdbang{users}{1,0}{user_id:PK, install_date*}
+  \erdnoi[kieu=n-1, tren={\code{player_daily.user_id = users.user_id}}]{player_daily.user_id}{users.user_id}
 \end{erd}
 \begin{nghiepvu}{Quyết định có tiếp tục dùng \code{cohort_day} có sẵn cho mọi báo cáo giữ chân hay phải tự tính lại.}
   \khainiem{nhom-cai-dat}
   \khainiem{doi-soat-tong-hop}
   \luuy{Cột chép sẵn từ bảng khác (như \code{player_daily.install_date}) cần đối chiếu với bảng gốc, không so hai cột trong cùng một bảng.}
 \end{nghiepvu}
-\goiy{\code{DATEDIFF(a, b)} trả về \code{a - b} tính theo ngày; ngày muộn hơn đặt trước.}
-\ghichuthietke{Trung bình: 3 bảng (1 bảng không cần), ký hiệu 1-n. Public khớp hoàn toàn (0 ở cả ba cột lệch). hidden-1 có một dòng \code{player_daily} (\code{jta_user_003773}, 24/8/2026) ghi ngày cài sớm hơn \code{users} một ngày và \code{cohort_day} tính theo ngày ghi lệch, nên đáp án là 1 ở hai cột lệch đầu; bài so hai cột trong \code{player_daily} không nối \code{users} ra 0 và rớt ở hidden-1.}
+\goiy{Mỗi cột lệch là một phép đếm có điều kiện: \code{COUNT(CASE WHEN ... THEN 1 END)}.}
+\goiy{Số ngày từ ngày cài tới ngày hoạt động: \code{DATEDIFF(pd.activity_date, u.install_date)}.}
+\ghichuthietke{Dễ (v4, hạ từ Trung bình): 5 trục: 2 bảng có \code{JOIN} · 2 tầng (nối, đếm có điều kiện) · đề ghi rõ cột và công thức số ngày · 1 bẫy (đảo đối số \code{DATEDIFF}) · 1 công thức. So với v3: bỏ cột \code{so_hoat_dong_truoc_ngay_cai} (luôn 0 ở cả hai biến thể), bỏ bảng nhiễu \code{sessions}; ERD 2 bảng, chữ trên đường nối. Public khớp hoàn toàn (0 ở hai cột lệch). hidden-1 có một dòng \code{player_daily} (\code{jta_user_003773}, 24/8/2026) ghi ngày cài sớm hơn \code{users} một ngày và \code{cohort_day} tính theo ngày ghi lệch, nên đáp án là 1 ở hai cột lệch. Hai bài sai: đảo đối số \code{DATEDIFF} (rớt public); so hai cột trong \code{player_daily}, không nối \code{users} (ra 0, rớt ở hidden-1).}
 \end{cauhoi}
 
 % ================================================================ k4 · write · Trung bình
@@ -256,83 +250,78 @@
 \ghichuthietke{Khó: 5 bảng chỉ khoá, 2 bảng nhiễu, \code{erdkhoa}. Bài sai thiếu cận trên rớt ở hidden-1 (ngày 2026-09-01); bài sai nối thẳng ba bảng nhân dòng rớt trên public.}
 \end{cauhoi}
 
-% ================================================================ k6 · write · Khó
-\begin{cauhoi}[ma=jelly-k6-ad-revenue-lam-tron, dulieu=jelly, domain=finance,
-  hinhthuc=write, cap=hard, dang=E2, kynang={CTE, ABS, ngưỡng sai số}, bay={so-bang-dau-bang-so-le, lam-tron-roi-so},
-  tacgia={Agent gói 5}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.00001]
-\tieude{Doanh thu quảng cáo ở hai nguồn lệch nhau bao nhiêu?}
-\boicanh[Anh Phong · Kế toán quản trị]{Trước khi đối soát với mạng quảng cáo, anh muốn biết bảng tổng hợp theo người chơi trong ngày có khớp với từng lần xem quảng cáo không. Lệch dưới nửa đơn vị của chữ số thập phân thứ tư thì anh bỏ qua; lệch hơn thì em đếm giúp anh có bao nhiêu trường hợp.}
+% ================================================================ k6 · write · Dễ
+\begin{cauhoi}[ma=jelly-k6-quang-cao-bang-ngay, dulieu=jelly, domain=finance,
+  hinhthuc=write, cap=easy, dang=E2, kynang={JOIN, GROUP BY, HAVING, ROUND}, bay={so-bang-dau-bang-so-le},
+  tacgia={Agent gói 5}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
+\tieude{Ngày nào doanh thu quảng cáo trên bảng chỉ số ngày bị lệch?}
+\boicanh[Anh Phong · Kế toán quản trị]{Trước khi đối soát với mạng quảng cáo, anh muốn biết doanh thu quảng cáo trên bảng chỉ số ngày có khớp tổng từng lần xem không. Bảng chỉ số chỉ ghi hai chữ số sau dấu phẩy, nên em làm tròn tổng tính lại như vậy rồi mới so. Em liệt kê giúp anh những ngày còn lệch.}
 \begin{yeucau}
-  \item Ngày-người là một người chơi trong một ngày. Chỉ xét các ngày-người có ít nhất một lần xem quảng cáo trong \code{ad_events}, trên toàn bộ dữ liệu.
-  \item Gom \code{ad_events.revenue_usd} theo người chơi và ngày, ghép với dòng \code{player_daily} cùng người chơi, cùng ngày.
-  \item Một ngày-người được coi là lệch khi trị tuyệt đối của \code{ad_revenue} trừ tổng từ \code{ad_events} lớn hơn 0,00005 USD.
-  \item Trả về một dòng: \code{so_ngay_nguoi_doi_soat} (số ngày-người được ghép), \code{so_ngay_nguoi_lech}, \code{tong_chenh_lech_usd} (tổng của \code{ad_revenue} trừ tổng chi tiết, làm tròn 5 chữ số), \code{chenh_lech_lon_nhat_usd} (trị tuyệt đối lớn nhất, làm tròn 5 chữ số).
+  \item Xét các ngày từ 1/7 tới hết 29/8/2026. Doanh thu tính lại của một ngày là tổng \code{ad_events.revenue_usd} của các lần xem có \code{event_date} là ngày đó, làm tròn 2 chữ số.
+  \item Chỉ giữ ngày có \code{daily_kpi.ad_revenue} khác doanh thu tính lại.
+  \item Trả về \code{ngay}, \code{dt_bang_ngay_usd} (\code{daily_kpi.ad_revenue}), \code{dt_tinh_lai_usd}; sắp theo \code{ngay}.
 \end{yeucau}
 \begin{erd}
-  \erdbang{player_daily}{0,0}{user_id:PK, activity_date:PK}
-  \erdbang{ad_events}{1,0}{ad_id:PK, user_id:FK, session_id:FK}
-  \erdbang{daily_kpi}{2,0}{date:PK}
-  \erdbang{sessions}{1,1}{session_id:PK, user_id:FK}
-  \erdkhoa{\code{ad_events} gom theo (\code{user_id}, \code{event_date}) rồi ghép \code{player_daily} theo (\code{user_id}, \code{activity_date}). \code{daily_kpi}, \code{sessions} không cần.}
+  \erdbang{daily_kpi}{0,0}{date:PK, dau, iap_revenue, ad_revenue*}
+  \erdbang{ad_events}{1,0}{ad_id:PK, user_id:FK, event_date*, revenue_usd*}
+  \erdnoi[kieu=1-n, tren={\code{daily_kpi.date = ad_events.event_date}}]{daily_kpi.date}{ad_events.event_date}
 \end{erd}
-\begin{nghiepvu}{Chấp nhận số doanh thu quảng cáo của bảng tổng hợp khi đối soát với mạng quảng cáo, hoặc yêu cầu đội dữ liệu sửa cách làm tròn.}
+\begin{nghiepvu}{Chấp nhận số doanh thu quảng cáo của bảng chỉ số ngày khi đối soát với mạng quảng cáo, hoặc yêu cầu đội dữ liệu xem lại cách làm tròn.}
   \khainiem{doanh-thu-quang-cao}
   \khainiem{doi-soat-tong-hop}
-  \luuy{Hai nguồn có số chữ số thập phân khác nhau, nên so trực tiếp bằng phép bằng hoặc phép khác sẽ báo lệch ở gần như mọi dòng.}
+  \luuy{\code{revenue_usd} của một lần xem có 5 chữ số thập phân, \code{daily_kpi.ad_revenue} chỉ có 2. So thẳng hai số này thì gần như ngày nào cũng lệch; phải đưa về cùng mức làm tròn.}
+  \luuy{\code{daily_kpi} được cộng từ \code{player_daily}, nơi doanh thu của từng người chơi trong ngày đã làm tròn 4 chữ số, chứ không cộng thẳng từ từng lần xem.}
 \end{nghiepvu}
-\goiy{Điều kiện lệch: \code{ABS(pd.ad_revenue - c.dt_chi_tiet) > 0.00005}.}
-\ghichuthietke{Khó: 4 bảng chỉ khoá, 2 bảng nhiễu. \code{saiso=0.00001} để chấm được hai cột tiền rất nhỏ. Đã ghi rõ phạm vi \code{so_ngay_nguoi_doi_soat} (chỉ ngày-người có quảng cáo). Bài sai so \code{<>} và bài sai làm tròn rồi so bằng đều rớt trên public. Chờ giảng viên: lệch lớn nhất chỉ vài phần trăm nghìn USD, có thể vẫn do cách làm tròn từng lần xem; cách diễn giải ngưỡng cần người nắm đối soát chốt.}
+\goiy{Nối hai bảng theo ngày, gom theo ngày, rồi so hai số ở \code{HAVING}.}
+\goiy{\code{HAVING k.ad_revenue <> ROUND(SUM(a.revenue_usd), 2)}.}
+\ghichuthietke{Dễ (v4, hạ từ Khó; mã cũ \code{jelly-k6-ad-revenue-lam-tron}, đối soát ở mức ngày-người với ngưỡng 0,00005 USD). Nay đối soát ở mức ngày giữa bảng tổng hợp \code{daily_kpi} và bảng chi tiết \code{ad_events}. 5 trục: 2 bảng có \code{JOIN} · 2 tầng (nối và gom, lọc nhóm) · đề ghi rõ cột, cách tính lại và mức làm tròn · 1 bẫy (so hai số khác số chữ số thập phân) · 1 công thức (chênh lệch tổng hợp với tính lại). ERD 2 bảng, chữ trên đường nối. Public có 1 ngày lệch 0,01 USD, hidden-1 có 6 ngày (\code{daily_kpi} của hidden-1 tính lại từ \code{player_daily} sau khi bỏ 10\% người chơi). Ba bài sai rớt trên public: so với tổng chưa làm tròn (gần như mọi ngày), làm tròn từng lần xem rồi mới cộng, cộng \code{ad_revenue} sau khi nối (nhân theo số lần xem).}
 \end{cauhoi}
 
-% ================================================================ k7 · debug · Trung bình
-\begin{cauhoi}[ma=jelly-k7-bat-thuong-chi, dulieu=jelly, domain=marketing,
-  hinhthuc=debug, cap=medium, dang=E1, kynang={CTE, STDDEV_POP, GROUP BY}, bay={chuan-sai-nhom, quen-can-tren},
+% ================================================================ k7 · debug · Dễ
+\begin{cauhoi}[ma=jelly-k7-dau-doi-soat-phien, dulieu=jelly, domain=customer,
+  hinhthuc=debug, cap=easy, dang=E2, kynang={JOIN, GROUP BY, COUNT DISTINCT}, bay={dem-dong-thay-nguoi},
   tacgia={Agent gói 5}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
-\tieude{Ngày chi quảng cáo bất thường không hiện ra}
-\boicanh[Anh Tuấn · Quản lý thu hút người chơi]{Anh nhờ bạn thực tập tìm những ngày một chiến dịch chi nhiều bất thường để hỏi lại đối tác. Danh sách ra toàn ngày của Social Ads, chiến dịch nhỏ thì không có ngày nào. Em xem lại chỗ nào chưa đúng nhé.}
+\tieude{Số người chơi hoạt động tính lại lệch bảng chỉ số ngày}
+\boicanh[Chị Thảo · Trưởng nhóm phân tích dữ liệu]{Chị nhờ bạn thực tập đối soát số người chơi hoạt động mỗi ngày tuần đầu tháng 7 giữa bảng chỉ số ngày và nhật ký phiên chơi. Ngày nào cũng lệch, có ngày tới vài trăm người, và số trên bảng chỉ số ngày luôn thấp hơn. Chị nghĩ chỗ đếm có vấn đề, em xem lại giúp chị.}
 \begin{yeucau}
-  \item Chi phí của một chiến dịch trong một ngày là tổng \code{spend_usd} trên mọi quốc gia và nền tảng. Xét ngày 1/7 tới hết ngày 29/8/2026.
-  \item Một ngày là bất thường khi chi trong ngày lớn hơn trung bình chi ngày \textbf{của chính chiến dịch đó} cộng thêm hai lần độ lệch chuẩn tổng thể của chi ngày.
-  \item Giữ các cột \code{campaign_id}, \code{ngay}, \code{chi_ngay}, \code{chi_tb_chien_dich} (làm tròn 2 chữ số); sắp theo \code{campaign_id}, \code{ngay}.
+  \item Xét các ngày từ 1/7 tới hết 7/7/2026. DAU (số người chơi hoạt động trong ngày) tính lại của một ngày là số người chơi khác nhau có ít nhất một phiên trong \code{sessions} với \code{event_date} là ngày đó.
+  \item Truy vấn dưới đây cần trả về mỗi ngày một dòng: \code{ngay}, \code{dau_bang_ngay} (\code{daily_kpi.dau}), \code{dau_tinh_lai}, \code{chenh_lech} (\code{dau_bang_ngay} trừ \code{dau_tinh_lai}); sắp theo \code{ngay}.
+  \item Truy vấn đang tính sai; sửa lại và giữ tên cột.
 \end{yeucau}
 \begin{erd}
-  \erdbang{campaign_spend}{0,0}{date:PK, campaign_id:PK, country:PK, target_platform:PK, spend_usd*}
-  \erdbang{users}{1,0}{user_id:PK, campaign_id, channel}
-  \erdbang{player_daily}{2,0}{user_id:PK, activity_date:PK, campaign_id}
-  \erdnoi[kieu=1-n]{users.user_id}{player_daily.user_id}
+  \erdbang{daily_kpi}{0,0}{date:PK, dau*, new_users, sessions}
+  \erdbang{sessions}{1,0}{session_id:PK, user_id*, event_date*, duration_minutes}
+  \erdnoi[kieu=1-n, tren={một ngày, nhiều phiên}, canhbao]{daily_kpi.date}{sessions.event_date}
 \end{erd}
-\begin{nghiepvu}{Chọn ngày cần hỏi lại đối tác quảng cáo về mức chi.}
-  \khainiem{ngoai-lai}
-  \luuy{Nếu dùng một mức nền chung cho mọi chiến dịch, chiến dịch chi lớn dễ bị đánh dấu bất thường, còn chiến dịch chi nhỏ gần như không bao giờ.}
-  \luuy{Mỗi dòng \code{campaign_spend} là một ngày, một chiến dịch, một quốc gia, một nền tảng; phải cộng về mức ngày trước khi tính trung bình.}
+\begin{nghiepvu}{Xác nhận DAU trên bảng chỉ số ngày khớp nhật ký phiên chơi trước khi dùng cho báo cáo hoạt động.}
+  \khainiem{dau}
+  \khainiem{doi-soat-tong-hop}
+  \luuy{Mỗi dòng \code{sessions} là một phiên. Một người chơi có thể mở game nhiều lần trong ngày nên có nhiều phiên.}
 \end{nghiepvu}
-\goiy{CTE \code{chuan} cần thêm cột nào để ghép đúng với từng chiến dịch?}
-\ghichuthietke{Trung bình: \code{campaign_spend} không có khoá nối với bảng khác (2 bảng nhiễu để thử). Bài sai lấy mức nền trên dòng quốc gia × nền tảng rớt trên public; bài sai thiếu cận trên kiểm ở hidden-1 (dòng 2026-09-01 của Social Ads). hidden-1 tăng 150 USD chi của Video Network (VN, Android) ngày 11/7 và 10/8, nên có thêm hai ngày bất thường của \code{JTA-VIDEO-330} (6 dòng thay vì 4); chép kết quả Chạy thử sẽ rớt.}
+\goiy{Sau khi nối, mỗi ngày có bao nhiêu dòng cho một người chơi mở game ba lần? Cần đếm gì để mỗi người chỉ tính một lần?}
+\goiy{\code{COUNT(DISTINCT s.user_id)}, ở cả cột \code{dau_tinh_lai} lẫn cột \code{chenh_lech}.}
+\ghichuthietke{Dễ (v4, hạ từ Trung bình; mã cũ \code{jelly-k7-bat-thuong-chi}, ngày chi bất thường theo chiến dịch). Theo bảng Sửa lỗi Dễ của HD mục 6: một lỗi logic một chỗ, \code{COUNT(s.user_id)} thay cho \code{COUNT(DISTINCT s.user_id)} (lặp ở hai cột cùng một biểu thức). 5 trục: 2 bảng có \code{JOIN} · 2 tầng (nối, gom) · đề ghi rõ cột và cách tính lại · 1 bẫy (đếm phiên thay người) · 1 công thức (chênh lệch tổng hợp với tính lại). ERD 2 bảng, chữ trên đường nối tô cảnh báo. Đáp án: chênh lệch 0 ở mọi ngày của cả hai biến thể (\code{daily_kpi} khớp \code{sessions}); số DAU khác nhau giữa public và hidden-1. Hai bài sai rớt trên public: chỉ sửa cột \code{dau_tinh_lai}, bỏ cận trên của tuần.}
 \end{cauhoi}
 
-% ================================================================ k8 · debug · Trung bình
-\begin{cauhoi}[ma=jelly-k8-hoan-tien, dulieu=jelly, domain=after_sales,
-  hinhthuc=debug, cap=medium, dang=E2, kynang={SUM(CASE), cờ 0/1}, bay={dao-co, case-thieu-else},
+% ================================================================ k8 · debug · Cơ bản
+\begin{cauhoi}[ma=jelly-k8-thuan-ra-0, dulieu=jelly, domain=after_sales,
+  hinhthuc=debug, cap=basic, dang=E2, kynang={SUM(CASE), cờ 0/1}, bay={sai-gia-tri-loc},
   tacgia={Agent gói 5}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
-\tieude{Doanh thu thuần của các gói vật phẩm ra số âm}
-\boicanh[Anh Phong · Kế toán quản trị]{Bảng doanh thu thuần tháng 7 theo gói vật phẩm ra toàn số âm, trong khi đội hỗ trợ nói tháng 7 không xử lý yêu cầu hoàn tiền nào. Em xem lại giúp anh trước khi anh chốt số.}
+\tieude{Doanh thu thuần tháng 7 ra 0}
+\boicanh[Bạn Trang · Thực tập sinh phân tích]{Anh Phong nhờ em lấy doanh thu gộp và doanh thu thuần tháng 7 để đối chiếu. Doanh thu gộp ra bình thường, còn doanh thu thuần lại ra 0, em chưa hiểu vì sao ạ.}
 \begin{yeucau}
-  \item Truy vấn dưới đây tính cho từng gói vật phẩm trong tháng 7/2026: \code{so_giao_dich}, \code{doanh_thu_gop}, \code{tien_hoan} (tổng giá của giao dịch hoàn tiền), \code{doanh_thu_thuan} (doanh thu gộp trừ tiền hoàn).
-  \item Truy vấn đang tính sai; sửa lại và giữ tên cột; gói không có hoàn tiền ghi \code{tien_hoan} bằng 0. Sắp \code{doanh_thu_thuan} giảm dần, bằng nhau thì \code{product_type} theo thứ tự chữ cái.
+  \item Truy vấn dưới đây tính cho các giao dịch tháng 7/2026: \code{so_giao_dich}, \code{doanh_thu_gop_usd} (tổng \code{price_usd}), \code{doanh_thu_thuan_usd} (tổng \code{price_usd} của các giao dịch không hoàn tiền).
+  \item Cột \code{doanh_thu_thuan_usd} đang ra 0. Sửa để ra đúng; giữ tên cột.
 \end{yeucau}
 \begin{erd}
-  \erdbang{purchases}{0,0}{transaction_id:PK, user_id:FK, product_type*, price_usd*, is_refund*}
-  \erdbang{users}{1,0}{user_id:PK, channel}
-  \erdbang{level_metadata}{2,0}{level_id:PK, world_name}
-  \erdnoi[kieu=n-1]{purchases.user_id}{users.user_id}
+  \erdbang{purchases}{0,0}{transaction_id:PK, event_date*=2026-07-15, product_type='extra_moves_pack', price_usd*=1.99, is_refund*=0}
 \end{erd}
-\begin{nghiepvu}{Chốt doanh thu thuần tháng 7 theo gói vật phẩm để báo cáo quản trị.}
+\begin{nghiepvu}{Đối chiếu doanh thu thuần với doanh thu gộp trước khi chốt số tháng 7.}
   \khainiem{doanh-thu-iap}
-  \luuy{\code{is_refund} bằng 1 là giao dịch hoàn tiền, bằng 0 là giao dịch thường. Kỳ này chưa có giao dịch hoàn tiền, nên doanh thu thuần phải bằng doanh thu gộp.}
+  \luuy{\code{is_refund} bằng 1 là giao dịch hoàn tiền, bằng 0 là giao dịch thường.}
 \end{nghiepvu}
-\goiy{Đọc lại điều kiện \code{is_refund = 0} ở hai cột \code{tien_hoan} và \code{doanh_thu_thuan}.}
-\goiy{\code{SUM(CASE WHEN ... THEN price_usd END)} trả về NULL khi không có dòng nào thoả; đề yêu cầu ghi 0.}
-\ghichuthietke{Trung bình: lỗi đảo cờ ở hai cột. Bài sai chỉ sửa cột thuần và bài sai thiếu \code{ELSE 0} (ra NULL) đều rớt trên public. Vì dữ liệu không có hoàn tiền, bài ghi hằng \code{tien_hoan = 0} cũng qua (chấp nhận).}
+\goiy{So giá trị \code{is_refund} trong điều kiện của cột doanh thu thuần với giá trị mẫu trong ERD.}
+\ghichuthietke{Cơ bản (v4, hạ từ Trung bình; mã cũ \code{jelly-k8-hoan-tien}, đảo cờ ở hai cột và thiếu \code{ELSE 0}). Nay một lỗi dễ thấy ở một chỗ: điều kiện \code{is_refund = 1} thay cho \code{is_refund = 0}. 5 trục: 1 bảng · 1 tầng (lọc, tính biểu thức) · đề ghi rõ cột · 0 bẫy (cận trên của tháng là bình thường) · 1 khái niệm. ERD 1 bảng có giá trị mẫu, \code{is_refund = 0} là manh mối trực tiếp như mẫu d1. Kỳ này không có hoàn tiền nên doanh thu thuần bằng doanh thu gộp; bài bỏ hẳn điều kiện cờ cũng qua (chấp nhận). Hai bài sai rớt trên public: đảo cờ theo kiểu khác (\code{THEN 0 ELSE price_usd}, vẫn ra 0), bỏ cận trên của tháng.}
 \end{cauhoi}
 
 % ================================================================ k9 · debug · Khó
@@ -351,7 +340,8 @@
   \erdbang{sessions}{1,0}{session_id:PK, user_id:FK}
   \erdbang{tutorial_steps}{2,0}{user_id:PK, step_id:PK, session_id:FK}
   \erdbang{player_daily}{0,1}{user_id:PK, activity_date:PK}
-  \erdkhoa{\code{sessions.user_id} nối \code{users}. Phiên hướng dẫn nhận ra bằng \code{sessions.entry_screen}; \code{tutorial_steps}, \code{player_daily} không cần.}
+  \erdbang{level_attempts}{1,1}{attempt_id:PK, user_id:FK, session_id:FK}
+  \erdkhoa{\code{sessions.user_id} nối \code{users}. Phiên hướng dẫn nhận ra bằng \code{sessions.entry_screen}; \code{tutorial_steps}, \code{player_daily}, \code{level_attempts} không cần.}
 \end{erd}
 \begin{nghiepvu}{Đánh giá có nên đưa người chơi mới vào thẳng phần hướng dẫn ở lần mở game đầu tiên trên cả hai nền tảng hay không.}
   \khainiem{phien-choi}
@@ -359,7 +349,7 @@
 \end{nghiepvu}
 \goiy{Thứ tự thời gian của phiên nằm ở cột nào? So chuỗi mã phiên theo thứ tự chữ cái không cho biết phiên nào diễn ra trước.}
 \goiy{Kiểm lại điều kiện lọc ngày cài: tháng 7 có cận trên chưa?}
-\ghichuthietke{Khó: 4 bảng chỉ khoá, 2 bảng nhiễu. Hai lỗi: lấy phiên đầu bằng \code{MIN(session_id)} (phiên hướng dẫn không bao giờ nhỏ nhất theo chữ) và thiếu cận trên tháng 7. Mỗi bài sai chỉ sửa một lỗi, đều rớt trên public. Đề dùng EXISTS theo thời điểm sớm nhất vì có 57 cặp phiên trùng thời điểm bắt đầu (không cặp nào có phiên hướng dẫn).}
+\ghichuthietke{Khó: 5 bảng chỉ khoá, 3 bảng nhiễu (lời giải dùng 2 bảng nên thêm cho đủ 5, như mẫu d4). Hai lỗi: lấy phiên đầu bằng \code{MIN(session_id)} (phiên hướng dẫn không bao giờ nhỏ nhất theo chữ) và thiếu cận trên tháng 7. Mỗi bài sai chỉ sửa một lỗi, đều rớt trên public. Đề dùng EXISTS theo thời điểm sớm nhất vì có 57 cặp phiên trùng thời điểm bắt đầu (không cặp nào có phiên hướng dẫn).}
 \end{cauhoi}
 
 
@@ -370,7 +360,7 @@
 \begin{cauhoi}[ma=jelly-p1-dem-ket-qua-mot-lan, dulieu=jelly, domain=operations,
   hinhthuc=optimize, cap=easy, dang=A3, kynang={COUNT(CASE), GROUP BY, EXPLAIN ANALYZE}, bay={quet-lai-bang},
   tacgia={Agent gói 5}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, quettoida={level_attempts=1}]
-\tieude{Kết quả lượt chơi màn 28--30 trong tháng 8}
+\tieude{Kết quả lượt chơi màn 28--30 tháng 8 chỉ với một lần quét}
 \boicanh[Anh Hùng · Data engineer]{Trang theo dõi màn 28--30 chạy truy vấn này mỗi lần đội thiết kế mở. Truy vấn đang đọc bảng lượt chơi bốn lần, em gộp lại giúp anh.}
 \begin{yeucau}
   \item Giữ nguyên kết quả: mỗi màn 28, 29, 30 một dòng, đếm lượt chơi tháng 8/2026 (tới hết ngày 29/8) theo từng kết quả; trả về \code{level_id}, \code{so_thang}, \code{so_thua}, \code{so_bo_cuoc}, \code{so_su_co}; sắp theo \code{level_id}.
@@ -396,7 +386,7 @@
 \begin{cauhoi}[ma=jelly-p2-doanh-thu-hai-nguon, dulieu=jelly, domain=finance,
   hinhthuc=optimize, cap=easy, dang=A3, kynang={GROUP BY nhiều cột, EXPLAIN ANALYZE}, bay={union-all-lap},
   tacgia={Agent gói 5}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, quettoida={ad_events=1}]
-\tieude{Doanh thu quảng cáo theo nền tảng và định dạng chỉ với một lần quét}
+\tieude{Doanh thu quảng cáo theo nền tảng, định dạng chỉ một lần quét}
 \boicanh[Anh Hùng · Data engineer]{Báo cáo doanh thu quảng cáo tháng 7 đang ghép bốn đoạn giống nhau, mỗi đoạn một nền tảng và một định dạng quảng cáo. Thêm một định dạng là phải chép thêm hai đoạn. Em viết lại cho gọn, xong báo anh.}
 \begin{yeucau}
   \item Giữ nguyên kết quả: \code{platform}, \code{ad_type}, \code{so_luot_xem}, \code{doanh_thu_usd} (làm tròn 2 chữ số) cho các lần xem quảng cáo tháng 7/2026; sắp theo \code{platform}, \code{ad_type}.
@@ -422,7 +412,7 @@
 \begin{cauhoi}[ma=jelly-p3-tren-tb-the-gioi, dulieu=jelly, domain=operations,
   hinhthuc=optimize, cap=hard, dang=C3, kynang={AVG OVER, PARTITION BY, CTE}, bay={tinh-lai-hai-lan, trung-binh-sai-nhom},
   tacgia={Agent gói 5}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.01, quettoida={level_attempts=1}, ngansach=1.5]
-\tieude{Màn có tỷ lệ thua cao hơn mặt bằng thế giới chứa màn}
+\tieude{Màn có tỷ lệ thua trên mặt bằng thế giới, một lần quét}
 \boicanh[Anh Hùng · Data engineer]{Truy vấn tìm màn khó hơn mặt bằng của thế giới chứa màn đang tính tỷ lệ thua từng màn hai lần. Em viết lại cho nhẹ hơn, kết quả vẫn phải như cũ.}
 \begin{yeucau}
   \item Giữ nguyên kết quả: các màn có tỷ lệ thua (tháng 7/2026) cao hơn trung bình thế giới, trong đó trung bình thế giới là bình quân giản đơn tỷ lệ thua của các màn trong thế giới đó.
@@ -436,7 +426,9 @@
   \erdbang{level_attempts}{0,0}{attempt_id:PK, user_id:FK, level_id:FK}
   \erdbang{level_metadata}{1,0}{level_id:PK}
   \erdbang{users}{2,0}{user_id:PK}
-  \erdkhoa{\code{level_attempts} đã có sẵn \code{world_name} và \code{result}, không cần nối bảng nào.}
+  \erdbang{sessions}{0,1}{session_id:PK, user_id:FK}
+  \erdbang{player_daily}{1,1}{user_id:PK, activity_date:PK}
+  \erdkhoa{\code{level_attempts} đã có sẵn \code{world_name} và \code{result}, không cần nối bảng nào; \code{level_metadata}, \code{users}, \code{sessions}, \code{player_daily} không cần.}
 \end{erd}
 \begin{nghiepvu}{Lập danh sách màn cần giảm độ khó trong bản cập nhật tới, so với mặt bằng của chính thế giới chứa màn.}
   \khainiem{ty-le-thua}
@@ -445,14 +437,14 @@
 \end{nghiepvu}
 \goiy{Trung bình thế giới tính ngay được trên bảng tỷ lệ của từng màn, không cần gom lại từ lượt chơi.}
 \goiy{\code{AVG(ty_le_thua) OVER (PARTITION BY world_name)}.}
-\ghichuthietke{Khó: 3 bảng chỉ khoá, 2 bảng nhiễu. Ngân sách siết còn 1,5 (v1 đặt 2 thì khởi đầu vừa đủ qua): khởi đầu đọc bảng 2 lần, khoảng 2 lần dòng trung gian của lời giải. Cách CTE rồi nối với CTE gom theo thế giới cũng đọc 1 lần, dòng trung gian gần bằng lời giải nên được chấp nhận (MySQL chỉ dựng CTE một lần). Bài sai lấy trung bình cả game và bài sai lấy tỷ lệ gộp theo lượt đều sai kết quả trên public.}
+\ghichuthietke{Khó: 5 bảng chỉ khoá, 4 bảng nhiễu (lời giải dùng 1 bảng nên thêm cho đủ 5, như mẫu o4). Ngân sách siết còn 1,5 (v1 đặt 2 thì khởi đầu vừa đủ qua): khởi đầu đọc bảng 2 lần, khoảng 2 lần dòng trung gian của lời giải. Cách CTE rồi nối với CTE gom theo thế giới cũng đọc 1 lần, dòng trung gian gần bằng lời giải nên được chấp nhận (MySQL chỉ dựng CTE một lần). Bài sai lấy trung bình cả game và bài sai lấy tỷ lệ gộp theo lượt đều sai kết quả trên public.}
 \end{cauhoi}
 
 % ================================================================ p4 · optimize · Khó
 \begin{cauhoi}[ma=jelly-p4-luy-ke-tu-noi, dulieu=jelly, domain=finance,
   hinhthuc=optimize, cap=hard, dang=B3, kynang={SUM OVER, PARTITION BY, ORDER BY}, bay={tu-noi-bang, quen-can-tren},
   tacgia={Agent gói 5}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.01, quettoida={daily_kpi=1}, ngansach=2]
-\tieude{Doanh thu luỹ kế trong tháng cho biểu đồ tiến độ}
+\tieude{Doanh thu luỹ kế trong tháng không dùng tự nối bảng}
 \boicanh[Anh Hùng · Data engineer]{Biểu đồ tiến độ doanh thu tháng đang đọc bảng chỉ số ngày hai lần, mỗi ngày lại cộng lại từ đầu tháng. Đội dữ liệu sắp nạp thêm nhiều tháng nên truy vấn sẽ chậm dần. Anh cần bản mới trước đợt nạp đó.}
 \begin{yeucau}
   \item Giữ nguyên kết quả: mỗi ngày từ 1/7 tới hết 29/8/2026 một dòng: \code{ngay}, \code{doanh_thu} (\code{iap_revenue + ad_revenue}), \code{luy_ke_thang} (cộng dồn từ ngày đầu tháng tới ngày đó); sắp theo \code{ngay}.
@@ -465,6 +457,8 @@
   \erdbang{daily_kpi}{0,0}{date:PK}
   \erdbang{player_daily}{1,0}{user_id:PK, activity_date:PK}
   \erdbang{purchases}{2,0}{transaction_id:PK, user_id:FK}
+  \erdbang{users}{0,1}{user_id:PK}
+  \erdbang{ad_events}{1,1}{ad_id:PK, user_id:FK, session_id:FK}
   \erdkhoa{Bảng chỉ số ngày \code{daily_kpi} là bảng tổng hợp sẵn, mỗi dòng một ngày, đã có \code{iap_revenue} và \code{ad_revenue}. Không cần bảng khác.}
 \end{erd}
 \begin{nghiepvu}{Theo dõi tiến độ doanh thu so với kế hoạch của từng tháng.}
@@ -473,14 +467,14 @@
 \end{nghiepvu}
 \goiy{Tự nối bảng theo \code{b.date <= a.date} sinh ra số dòng tăng theo bình phương số ngày trong tháng.}
 \goiy{\code{SUM(...) OVER (PARTITION BY ... ORDER BY date)}, trong đó phần phân vùng là tháng của ngày.}
-\ghichuthietke{Khó: khung hard của CHOT; 3 bảng chỉ khoá, 2 bảng nhiễu. Bài sai thiếu \code{PARTITION BY} (luỹ kế không về 0 đầu tháng 8) rớt trên public; bài sai thiếu cận trên rớt ở hidden-1 (thêm ngày 2026-09-01).}
+\ghichuthietke{Khó: khung hard của CHOT; 5 bảng chỉ khoá, 4 bảng nhiễu (lời giải dùng 1 bảng nên thêm cho đủ 5, như mẫu o4). Bài sai thiếu \code{PARTITION BY} (luỹ kế không về 0 đầu tháng 8) rớt trên public; bài sai thiếu cận trên rớt ở hidden-1 (thêm ngày 2026-09-01).}
 \end{cauhoi}
 
 % ================================================================ p5 · optimize · Trung bình
 \begin{cauhoi}[ma=jelly-p5-nguoi-tra-tien-exists, dulieu=jelly, domain=sales,
   hinhthuc=optimize, cap=medium, dang=A2, kynang={bảng dẫn xuất, DISTINCT, JOIN}, bay={noi-bang-nhan-dong},
   tacgia={Agent gói 5}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, ngansach=2]
-\tieude{Đếm người chơi trả tiền theo kênh cho nhẹ hơn}
+\tieude{Đếm người trả tiền theo kênh với ít dòng trung gian}
 \boicanh[Anh Hùng · Data engineer]{Truy vấn đếm người chơi trả tiền theo kênh đang lấy kênh từ bảng hoạt động ngày. Mỗi giao dịch vì thế bị nhân lên theo số ngày người đó chơi. Kết quả vẫn đúng nhưng tốn tài nguyên, em viết lại cho gọn nhé.}
 \begin{yeucau}
   \item Giữ nguyên kết quả: \code{channel}, \code{so_nguoi_tra_tien} (người có ít nhất một giao dịch từ 1/7 tới hết 29/8/2026); sắp \code{so_nguoi_tra_tien} giảm dần, bằng nhau thì \code{channel} theo thứ tự chữ cái.
@@ -504,33 +498,28 @@
 \ghichuthietke{Trung bình: 3 bảng có ký hiệu. Ràng buộc chỉ là ngân sách dòng (hai cách đều đọc mỗi bảng một lần); khởi đầu khoảng 4,9 lần lời giải.}
 \end{cauhoi}
 
-% ================================================================ p6 · optimize · Trung bình
-\begin{cauhoi}[ma=jelly-p6-dau-tu-sessions, dulieu=jelly, domain=customer,
-  hinhthuc=optimize, cap=medium, dang=D2, kynang={MAX(CASE), LEFT JOIN, bảng dẫn xuất}, bay={doc-lai-bang, nhom-chua-du-ngay},
-  tacgia={Agent gói 5}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.01, quettoida={player_daily=1}]
-\tieude{Tỷ lệ giữ chân D1, D7 theo nền tảng chỉ với một lần đọc bảng hoạt động}
-\boicanh[Anh Hùng · Data engineer]{Báo cáo giữ chân hằng ngày đọc bảng hoạt động hai lần, một lần cho ngày thứ nhất và một lần cho ngày thứ bảy. Sắp tới bảng này sẽ lớn gấp nhiều lần, nên anh cần bản chỉ đọc một lần trước đợt nạp dữ liệu mới.}
+% ================================================================ p6 · optimize · Cơ bản
+\begin{cauhoi}[ma=jelly-p6-d1-d3-d7-mot-lan-quet, dulieu=jelly, domain=customer,
+  hinhthuc=optimize, cap=basic, dang=D2, kynang={COUNT(CASE), EXPLAIN ANALYZE}, bay={quet-lai-bang},
+  tacgia={Agent gói 5}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, quettoida={player_daily=1}]
+\tieude{Số người còn chơi D1, D3, D7 chỉ với một lần quét}
+\boicanh[Anh Hùng · Data engineer]{Trang theo dõi người chơi mới chạy truy vấn này mỗi lần đội sản phẩm mở. Mỗi lần chạy, máy đọc bảng hoạt động ngày ba lần, mỗi mốc ngày một lần. Em gộp lại giúp anh.}
 \begin{yeucau}
-  \item Giữ nguyên kết quả: người chơi cài từ 1/7 tới hết 22/8/2026, theo \code{platform}: \code{so_nguoi_cai}, \code{so_con_d1}, \code{so_con_d7}, \code{ty_le_d1_pct}, \code{ty_le_d7_pct} (2 chữ số); sắp theo \code{platform}.
+  \item Giữ nguyên kết quả: một dòng, ba cột \code{so_con_d1}, \code{so_con_d3}, \code{so_con_d7} là số người chơi cài từ 1/7 tới hết 7/7/2026 có hoạt động đúng vào ngày thứ 1, thứ 3, thứ 7 kể từ ngày cài (\code{cohort_day} bằng 1, 3, 7).
 \end{yeucau}
 \begin{rangbuoc}
-  \item Bảng \code{player_daily} chỉ được đọc 1 lần.
+  \item Bảng \code{player_daily} chỉ được đọc 1 lần (đếm theo kế hoạch chạy \code{EXPLAIN ANALYZE}).
 \end{rangbuoc}
 \begin{erd}
-  \erdbang{users}{0,0}{user_id:PK, install_date*, platform*}
-  \erdbang{player_daily}{1,0}{user_id:PK, activity_date:PK, cohort_day*}
-  \erdbang{sessions}{2,0}{session_id:PK, user_id:FK}
-  \erdnoi[kieu=1-n]{users.user_id}{player_daily.user_id}
-  \erdnoi[kieu=1-n]{users.user_id}{sessions.user_id}
+  \erdbang{player_daily}{0,0}{user_id:PK, activity_date:PK, install_date*=2026-07-01, cohort_day*=7}
 \end{erd}
-\begin{nghiepvu}{Theo dõi giữ chân hằng ngày theo nền tảng sau các bản cập nhật.}
-  \khainiem{ty-le-giu-chan}
-  \khainiem{nhom-du-ngay}
+\begin{nghiepvu}{Giảm tải cho trang theo dõi người chơi mới mà đội sản phẩm mở nhiều lần trong ngày.}
+  \khainiem{nhom-cai-dat}
   \khainiem{lan-quet-bang}
+  \luuy{\code{player_daily} có một dòng cho mỗi người chơi trong mỗi ngày có hoạt động, nên số dòng có \code{cohort_day} bằng 1 cũng là số người chơi hoạt động ở D1.}
 \end{nghiepvu}
-\goiy{Một bảng dẫn xuất gom \code{player_daily} theo \code{user_id}, lấy cả hai cờ: \code{MAX(CASE WHEN cohort_day = 1 THEN 1 ELSE 0 END)} và cờ tương tự cho ngày 7.}
-\goiy{Người không có dòng nào ở ngày 1 hay 7 vẫn phải nằm trong mẫu số: dùng \code{LEFT JOIN} và \code{COALESCE}.}
-\ghichuthietke{Trung bình (hạ từ Khó theo kiểm B): gộp hai lần đọc thành một lần đếm có điều kiện; ERD 3 bảng có ký hiệu. Bài sai gom cả nhóm cài chưa đủ 7 ngày và bài sai lấy mẫu số từ bảng hoạt động đều sai kết quả trên public.}
+\goiy{Đếm có điều kiện: \code{COUNT(CASE WHEN cohort_day = 1 THEN 1 END)}, làm tương tự cho 3 và 7.}
+\ghichuthietke{Cơ bản (v4, hạ từ Trung bình; mã cũ \code{jelly-p6-dau-tu-sessions}, giữ chân D1, D7 theo nền tảng với mẫu số từ \code{users}). Nay đúng khung basic của CHOT mục 4 (mẫu o1): ba truy vấn con quét lại một bảng, gộp thành đếm có điều kiện. 5 trục: 1 bảng · 1 tầng (lọc, đếm có điều kiện) · đề ghi rõ cột và giá trị \code{cohort_day} · 0 bẫy · 1 khái niệm (nhóm cài đặt). ERD 1 bảng có giá trị mẫu. Không tính tỷ lệ nên không cần mẫu số từ \code{users}. Số đo: khởi đầu đọc \code{player_daily} 3 lần (mỗi lần tra chỉ mục theo \code{cohort_day}), lời giải 1 lần; ràng buộc chỉ đếm số lần đọc như mẫu o1, không đặt ngân sách dòng vì một lần quét cả bảng có nhiều dòng trung gian hơn ba lần tra chỉ mục. Bài sai gom theo \code{cohort_day} ra ba dòng; bài sai \code{COUNT(cohort_day = 1)} đếm mọi dòng không NULL; cả hai sai kết quả trên public.}
 \end{cauhoi}
 
 % ================================================================ p7 · optimize · Dễ
@@ -560,39 +549,33 @@
 \ghichuthietke{Dễ (v1 là write Trung bình; đổi sang optimize theo kiểm C để ràng buộc chỉ mục chấm được). Bối cảnh v1 nói ngày 20/8 có sự kiện là sai dữ liệu; nay dùng ngày 10/8 trong đợt Licorice Rescue (8--12/8). Khởi đầu \code{DATE(event_time) = ...} đọc cả bảng nên vượt ngân sách; bài sai vẫn bọc hàm \code{DATE_FORMAT(event_date, ...)} đúng kết quả nhưng vượt ngân sách; hai bài sai so \code{event_time} sai kết quả trên public.}
 \end{cauhoi}
 
-% ================================================================ p8 · debug · Khó
-\begin{cauhoi}[ma=jelly-p8-ham-tren-cot, dulieu=jelly, domain=customer,
-  hinhthuc=debug, cap=hard, dang=B1, kynang={COUNT DISTINCT, khoảng nửa mở, chỉ mục}, bay={ham-tren-cot, thang-chua-tron, dem-dong},
-  tacgia={Agent gói 5}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.01]
-\tieude{MAU và mức độ gắn bó theo tháng ra sai}
-\boicanh[Chị Thảo · Trưởng nhóm phân tích dữ liệu]{Báo cáo tháng 7 và tháng 8 ra MAU bằng đúng tổng số lượt người chơi theo ngày, mức độ gắn bó hai tháng y hệt nhau, còn DAU bình quân tháng 8 thấp hơn hẳn số trên bảng chỉ số ngày. Đội dữ liệu còn phàn nàn truy vấn đọc cả bảng. Em sửa giúp chị.}
+% ================================================================ p8 · debug · Cơ bản
+\begin{cauhoi}[ma=jelly-p8-moc-dau-dot-su-kien, dulieu=jelly, domain=customer,
+  hinhthuc=debug, cap=basic, dang=A2, kynang={khoảng ngày trên cột, toán tử so sánh}, bay={sai-toan-tu},
+  tacgia={Agent gói 5}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
+\tieude{Hoạt động trong đợt Licorice Rescue thấp hơn bản cũ}
+\boicanh[Bạn Ngân · Thực tập sinh phân tích]{Anh Hùng bảo em viết lại truy vấn đếm hoạt động trong đợt Licorice Rescue cho chạy nhanh hơn. Em sửa xong thì số ra thấp hơn bản cũ, em xem mãi chưa thấy sai ở đâu ạ.}
 \begin{yeucau}
-  \item Xét tháng 7/2026 và tháng 8/2026 (tháng 8 có dữ liệu tới hết ngày 29/8). Mỗi tháng một dòng.
-  \item \code{mau}: số người chơi khác nhau hoạt động trong tháng. \code{dau_binh_quan}: số ngày-người của tháng (mỗi người chơi trong mỗi ngày có hoạt động tính một) chia số ngày \textbf{có dữ liệu} của tháng (2 chữ số). \code{muc_do_gan_bo}: DAU bình quân chia MAU (4 chữ số).
-  \item Truy vấn dưới đây có ba lỗi. Sửa cả ba; giữ các cột \code{thang}, \code{mau}, \code{dau_binh_quan}, \code{muc_do_gan_bo}; sắp theo \code{thang}.
+  \item Đợt Licorice Rescue chạy từ ngày 8/8 tới hết ngày 12/8/2026, gồm cả hai ngày đầu và cuối.
+  \item Truy vấn dưới đây cần trả về một dòng: \code{so_ngay_nguoi} (số dòng \code{player_daily} trong đợt; mỗi người chơi trong mỗi ngày có hoạt động là một dòng), \code{so_phien} (tổng \code{sessions}). Sửa để ra đúng; giữ tên cột.
 \end{yeucau}
 \begin{erd}
-  \erdbang{player_daily}{0,0}{user_id:PK, activity_date:PK}
-  \erdbang{daily_kpi}{1,0}{date:PK}
-  \erdbang{users}{2,0}{user_id:PK}
-  \erdkhoa{Chỉ cần \code{player_daily}: mỗi dòng là một người chơi trong một ngày có hoạt động. \code{daily_kpi} có DAU tổng hợp sẵn nhưng không có MAU.}
+  \erdbang{player_daily}{0,0}{user_id:PK, activity_date*=2026-08-08, sessions*=2, max_level}
 \end{erd}
-\begin{nghiepvu}{Báo cáo mức độ gắn bó của người chơi theo tháng cho ban giám đốc.}
-  \khainiem{mau}
+\begin{nghiepvu}{Đo mức hoạt động của người chơi trong đợt sự kiện để so với các tuần không có sự kiện.}
   \khainiem{dau}
   \khainiem{chi-muc}
-  \luuy{Tháng 8/2026 là tháng chưa trọn trong dữ liệu.}
+  \luuy{Khi viết lại điều kiện ngày, kiểm lại hai đầu của khoảng: ngày đầu và ngày cuối của đợt phải còn nằm trong kết quả.}
 \end{nghiepvu}
-\goiy{\code{COUNT(user_id)} đếm dòng hay đếm người? Mẫu số của DAU bình quân lấy từ đâu?}
-\goiy{\code{YEAR(activity_date) = 2026} vừa không dùng được chỉ mục \code{idx_daily_activity}, vừa không có cận trên của tháng 8. Viết khoảng ngày nửa mở trên chính cột.}
-\ghichuthietke{Khó: ba lỗi (đếm dòng thay người, chia số ngày lịch của tháng 8, lọc bằng hàm trên cột không có cận trên). Việc dùng chỉ mục không chấm được ở câu debug nên chỉ còn ở gợi ý; máy chấm theo kết quả. Bài sai chỉ còn chia ngày lịch rớt trên public; bài sai còn giữ \code{YEAR()} chỉ rớt ở hidden-1 (thêm dòng 2026-09-01).}
+\goiy{So dấu so sánh ở mốc đầu với giá trị mẫu \code{activity_date = 2026-08-08} trong ERD.}
+\ghichuthietke{Cơ bản (v4, hạ từ Khó; mã cũ \code{jelly-p8-ham-tren-cot}, MAU và mức độ gắn bó với ba lỗi chồng nhau). Nay một lỗi dễ thấy (sai toán tử): bản viết lại cho dùng được chỉ mục \code{idx_daily_activity} đặt \code{>} thay cho \code{>=} ở mốc đầu nên mất ngày 8/8. Như câu gốc, việc dùng chỉ mục không chấm được ở câu debug, chỉ nằm ở bối cảnh; máy chấm theo kết quả. 5 trục: 1 bảng · 1 tầng (lọc, đếm, cộng) · đề ghi rõ cột và khoảng ngày · 0 bẫy · 1 khái niệm. ERD 1 bảng có giá trị mẫu. Hai bài sai rớt trên public: bỏ cận trên, sửa mốc đầu nhưng làm mất ngày cuối (\code{< '2026-08-12'}).}
 \end{cauhoi}
 
 % ================================================================ p9 · optimize · Trung bình
 \begin{cauhoi}[ma=jelly-p9-select-distinct-thua, dulieu=jelly, domain=finance,
   hinhthuc=optimize, cap=medium, dang=C4, kynang={EXPLAIN ANALYZE, bỏ DISTINCT thừa, LEFT JOIN}, bay={distinct-thua, inner-join-mat-nhom, loc-o-where},
   tacgia={Agent gói 5}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.01, ngansach=1.3]
-\tieude{Báo cáo phân khúc người chơi theo mức chi chạy nhẹ hơn}
+\tieude{Phân khúc người chơi theo mức chi, bớt dòng trung gian}
 \boicanh[Anh Hùng · Data engineer]{Báo cáo phân khúc theo mức chi của chị Vy lấy danh sách người chơi bằng cách lọc trùng trên bảng hoạt động ngày, trong khi đã có bảng mỗi người chơi một dòng. Báo cáo chạy mỗi tối, em viết lại cho nhẹ, kết quả giữ như cũ.}
 \begin{yeucau}
   \item Giữ nguyên kết quả: mọi người chơi trong \code{users} chia theo tổng chi (tổng \code{price_usd} từ 1/7 tới hết 29/8/2026) thành \code{'khong_chi'} (bằng 0), \code{'duoi_5'} (dưới 5 USD), \code{'tu_5_den_20'} (từ 5 tới 20 USD), \code{'tren_20'} (trên 20 USD).
@@ -614,7 +597,7 @@
   \luuy{Điều kiện trên bảng bên phải của \code{LEFT JOIN} đặt ở \code{WHERE} sẽ loại mất người chưa có giao dịch; điều kiện này phải đặt trong \code{ON}.}
 \end{nghiepvu}
 \goiy{Chạy \code{EXPLAIN ANALYZE}: bước lọc trùng trên \code{player_daily} đọc bao nhiêu dòng để ra danh sách người chơi?}
-\goiy{Bảng nào đã có sẵn mỗi người chơi một dòng?}
+\goiy{Thay CTE \code{SELECT DISTINCT user_id FROM player_daily} bằng \code{FROM users u LEFT JOIN purchases p}: \code{users} đã có mỗi người chơi một dòng.}
 \ghichuthietke{Trung bình (v1 là write Khó, không có nội dung hiệu năng; đổi sang optimize theo kiểm C, giữ mã). Khởi đầu \code{SELECT DISTINCT user_id FROM player_daily} đúng kết quả vì mọi người chơi đều có dòng hoạt động, nhưng đọc khoảng 80 nghìn dòng; số đo: khởi đầu khoảng 1,6 lần dòng trung gian của lời giải nên ngân sách đặt 1,3. Ba bài sai (INNER JOIN, lọc ngày ở WHERE, tỷ trọng theo số người) sai kết quả trên public.}
 \end{cauhoi}
 
@@ -628,17 +611,18 @@
 \boicanh[Chị Vy · Quản lý doanh thu]{Nhánh thử mời mua thêm lượt đi ngay sau lần thua đầu tiên, thay vì sau ba lần thua. Tuần sau chị phải quyết định có áp dụng cho mọi người chơi không. Em phân tích thử nghiệm này, nhớ xem cả việc người chơi có bỏ game nhiều hơn không nhé.}
 \begin{erd}
   \erdbang{ab_assignments}{0,0}{user_id:PK, experiment_id:PK}
-  \erdbang{purchases}{1,0}{transaction_id:PK, user_id:FK}
+  \erdbang{level_attempts}{1,0}{attempt_id:PK, user_id:FK}
   \erdbang{player_daily}{2,0}{user_id:PK, activity_date:PK}
   \erdbang{users}{1,1}{user_id:PK}
-  \erdbang{level_attempts}{0,1}{attempt_id:PK, user_id:FK}
-  \erdkhoa{\code{purchases} và \code{player_daily} nối \code{ab_assignments} theo \code{user_id}. Cửa sổ D0--D6 tính từ ngày của \code{assigned_at}. \code{users}, \code{level_attempts} không cần.}
+  \erdbang{purchases}{0,1}{transaction_id:PK, user_id:FK}
+  \erdkhoa{\code{level_attempts}, \code{purchases} và \code{player_daily} nối \code{ab_assignments} theo \code{user_id}. Cửa sổ D0--D6 tính từ ngày của \code{assigned_at}. \code{users} không cần.}
 \end{erd}
 \begin{nghiepvu}{Có áp dụng ưu đãi thêm lượt đi sớm cho mọi người chơi hay không.}
   \khainiem{thu-nghiem-ab}
   \khainiem{nhom-du-ngay}
   \khainiem{ty-le-giu-chan}
-  \luuy{Chỉ số chính của thử nghiệm là số giao dịch gói thêm lượt đi trong 7 ngày đầu (D0--D6) trên mỗi người được chia; chỉ số bảo vệ là tỷ lệ giữ chân D7.}
+  \luuy{Chỉ số chính của thử nghiệm là số lượt nhận thêm lượt đi (cờ \code{extra_moves_purchased} trên lượt chơi) trong 7 ngày đầu (D0--D6) trên mỗi người được chia; chỉ số bảo vệ là tỷ lệ giữ chân D7.}
+  \luuy{Giao dịch gói \code{'extra_moves_pack'} trong \code{purchases} là giao dịch tiền của một gói, đo một việc khác, không thay cho chỉ số chính.}
   \luuy{Chỉ xét người được chia tới hết ngày 22/8/2026 để mọi người đều đủ ngày quan sát cho cả D0--D6 và D7.}
 \end{nghiepvu}
 \begin{buoc}[ma=b1, diem=10, hinhthuc=write, bang={ab_assignments}]{Cỡ mẫu của hai nhánh}
@@ -647,12 +631,12 @@
     \item Sắp theo \code{variant}.
   \end{yeucau}
 \end{buoc}
-\begin{buoc}[ma=b2, diem=10, hinhthuc=write, bang={ab_assignments, purchases}]{Chỉ số chính trên mọi người được chia}
+\begin{buoc}[ma=b2, diem=10, hinhthuc=write, bang={ab_assignments, level_attempts}]{Chỉ số chính trên mọi người được chia}
   \begin{yeucau}
-    \item Người được chia đủ ngày, theo \code{variant}: \code{so_nguoi}, \code{so_giao_dich} (giao dịch \code{'extra_moves_pack'} từ ngày được chia tới 6 ngày sau), \code{giao_dich_moi_nguoi} (4 chữ số), \code{ty_le_nguoi_mua_pct} (người có ít nhất một giao dịch đó, 2 chữ số).
+    \item Người được chia đủ ngày, theo \code{variant}: \code{so_nguoi}, \code{so_luot_nhan} (tổng \code{extra_moves_purchased} trên các lượt chơi từ ngày được chia tới 6 ngày sau), \code{luot_nhan_moi_nguoi} (4 chữ số), \code{ty_le_nguoi_nhan_pct} (người có ít nhất một lượt nhận thêm lượt đi, 2 chữ số).
     \item Tính trên mọi người được chia, kể cả người chưa tiếp xúc ưu đãi. Sắp theo \code{variant}.
   \end{yeucau}
-  \goiy{Gom giao dịch theo người trước (\code{LEFT JOIN}, điều kiện ngày trong \code{ON}), rồi mới gom theo nhánh.}
+  \goiy{Gom lượt chơi theo người trước (\code{LEFT JOIN}, điều kiện ngày trong \code{ON}), rồi mới gom theo nhánh.}
 \end{buoc}
 \begin{buoc}[ma=b3, diem=10, hinhthuc=write, bang={ab_assignments, purchases}]{Doanh thu IAP D0--D6 trên mỗi người}
   \begin{yeucau}
@@ -664,15 +648,14 @@
     \item Người được chia đủ ngày, theo \code{variant}: \code{so_nguoi}, \code{so_con_d7} (có dòng \code{player_daily} với \code{cohort_day = 7}), \code{ty_le_giu_chan_d7_pct} (2 chữ số); sắp theo \code{variant}.
   \end{yeucau}
 \end{buoc}
-\begin{buoc}[ma=b5, diem=10, hinhthuc=ketluan, bang={ab_assignments, purchases, player_daily}]{Kết luận}
+\begin{buoc}[ma=b5, diem=10, hinhthuc=ketluan, bang={ab_assignments, level_attempts, purchases, player_daily}]{Kết luận}
   \begin{luachon}
-    \phuongan{Nên áp dụng, vì người đã tiếp xúc ưu đãi ở nhánh thử mua gói thêm lượt đi nhiều hơn mức chung của nhánh đối chứng.}{Chưa đúng. So nhóm đã tiếp xúc của một nhánh với cả nhánh kia là so hai tập khác nhau; người đã tiếp xúc là người đã thua ít nhất một lần, vốn có nhu cầu mua cao hơn người chưa thua. Phải so mọi người được chia của hai nhánh.}
-    \phuongan*{Chưa nên áp dụng, vì tính trên mọi người được chia thì nhánh thử không cao hơn rõ rệt ở chỉ số chính và doanh thu D0--D6, còn giữ chân D7 gần như bằng nhau.}{Đúng. Bước 2 và 3 cho thấy nhánh thử không vượt nhánh đối chứng; bước 4 cho thấy không có tác hại rõ, nhưng cũng không có lợi ích để đổi.}
-    \phuongan{Nên áp dụng vì giữ chân D7 của nhánh thử không giảm, tức ưu đãi sớm không gây hại.}{Chưa đúng. Chỉ số bảo vệ chỉ để chặn quyết định có hại; quyết định áp dụng phải dựa trên chỉ số chính, mà chỉ số chính không tăng.}
-    \phuongan{Chưa kết luận được vì nhánh thử có nhiều người chưa tiếp xúc ưu đãi hơn nhánh đối chứng.}{Chưa đúng. Hai nhánh có số người đã tiếp xúc gần nhau (bước 1); phân tích theo nhánh được chia đã tính cả người chưa tiếp xúc nên vẫn kết luận được.}
+    \phuongan{Nên áp dụng, vì người đã tiếp xúc ưu đãi ở nhánh thử nhận thêm lượt đi nhiều hơn mức chung của nhánh đối chứng.}{Người đã tiếp xúc là người đã thua, vốn dễ nhận thêm lượt đi hơn; phải so mọi người được chia của hai nhánh (bước 2).}
+    \phuongan*{Chưa nên áp dụng ngay: trên mọi người được chia, nhánh thử chỉ nhỉnh hơn ở chỉ số chính, doanh thu D0--D6 không tăng, D7 hơi thấp hơn.}{Đúng: bước 2 chênh chưa tới 1 lượt trên 100 người, chưa kiểm ý nghĩa thống kê; bước 3 doanh thu không tăng rõ, bước 4 D7 hơi thấp hơn.}
+    \phuongan{Nên áp dụng, vì nhánh thử nhận thêm lượt đi cao hơn khoảng một phần mười, còn giữ chân D7 gần như không giảm.}{Chênh tuyệt đối chưa tới 1 lượt trên 100 người, chưa loại được may rủi; giữ chân không giảm chỉ cho biết chưa thấy hại (bước 2, 4).}
   \end{luachon}
 \end{buoc}
-\ghichuthietke{Case Khó: 5 bảng chỉ khoá, 2 bảng nhiễu, \code{erdkhoa}. Bẫy: phân tích chỉ người đã tiếp xúc (bài sai b2), gom người chưa đủ ngày (bài sai b4), chia doanh thu cho người trả tiền thay vì người được chia (bài sai b3). Ngày được chia trùng ngày cài nên D0--D6 trùng \code{cohort_day} 0--6. Chờ giảng viên: chỉ số chính đo bằng giao dịch \code{'extra_moves_pack'} hay cờ \code{extra_moves_purchased} trên lượt chơi (nguồn cờ cho nhánh thử cao hơn, kết luận đảo chiều); chênh lệch nhỏ, chưa kiểm ý nghĩa thống kê.}
+\ghichuthietke{Case Khó: 5 bảng chỉ khoá, 1 bảng nhiễu (\code{users}), \code{erdkhoa}. Bẫy: phân tích chỉ người đã tiếp xúc (bài sai b2), đo chỉ số chính bằng giao dịch \code{'extra_moves_pack'} thay cho cờ trên lượt chơi (bài sai b2), gom người chưa đủ ngày (bài sai b4), chia doanh thu cho người trả tiền thay vì người được chia (bài sai b3). Ngày được chia trùng ngày cài nên D0--D6 trùng \code{cohort_day} 0--6. v3 (10/11): chỉ số chính đổi sang cờ \code{level_attempts.extra_moves_purchased} theo tài liệu dự án Game (Business Analytics V2, chương V, 5.2--5.4: tử số lấy từ cờ, không lấy SKU; khoảng tin cậy 95\% của chênh lệch chứa 0, p = 0,094). Số đo: public A 0,0747, B 0,0838 lượt/người; hidden-1 A 0,0729, B 0,0826; cùng chiều. Phương án đúng là ``nhỉnh hơn nhưng chưa đủ chắc''. Chuẩn hoá (10/11): còn ba phương án như case mẫu c1--c4, bỏ phương án ``hai nhánh không so được vì tỷ lệ tiếp xúc khác nhau''.}
 \end{cauhoi}
 
 % ================================================================ c10 · case · Khó
@@ -721,13 +704,12 @@
 \end{buoc}
 \begin{buoc}[ma=b5, diem=10, hinhthuc=ketluan, bang={level_attempts, users, player_daily}]{Kết luận}
   \begin{luachon}
-    \phuongan{Đã sửa xong, vì trên Android tỷ lệ thắng màn 28--30 ở bản 2.1.1 cao hơn 2.1.0 và giữ chân D1 của người cài bản 2.1.1 đã trở lại mức của bản 2.0.2. Có thể đóng vụ việc.}{Chưa đúng. Android mới hồi một phần: tỷ lệ thắng 2.1.1 vẫn thấp hơn 2.0.2; còn iOS ở 2.1.1 thấp hơn 2.1.0 cả tỷ lệ thắng lẫn D1. Bản 2.1.1 mới có khoảng nửa tháng dữ liệu.}
-    \phuongan*{Chưa đóng vụ việc được: Android ở bản 2.1.1 cải thiện tỷ lệ thắng và D1 so với 2.1.0 nhưng tỷ lệ thắng chưa về mức 2.0.2, còn iOS ở 2.1.1 lại kém 2.1.0; cần theo dõi thêm và kiểm riêng iOS.}{Đúng. Bước 1 và 4 cho thấy Android hồi một phần, iOS đi xuống; bước 2--3 cho thấy tỷ lệ thua tăng mạnh từ 2.1.0 còn tỷ lệ lượt chơi được mời thêm lượt đi giảm khoảng một nửa. Dữ liệu 2.1.1 mới khoảng nửa tháng.}
-    \phuongan{Bản 2.1.0 không làm màn khó hơn, vì tỷ lệ bỏ cuộc ở 2.1.0 còn thấp hơn 2.0.2.}{Chưa đúng. Tỷ lệ bỏ cuộc thấp hơn không có nghĩa là màn dễ hơn: cùng lúc đó tỷ lệ thua do hết lượt đi tăng (bước 2), lượt chơi được mời thêm lượt đi ít đi (bước 3) và tỷ lệ thắng giảm rõ (bước 1).}
-    \phuongan{Bản 2.1.1 làm doanh thu giảm vì tỷ lệ nhận thêm lượt đi thấp hơn bản 2.0.2.}{Chưa đúng. Cờ nhận thêm lượt đi trên lượt chơi không phải giao dịch tiền; câu hỏi là về trải nghiệm màn chơi, không phải doanh thu.}
+    \phuongan{Đã sửa xong, có thể đóng vụ việc: trên Android, bản 2.1.1 thắng màn 28--30 nhiều hơn 2.1.0 và D1 đã về mức 2.0.2.}{Tỷ lệ thắng Android 2.1.1 vẫn thấp hơn 2.0.2 khoảng 4 điểm, iOS đi xuống (bước 1, 4); 2.1.1 mới nửa tháng, iOS chưa tới 600 lượt nên chưa đóng được.}
+    \phuongan*{Chưa đóng vụ việc: Android 2.1.1 khá hơn 2.1.0 nhưng tỷ lệ thắng chưa về mức 2.0.2, còn iOS 2.1.1 lại kém 2.1.0; cần theo dõi thêm.}{Đúng: bước 1 và 4 cho thấy Android hồi một phần, iOS đi xuống; dữ liệu 2.1.1 mới khoảng nửa tháng nên cần theo dõi thêm.}
+    \phuongan{Bản 2.1.0 không làm màn 28--30 khó hơn, vì tỷ lệ bỏ cuộc ở bản 2.1.0 còn thấp hơn bản 2.0.2, nên không cần chỉnh lại độ khó.}{Bỏ cuộc giảm nhưng thua do hết lượt đi tăng (bước 2) và tỷ lệ thắng giảm rõ (bước 1), nên màn khó hơn.}
   \end{luachon}
 \end{buoc}
-\ghichuthietke{Case Khó: 5 bảng chỉ khoá, 2 bảng nhiễu, \code{erdkhoa}. ``Sự cố'' chỉ dùng cho crash; vụ việc màn 28--30 gọi là ``vụ việc''. Bẫy: lấy phiên bản lúc cài thay vì lúc chơi (bài sai b1), mẫu số từ bảng hoạt động (bài sai b4), coi cờ thêm lượt đi là doanh thu, bỏ qua việc 2.1.1 chỉ có nửa tháng. Phương án đúng đã đối chiếu số public và hidden-1 (cùng chiều). Chờ giảng viên: phương án 1 nêu đúng hai sự thật về Android, chỉ sai ở kết luận; cỡ mẫu iOS 2.1.1 nhỏ.}
+\ghichuthietke{Case Khó: 5 bảng chỉ khoá, 2 bảng nhiễu, \code{erdkhoa}. ``Sự cố'' chỉ dùng cho crash; vụ việc màn 28--30 gọi là ``vụ việc''. Bẫy: lấy phiên bản lúc cài thay vì lúc chơi (bài sai b1), mẫu số từ bảng hoạt động (bài sai b4), bỏ qua việc 2.1.1 chỉ có nửa tháng. Phương án đúng đã đối chiếu số public và hidden-1 (cùng chiều). v3 (10/11): phương án 1 nêu đúng hai sự thật về Android, chỉ sai ở kết luận ``đóng vụ việc''; lời giải thích nêu rõ ba lý do chưa đóng được (Android chưa về mức 2.0.2, iOS đi xuống, 2.1.1 ít ngày và iOS ít lượt). Chuẩn hoá (10/11): còn ba phương án như case mẫu c1--c4, bỏ phương án ``cờ thêm lượt đi là doanh thu''.}
 \end{cauhoi}
 
 \end{document}

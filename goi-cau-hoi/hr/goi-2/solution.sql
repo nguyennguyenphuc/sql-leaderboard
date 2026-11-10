@@ -3,30 +3,56 @@
 
 -- ================================================================ MODULE 3 · STRING & DATE
 
--- [hr-s1-nghi-viec-theo-nam] solution
-SELECT LEFT(snapshot_month, 4) AS nam, COUNT(*) AS so_nguoi_nghi
-FROM employee_monthly_snapshot
-WHERE attrition_this_month = 1
-  AND snapshot_month >= '2024-01' AND snapshot_month <= '2025-12'
-GROUP BY LEFT(snapshot_month, 4)
-ORDER BY nam;
-
--- [hr-s1-nghi-viec-theo-nam] wrong: dung_year_tren_chuoi
--- snapshot_month là chuỗi 'YYYY-MM', YEAR() trả NULL nên mọi dòng dồn vào một nhóm NULL.
-SELECT YEAR(snapshot_month) AS nam, COUNT(*) AS so_nguoi_nghi
-FROM employee_monthly_snapshot
-WHERE attrition_this_month = 1
-  AND snapshot_month >= '2024-01' AND snapshot_month <= '2025-12'
-GROUP BY YEAR(snapshot_month)
-ORDER BY nam;
-
--- [hr-s1-nghi-viec-theo-nam] wrong: dem_moi_dong
--- Quên điều kiện tháng nghỉ: đếm mọi dòng nhân viên - tháng.
-SELECT LEFT(snapshot_month, 4) AS nam, COUNT(*) AS so_nguoi_nghi
+-- [hr-s1-lam-them-quy-so-cung-ky] solution
+SELECT CONCAT('Q', QUARTER(CONCAT(snapshot_month, '-01'))) AS quy,
+       ROUND(AVG(CASE WHEN LEFT(snapshot_month, 4) = '2024' THEN overtime_hours END), 2) AS gio_lam_them_bq_2024,
+       ROUND(AVG(CASE WHEN LEFT(snapshot_month, 4) = '2025' THEN overtime_hours END), 2) AS gio_lam_them_bq_2025,
+       ROUND(100 * (AVG(CASE WHEN LEFT(snapshot_month, 4) = '2025' THEN overtime_hours END)
+                    - AVG(CASE WHEN LEFT(snapshot_month, 4) = '2024' THEN overtime_hours END))
+                 / AVG(CASE WHEN LEFT(snapshot_month, 4) = '2024' THEN overtime_hours END), 2) AS thay_doi_pct
 FROM employee_monthly_snapshot
 WHERE snapshot_month >= '2024-01' AND snapshot_month <= '2025-12'
-GROUP BY LEFT(snapshot_month, 4)
-ORDER BY nam;
+GROUP BY quy
+ORDER BY quy;
+
+-- [hr-s1-lam-them-quy-so-cung-ky] wrong: quarter_tren_chuoi
+-- snapshot_month là chuỗi 'YYYY-MM', QUARTER() trả NULL nên mọi dòng dồn vào một nhóm NULL.
+SELECT CONCAT('Q', QUARTER(snapshot_month)) AS quy,
+       ROUND(AVG(CASE WHEN LEFT(snapshot_month, 4) = '2024' THEN overtime_hours END), 2) AS gio_lam_them_bq_2024,
+       ROUND(AVG(CASE WHEN LEFT(snapshot_month, 4) = '2025' THEN overtime_hours END), 2) AS gio_lam_them_bq_2025,
+       ROUND(100 * (AVG(CASE WHEN LEFT(snapshot_month, 4) = '2025' THEN overtime_hours END)
+                    - AVG(CASE WHEN LEFT(snapshot_month, 4) = '2024' THEN overtime_hours END))
+                 / AVG(CASE WHEN LEFT(snapshot_month, 4) = '2024' THEN overtime_hours END), 2) AS thay_doi_pct
+FROM employee_monthly_snapshot
+WHERE snapshot_month >= '2024-01' AND snapshot_month <= '2025-12'
+GROUP BY quy
+ORDER BY quy;
+
+-- [hr-s1-lam-them-quy-so-cung-ky] wrong: else_0_trong_avg
+-- ELSE 0 biến dòng của năm kia thành 0 giờ, nên mỗi bình quân chỉ còn khoảng một nửa.
+SELECT CONCAT('Q', QUARTER(CONCAT(snapshot_month, '-01'))) AS quy,
+       ROUND(AVG(CASE WHEN LEFT(snapshot_month, 4) = '2024' THEN overtime_hours ELSE 0 END), 2) AS gio_lam_them_bq_2024,
+       ROUND(AVG(CASE WHEN LEFT(snapshot_month, 4) = '2025' THEN overtime_hours ELSE 0 END), 2) AS gio_lam_them_bq_2025,
+       ROUND(100 * (AVG(CASE WHEN LEFT(snapshot_month, 4) = '2025' THEN overtime_hours ELSE 0 END)
+                    - AVG(CASE WHEN LEFT(snapshot_month, 4) = '2024' THEN overtime_hours ELSE 0 END))
+                 / AVG(CASE WHEN LEFT(snapshot_month, 4) = '2024' THEN overtime_hours ELSE 0 END), 2) AS thay_doi_pct
+FROM employee_monthly_snapshot
+WHERE snapshot_month >= '2024-01' AND snapshot_month <= '2025-12'
+GROUP BY quy
+ORDER BY quy;
+
+-- [hr-s1-lam-them-quy-so-cung-ky] wrong: nhan_quy_kem_nam
+-- Nhãn quý kèm năm ('2024-Q1') tách hai năm ra hai dòng: mỗi dòng chỉ có một cột năm có số, cột còn lại NULL.
+SELECT CONCAT(LEFT(snapshot_month, 4), '-Q', QUARTER(CONCAT(snapshot_month, '-01'))) AS quy,
+       ROUND(AVG(CASE WHEN LEFT(snapshot_month, 4) = '2024' THEN overtime_hours END), 2) AS gio_lam_them_bq_2024,
+       ROUND(AVG(CASE WHEN LEFT(snapshot_month, 4) = '2025' THEN overtime_hours END), 2) AS gio_lam_them_bq_2025,
+       ROUND(100 * (AVG(CASE WHEN LEFT(snapshot_month, 4) = '2025' THEN overtime_hours END)
+                    - AVG(CASE WHEN LEFT(snapshot_month, 4) = '2024' THEN overtime_hours END))
+                 / AVG(CASE WHEN LEFT(snapshot_month, 4) = '2024' THEN overtime_hours END), 2) AS thay_doi_pct
+FROM employee_monthly_snapshot
+WHERE snapshot_month >= '2024-01' AND snapshot_month <= '2025-12'
+GROUP BY quy
+ORDER BY quy;
 
 -- [hr-s2-nhan-viec-thu-hai] solution
 SELECT requisition_id, department, job_role, start_date
@@ -54,31 +80,55 @@ WHERE country = 'Vietnam'
   AND DAYOFWEEK(start_date) = 2
 ORDER BY start_date, requisition_id;
 
--- [hr-s3-yeu-cau-theo-quy] solution
-SELECT CONCAT(YEAR(approval_date), '-Q', QUARTER(approval_date)) AS quy,
-       COUNT(*) AS so_yeu_cau
+-- [hr-s3-cho-hoi-nhap-thu-hai] solution
+SELECT country, COUNT(*) AS so_nguoi_moi,
+       COUNT(CASE WHEN WEEKDAY(start_date) <> 0 THEN 1 END) AS so_phai_cho,
+       ROUND(AVG(CASE WHEN WEEKDAY(start_date) <> 0 THEN 7 - WEEKDAY(start_date) END), 2) AS so_ngay_cho_bq
 FROM recruiting_pipeline
-WHERE approval_date >= '2024-01-01' AND approval_date < '2026-01-01'
-GROUP BY quy
-ORDER BY quy;
+WHERE approval_date >= '2025-01-01' AND approval_date < '2026-01-01'
+GROUP BY country
+ORDER BY country;
 
--- [hr-s3-yeu-cau-theo-quy] wrong: quen_can_tren
--- Rớt ở hidden-1: yêu cầu R0801 duyệt ngày 2026-01-05 tạo thêm nhóm '2026-Q1'.
-SELECT CONCAT(YEAR(approval_date), '-Q', QUARTER(approval_date)) AS quy,
-       COUNT(*) AS so_yeu_cau
+-- [hr-s3-cho-hoi-nhap-thu-hai] wrong: dung_dayofweek_nhu_weekday
+-- Dùng DAYOFWEEK với cách đánh số của WEEKDAY: DAYOFWEEK không bao giờ bằng 0 (thứ Hai là 2),
+-- nên mọi người đều bị tính là phải chờ và số ngày chờ lệch theo thứ.
+SELECT country, COUNT(*) AS so_nguoi_moi,
+       COUNT(CASE WHEN DAYOFWEEK(start_date) <> 0 THEN 1 END) AS so_phai_cho,
+       ROUND(AVG(CASE WHEN DAYOFWEEK(start_date) <> 0 THEN 7 - DAYOFWEEK(start_date) END), 2) AS so_ngay_cho_bq
 FROM recruiting_pipeline
-WHERE approval_date >= '2024-01-01'
-GROUP BY quy
-ORDER BY quy;
+WHERE approval_date >= '2025-01-01' AND approval_date < '2026-01-01'
+GROUP BY country
+ORDER BY country;
 
--- [hr-s3-yeu-cau-theo-quy] wrong: thieu_nam_trong_nhan
--- Nhãn chỉ có số quý nên quý 1/2024 và quý 1/2025 gộp làm một.
-SELECT CONCAT('Q', QUARTER(approval_date)) AS quy,
-       COUNT(*) AS so_yeu_cau
+-- [hr-s3-cho-hoi-nhap-thu-hai] wrong: thu_hai_cho_7_ngay
+-- 7 - WEEKDAY() cho người đi làm thứ Hai ra 7 ngày, và mọi người đều bị tính là phải chờ.
+SELECT country, COUNT(*) AS so_nguoi_moi,
+       COUNT(*) AS so_phai_cho,
+       ROUND(AVG(7 - WEEKDAY(start_date)), 2) AS so_ngay_cho_bq
 FROM recruiting_pipeline
-WHERE approval_date >= '2024-01-01' AND approval_date < '2026-01-01'
-GROUP BY quy
-ORDER BY quy;
+WHERE approval_date >= '2025-01-01' AND approval_date < '2026-01-01'
+GROUP BY country
+ORDER BY country;
+
+-- [hr-s3-cho-hoi-nhap-thu-hai] wrong: binh_quan_gom_nguoi_khong_cho
+-- Số ngày chờ đúng, nhưng bình quân trên mọi người mới, kể cả người đi làm đúng thứ Hai (chờ 0 ngày).
+SELECT country, COUNT(*) AS so_nguoi_moi,
+       COUNT(CASE WHEN WEEKDAY(start_date) <> 0 THEN 1 END) AS so_phai_cho,
+       ROUND(AVG(MOD(7 - WEEKDAY(start_date), 7)), 2) AS so_ngay_cho_bq
+FROM recruiting_pipeline
+WHERE approval_date >= '2025-01-01' AND approval_date < '2026-01-01'
+GROUP BY country
+ORDER BY country;
+
+-- [hr-s3-cho-hoi-nhap-thu-hai] wrong: quen_can_tren
+-- Rớt ở hidden-1: R0801 (Indonesia, duyệt 2026-01-05, đi làm thứ Ba 2026-03-10) lọt vào.
+SELECT country, COUNT(*) AS so_nguoi_moi,
+       COUNT(CASE WHEN WEEKDAY(start_date) <> 0 THEN 1 END) AS so_phai_cho,
+       ROUND(AVG(CASE WHEN WEEKDAY(start_date) <> 0 THEN 7 - WEEKDAY(start_date) END), 2) AS so_ngay_cho_bq
+FROM recruiting_pipeline
+WHERE approval_date >= '2025-01-01'
+GROUP BY country
+ORDER BY country;
 
 -- [hr-s4-cho-nhan-viec] solution
 SELECT country, COUNT(*) AS so_yeu_cau,
@@ -106,7 +156,7 @@ WHERE approval_date >= '2025-01-01' AND approval_date < '2026-01-01'
 GROUP BY country
 ORDER BY so_ngay_cho_bq DESC, country;
 
--- [hr-s5-y-dinh-o-lai-thap-q3] solution
+-- [hr-s5-y-dinh-o-lai-thap-2025] solution
 SELECT employee_id, survey_quarter, intent_to_stay, eNPS,
        CONCAT(LEFT(survey_quarter, 4), '-',
               LPAD(CAST(RIGHT(survey_quarter, 1) AS UNSIGNED) * 3 - 2, 2, '0')) AS thang_dau_quy
@@ -115,7 +165,7 @@ WHERE survey_quarter >= '2025-Q1' AND survey_quarter <= '2025-Q4'
   AND intent_to_stay = 1 AND eNPS <= 2
 ORDER BY survey_quarter, employee_id;
 
--- [hr-s5-y-dinh-o-lai-thap-q3] wrong: thieu_so_0
+-- [hr-s5-y-dinh-o-lai-thap-2025] wrong: thieu_so_0
 -- Ghép số tháng không đệm số 0 ra '2025-7', không khớp dạng 'YYYY-MM' của snapshot_month.
 SELECT employee_id, survey_quarter, intent_to_stay, eNPS,
        CONCAT(LEFT(survey_quarter, 4), '-',
@@ -125,7 +175,7 @@ WHERE survey_quarter >= '2025-Q1' AND survey_quarter <= '2025-Q4'
   AND intent_to_stay = 1 AND eNPS <= 2
 ORDER BY survey_quarter, employee_id;
 
--- [hr-s5-y-dinh-o-lai-thap-q3] wrong: lay_thang_cuoi_quy
+-- [hr-s5-y-dinh-o-lai-thap-2025] wrong: lay_thang_cuoi_quy
 -- Nhân số quý với 3 cho tháng cuối quý, không phải tháng đầu quý.
 SELECT employee_id, survey_quarter, intent_to_stay, eNPS,
        CONCAT(LEFT(survey_quarter, 4), '-',
@@ -135,7 +185,7 @@ WHERE survey_quarter >= '2025-Q1' AND survey_quarter <= '2025-Q4'
   AND intent_to_stay = 1 AND eNPS <= 2
 ORDER BY survey_quarter, employee_id;
 
--- [hr-s5-y-dinh-o-lai-thap-q3] wrong: go_cung_thang
+-- [hr-s5-y-dinh-o-lai-thap-2025] wrong: go_cung_thang
 -- Gõ cứng tháng '-07' chỉ đúng cho quý 3.
 SELECT employee_id, survey_quarter, intent_to_stay, eNPS,
        CONCAT(LEFT(survey_quarter, 4), '-07') AS thang_dau_quy
@@ -176,38 +226,53 @@ WHERE department = 'Sales'
 GROUP BY vai_tro
 ORDER BY vai_tro;
 
--- [hr-s7-dem-nghi-theo-nam-null] starter
--- So chuỗi: '2025-01' > '2025', nên BETWEEN '2024' AND '2025' bỏ mọi tháng năm 2025.
-SELECT LEFT(snapshot_month, 4) AS nam, COUNT(*) AS so_nguoi_nghi
+-- [hr-s7-quy-luong-nam-lech-ke-toan] starter
+-- So chuỗi: '2024-01' < '2024-01-01' (chuỗi ngắn hơn đứng trước) nên mất riêng tháng 1/2024;
+-- chia cho số tháng có dữ liệu nên quỹ lương bình quân tháng năm 2024 vẫn trông hợp lý.
+SELECT LEFT(snapshot_month, 4) AS nam,
+       SUM(monthly_salary_usd) AS quy_luong_nam,
+       ROUND(SUM(monthly_salary_usd) / COUNT(DISTINCT snapshot_month), 0) AS quy_luong_bq_thang
 FROM employee_monthly_snapshot
-WHERE attrition_type = 'Voluntary' AND department = 'Engineering'
-  AND snapshot_month BETWEEN '2024' AND '2025'
+WHERE snapshot_month BETWEEN '2024-01-01' AND '2025-12-31'
 GROUP BY LEFT(snapshot_month, 4)
 ORDER BY nam;
 
--- [hr-s7-dem-nghi-theo-nam-null] solution
-SELECT LEFT(snapshot_month, 4) AS nam, COUNT(*) AS so_nguoi_nghi
+-- [hr-s7-quy-luong-nam-lech-ke-toan] solution
+SELECT LEFT(snapshot_month, 4) AS nam,
+       SUM(monthly_salary_usd) AS quy_luong_nam,
+       ROUND(SUM(monthly_salary_usd) / COUNT(DISTINCT snapshot_month), 0) AS quy_luong_bq_thang
 FROM employee_monthly_snapshot
-WHERE attrition_type = 'Voluntary' AND department = 'Engineering'
-  AND snapshot_month >= '2024-01' AND snapshot_month <= '2025-12'
+WHERE snapshot_month >= '2024-01' AND snapshot_month <= '2025-12'
 GROUP BY LEFT(snapshot_month, 4)
 ORDER BY nam;
 
--- [hr-s7-dem-nghi-theo-nam-null] wrong: moc_dang_ngay_day_du
--- So chuỗi: '2024-01' < '2024-01-01' (chuỗi ngắn hơn đứng trước), nên tháng 1/2024 bị loại.
-SELECT LEFT(snapshot_month, 4) AS nam, COUNT(*) AS so_nguoi_nghi
+-- [hr-s7-quy-luong-nam-lech-ke-toan] wrong: bo_can_tren
+-- Rớt ở hidden-1: dòng '2026-01' của E00002 tạo thêm dòng năm 2026.
+SELECT LEFT(snapshot_month, 4) AS nam,
+       SUM(monthly_salary_usd) AS quy_luong_nam,
+       ROUND(SUM(monthly_salary_usd) / COUNT(DISTINCT snapshot_month), 0) AS quy_luong_bq_thang
 FROM employee_monthly_snapshot
-WHERE attrition_type = 'Voluntary' AND department = 'Engineering'
-  AND snapshot_month BETWEEN '2024-01-01' AND '2025-12-31'
+WHERE snapshot_month >= '2024-01'
 GROUP BY LEFT(snapshot_month, 4)
 ORDER BY nam;
 
--- [hr-s7-dem-nghi-theo-nam-null] wrong: dung_year_tren_chuoi
+-- [hr-s7-quy-luong-nam-lech-ke-toan] wrong: giu_moc_cu_chia_12
+-- Chỉ đổi mẫu số sang 12: quỹ lương năm 2024 vẫn thiếu tháng 1.
+SELECT LEFT(snapshot_month, 4) AS nam,
+       SUM(monthly_salary_usd) AS quy_luong_nam,
+       ROUND(SUM(monthly_salary_usd) / 12, 0) AS quy_luong_bq_thang
+FROM employee_monthly_snapshot
+WHERE snapshot_month BETWEEN '2024-01-01' AND '2025-12-31'
+GROUP BY LEFT(snapshot_month, 4)
+ORDER BY nam;
+
+-- [hr-s7-quy-luong-nam-lech-ke-toan] wrong: dung_year_tren_chuoi
 -- Sửa mốc lọc nhưng lấy năm bằng YEAR() trên chuỗi 'YYYY-MM' ra NULL.
-SELECT YEAR(snapshot_month) AS nam, COUNT(*) AS so_nguoi_nghi
+SELECT YEAR(snapshot_month) AS nam,
+       SUM(monthly_salary_usd) AS quy_luong_nam,
+       ROUND(SUM(monthly_salary_usd) / COUNT(DISTINCT snapshot_month), 0) AS quy_luong_bq_thang
 FROM employee_monthly_snapshot
-WHERE attrition_type = 'Voluntary' AND department = 'Engineering'
-  AND snapshot_month >= '2024-01' AND snapshot_month <= '2025-12'
+WHERE snapshot_month >= '2024-01' AND snapshot_month <= '2025-12'
 GROUP BY YEAR(snapshot_month)
 ORDER BY nam;
 
@@ -233,39 +298,59 @@ WHERE approval_date >= '2025-10-01'
 GROUP BY thang
 ORDER BY thang;
 
--- [hr-s9-quan-so-sai-thu-tu] starter
-SELECT DATE_FORMAT(CONCAT(snapshot_month, '-01'), '%m/%Y') AS thang,
-       COUNT(*) - SUM(attrition_this_month) AS quan_so_cuoi_thang
+-- [hr-s9-quan-so-cuoi-thang-lech] starter
+-- Ba lỗi: sắp theo nhãn '2024-7' ('2024-10' đứng trước '2024-7'); COUNT(*) gồm cả người nghỉ trong tháng;
+-- thiếu cận trên (chỉ lộ ở hidden-1, dòng '2026-01' của E00002).
+SELECT DATE_FORMAT(CONCAT(snapshot_month, '-01'), '%Y-%c') AS thang,
+       COUNT(*) AS quan_so_cuoi_thang
 FROM employee_monthly_snapshot
-WHERE snapshot_month >= '2024-07' AND snapshot_month <= '2025-06'
+WHERE snapshot_month >= '2024-07'
 GROUP BY thang
 ORDER BY thang;
 
--- [hr-s9-quan-so-sai-thu-tu] solution
-SELECT DATE_FORMAT(CONCAT(snapshot_month, '-01'), '%m/%Y') AS thang,
+-- [hr-s9-quan-so-cuoi-thang-lech] solution
+SELECT DATE_FORMAT(CONCAT(snapshot_month, '-01'), '%Y-%c') AS thang,
        COUNT(*) - SUM(attrition_this_month) AS quan_so_cuoi_thang
 FROM employee_monthly_snapshot
-WHERE snapshot_month >= '2024-07' AND snapshot_month <= '2025-06'
+WHERE snapshot_month >= '2024-07' AND snapshot_month <= '2025-12'
 GROUP BY snapshot_month
 ORDER BY snapshot_month;
 
--- [hr-s9-quan-so-sai-thu-tu] wrong: doi_dang_nhan
--- Đổi nhãn sang 'YYYY-MM' thì sắp đúng, nhưng cột thang không còn dạng 'mm/yyyy' như yêu cầu.
+-- [hr-s9-quan-so-cuoi-thang-lech] wrong: chi_sua_thu_tu
+-- Sắp đúng nhưng còn đếm cả người nghỉ trong tháng và thiếu cận trên.
+SELECT DATE_FORMAT(CONCAT(snapshot_month, '-01'), '%Y-%c') AS thang,
+       COUNT(*) AS quan_so_cuoi_thang
+FROM employee_monthly_snapshot
+WHERE snapshot_month >= '2024-07'
+GROUP BY snapshot_month
+ORDER BY snapshot_month;
+
+-- [hr-s9-quan-so-cuoi-thang-lech] wrong: sua_hai_loi_thieu_can_tren
+-- Rớt ở hidden-1: dòng '2026-01' của E00002 tạo thêm tháng '2026-1'.
+SELECT DATE_FORMAT(CONCAT(snapshot_month, '-01'), '%Y-%c') AS thang,
+       COUNT(*) - SUM(attrition_this_month) AS quan_so_cuoi_thang
+FROM employee_monthly_snapshot
+WHERE snapshot_month >= '2024-07'
+GROUP BY snapshot_month
+ORDER BY snapshot_month;
+
+-- [hr-s9-quan-so-cuoi-thang-lech] wrong: sap_theo_do_dai_nhan
+-- Sắp theo độ dài nhãn rồi theo nhãn: tháng một chữ số của cả hai năm đứng trước tháng 10, 11, 12.
+SELECT DATE_FORMAT(CONCAT(snapshot_month, '-01'), '%Y-%c') AS thang,
+       COUNT(*) - SUM(attrition_this_month) AS quan_so_cuoi_thang
+FROM employee_monthly_snapshot
+WHERE snapshot_month >= '2024-07' AND snapshot_month <= '2025-12'
+GROUP BY thang
+ORDER BY LENGTH(thang), thang;
+
+-- [hr-s9-quan-so-cuoi-thang-lech] wrong: doi_nhan_hai_chu_so
+-- Đổi nhãn sang '2024-07' thì sắp đúng, nhưng cột thang không còn dạng '2024-7' như yêu cầu.
 SELECT DATE_FORMAT(CONCAT(snapshot_month, '-01'), '%Y-%m') AS thang,
        COUNT(*) - SUM(attrition_this_month) AS quan_so_cuoi_thang
 FROM employee_monthly_snapshot
-WHERE snapshot_month >= '2024-07' AND snapshot_month <= '2025-06'
+WHERE snapshot_month >= '2024-07' AND snapshot_month <= '2025-12'
 GROUP BY thang
 ORDER BY thang;
-
--- [hr-s9-quan-so-sai-thu-tu] wrong: sap_giam_dan
--- Sắp nhãn giảm dần vẫn là sắp theo chuỗi 'mm/yyyy'.
-SELECT DATE_FORMAT(CONCAT(snapshot_month, '-01'), '%m/%Y') AS thang,
-       COUNT(*) - SUM(attrition_this_month) AS quan_so_cuoi_thang
-FROM employee_monthly_snapshot
-WHERE snapshot_month >= '2024-07' AND snapshot_month <= '2025-06'
-GROUP BY thang
-ORDER BY thang DESC;
 
 -- ================================================================ MODULE 4 · AGGREGATION
 
@@ -309,37 +394,64 @@ FROM employee_monthly_snapshot
 GROUP BY job_level
 ORDER BY job_level;
 
--- [hr-a3-ty-le-nghi-viec-theo-nuoc] solution
-SELECT country,
-       SUM(attrition_this_month) AS so_nguoi_nghi,
-       ROUND(COUNT(*) / 12, 1) AS quan_so_bq,
-       ROUND(100 * SUM(attrition_this_month) / (COUNT(*) / 12), 2) AS ty_le_nghi_viec_pct
+-- [hr-a3-nhom-chuc-danh-nghi-tu-nguyen-nhieu] solution
+SELECT job_family,
+       COUNT(CASE WHEN attrition_type = 'Voluntary' THEN 1 END) AS so_nghi_tu_nguyen,
+       COUNT(CASE WHEN attrition_type = 'Voluntary' AND high_performer_flag = 1 THEN 1 END) AS so_nghi_ket_qua_cao,
+       ROUND(100 * COUNT(CASE WHEN attrition_type = 'Voluntary' THEN 1 END) / (COUNT(*) / 12), 2) AS ty_le_nghi_tu_nguyen_pct
 FROM employee_monthly_snapshot
 WHERE snapshot_month >= '2025-01' AND snapshot_month <= '2025-12'
-GROUP BY country
-ORDER BY ty_le_nghi_viec_pct DESC, country;
+GROUP BY job_family
+ORDER BY so_nghi_tu_nguyen DESC, job_family
+LIMIT 3;
 
--- [hr-a3-ty-le-nghi-viec-theo-nuoc] wrong: mau_so_dem_nguoi
+-- [hr-a3-nhom-chuc-danh-nghi-tu-nguyen-nhieu] wrong: dem_moi_loai_nghi
+-- Cờ nghỉ gồm cả nghỉ hưu, chấm dứt hợp đồng: thứ hạng đổi (Backend Engineer lên hạng 3 ở public).
+SELECT job_family,
+       SUM(attrition_this_month) AS so_nghi_tu_nguyen,
+       COUNT(CASE WHEN attrition_this_month = 1 AND high_performer_flag = 1 THEN 1 END) AS so_nghi_ket_qua_cao,
+       ROUND(100 * SUM(attrition_this_month) / (COUNT(*) / 12), 2) AS ty_le_nghi_tu_nguyen_pct
+FROM employee_monthly_snapshot
+WHERE snapshot_month >= '2025-01' AND snapshot_month <= '2025-12'
+GROUP BY job_family
+ORDER BY so_nghi_tu_nguyen DESC, job_family
+LIMIT 3;
+
+-- [hr-a3-nhom-chuc-danh-nghi-tu-nguyen-nhieu] wrong: mau_so_dem_nguoi
 -- Mẫu số đếm mọi người từng có tên trong năm, lớn hơn quân số bình quân.
-SELECT country,
-       SUM(attrition_this_month) AS so_nguoi_nghi,
-       ROUND(COUNT(DISTINCT employee_id), 1) AS quan_so_bq,
-       ROUND(100 * SUM(attrition_this_month) / COUNT(DISTINCT employee_id), 2) AS ty_le_nghi_viec_pct
+SELECT job_family,
+       COUNT(CASE WHEN attrition_type = 'Voluntary' THEN 1 END) AS so_nghi_tu_nguyen,
+       COUNT(CASE WHEN attrition_type = 'Voluntary' AND high_performer_flag = 1 THEN 1 END) AS so_nghi_ket_qua_cao,
+       ROUND(100 * COUNT(CASE WHEN attrition_type = 'Voluntary' THEN 1 END) / COUNT(DISTINCT employee_id), 2) AS ty_le_nghi_tu_nguyen_pct
 FROM employee_monthly_snapshot
 WHERE snapshot_month >= '2025-01' AND snapshot_month <= '2025-12'
-GROUP BY country
-ORDER BY ty_le_nghi_viec_pct DESC, country;
+GROUP BY job_family
+ORDER BY so_nghi_tu_nguyen DESC, job_family
+LIMIT 3;
 
--- [hr-a3-ty-le-nghi-viec-theo-nuoc] wrong: quen_can_tren
--- Rớt ở hidden-1: dòng '2026-01' của E00002 (Vietnam) làm tăng quân số bình quân.
-SELECT country,
-       SUM(attrition_this_month) AS so_nguoi_nghi,
-       ROUND(COUNT(*) / 12, 1) AS quan_so_bq,
-       ROUND(100 * SUM(attrition_this_month) / (COUNT(*) / 12), 2) AS ty_le_nghi_viec_pct
+-- [hr-a3-nhom-chuc-danh-nghi-tu-nguyen-nhieu] wrong: dung_diem_danh_gia
+-- Dùng performance_rating = 4 thay cờ: bỏ sót người có cờ bằng 1 mà điểm đánh giá trống.
+SELECT job_family,
+       COUNT(CASE WHEN attrition_type = 'Voluntary' THEN 1 END) AS so_nghi_tu_nguyen,
+       COUNT(CASE WHEN attrition_type = 'Voluntary' AND performance_rating = 4 THEN 1 END) AS so_nghi_ket_qua_cao,
+       ROUND(100 * COUNT(CASE WHEN attrition_type = 'Voluntary' THEN 1 END) / (COUNT(*) / 12), 2) AS ty_le_nghi_tu_nguyen_pct
 FROM employee_monthly_snapshot
-WHERE snapshot_month >= '2025-01'
-GROUP BY country
-ORDER BY ty_le_nghi_viec_pct DESC, country;
+WHERE snapshot_month >= '2025-01' AND snapshot_month <= '2025-12'
+GROUP BY job_family
+ORDER BY so_nghi_tu_nguyen DESC, job_family
+LIMIT 3;
+
+-- [hr-a3-nhom-chuc-danh-nghi-tu-nguyen-nhieu] wrong: hoa_xep_nguoc
+-- Rớt ở hidden-1: Backend Engineer và Support Specialist hoà ở hạng 3; xếp job_family giảm dần chọn nhầm nhóm.
+SELECT job_family,
+       COUNT(CASE WHEN attrition_type = 'Voluntary' THEN 1 END) AS so_nghi_tu_nguyen,
+       COUNT(CASE WHEN attrition_type = 'Voluntary' AND high_performer_flag = 1 THEN 1 END) AS so_nghi_ket_qua_cao,
+       ROUND(100 * COUNT(CASE WHEN attrition_type = 'Voluntary' THEN 1 END) / (COUNT(*) / 12), 2) AS ty_le_nghi_tu_nguyen_pct
+FROM employee_monthly_snapshot
+WHERE snapshot_month >= '2025-01' AND snapshot_month <= '2025-12'
+GROUP BY job_family
+ORDER BY so_nghi_tu_nguyen DESC, job_family DESC
+LIMIT 3;
 
 -- [hr-a4-phong-compa-thap] solution
 SELECT country, department, COUNT(*) AS so_nhan_vien,
@@ -495,41 +607,69 @@ FROM (
 GROUP BY country
 ORDER BY country;
 
--- [hr-a9-ty-le-thang-cong-tac-sales] starter
-SELECT country, COUNT(*) AS so_dong,
-       ROUND(100 * COUNT(business_travel_days >= 10) / COUNT(*), 2) AS ty_le_cong_tac_dai_pct
+-- [hr-a9-ty-le-nghi-sales-quy-nam] starter
+-- Ba lỗi: đếm mọi loại nghỉ; mẫu số là số người từng có tên thay vì quân số bình quân;
+-- thiếu cận trên (chỉ lộ ở hidden-1, dòng '2026-01' của E00002, Sales, Vietnam).
+SELECT country,
+       SUM(attrition_this_month) AS so_nghi_tu_nguyen,
+       ROUND(COUNT(DISTINCT employee_id), 1) AS quan_so_bq,
+       ROUND(100 * SUM(attrition_this_month) / COUNT(DISTINCT employee_id) * 12 / 6, 2) AS ty_le_nghi_tu_nguyen_nam_pct
 FROM employee_monthly_snapshot
-WHERE department = 'Sales'
-  AND snapshot_month >= '2025-01' AND snapshot_month <= '2025-12'
+WHERE department = 'Sales' AND snapshot_month >= '2025-07'
 GROUP BY country
 ORDER BY country;
 
--- [hr-a9-ty-le-thang-cong-tac-sales] solution
-SELECT country, COUNT(*) AS so_dong,
-       ROUND(100 * COUNT(CASE WHEN business_travel_days >= 10 THEN 1 END) / COUNT(*), 2) AS ty_le_cong_tac_dai_pct
+-- [hr-a9-ty-le-nghi-sales-quy-nam] solution
+SELECT country,
+       COUNT(CASE WHEN attrition_type = 'Voluntary' THEN 1 END) AS so_nghi_tu_nguyen,
+       ROUND(COUNT(*) / 6, 1) AS quan_so_bq,
+       ROUND(100 * COUNT(CASE WHEN attrition_type = 'Voluntary' THEN 1 END) / (COUNT(*) / 6) * 12 / 6, 2) AS ty_le_nghi_tu_nguyen_nam_pct
 FROM employee_monthly_snapshot
-WHERE department = 'Sales'
-  AND snapshot_month >= '2025-01' AND snapshot_month <= '2025-12'
+WHERE department = 'Sales' AND snapshot_month >= '2025-07' AND snapshot_month <= '2025-12'
 GROUP BY country
 ORDER BY country;
 
--- [hr-a9-ty-le-thang-cong-tac-sales] wrong: count_case_else_0
--- ELSE 0 làm COUNT đếm cả dòng không thoả, vẫn ra 100%.
-SELECT country, COUNT(*) AS so_dong,
-       ROUND(100 * COUNT(CASE WHEN business_travel_days >= 10 THEN 1 ELSE 0 END) / COUNT(*), 2) AS ty_le_cong_tac_dai_pct
+-- [hr-a9-ty-le-nghi-sales-quy-nam] wrong: chi_sua_loai_nghi
+-- Sửa số người nghỉ nhưng giữ mẫu số đếm người và thiếu cận trên.
+SELECT country,
+       COUNT(CASE WHEN attrition_type = 'Voluntary' THEN 1 END) AS so_nghi_tu_nguyen,
+       ROUND(COUNT(DISTINCT employee_id), 1) AS quan_so_bq,
+       ROUND(100 * COUNT(CASE WHEN attrition_type = 'Voluntary' THEN 1 END) / COUNT(DISTINCT employee_id) * 12 / 6, 2) AS ty_le_nghi_tu_nguyen_nam_pct
 FROM employee_monthly_snapshot
-WHERE department = 'Sales'
-  AND snapshot_month >= '2025-01' AND snapshot_month <= '2025-12'
+WHERE department = 'Sales' AND snapshot_month >= '2025-07'
 GROUP BY country
 ORDER BY country;
 
--- [hr-a9-ty-le-thang-cong-tac-sales] wrong: quen_can_tren
--- Rớt ở hidden-1: dòng '2026-01' của E00002 (Sales, Vietnam) làm tăng số dòng.
-SELECT country, COUNT(*) AS so_dong,
-       ROUND(100 * COUNT(CASE WHEN business_travel_days >= 10 THEN 1 END) / COUNT(*), 2) AS ty_le_cong_tac_dai_pct
+-- [hr-a9-ty-le-nghi-sales-quy-nam] wrong: sua_hai_loi_thieu_can_tren
+-- Rớt ở hidden-1: dòng '2026-01' của E00002 làm tăng quân số bình quân của Vietnam.
+SELECT country,
+       COUNT(CASE WHEN attrition_type = 'Voluntary' THEN 1 END) AS so_nghi_tu_nguyen,
+       ROUND(COUNT(*) / 6, 1) AS quan_so_bq,
+       ROUND(100 * COUNT(CASE WHEN attrition_type = 'Voluntary' THEN 1 END) / (COUNT(*) / 6) * 12 / 6, 2) AS ty_le_nghi_tu_nguyen_nam_pct
 FROM employee_monthly_snapshot
-WHERE department = 'Sales'
-  AND snapshot_month >= '2025-01'
+WHERE department = 'Sales' AND snapshot_month >= '2025-07'
+GROUP BY country
+ORDER BY country;
+
+-- [hr-a9-ty-le-nghi-sales-quy-nam] wrong: khong_quy_nam
+-- Đúng số người nghỉ và quân số bình quân, nhưng quên quy tỷ lệ 6 tháng ra năm.
+SELECT country,
+       COUNT(CASE WHEN attrition_type = 'Voluntary' THEN 1 END) AS so_nghi_tu_nguyen,
+       ROUND(COUNT(*) / 6, 1) AS quan_so_bq,
+       ROUND(100 * COUNT(CASE WHEN attrition_type = 'Voluntary' THEN 1 END) / (COUNT(*) / 6), 2) AS ty_le_nghi_tu_nguyen_nam_pct
+FROM employee_monthly_snapshot
+WHERE department = 'Sales' AND snapshot_month >= '2025-07' AND snapshot_month <= '2025-12'
+GROUP BY country
+ORDER BY country;
+
+-- [hr-a9-ty-le-nghi-sales-quy-nam] wrong: chia_12_thang
+-- Quân số bình quân chia 12 dù kỳ chỉ có 6 tháng.
+SELECT country,
+       COUNT(CASE WHEN attrition_type = 'Voluntary' THEN 1 END) AS so_nghi_tu_nguyen,
+       ROUND(COUNT(*) / 12, 1) AS quan_so_bq,
+       ROUND(100 * COUNT(CASE WHEN attrition_type = 'Voluntary' THEN 1 END) / (COUNT(*) / 12) * 12 / 6, 2) AS ty_le_nghi_tu_nguyen_nam_pct
+FROM employee_monthly_snapshot
+WHERE department = 'Sales' AND snapshot_month >= '2025-07' AND snapshot_month <= '2025-12'
 GROUP BY country
 ORDER BY country;
 

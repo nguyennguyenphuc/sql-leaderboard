@@ -34,50 +34,97 @@ WHERE snapshot_month = '2025-12'
   AND overtime_hours > 30
 ORDER BY overtime_hours DESC, employee_id;
 
--- [hr-r2-nghi-tu-nguyen-thang-9] solution
-SELECT employee_id, department, attrition_reason
+-- [hr-r2-nghi-tu-nguyen-can-giu-quy-3] solution
+SELECT employee_id, snapshot_month, department, attrition_reason,
+       performance_rating, potential_rating
 FROM employee_monthly_snapshot
-WHERE snapshot_month = '2025-09'
+WHERE snapshot_month BETWEEN '2025-07' AND '2025-09'
   AND attrition_type = 'Voluntary'
-ORDER BY employee_id;
+  AND attrition_reason IN ('Compensation', 'Career Growth',
+                           'Manager Relationship', 'Work-Life Balance')
+  AND (performance_rating = 4 OR potential_rating = 'High')
+ORDER BY snapshot_month, employee_id;
 
--- [hr-r2-nghi-tu-nguyen-thang-9] wrong: chi_loc_co_nghi
--- Rớt ở public: cờ nghỉ bằng 1 gồm cả nghỉ hưu và chấm dứt hợp đồng do công ty.
-SELECT employee_id, department, attrition_reason
+-- [hr-r2-nghi-tu-nguyen-can-giu-quy-3] wrong: thieu_ngoac_quanh_or
+-- Rớt ở public: AND tính trước OR, nên lấy thêm người tiềm năng cao của mọi tháng.
+SELECT employee_id, snapshot_month, department, attrition_reason,
+       performance_rating, potential_rating
 FROM employee_monthly_snapshot
-WHERE snapshot_month = '2025-09'
-  AND attrition_this_month = 1
-ORDER BY employee_id;
+WHERE snapshot_month BETWEEN '2025-07' AND '2025-09'
+  AND attrition_type = 'Voluntary'
+  AND attrition_reason IN ('Compensation', 'Career Growth',
+                           'Manager Relationship', 'Work-Life Balance')
+  AND performance_rating = 4 OR potential_rating = 'High'
+ORDER BY snapshot_month, employee_id;
 
--- [hr-r2-nghi-tu-nguyen-thang-9] wrong: quen_loc_thang
--- Rớt ở public: lấy người nghỉ tự nguyện của cả 24 tháng.
-SELECT employee_id, department, attrition_reason
+-- [hr-r2-nghi-tu-nguyen-can-giu-quy-3] wrong: bo_loc_ly_do
+-- Rớt ở public: lẫn người nghỉ vì lý do cá nhân, chuyển nơi ở.
+SELECT employee_id, snapshot_month, department, attrition_reason,
+       performance_rating, potential_rating
 FROM employee_monthly_snapshot
-WHERE attrition_type = 'Voluntary'
-ORDER BY employee_id;
+WHERE snapshot_month BETWEEN '2025-07' AND '2025-09'
+  AND attrition_type = 'Voluntary'
+  AND (performance_rating = 4 OR potential_rating = 'High')
+ORDER BY snapshot_month, employee_id;
 
--- [hr-r3-tuyen-qua-gioi-thieu] solution
-SELECT requisition_id, country, department, job_role, approval_date
-FROM recruiting_pipeline
-WHERE recruitment_source = 'Employee Referral'
-  AND approval_date >= '2025-01-01' AND approval_date < '2026-01-01'
-ORDER BY approval_date, requisition_id;
+-- [hr-r2-nghi-tu-nguyen-can-giu-quy-3] wrong: ket_qua_cao_tu_3
+-- Rớt ở public: định nghĩa lấy điểm 4, điểm 3 không thuộc nhóm kết quả cao.
+SELECT employee_id, snapshot_month, department, attrition_reason,
+       performance_rating, potential_rating
+FROM employee_monthly_snapshot
+WHERE snapshot_month BETWEEN '2025-07' AND '2025-09'
+  AND attrition_type = 'Voluntary'
+  AND attrition_reason IN ('Compensation', 'Career Growth',
+                           'Manager Relationship', 'Work-Life Balance')
+  AND (performance_rating >= 3 OR potential_rating = 'High')
+ORDER BY snapshot_month, employee_id;
 
--- [hr-r3-tuyen-qua-gioi-thieu] wrong: viet_tat_ten_nguon
--- Rớt ở public: giá trị trong bảng là 'Employee Referral', viết 'Referral' ra 0 dòng.
-SELECT requisition_id, country, department, job_role, approval_date
+-- [hr-r3-yeu-cau-tuyen-cham-quy-4] solution
+SELECT requisition_id, requisition_type, recruitment_source, time_to_fill_days
 FROM recruiting_pipeline
-WHERE recruitment_source = 'Referral'
-  AND approval_date >= '2025-01-01' AND approval_date < '2026-01-01'
-ORDER BY approval_date, requisition_id;
+WHERE approval_date >= '2025-10-01' AND approval_date < '2026-01-01'
+  AND recruitment_source IN ('LinkedIn', 'Indeed', 'CareerBuilder')
+  AND ((requisition_type = 'New headcount' AND time_to_fill_days > 30)
+       OR (requisition_type = 'Backfill' AND time_to_fill_days > 45))
+ORDER BY time_to_fill_days DESC, requisition_id;
 
--- [hr-r3-tuyen-qua-gioi-thieu] wrong: thieu_can_duoi
--- Rớt ở public: chỉ có cận trên nên lấy cả yêu cầu duyệt năm 2024.
-SELECT requisition_id, country, department, job_role, approval_date
+-- [hr-r3-yeu-cau-tuyen-cham-quy-4] wrong: thieu_can_tren
+-- Rớt ở hidden-1: biến thể có R0801 duyệt 2026-01-05, qua Indeed, tuyển mới 31 ngày.
+SELECT requisition_id, requisition_type, recruitment_source, time_to_fill_days
 FROM recruiting_pipeline
-WHERE recruitment_source = 'Employee Referral'
-  AND approval_date < '2026-01-01'
-ORDER BY approval_date, requisition_id;
+WHERE approval_date >= '2025-10-01'
+  AND recruitment_source IN ('LinkedIn', 'Indeed', 'CareerBuilder')
+  AND ((requisition_type = 'New headcount' AND time_to_fill_days > 30)
+       OR (requisition_type = 'Backfill' AND time_to_fill_days > 45))
+ORDER BY time_to_fill_days DESC, requisition_id;
+
+-- [hr-r3-yeu-cau-tuyen-cham-quy-4] wrong: mot_chuan_30_ngay
+-- Rớt ở public: tuyển thay thế được tới 45 ngày, áp 30 ngày cho mọi loại lấy thừa.
+SELECT requisition_id, requisition_type, recruitment_source, time_to_fill_days
+FROM recruiting_pipeline
+WHERE approval_date >= '2025-10-01' AND approval_date < '2026-01-01'
+  AND recruitment_source IN ('LinkedIn', 'Indeed', 'CareerBuilder')
+  AND time_to_fill_days > 30
+ORDER BY time_to_fill_days DESC, requisition_id;
+
+-- [hr-r3-yeu-cau-tuyen-cham-quy-4] wrong: thieu_ngoac_quanh_or
+-- Rớt ở public: vế tuyển thay thế sau OR không còn bị giới hạn bởi kỳ duyệt và nguồn.
+SELECT requisition_id, requisition_type, recruitment_source, time_to_fill_days
+FROM recruiting_pipeline
+WHERE approval_date >= '2025-10-01' AND approval_date < '2026-01-01'
+  AND recruitment_source IN ('LinkedIn', 'Indeed', 'CareerBuilder')
+  AND requisition_type = 'New headcount' AND time_to_fill_days > 30
+   OR requisition_type = 'Backfill' AND time_to_fill_days > 45
+ORDER BY time_to_fill_days DESC, requisition_id;
+
+-- [hr-r3-yeu-cau-tuyen-cham-quy-4] wrong: lay_moi_nguon
+-- Rớt ở public: lẫn yêu cầu qua giới thiệu nội bộ, trang web công ty và nguồn khác.
+SELECT requisition_id, requisition_type, recruitment_source, time_to_fill_days
+FROM recruiting_pipeline
+WHERE approval_date >= '2025-10-01' AND approval_date < '2026-01-01'
+  AND ((requisition_type = 'New headcount' AND time_to_fill_days > 30)
+       OR (requisition_type = 'Backfill' AND time_to_fill_days > 45))
+ORDER BY time_to_fill_days DESC, requisition_id;
 
 -- [hr-r4-sales-cong-tac-indonesia] solution
 SELECT employee_id, job_level, business_travel_days
@@ -195,56 +242,98 @@ WHERE age >= 60
   AND snapshot_month >= '2025-01' AND snapshot_month <= '2025-12'
 ORDER BY snapshot_month, employee_id;
 
--- [hr-r8-yeu-cau-thang-3-thieu-ngay] starter
-SELECT COUNT(*) AS so_yeu_cau, SUM(recruiting_cost_usd) AS chi_phi_usd
-FROM recruiting_pipeline
-WHERE start_date BETWEEN '2025-03-01' AND '2025-03-30';
-
--- [hr-r8-yeu-cau-thang-3-thieu-ngay] solution
-SELECT COUNT(*) AS so_yeu_cau, SUM(recruiting_cost_usd) AS chi_phi_usd
-FROM recruiting_pipeline
-WHERE start_date >= '2025-03-01' AND start_date < '2025-04-01';
-
--- [hr-r8-yeu-cau-thang-3-thieu-ngay] wrong: chi_loc_thang_quen_nam
--- Rớt ở public: MONTH() = 3 lấy cả tháng 3/2024 và tháng 3/2026.
-SELECT COUNT(*) AS so_yeu_cau, SUM(recruiting_cost_usd) AS chi_phi_usd
-FROM recruiting_pipeline
-WHERE MONTH(start_date) = 3;
-
--- [hr-r8-yeu-cau-thang-3-thieu-ngay] wrong: loc_theo_ngay_duyet
--- Rớt ở public: ngày duyệt khác ngày bắt đầu làm việc.
-SELECT COUNT(*) AS so_yeu_cau, SUM(recruiting_cost_usd) AS chi_phi_usd
-FROM recruiting_pipeline
-WHERE approval_date >= '2025-03-01' AND approval_date < '2025-04-01';
-
--- [hr-r9-loc-tp-hcm-ra-0] starter
-SELECT COUNT(*) AS so_nguoi
+-- [hr-r8-phu-cap-di-lai-sales-thieu-nguoi] starter
+SELECT employee_id, snapshot_month, job_family, work_model, business_travel_days
 FROM employee_monthly_snapshot
-WHERE snapshot_month = '2025-12'
-  AND city = 'Ho Chi Minh'
-  AND engagement_score <= 40;
+WHERE country = 'Vietnam'
+  AND job_family LIKE 'Sales%'
+  AND work_model IN ('Remote', 'Hybrid')
+  AND snapshot_month >= '2025-10'
+  AND business_travel_days > 9
+ORDER BY snapshot_month, employee_id;
 
--- [hr-r9-loc-tp-hcm-ra-0] solution
+-- [hr-r8-phu-cap-di-lai-sales-thieu-nguoi] solution
+SELECT employee_id, snapshot_month, job_family, work_model, business_travel_days
+FROM employee_monthly_snapshot
+WHERE country = 'Vietnam'
+  AND department = 'Sales'
+  AND work_model IN ('Remote', 'Hybrid')
+  AND snapshot_month >= '2025-10' AND snapshot_month <= '2025-12'
+  AND business_travel_days >= 9
+ORDER BY snapshot_month, employee_id;
+
+-- [hr-r8-phu-cap-di-lai-sales-thieu-nguoi] wrong: quen_can_tren
+-- Rớt ở hidden-1: biến thể có dòng '2026-01' của E00002 (Account Executive, làm từ xa, 9 ngày công tác).
+SELECT employee_id, snapshot_month, job_family, work_model, business_travel_days
+FROM employee_monthly_snapshot
+WHERE country = 'Vietnam'
+  AND department = 'Sales'
+  AND work_model IN ('Remote', 'Hybrid')
+  AND snapshot_month >= '2025-10'
+  AND business_travel_days >= 9
+ORDER BY snapshot_month, employee_id;
+
+-- [hr-r8-phu-cap-di-lai-sales-thieu-nguoi] wrong: giu_lon_hon_9
+-- Rớt ở public: bỏ những tháng có đúng 9 ngày công tác.
+SELECT employee_id, snapshot_month, job_family, work_model, business_travel_days
+FROM employee_monthly_snapshot
+WHERE country = 'Vietnam'
+  AND department = 'Sales'
+  AND work_model IN ('Remote', 'Hybrid')
+  AND snapshot_month >= '2025-10' AND snapshot_month <= '2025-12'
+  AND business_travel_days > 9
+ORDER BY snapshot_month, employee_id;
+
+-- [hr-r8-phu-cap-di-lai-sales-thieu-nguoi] wrong: like_hai_dau_van_thieu
+-- Rớt ở public: '%Sales%' lấy thêm Country Sales Lead nhưng vẫn thiếu Account Executive.
+SELECT employee_id, snapshot_month, job_family, work_model, business_travel_days
+FROM employee_monthly_snapshot
+WHERE country = 'Vietnam'
+  AND job_family LIKE '%Sales%'
+  AND work_model IN ('Remote', 'Hybrid')
+  AND snapshot_month >= '2025-10' AND snapshot_month <= '2025-12'
+  AND business_travel_days >= 9
+ORDER BY snapshot_month, employee_id;
+
+-- [hr-r9-tp-hcm-can-tro-chuyen-qua-nhieu] starter
 SELECT COUNT(*) AS so_nguoi
 FROM employee_monthly_snapshot
 WHERE snapshot_month = '2025-12'
   AND city = 'Ho Chi Minh City'
-  AND engagement_score < 40;
+  AND engagement_score < 40
+   OR manager_effectiveness_score < 55;
 
--- [hr-r9-loc-tp-hcm-ra-0] wrong: loc_theo_nuoc
+-- [hr-r9-tp-hcm-can-tro-chuyen-qua-nhieu] solution
+SELECT COUNT(*) AS so_nguoi
+FROM employee_monthly_snapshot
+WHERE snapshot_month = '2025-12'
+  AND city = 'Ho Chi Minh City'
+  AND (engagement_score < 40 OR manager_effectiveness_score < 55);
+
+-- [hr-r9-tp-hcm-can-tro-chuyen-qua-nhieu] wrong: doi_or_thanh_and
+-- Rớt ở public: chỉ đếm người thoả cả hai điều kiện.
+SELECT COUNT(*) AS so_nguoi
+FROM employee_monthly_snapshot
+WHERE snapshot_month = '2025-12'
+  AND city = 'Ho Chi Minh City'
+  AND engagement_score < 40
+  AND manager_effectiveness_score < 55;
+
+-- [hr-r9-tp-hcm-can-tro-chuyen-qua-nhieu] wrong: loc_theo_nuoc
 -- Rớt ở public: Việt Nam có hai thành phố, lọc theo nước lấy cả Hà Nội.
 SELECT COUNT(*) AS so_nguoi
 FROM employee_monthly_snapshot
 WHERE snapshot_month = '2025-12'
   AND country = 'Vietnam'
-  AND engagement_score < 40;
+  AND (engagement_score < 40 OR manager_effectiveness_score < 55);
 
--- [hr-r9-loc-tp-hcm-ra-0] wrong: quen_loc_thang
--- Rớt ở public: đếm dòng của cả 24 tháng.
+-- [hr-r9-tp-hcm-can-tro-chuyen-qua-nhieu] wrong: nhan_ca_nguong
+-- Rớt ở public: người đúng 40 điểm gắn kết hoặc đúng 55 điểm năng lực quản lý không thuộc nhóm.
 SELECT COUNT(*) AS so_nguoi
 FROM employee_monthly_snapshot
-WHERE city = 'Ho Chi Minh City'
-  AND engagement_score < 40;
+WHERE snapshot_month = '2025-12'
+  AND city = 'Ho Chi Minh City'
+  AND (engagement_score <= 40 OR manager_effectiveness_score <= 55);
 
 -- ================================= MODULE 2 · NULL & EXPRESSIONS
 
@@ -321,32 +410,40 @@ WHERE snapshot_month = '2025-12'
 GROUP BY nhom_compa
 ORDER BY nhom_compa;
 
--- [hr-n4-ty-le-nghi-tu-nguyen-2024] solution
-SELECT SUM(attrition_this_month) AS so_nguoi_nghi,
-       COUNT(CASE WHEN attrition_type = 'Voluntary' THEN 1 END) AS so_tu_nguyen,
-       ROUND(100 * COUNT(CASE WHEN attrition_type = 'Voluntary' THEN 1 END)
-             / SUM(attrition_this_month), 2) AS ty_le_tu_nguyen_pct
+-- [hr-n4-ty-le-nghi-tu-nguyen-quy-nam-q4] solution
+SELECT COUNT(CASE WHEN attrition_type = 'Voluntary' THEN 1 END) AS so_nguoi_nghi_tu_nguyen,
+       ROUND(COUNT(*) / 3, 2) AS quan_so_bq,
+       ROUND(100 * 4 * COUNT(CASE WHEN attrition_type = 'Voluntary' THEN 1 END)
+             / (COUNT(*) / 3), 2) AS ty_le_quy_nam_pct
 FROM employee_monthly_snapshot
-WHERE snapshot_month >= '2024-01' AND snapshot_month <= '2024-12';
+WHERE snapshot_month >= '2025-10' AND snapshot_month <= '2025-12';
 
--- [hr-n4-ty-le-nghi-tu-nguyen-2024] wrong: mau_so_moi_dong
--- Rớt ở public: COUNT(*) đếm mọi dòng của năm, kể cả người không nghỉ.
-SELECT COUNT(*) AS so_nguoi_nghi,
-       COUNT(CASE WHEN attrition_type = 'Voluntary' THEN 1 END) AS so_tu_nguyen,
-       ROUND(100 * COUNT(CASE WHEN attrition_type = 'Voluntary' THEN 1 END)
-             / COUNT(*), 2) AS ty_le_tu_nguyen_pct
+-- [hr-n4-ty-le-nghi-tu-nguyen-quy-nam-q4] wrong: mau_so_la_so_dong
+-- Rớt ở public: số dòng của ba tháng gấp ba quân số bình quân.
+SELECT COUNT(CASE WHEN attrition_type = 'Voluntary' THEN 1 END) AS so_nguoi_nghi_tu_nguyen,
+       COUNT(*) AS quan_so_bq,
+       ROUND(100 * 4 * COUNT(CASE WHEN attrition_type = 'Voluntary' THEN 1 END)
+             / COUNT(*), 2) AS ty_le_quy_nam_pct
 FROM employee_monthly_snapshot
-WHERE snapshot_month >= '2024-01' AND snapshot_month <= '2024-12';
+WHERE snapshot_month >= '2025-10' AND snapshot_month <= '2025-12';
 
--- [hr-n4-ty-le-nghi-tu-nguyen-2024] wrong: bo_nghi_huu_khoi_mau_so
--- Rớt ở public: đề tính mọi loại nghỉ việc, kể cả nghỉ hưu.
-SELECT COUNT(CASE WHEN attrition_type <> 'Retirement' THEN 1 END) AS so_nguoi_nghi,
-       COUNT(CASE WHEN attrition_type = 'Voluntary' THEN 1 END) AS so_tu_nguyen,
+-- [hr-n4-ty-le-nghi-tu-nguyen-quy-nam-q4] wrong: quen_quy_nam
+-- Rớt ở public: tỷ lệ của ba tháng chưa nhân 4 nên không so được với mục tiêu năm.
+SELECT COUNT(CASE WHEN attrition_type = 'Voluntary' THEN 1 END) AS so_nguoi_nghi_tu_nguyen,
+       ROUND(COUNT(*) / 3, 2) AS quan_so_bq,
        ROUND(100 * COUNT(CASE WHEN attrition_type = 'Voluntary' THEN 1 END)
-             / COUNT(CASE WHEN attrition_type <> 'Retirement' THEN 1 END), 2)
-         AS ty_le_tu_nguyen_pct
+             / (COUNT(*) / 3), 2) AS ty_le_quy_nam_pct
 FROM employee_monthly_snapshot
-WHERE snapshot_month >= '2024-01' AND snapshot_month <= '2024-12';
+WHERE snapshot_month >= '2025-10' AND snapshot_month <= '2025-12';
+
+-- [hr-n4-ty-le-nghi-tu-nguyen-quy-nam-q4] wrong: thieu_can_tren
+-- Rớt ở hidden-1: biến thể có dòng '2026-01' của E00002, quân số bình quân lệch.
+SELECT COUNT(CASE WHEN attrition_type = 'Voluntary' THEN 1 END) AS so_nguoi_nghi_tu_nguyen,
+       ROUND(COUNT(*) / 3, 2) AS quan_so_bq,
+       ROUND(100 * 4 * COUNT(CASE WHEN attrition_type = 'Voluntary' THEN 1 END)
+             / (COUNT(*) / 3), 2) AS ty_le_quy_nam_pct
+FROM employee_monthly_snapshot
+WHERE snapshot_month >= '2025-10';
 
 -- [hr-n5-co-hieu-suat-cao-thieu-diem] solution
 SELECT COUNT(CASE WHEN snapshot_month <= '2024-12' THEN 1 END) AS so_dong_2024,
@@ -373,54 +470,103 @@ FROM employee_monthly_snapshot
 WHERE snapshot_month >= '2024-01' AND snapshot_month <= '2025-12'
   AND performance_rating IS NULL;
 
--- [hr-n6-nhan-loai-yeu-cau] solution
-SELECT CASE WHEN vacated_employee_id IS NULL THEN 'tuyen_moi'
-            ELSE 'tuyen_thay_the' END AS loai_yeu_cau,
-       COUNT(*) AS so_yeu_cau,
-       ROUND(AVG(recruiting_cost_usd), 0) AS chi_phi_bq_usd
-FROM recruiting_pipeline
-WHERE approval_date >= '2025-01-01' AND approval_date < '2026-01-01'
-GROUP BY loai_yeu_cau
-ORDER BY loai_yeu_cau;
+-- [hr-n6-phan-loai-thieu-nguoi-2025] solution
+SELECT CASE WHEN actual_headcount = 0 THEN 'chua_co_nguoi'
+            WHEN vacancy_count >= 2
+              OR 100 * vacancy_count / planned_headcount >= 10 THEN 'thieu_nhieu'
+            WHEN vacancy_count > 0 THEN 'thieu_it'
+            ELSE 'du_nguoi' END AS nhom_thieu_nguoi,
+       COUNT(*) AS so_vi_tri,
+       SUM(vacancy_count) AS tong_cho_trong
+FROM position_plan
+WHERE plan_period = 2025
+GROUP BY nhom_thieu_nguoi
+ORDER BY nhom_thieu_nguoi;
 
--- [hr-n6-nhan-loai-yeu-cau] wrong: so_voi_chuoi_rong
--- Rớt ở public: ô trống khác chuỗi rỗng, mọi yêu cầu bị gán 'tuyen_thay_the'.
-SELECT CASE WHEN vacated_employee_id = '' THEN 'tuyen_moi'
-            ELSE 'tuyen_thay_the' END AS loai_yeu_cau,
-       COUNT(*) AS so_yeu_cau,
-       ROUND(AVG(recruiting_cost_usd), 0) AS chi_phi_bq_usd
-FROM recruiting_pipeline
-WHERE approval_date >= '2025-01-01' AND approval_date < '2026-01-01'
-GROUP BY loai_yeu_cau
-ORDER BY loai_yeu_cau;
+-- [hr-n6-phan-loai-thieu-nguoi-2025] wrong: xet_chua_co_nguoi_sau
+-- Rớt ở hidden-1: P0901 chưa có ai nhưng thiếu 2 người, bị xếp vào thiếu nhiều.
+SELECT CASE WHEN vacancy_count >= 2
+              OR 100 * vacancy_count / planned_headcount >= 10 THEN 'thieu_nhieu'
+            WHEN actual_headcount = 0 THEN 'chua_co_nguoi'
+            WHEN vacancy_count > 0 THEN 'thieu_it'
+            ELSE 'du_nguoi' END AS nhom_thieu_nguoi,
+       COUNT(*) AS so_vi_tri,
+       SUM(vacancy_count) AS tong_cho_trong
+FROM position_plan
+WHERE plan_period = 2025
+GROUP BY nhom_thieu_nguoi
+ORDER BY nhom_thieu_nguoi;
 
--- [hr-n6-nhan-loai-yeu-cau] wrong: thieu_can_tren
--- Rớt ở hidden-1: biến thể có thêm yêu cầu tuyển mới R0801 duyệt ngày 2026-01-05.
-SELECT CASE WHEN vacated_employee_id IS NULL THEN 'tuyen_moi'
-            ELSE 'tuyen_thay_the' END AS loai_yeu_cau,
-       COUNT(*) AS so_yeu_cau,
-       ROUND(AVG(recruiting_cost_usd), 0) AS chi_phi_bq_usd
-FROM recruiting_pipeline
-WHERE approval_date >= '2025-01-01'
-GROUP BY loai_yeu_cau
-ORDER BY loai_yeu_cau;
+-- [hr-n6-phan-loai-thieu-nguoi-2025] wrong: tren_10_phan_tram
+-- Rớt ở public: vị trí thiếu đúng 10% định biên phải thuộc thiếu nhiều.
+SELECT CASE WHEN actual_headcount = 0 THEN 'chua_co_nguoi'
+            WHEN vacancy_count >= 2
+              OR 100 * vacancy_count / planned_headcount > 10 THEN 'thieu_nhieu'
+            WHEN vacancy_count > 0 THEN 'thieu_it'
+            ELSE 'du_nguoi' END AS nhom_thieu_nguoi,
+       COUNT(*) AS so_vi_tri,
+       SUM(vacancy_count) AS tong_cho_trong
+FROM position_plan
+WHERE plan_period = 2025
+GROUP BY nhom_thieu_nguoi
+ORDER BY nhom_thieu_nguoi;
 
--- [hr-n7-gio-dao-tao-thap] starter
-SELECT ROUND(AVG(COALESCE(training_hours_6m, 0)), 2) AS gio_dao_tao_bq
+-- [hr-n6-phan-loai-thieu-nguoi-2025] wrong: so_ty_so_voi_10
+-- Rớt ở public: tỷ số chưa nhân 100 không bao giờ đạt 10, chỉ còn điều kiện thiếu từ 2 người.
+SELECT CASE WHEN actual_headcount = 0 THEN 'chua_co_nguoi'
+            WHEN vacancy_count >= 2
+              OR vacancy_count / planned_headcount >= 10 THEN 'thieu_nhieu'
+            WHEN vacancy_count > 0 THEN 'thieu_it'
+            ELSE 'du_nguoi' END AS nhom_thieu_nguoi,
+       COUNT(*) AS so_vi_tri,
+       SUM(vacancy_count) AS tong_cho_trong
+FROM position_plan
+WHERE plan_period = 2025
+GROUP BY nhom_thieu_nguoi
+ORDER BY nhom_thieu_nguoi;
+
+-- [hr-n6-phan-loai-thieu-nguoi-2025] wrong: quen_nam_ke_hoach
+-- Rớt ở public: lấy cả vị trí của năm kế hoạch 2024.
+SELECT CASE WHEN actual_headcount = 0 THEN 'chua_co_nguoi'
+            WHEN vacancy_count >= 2
+              OR 100 * vacancy_count / planned_headcount >= 10 THEN 'thieu_nhieu'
+            WHEN vacancy_count > 0 THEN 'thieu_it'
+            ELSE 'du_nguoi' END AS nhom_thieu_nguoi,
+       COUNT(*) AS so_vi_tri,
+       SUM(vacancy_count) AS tong_cho_trong
+FROM position_plan
+GROUP BY nhom_thieu_nguoi
+ORDER BY nhom_thieu_nguoi;
+
+-- [hr-n7-ty-le-chua-dao-tao-cao] starter
+SELECT COUNT(CASE WHEN COALESCE(training_hours_6m, 0) = 0 THEN 1 END) AS so_nguoi_0_gio,
+       ROUND(100 * COUNT(CASE WHEN COALESCE(training_hours_6m, 0) = 0 THEN 1 END)
+             / COUNT(*), 2) AS ty_le_chua_dao_tao_pct
 FROM employee_monthly_snapshot
 WHERE snapshot_month = '2025-12';
 
--- [hr-n7-gio-dao-tao-thap] solution
-SELECT ROUND(AVG(training_hours_6m), 2) AS gio_dao_tao_bq
+-- [hr-n7-ty-le-chua-dao-tao-cao] solution
+SELECT COUNT(CASE WHEN training_hours_6m = 0 THEN 1 END) AS so_nguoi_0_gio,
+       ROUND(100 * COUNT(CASE WHEN training_hours_6m = 0 THEN 1 END)
+             / COUNT(training_hours_6m), 2) AS ty_le_chua_dao_tao_pct
 FROM employee_monthly_snapshot
 WHERE snapshot_month = '2025-12';
 
--- [hr-n7-gio-dao-tao-thap] wrong: bo_ca_dong_0_gio
--- Rớt ở public: có người thật sự không đào tạo giờ nào; bỏ họ làm bình quân cao lên.
-SELECT ROUND(AVG(training_hours_6m), 2) AS gio_dao_tao_bq
+-- [hr-n7-ty-le-chua-dao-tao-cao] wrong: chi_sua_tu_so
+-- Rớt ở public: mẫu số COUNT(*) vẫn đếm cả người thiếu dữ liệu đào tạo.
+SELECT COUNT(CASE WHEN training_hours_6m = 0 THEN 1 END) AS so_nguoi_0_gio,
+       ROUND(100 * COUNT(CASE WHEN training_hours_6m = 0 THEN 1 END)
+             / COUNT(*), 2) AS ty_le_chua_dao_tao_pct
 FROM employee_monthly_snapshot
-WHERE snapshot_month = '2025-12'
-  AND training_hours_6m > 0;
+WHERE snapshot_month = '2025-12';
+
+-- [hr-n7-ty-le-chua-dao-tao-cao] wrong: chi_sua_mau_so
+-- Rớt ở public: tử số vẫn coi người thiếu dữ liệu là 0 giờ.
+SELECT COUNT(CASE WHEN COALESCE(training_hours_6m, 0) = 0 THEN 1 END) AS so_nguoi_0_gio,
+       ROUND(100 * COUNT(CASE WHEN COALESCE(training_hours_6m, 0) = 0 THEN 1 END)
+             / COUNT(training_hours_6m), 2) AS ty_le_chua_dao_tao_pct
+FROM employee_monthly_snapshot
+WHERE snapshot_month = '2025-12';
 
 -- [hr-n8-dem-tiem-nang-thieu] starter
 SELECT COUNT(*) AS so_nguoi_du_dieu_kien
@@ -448,37 +594,45 @@ FROM employee_monthly_snapshot
 WHERE snapshot_month = '2025-12'
   AND potential_rating IN ('High', 'Medium');
 
--- [hr-n9-tien-lam-them-lech] starter
+-- [hr-n9-tien-lam-them-quy-4-lech] starter
+SELECT SUM(overtime_hours) AS tong_gio_lam_them,
+       ROUND(SUM(ROUND(monthly_salary_usd / 176, 0) * 0.5 * overtime_hours), 2)
+         AS tien_lam_them_usd
+FROM employee_monthly_snapshot
+WHERE country = 'Vietnam'
+  AND snapshot_month >= '2025-10';
+
+-- [hr-n9-tien-lam-them-quy-4-lech] solution
+SELECT SUM(overtime_hours) AS tong_gio_lam_them,
+       ROUND(SUM(monthly_salary_usd / 176 * 1.5 * overtime_hours), 2) AS tien_lam_them_usd
+FROM employee_monthly_snapshot
+WHERE country = 'Vietnam'
+  AND snapshot_month >= '2025-10' AND snapshot_month <= '2025-12';
+
+-- [hr-n9-tien-lam-them-quy-4-lech] wrong: quen_can_tren
+-- Rớt ở hidden-1: biến thể có dòng '2026-01' của E00002 ở Việt Nam, 8 giờ làm thêm.
+SELECT SUM(overtime_hours) AS tong_gio_lam_them,
+       ROUND(SUM(monthly_salary_usd / 176 * 1.5 * overtime_hours), 2) AS tien_lam_them_usd
+FROM employee_monthly_snapshot
+WHERE country = 'Vietnam'
+  AND snapshot_month >= '2025-10';
+
+-- [hr-n9-tien-lam-them-quy-4-lech] wrong: giu_lam_tron_som
+-- Rớt ở public: làm tròn tiền lương giờ trước khi nhân làm tổng lệch hàng trăm USD.
 SELECT SUM(overtime_hours) AS tong_gio_lam_them,
        ROUND(SUM(ROUND(monthly_salary_usd / 176, 0) * 1.5 * overtime_hours), 2)
          AS tien_lam_them_usd
 FROM employee_monthly_snapshot
-WHERE snapshot_month = '2025-12'
-  AND country = 'Vietnam';
+WHERE country = 'Vietnam'
+  AND snapshot_month >= '2025-10' AND snapshot_month <= '2025-12';
 
--- [hr-n9-tien-lam-them-lech] solution
+-- [hr-n9-tien-lam-them-quy-4-lech] wrong: chi_tinh_phan_cong_them
+-- Rớt ở public: 150% là cả tiền lương giờ lẫn phần cộng thêm, không phải riêng 50%.
 SELECT SUM(overtime_hours) AS tong_gio_lam_them,
-       ROUND(SUM(monthly_salary_usd / 176 * 1.5 * overtime_hours), 2) AS tien_lam_them_usd
+       ROUND(SUM(monthly_salary_usd / 176 * 0.5 * overtime_hours), 2) AS tien_lam_them_usd
 FROM employee_monthly_snapshot
-WHERE snapshot_month = '2025-12'
-  AND country = 'Vietnam';
-
--- [hr-n9-tien-lam-them-lech] wrong: quen_muc_150
--- Rớt ở public: trả giờ làm thêm bằng giờ thường, thiếu mức 150%.
-SELECT SUM(overtime_hours) AS tong_gio_lam_them,
-       ROUND(SUM(monthly_salary_usd / 176 * overtime_hours), 2) AS tien_lam_them_usd
-FROM employee_monthly_snapshot
-WHERE snapshot_month = '2025-12'
-  AND country = 'Vietnam';
-
--- [hr-n9-tien-lam-them-lech] wrong: lam_tron_tung_nguoi
--- Rớt ở public: làm tròn tiền của từng người tới USD rồi mới cộng.
-SELECT SUM(overtime_hours) AS tong_gio_lam_them,
-       ROUND(SUM(ROUND(monthly_salary_usd / 176 * 1.5 * overtime_hours, 0)), 2)
-         AS tien_lam_them_usd
-FROM employee_monthly_snapshot
-WHERE snapshot_month = '2025-12'
-  AND country = 'Vietnam';
+WHERE country = 'Vietnam'
+  AND snapshot_month >= '2025-10' AND snapshot_month <= '2025-12';
 
 -- ============================================ CASE STUDY · CƠ BẢN
 

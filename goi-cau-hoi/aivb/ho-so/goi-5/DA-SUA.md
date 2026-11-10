@@ -1,0 +1,88 @@
+# Đã sửa · gói 5 AIV Bank (aivb) · v2 theo REVIEW-B, REVIEW-C
+
+Kiểm lại: câu sửa SQL chạy bộ kiểm trên gói tạm `cong-cu/ket-qua/sua/aivb-goi-5/` (10 câu); cả gói chạy `--chi-phan-tich` (0 lỗi); biên dịch `cong-cu/ket-qua/bien-dich/aivb-goi-5/` (0 lỗi LaTeX). Không sửa database hay biến thể ẩn.
+
+| Mã | Đã sửa (theo điểm của B/C) | Kiểm lại |
+|---|---|---|
+| aivb-k1-ten-phap-ly-dung-chung | B: bỏ cột hằng `so_loai_chu_the` (luôn 1), thay `so_khach_hang` (LEFT JOIN `core_customer`, 2 bảng); wrong mới: INNER JOIN mất chủ thể chưa là khách hàng, `COUNT(*)`. Lời nhắn, yêu cầu ("tên pháp lý"), `\luuy` theo câu B đề xuất, bỏ ví dụ sai dữ liệu. | bộ kiểm gói tạm |
+| aivb-k2-phan-bo-thu-no-khong-co-lenh | C: "lệnh chuyển tiền" → "lệnh thanh toán"; bỏ "của nó" và ngoặc kép rào; tiêu đề hỏi số đếm theo năm; lời nhắn nói kho báo cáo chỉ giữ lệnh năm hiện hành (cửa sổ dữ liệu thành thực tế vận hành); khái niệm `doi-soat-du-lieu` bỏ vế lộ kết luận, "nguyên nhân của nó" → "nguyên nhân chênh lệch". | phân tích tĩnh (chỉ sửa chữ) |
+| aivb-k3-doi-soat-lai-du-thu-tien-gui | B: ghi rõ cách làm tròn (cộng lãi chưa làm tròn rồi làm tròn tổng) để không chấm oan; bỏ cột `so_hop_dong_lech` (0 public / 100\% hidden-1), thay `so_hd_khong_co_lai` (tiền gửi ACTIVE không có dòng lãi tháng 12); yêu cầu nói công thức bằng lời; tiêu đề, cụm "quá 1\%" lặp; tab Nghiệp vụ khớp đầu ra; ghichuthietke "3 bảng không cần". | bộ kiểm gói tạm |
+| aivb-k4-tinh-thieu-nghe-nghiep | C: tiêu đề, "mặt bằng chung" → "mức chung", `\luuy` bỏ khuôn "mệnh đề: kết luận", ghi rõ `'KHAC'` tính như một nhóm. | phân tích tĩnh |
+| aivb-k5-trang-thai-khoan-vay-mau-thuan | B: 6 phép kiểm (4 luôn 0, 2 không phải mâu thuẫn thật) thay bằng bảng đối chiếu theo `loan_status`: số khoản, số có kỳ quá hạn, số dư nợ bằng 0; wrong đếm kỳ, INNER JOIN mất trạng thái; bỏ "nó", lời nhắn "bộ phép kiểm", câu khẩu hiệu. | bộ kiểm gói tạm |
+| aivb-k6-ho-so-ngoai-hieu-luc-chinh-sach | C: thống nhất "phiên bản chính sách" ở tiêu đề, lời nhắn, yêu cầu; tiêu đề hỏi số đếm. | phân tích tĩnh |
+| aivb-k7-ngay-tu-choi-bat-thuong | B: thêm lỗi thứ hai vào starter (bình quân chia 365 ngày) cho đúng cấp Trung bình; wrong mới chỉ sửa một lỗi; `domain` → `after_sales`; tiêu đề, định nghĩa bình quân, lời nhắn, bỏ câu khẩu hiệu. | bộ kiểm gói tạm |
+| aivb-k8-thoi-gian-xu-ly-kyc | C (chấm oan): ngưỡng đổi thành "từ 144 giờ trở lên" và ghi `so_gio_xu_ly` là giờ tròn của `TIMESTAMPDIFF`; vì mọi khoảng là N×24 giờ + 1 giây, tính theo giờ tròn hay theo giây đều ra cùng kết quả. Lỗi thứ hai của starter là `> 144`. Vai "Bạn Trâm · Thực tập sinh", "hàng chục nghìn giờ"; sửa `\luuy` sai dữ liệu. | bộ kiểm gói tạm |
+| aivb-k9-ho-so-duyet-khong-co-khoan-vay | B: vai → Trưởng phòng khách hàng cá nhân (30/30 hồ sơ cá nhân); thống nhất "chưa có khoản vay"; bỏ "Truy vấn" trong lời nhắn; `\luuy` thành lưu ý nghiệp vụ. | phân tích tĩnh |
+| aivb-p1-qr-thang-12-sargable | C: kế hoạch mong manh (range scan cả tháng chỉ rẻ hơn table scan ~6\%) → thu hẹp phạm vi xuống tuần cuối năm 25--31/12 (chi phí ước ~58\% table scan); ràng buộc viết lại "Không đọc toàn bộ bảng…"; lời nhắn đổi khuôn. Giữ mã. | bộ kiểm gói tạm |
+| aivb-p2-so-but-toan-moi-tai-khoan | B: `\luuy` bỏ "chúng"; thêm `ngansach=2` (bắt bài gom cả bảng bút toán); lời nhắn đổi khuôn. | bộ kiểm gói tạm |
+| aivb-p3-tien-gui-lon-nhat-moi-chi-nhanh | C: bỏ "với mỗi", lời nhắn, "khách gửi tiền" → "hợp đồng tiền gửi", câu ngân sách. | phân tích tĩnh |
+| aivb-p4-mom-tu-noi | B: bỏ "với mỗi"; lời nhắn không nói "bảng". | phân tích tĩnh |
+| aivb-p5-ho-so-chua-co-khoan-vay | C: tiêu đề nêu đúng điều dạy (chỉ đọc bảng hồ sơ một lần), `\luuy` không còn dạy NOT IN gặp NULL; thống nhất "chưa có khoản vay"; thay wrong `not_in_gap_null` gượng bằng "quên điều kiện duyệt". | bộ kiểm gói tạm |
+| aivb-p6-lich-tra-no-mot-lan-quet | B: wrong `gom_theo_phien_ban` (chỉ rớt vì nhãn) thay bằng đếm không điều kiện; `\luuy` đúng dữ liệu; bỏ "với mỗi"; lời nhắn đổi khuôn. | bộ kiểm gói tạm |
+| aivb-p7-but-toan-tuan-cuoi-nam | C: `cap=easy`, ERD 2 bảng có chữ trên đường nối; nói rõ cộng cả ghi Nợ lẫn ghi Có; chuyển ý "không bọc cột" sang `\goiy`. | phân tích tĩnh |
+| aivb-p8-cohort-toi-uu-sai | B: tiêu đề "làm mất cohort 2018"; `\luuy` nêu cửa sổ dữ liệu (hồ sơ từ 12/2019, cohort 2026 chưa đủ năm). | phân tích tĩnh |
+| aivb-p9-tong-hop-truoc-loc-sau | C: lời nhắn đúng độ lớn ("lớn hơn gần một nửa"); tiêu đề "cộng cả lãi tiền gửi"; "theo từng tháng của năm 2026"; vai → Kế toán giao dịch. | phân tích tĩnh |
+| aivb-c9-ra-soat-no-xau-2026 | B: phương án đúng chỉ dựa trên b3, b4 (không ghép sản phẩm × miền, vốn trái số thật); ba phương án dài gần bằng nhau, phương án sai cũng có hai vế; `\luuy` nói hai lát cắt riêng. | phân tích tĩnh (SQL không đổi) |
+| aivb-c10-doi-soat-dong-tien-2026 | C: b3 đổi thành dòng tiền ròng theo trạng thái lệnh (bút toán một phía của lệnh bị đảo +21,3 tỷ, bị từ chối −8,9 tỷ); kết luận viết lại "chưa dùng ngay được"; ba phương án cân độ dài, bỏ khuôn dấu hai chấm, bỏ "chúng"; tiêu đề không tu từ; lời nhắn "đủ tin cậy". | bộ kiểm gói tạm |
+
+## Đã xử lý (bổ sung biến thể ẩn 10/11)
+
+- **Biến thể ẩn (G1 của B, C)** (trước ở mục Chờ giảng viên): không cần `aivb_hidden_2`; `mysql/aivb/04_bo_sung_bien_the_aivb.sql` thêm cụm khách hàng giả (d)–(k): chủ thể trùng tên pháp lý, hồ sơ APPROVED chưa có khoản vay, kỳ OVERDUE của khoản đang trả, khách thiếu nghề nghiệp ở Huế, sự kiện KYC mới, tiền gửi doanh nghiệp ở CN13, hai lệnh giải ngân COMPLETED không có bút toán. Chạy solution trên `aivb` và `aivb_hidden_1` (user `sql_runner`): k1, k4, k5, k6, k8 (189/188 dòng), k9 (31/30), p3 (13/12), p5, p6, p8, c9 (b1 94/93), c10 (b1 10/8) đều khác public; p6 truy vấn trả hằng số nay rớt ở hidden-1. Ghi chú thiết kế k1, k4, k8, p6 đã sửa theo.
+
+## Chờ giảng viên
+
+1. **k5:** diễn giải các ô của bảng đối chiếu: khoản đã cơ cấu lại không còn kỳ quá hạn, khoản đã xử lý rủi ro còn kỳ `'OVERDUE'` có phải mâu thuẫn không.
+2. **c10:** bút toán của lệnh `'REVERSED'`, `'REJECTED'` có phải loại khỏi dòng tiền ròng dùng cho kế hoạch vốn không (kết luận v2 giả định là phải loại).
+3. **k2:** câu dựa trên cửa sổ dữ liệu (lệnh chỉ có năm 2026); v2 trình bày là kho báo cáo chỉ giữ năm hiện hành. Cần xác nhận còn hợp lý với ngân hàng thật.
+4. **k4:** giao chỉ tiêu bổ sung hồ sơ theo tỉnh cư trú hay theo chi nhánh quản lý.
+5. **k6:** cấp `hard` (kỹ năng chính ở mức Trung bình, độ khó chủ yếu từ ERD nhiễu) giữ nguyên, chờ xét.
+6. **p9:** vai người hỏi (đã đổi sang Kế toán giao dịch).
+
+## Quyết định v3 (10/11)
+
+Xử lý 6 điểm "Chờ giảng viên" theo BRIEF-QUYET-DINH-126 (bảng chung: `../../QUYET-DINH-126-g45.md`). Nguồn: Parameter Book `Project DA\Finance\05_eDA_parameter_book_mini_core_banking_v5.1.5.xlsx` (PB), văn bản pháp quy ghi URL. Không đổi SQL, không cần thêm dòng ẩn.
+
+| Mã | Điểm | Quyết định | Căn cứ | Đã sửa gì |
+|---|---|---|---|---|
+| aivb-k5 | Diễn giải bảng đối chiếu | Xác nhận diễn giải v2: 11/24 khoản cơ cấu lại không còn kỳ quá hạn là bình thường; 17/17 khoản xử lý rủi ro còn kỳ `'OVERDUE'`, dư nợ 0 không phải mâu thuẫn | PB mục 4 (RESTRUCTURED, WRITTEN_OFF, POST.WO.1 GL_ONLY, POST.RECOV.1); NĐ 86/2024/NĐ-CP (xử lý rủi ro hạch toán ngoại bảng, khách vẫn có nghĩa vụ trả nợ; https://luatvietnam.vn/tai-chinh/nghi-dinh-86-2024-nd-cp-phuong-phap-trich-lap-du-phong-rui-ro-cua-to-chuc-tin-dung-359985-d1.html) | `\luuy` thêm một câu; `\ghichuthietke` thay chữ "chờ giảng viên" bằng diễn giải và căn cứ |
+| aivb-c10 | Loại bút toán của lệnh `'REVERSED'`, `'REJECTED'` khỏi dòng tiền ròng | Xác nhận (loại) | PB mục 6B: `POST.REVERSAL.1` (MIRROR), `POST.REJECT.1` (hoàn phía ghi Nợ) → ảnh hưởng ròng tới tài khoản bằng 0; dữ liệu chỉ giữ bút toán gốc (b3: +21,3 tỷ và −8,9 tỷ) | `\ghichuthietke`; khái niệm `giao-dich-bi-dao` thêm câu "Bảng bút toán chỉ giữ bút toán gốc…" (chép từ STYLE-aivb E, cùng quyết định aivb-t2) |
+| aivb-k2 | Cửa sổ dữ liệu trình bày là kho báo cáo chỉ giữ năm hiện hành | Giữ v2, nói rõ chứng từ năm trước còn ở hệ thống lưu trữ | Luật Kế toán 2015 Điều 41; NĐ 174/2016/NĐ-CP Điều 12–13 (thời hạn lưu trữ tài liệu kế toán 5 / 10 năm; https://caselaw.vn/van-ban-phap-luat/116303-nghi-dinh-174-2016-nd-cp-huong-dan-luat-ke-toan): ngân hàng không xoá chứng từ sau một năm, nhưng kho báo cáo (datamart) giữ một năm là hợp lý. DB: phân bổ 2022–2026, lệnh chỉ 2026-01-05…2026-12-31 | `\luuy` thêm một câu |
+| aivb-k4 | Chỉ tiêu theo tỉnh cư trú hay chi nhánh quản lý | Giữ tính theo tỉnh cư trú; đổi quyết định thành "ưu tiên bổ sung ở tỉnh nào trước" (chỉ tiêu giao cho đơn vị, không giao cho tỉnh) | Dữ liệu `core_person.residence_province`; tab Nghiệp vụ v2 đã ghi "Chọn tỉnh cần ưu tiên" | Bối cảnh: "để ưu tiên bổ sung hồ sơ ở đó trước" thay "để giao chỉ tiêu bổ sung"; người hỏi Chị Ngân |
+| aivb-k6 | Cấp Khó | Hạ Trung bình | QUYET-DINH-CHUNG 2.3 mục 4; CHOT-FORMAT mục ERD (medium 3–4 bảng, ký hiệu 1-n) | `cap=medium`; ERD 3 bảng có ký hiệu (1 bảng nhiễu `core_credit_decision`), bỏ `\erdkhoa`; `\ghichuthietke`; BAN-DO-100-CAU (dòng, thống kê, mục chênh lệch) |
+| aivb-c9, aivb-c10 | Lời giải thích bước kết luận (QUYET-DINH-CHUNG 1.1, sửa theo quy_chuan) | Áp | Gói mẫu c1–c4 | "Đúng. " → "Đúng: ", bỏ "Chưa đúng. " ở phương án sai |
+| aivb-p9 | Vai người hỏi | Giữ Kế toán giao dịch | STYLE-aivb B (danh sách vai, không có "kế toán tổng hợp"); báo cáo lãi dự thu là việc của kế toán | Tên theo bảng vai – tên: Anh Khánh (đổi đại từ) |
+| (tên nhân vật) | Một tên nhiều vai | Bảng vai – tên cố định (`../../QUYET-DINH-126-g45.md`) | | k1 Chị Mai, k2 + p9 Anh Khánh, k3 Anh Minh, k4 Chị Ngân, k5 + c9 Chị Lan, k7 Anh Quang, k8 Bạn Vy, k9 Anh Bảo, p1–p6 Anh Sơn, p8 Chị Hạnh; đổi đại từ theo tên |
+
+## Chuẩn hoá theo quy_chuan (11/11/2026, BRIEF-CHUAN-HOA)
+
+| Mục | Câu | Sửa |
+|---|---|---|
+| 1 Kết luận case | c9, c10 | Đã đúng mẫu (3 phương án, "Đúng: " ở phương án đúng, sai không tiền tố, ≤ 35 tiếng): 0 chỗ sửa |
+| 2 Gợi ý | k1, k2, k8, p7 | Nấc cuối nêu trọn một biểu thức một dòng (`COUNT(DISTINCT …)`, `COUNT(CASE WHEN … IS NULL …)`, `LAG(event_at) OVER (PARTITION BY customer_id, kyc_cycle_no …)` + `>= 144`, khoảng `business_date`) |
+| 3 Tiêu đề | k6, p5 (> 13 tiếng); p2, p4, p6 (Tối ưu chưa nêu ràng buộc) | Rút còn ≤ 13 tiếng; tiêu đề Tối ưu nêu ràng buộc ("chỉ đọc bút toán một lần", "chỉ quét bảng lệnh một lần", "chỉ với một lần quét") |
+| 4 ERD Khó | k3, k5, k8, p3, p4, p8, c9, c10 | Đã chỉ khoá, 5–6 bảng, `\erdkhoa`: 0 chỗ sửa |
+| 5 Cấp | k9 debug Trung bình → Dễ | Một lỗi logic một chỗ, triệu chứng 0 dòng (HD mục 6). ERD 2 bảng, chữ trên đường nối, giữ `canhbao` |
+| 5 Cấp | p2 optimize Trung bình → Dễ | Mẫu optimize Cơ bản (gộp quét thành đếm có điều kiện) + 1 bẫy (QUYET-DINH-CHUNG 2.1). ERD 2 bảng, chữ trên đường nối |
+| 5 Cấp | p6 optimize Khó → Trung bình | Mẫu Cơ bản + gộp quét chuỗi 4 bảng; không có tự nối cộng dồn của mẫu Khó. ERD 4 bảng lời giải, ký hiệu 1-n, bỏ `\erdkhoa` |
+
+Không đổi SQL. c10 (b1, b3, b4 quét bút toán cả năm) chưa thu phạm vi: thu về quý 4 làm hỏng kết luận (bút toán lệnh bị đảo, bị từ chối quý 4 ròng ~3,4 tỷ so với dòng tiền ròng −38 tỷ); xem báo cáo chuẩn hoá. Không câu nào của gói 5 dùng `core_account_party` trong SQL (chỉ là bảng nhiễu ở ERD c10), nên dòng biên mới ở hidden-1 không đổi kết quả.
+
+## v4 – đủ 4 cấp mỗi module (11/11/2026, BRIEF-CAP-DO-MODULE)
+
+Mục tiêu mỗi module 9 câu: 2 Cơ bản · 3 Dễ · 2 Trung bình · 2 Khó (`quy_chuan/lo-trinh-sql/assets/js/data.js`: M9, M10 đều có đủ 4 cấp). Trước v4 (sau chuẩn hoá 11/11): M9 0 · 1 · 5 · 3 (k9 Dễ; k1, k2, k4, k6, k7 Trung bình; k3, k5, k8 Khó); M10 0 · 2 · 4 · 3 (p2, p7 Dễ; p1, p5, p6, p9 Trung bình; p3, p4, p8 Khó). Số câu tối thiểu phải đổi: M9 4 câu (thiếu 2 Cơ bản + 2 Dễ, thừa 3 Trung bình + 1 Khó), M10 3 câu (thiếu 2 Cơ bản + 1 Dễ, thừa 2 Trung bình + 1 Khó). Giữ tỷ lệ hình thức: M9 6 write + 3 debug; M10 6 optimize + 1 write + 2 debug. Case không đổi. Không sửa database, biến thể ẩn hay file 04: mọi khác biệt public/hidden-1 dùng dữ liệu biến thể có sẵn.
+
+| Mã cũ → mã mới | Cấp cũ → mới | Đổi gì | 5 trục (số bảng lời giải · số bước · mức mơ hồ · số bẫy · độ sâu nghiệp vụ) |
+|---|---|---|---|
+| aivb-k1-ten-phap-ly-dung-chung (giữ mã) | Trung bình → Cơ bản | Theo bài `k1-dong-trung` Cơ bản của lộ trình: một bảng `core_party`, gom theo `legal_name`, giữ tên có từ 4 chủ thể trở lên; bỏ `core_customer` và cột `so_khach_hang`. ERD 1 bảng có giá trị mẫu. Wrong mới: `> 4` bỏ mốc (rớt public). hidden-1: Tran Thi Hoa 4 chủ thể chỉ có ở hidden-1 (207 / 208 dòng). | 1 bảng · 1 tầng (gom + lọc nhóm) · đề ghi rõ cột, ngưỡng · 0 bẫy · 1 khái niệm: Cơ bản 5/5 |
+| aivb-k4-tinh-thieu-nghe-nghiep → aivb-k4-thieu-nghe-nghiep-theo-viec-lam | Trung bình → Cơ bản | Viết lại: đếm cá nhân thiếu nghề nghiệp theo `employment_status` (một bảng, lọc `IS NULL`, gom một cột); bỏ phần so với mức chung (CTE, `CROSS JOIN`). Lát cắt đổi từ tỉnh sang tình trạng việc làm để không gần aivb-n1 (gói 1). Dạng C3 → A3. Wrong: `= NULL`, `COUNT(occupation_code)`. hidden-1: nhóm `'RETIRED'` hơn 1 người. | 1 bảng · 1 tầng · đề ghi rõ cột, giá trị lọc · 0 bẫy · 1 khái niệm: Cơ bản 5/5 |
+| aivb-k5-trang-thai-khoan-vay-mau-thuan → aivb-k5-du-no-lech-lich-tra-no | Khó → Dễ | Viết lại: đối soát dư nợ trên hợp đồng với gốc còn phải trả theo lịch (tổng `principal_due - principal_paid` trên kỳ chưa huỷ), liệt kê khoản lệch. Bảng đếm theo trạng thái cũ gần trùng aivb-t9 (gói 4) nên đổi chủ đề. Dạng E1 → E2. ERD 5 bảng chỉ khoá → 2 bảng, chữ trên đường nối. Wrong: cộng cả kỳ đã huỷ (rớt public, thêm 277 khoản đã tất toán); chỉ cộng gốc đến hạn của kỳ chưa trả xong (rớt hidden-1 ở kỳ trả một phần). Public 17 dòng (khoản đã xử lý rủi ro), hidden-1 19. | 2 bảng có JOIN · 2 tầng (nối + gom, HAVING) · chỉ số định nghĩa trong đề · 1 bẫy (kỳ đã huỷ) · 1 công thức một phép trừ: Dễ 5/5 |
+| aivb-k7-ngay-tu-choi-bat-thuong (giữ mã) | Trung bình → Dễ | Starter bỏ lỗi thứ hai (bình quân chia 365 ngày, do v2 thêm cho đủ Trung bình), còn một lỗi logic một chỗ: thiếu lọc `'REJECTED'`. ERD 3 bảng ký hiệu → 2 bảng (1 nhiễu), chữ trên đường nối. Gợi ý một ý. Wrong mới: `<> 'COMPLETED'` gộp cả lệnh bị đảo (thay hai wrong "chỉ sửa một lỗi"). | 1 bảng (+1 nhiễu) · 3 tầng có sẵn trong starter (Trung bình) · đề định nghĩa rõ · 1 lỗi một chỗ · 1 công thức: Dễ 4/5 |
+| aivb-p6-lich-tra-no-mot-lan-quet → aivb-p6-ky-tra-no-2026-mot-lan-quet | Trung bình → Cơ bản | Viết lại theo mẫu o1: đếm kỳ trả nợ có `due_date` trong năm 2026 theo 4 trạng thái, một dòng, chỉ bảng `core_loan_schedule`; starter 4 truy vấn con (4 lần quét), solution đếm có điều kiện (1 lần). Bỏ chuỗi nối 4 bảng theo sản phẩm và `ngansach`. Dạng A4 → A3. ERD 1 bảng có giá trị mẫu. Wrong: gom theo trạng thái ra nhiều dòng; thiếu cận trên năm. | 1 bảng · 1 tầng · đề ghi rõ cột, giá trị · 0 bẫy · 1 khái niệm: Cơ bản 5/5 (đúng mẫu optimize Cơ bản CHOT mục 4) |
+| aivb-p8-cohort-toi-uu-sai → aivb-p8-lenh-tra-no-thang-12-ra-0 | Khó → Cơ bản | Viết lại theo mẫu d1: bản viết lại báo cáo lệnh trả nợ vay tháng 12/2026 (lọc theo chỉ mục `transaction_type`, `transaction_date`) gõ sai mã `'LOAN_PAYMENT'` nên ra 0; giá trị mẫu `'LOAN_REPAYMENT'` trong ERD. Mảng customer → operations, dạng D2 → A2. Wrong: `LIKE 'LOAN%'` gộp cả lệnh giải ngân. Câu cohort Khó bị bỏ: bộ aivb không còn câu module nào dạng D2 (aivb-f5 gói 4 nay là C1), chỉ còn case c8 về cohort năm giải ngân; cần giảng viên xét có giữ một câu cohort ở cấp khác không. | 1 bảng · 1 tầng · đề và giá trị mẫu chỉ thẳng chỗ sai · 0 bẫy · 1 khái niệm: Cơ bản 5/5 |
+| aivb-p9-tong-hop-truoc-loc-sau → aivb-p9-lai-du-thu-cho-vay-theo-thang | Trung bình → Dễ | Starter bỏ lỗi thứ hai (thiếu cận trên) và bước gom trước trong CTE; còn một lỗi logic một chỗ: nối `core_contract` (mọi loại hợp đồng) thay `core_loan_contract`. ERD 4 bảng → 2 bảng của truy vấn sai, chữ trên đường nối, đường nối gây lỗi tô đỏ. Wrong mới: `LEFT JOIN core_loan_contract` giữ mọi dòng lãi. | 2 bảng · 2 tầng (nối + gom) · đề ghi rõ bảng cần dùng · 1 bẫy · không công thức: Dễ 4/5 |
+
+Sau v4: **M9** Cơ bản k1, k4 · Dễ k5, k7, k9 · Trung bình k2, k6 · Khó k3, k8 (write: 2 · 1 · 2 · 1; debug: 0 · 2 · 0 · 1). **M10** Cơ bản p6 (optimize), p8 (debug) · Dễ p2 (optimize), p7 (write), p9 (debug) · Trung bình p1, p5 (optimize) · Khó p3, p4 (optimize). Optimize đủ 4 cấp: Cơ bản p6 (mẫu o1), Dễ p2, Trung bình p1, p5, Khó p3, p4.
+
+Ô dạng × mảng × cấp × hình thức trong gói: không trùng (k1 E1·customer·basic·write; k4 A3·customer·basic·write; k5 E2·after_sales·easy·write; k7 E1·after_sales·easy·debug; k9 E2·sales·easy·debug; p6 A3·after_sales·basic·optimize; p8 A2·operations·basic·debug; p9 A2·finance·easy·debug). Nghi gần nội dung với gói khác (khác ô): p9 với aivb-j9 (gói 3, cùng lỗi trộn lãi tiền gửi, Trung bình, một dòng cả năm); k4 với aivb-a9 (gói 2, thiếu nghề nghiệp theo khoảng thu nhập) và aivb-n1 (gói 1).
+
+Kiểm: bộ kiểm đầy đủ cả gói `cong-cu/ket-qua/cap-do/aivb-goi-5` (kết quả ở BANG-PHAN-CONG.md); biên dịch `cong-cu/ket-qua/cap-do/aivb-goi-5-bien-dich`: 58 trang, 0 lỗi LaTeX, 0 ký tự thiếu font. Case c10 không đụng. Đồng bộ mã mới ở `cau-hoi.tex`, `solution.sql`, `BANG-PHAN-CONG.md`, `../../BAN-DO-100-CAU.md` (dòng gói 5, cùng lúc cập nhật k9, p2 → Dễ, p6 → Trung bình của vòng chuẩn hoá rồi p6 → Cơ bản ở v4).

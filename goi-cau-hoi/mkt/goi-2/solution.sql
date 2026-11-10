@@ -443,7 +443,7 @@ WHERE start_date >= '2024-07-01'
 GROUP BY language_id
 ORDER BY language_id;
 
--- [mkt-a5-ngay-tren-500-chien-dich] solution
+-- [mkt-a5-ngay-tren-350-co-lai] solution
 SELECT start_date,
        COUNT(*) AS so_chien_dich,
        SUM(CASE WHEN roi > 0 THEN 1 ELSE 0 END) AS so_chien_dich_lai
@@ -453,7 +453,7 @@ GROUP BY start_date
 HAVING SUM(CASE WHEN roi > 0 THEN 1 ELSE 0 END) > 350
 ORDER BY start_date;
 
--- [mkt-a5-ngay-tren-500-chien-dich] wrong: loc_lai_o_where
+-- [mkt-a5-ngay-tren-350-co-lai] wrong: loc_lai_o_where
 -- Rớt ở public: lọc roi > 0 ở WHERE làm cột so_chien_dich chỉ còn chiến dịch có lãi.
 SELECT start_date,
        COUNT(*) AS so_chien_dich,
@@ -465,7 +465,7 @@ GROUP BY start_date
 HAVING COUNT(*) > 350
 ORDER BY start_date;
 
--- [mkt-a5-ngay-tren-500-chien-dich] wrong: having_dem_tat_ca
+-- [mkt-a5-ngay-tren-350-co-lai] wrong: having_dem_tat_ca
 -- Rớt ở public: HAVING xét tổng số chiến dịch, không xét số chiến dịch có lãi.
 SELECT start_date,
        COUNT(*) AS so_chien_dich,
@@ -476,7 +476,7 @@ GROUP BY start_date
 HAVING COUNT(*) > 350
 ORDER BY start_date;
 
--- [mkt-a5-ngay-tren-500-chien-dich] wrong: thieu_can_tren
+-- [mkt-a5-ngay-tren-350-co-lai] wrong: thieu_can_tren
 -- Rớt ở public: lấy cả các ngày tháng 4 tới tháng 6/2025.
 SELECT start_date,
        COUNT(*) AS so_chien_dich,
@@ -620,7 +620,7 @@ ORDER BY quy;
 
 -- ================================================ CASE STUDY
 
--- [mkt-c3-thang-nykaa-mo-nhieu-nhat.b1] solution
+-- [mkt-c3-thang-purplle-mo-nhieu-nhat.b1] solution
 SELECT DATE_FORMAT(start_date, '%Y-%m') AS thang,
        COUNT(*) AS so_chien_dich,
        COUNT(DISTINCT start_date) AS so_ngay,
@@ -631,7 +631,7 @@ WHERE brand_id = 2
 GROUP BY DATE_FORMAT(start_date, '%Y-%m')
 ORDER BY thang;
 
--- [mkt-c3-thang-nykaa-mo-nhieu-nhat.b1] wrong: giu_thang_chua_du
+-- [mkt-c3-thang-purplle-mo-nhieu-nhat.b1] wrong: giu_thang_chua_du
 -- Rớt ở public: cận trên 1/7/2025 giữ tháng 6/2025 chưa đủ.
 SELECT DATE_FORMAT(start_date, '%Y-%m') AS thang,
        COUNT(*) AS so_chien_dich,
@@ -643,7 +643,7 @@ WHERE brand_id = 2
 GROUP BY DATE_FORMAT(start_date, '%Y-%m')
 ORDER BY thang;
 
--- [mkt-c3-thang-nykaa-mo-nhieu-nhat.b1] wrong: chia_31_ngay
+-- [mkt-c3-thang-purplle-mo-nhieu-nhat.b1] wrong: chia_31_ngay
 -- Rớt ở public: chia mọi tháng cho 31 ngày, tháng 2 và tháng 30 ngày bị kéo xuống.
 SELECT DATE_FORMAT(start_date, '%Y-%m') AS thang,
        COUNT(*) AS so_chien_dich,

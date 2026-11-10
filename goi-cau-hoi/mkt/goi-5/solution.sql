@@ -269,7 +269,7 @@ FROM tong_sach s
 JOIN tong_tho t ON t.brand_id = s.brand_id
 ORDER BY s.brand_id;
 
--- [mkt-k6-do-chinh-xac-luat] solution
+-- [mkt-k6-do-chinh-xac-quy-tac] solution
 WITH luat AS (
   SELECT brand_id, row_index, 'NULL' AS loai FROM campaigns_raw
   WHERE impressions IS NULL OR clicks IS NULL OR leads IS NULL
@@ -318,7 +318,7 @@ FROM theo_dong
 GROUP BY loai
 ORDER BY loai_nhieu;
 
--- [mkt-k6-do-chinh-xac-luat] wrong: noi_chi_theo_row_index
+-- [mkt-k6-do-chinh-xac-quy-tac] wrong: noi_chi_theo_row_index
 WITH luat AS (
   SELECT brand_id, row_index, 'NULL' AS loai FROM campaigns_raw
   WHERE impressions IS NULL OR clicks IS NULL OR leads IS NULL
@@ -362,7 +362,7 @@ FROM bat b
 JOIN ghi g ON g.loai = b.loai
 ORDER BY loai_nhieu;
 
--- [mkt-k6-do-chinh-xac-luat] wrong: quy_tac_ngay_bo_nhanh_ngoai_ky
+-- [mkt-k6-do-chinh-xac-quy-tac] wrong: quy_tac_ngay_bo_nhanh_ngoai_ky
 WITH luat AS (
   SELECT brand_id, row_index, 'NULL' AS loai FROM campaigns_raw
   WHERE impressions IS NULL OR clicks IS NULL OR leads IS NULL
@@ -589,7 +589,7 @@ JOIN b ON b.brand_id = a.brand_id
 JOIN c ON c.brand_id = a.brand_id
 ORDER BY a.brand_id;
 
--- [mkt-p2-loc-thang-khong-dung-ham] starter
+-- [mkt-p2-bao-cao-thang-3-theo-loai] starter
 SELECT type_id,
        COUNT(*) AS so_chien_dich,
        SUM(revenue) AS doanh_thu,
@@ -599,7 +599,7 @@ WHERE YEAR(start_date) = 2025 AND MONTH(start_date) = 3
 GROUP BY type_id
 ORDER BY type_id;
 
--- [mkt-p2-loc-thang-khong-dung-ham] solution
+-- [mkt-p2-bao-cao-thang-3-theo-loai] solution
 SELECT type_id,
        COUNT(*) AS so_chien_dich,
        SUM(revenue) AS doanh_thu,
@@ -609,7 +609,7 @@ WHERE start_date >= '2025-03-01' AND start_date < '2025-04-01'
 GROUP BY type_id
 ORDER BY type_id;
 
--- [mkt-p2-loc-thang-khong-dung-ham] wrong: van_boc_ham_date_format
+-- [mkt-p2-bao-cao-thang-3-theo-loai] wrong: van_boc_ham_date_format
 SELECT type_id,
        COUNT(*) AS so_chien_dich,
        SUM(revenue) AS doanh_thu,
@@ -619,7 +619,7 @@ WHERE DATE_FORMAT(start_date, '%Y-%m') = '2025-03'
 GROUP BY type_id
 ORDER BY type_id;
 
--- [mkt-p2-loc-thang-khong-dung-ham] wrong: between_thieu_ngay_cuoi
+-- [mkt-p2-bao-cao-thang-3-theo-loai] wrong: between_thieu_ngay_cuoi
 SELECT type_id,
        COUNT(*) AS so_chien_dich,
        SUM(revenue) AS doanh_thu,
@@ -629,7 +629,7 @@ WHERE start_date BETWEEN '2025-03-01' AND '2025-03-30'
 GROUP BY type_id
 ORDER BY type_id;
 
--- [mkt-p3-top-3-khong-dem-tuong-quan] starter
+-- [mkt-p3-top-3-doanh-thu-moi-thuong-hieu] starter
 SELECT *
 FROM (
   (SELECT brand_id, campaign_id, revenue FROM campaigns
@@ -643,7 +643,7 @@ FROM (
 ) t
 ORDER BY brand_id, revenue DESC, campaign_id;
 
--- [mkt-p3-top-3-khong-dem-tuong-quan] solution
+-- [mkt-p3-top-3-doanh-thu-moi-thuong-hieu] solution
 WITH xep_hang AS (
   SELECT brand_id, campaign_id, revenue,
          ROW_NUMBER() OVER (PARTITION BY brand_id ORDER BY revenue DESC, campaign_id) AS hang
@@ -654,7 +654,7 @@ FROM xep_hang
 WHERE hang <= 3
 ORDER BY brand_id, revenue DESC, campaign_id;
 
--- [mkt-p3-top-3-khong-dem-tuong-quan] wrong: rank_ra_bon_dong_khi_hoa
+-- [mkt-p3-top-3-doanh-thu-moi-thuong-hieu] wrong: rank_ra_bon_dong_khi_hoa
 WITH xep_hang AS (
   SELECT brand_id, campaign_id, revenue,
          RANK() OVER (PARTITION BY brand_id ORDER BY revenue DESC) AS hang
@@ -665,13 +665,13 @@ FROM xep_hang
 WHERE hang <= 3
 ORDER BY brand_id, revenue DESC, campaign_id;
 
--- [mkt-p3-top-3-khong-dem-tuong-quan] wrong: limit_3_toan_bo
+-- [mkt-p3-top-3-doanh-thu-moi-thuong-hieu] wrong: limit_3_toan_bo
 SELECT brand_id, campaign_id, revenue
 FROM campaigns
 ORDER BY revenue DESC, campaign_id
 LIMIT 3;
 
--- [mkt-p4-exists-thay-join-distinct] starter
+-- [mkt-p4-ctr-kenh-email-whatsapp] starter
 WITH nhom AS (
   SELECT t.brand_id, COUNT(*) AS so_chien_dich, SUM(t.clicks) AS nhap, SUM(t.impressions) AS hien_thi
   FROM (SELECT DISTINCT c.campaign_id, c.brand_id, c.clicks, c.impressions
@@ -693,7 +693,7 @@ FROM nhom n
 JOIN chung ch ON ch.brand_id = n.brand_id
 ORDER BY n.brand_id;
 
--- [mkt-p4-exists-thay-join-distinct] solution
+-- [mkt-p4-ctr-kenh-email-whatsapp] solution
 WITH co_danh_dau AS (
   SELECT c.brand_id, c.clicks, c.impressions,
          EXISTS (SELECT 1 FROM campaign_channels cc
@@ -708,7 +708,7 @@ FROM co_danh_dau
 GROUP BY brand_id
 ORDER BY brand_id;
 
--- [mkt-p4-exists-thay-join-distinct] wrong: noi_khong_khu_trung
+-- [mkt-p4-ctr-kenh-email-whatsapp] wrong: noi_khong_khu_trung
 SELECT c.brand_id,
        COUNT(cc.campaign_id) AS so_chien_dich_nhom,
        ROUND(100 * SUM(CASE WHEN cc.campaign_id IS NOT NULL THEN c.clicks END)
@@ -768,7 +768,7 @@ WHERE k.cal_date >= '2025-01-01' AND k.cal_date < '2025-02-01'
 GROUP BY k.cal_date
 ORDER BY k.cal_date;
 
--- [mkt-p6-tim-trung-khong-tu-noi] starter
+-- [mkt-p6-dong-trung-du-lieu-tho] starter
 SELECT b.brand_id, b.campaign_id,
        a.row_index AS row_index_goc,
        b.row_index AS row_index_ban_sao
@@ -778,7 +778,7 @@ WHERE NOT EXISTS (SELECT 1 FROM campaigns_raw c
                   WHERE c.campaign_id = a.campaign_id AND c.row_index < a.row_index)
 ORDER BY b.brand_id, b.row_index;
 
--- [mkt-p6-tim-trung-khong-tu-noi] solution
+-- [mkt-p6-dong-trung-du-lieu-tho] solution
 WITH danh_dau AS (
   SELECT brand_id, campaign_id, row_index,
          MIN(row_index) OVER (PARTITION BY campaign_id) AS row_index_goc
@@ -789,7 +789,7 @@ FROM danh_dau
 WHERE row_index > row_index_goc
 ORDER BY brand_id, row_index_ban_sao;
 
--- [mkt-p6-tim-trung-khong-tu-noi] wrong: lay_ca_dong_goc
+-- [mkt-p6-dong-trung-du-lieu-tho] wrong: lay_ca_dong_goc
 WITH danh_dau AS (
   SELECT brand_id, campaign_id, row_index,
          MIN(row_index) OVER (PARTITION BY campaign_id) AS row_index_goc,

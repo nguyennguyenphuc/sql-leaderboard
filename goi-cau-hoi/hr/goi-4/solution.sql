@@ -67,87 +67,49 @@ FROM n24 a
 JOIN n25 b ON b.department = a.department
 ORDER BY chenh_lech_diem DESC, a.department;
 
--- [hr-t2-doi-soat-dinh-bien] solution
-WITH cuoi_t12 AS (
-  SELECT CAST(LEFT(snapshot_month, 4) AS SIGNED) AS nam, position_id,
-         SUM(CASE WHEN attrition_this_month = 0 THEN 1 ELSE 0 END) AS so_nv
-  FROM employee_monthly_snapshot
-  WHERE snapshot_month IN ('2024-12', '2025-12')
-  GROUP BY nam, position_id
-), trong_nam AS (
-  SELECT CAST(LEFT(snapshot_month, 4) AS SIGNED) AS nam, position_id, COUNT(DISTINCT employee_id) AS so_nv
-  FROM employee_monthly_snapshot
-  WHERE snapshot_month >= '2024-01' AND snapshot_month <= '2025-12'
-  GROUP BY nam, position_id
-)
-SELECT p.plan_period, p.position_id, 'lech_quan_so' AS loai_lech,
-       COALESCE(c.so_nv, 0) AS so_nv_danh_sach, p.actual_headcount
-FROM position_plan p
-LEFT JOIN cuoi_t12 c ON c.nam = p.plan_period AND c.position_id = p.position_id
-WHERE COALESCE(c.so_nv, 0) <> p.actual_headcount
-UNION ALL
-SELECT t.nam, t.position_id, 'khong_co_ke_hoach', t.so_nv, NULL
-FROM trong_nam t
-WHERE NOT EXISTS (SELECT 1 FROM position_plan p
-                  WHERE p.plan_period = t.nam AND p.position_id = t.position_id)
-ORDER BY plan_period, position_id;
+-- [hr-t2-vi-tri-moi-ke-hoach-2025] solution
+SELECT position_id, country, department
+FROM position_plan
+WHERE plan_period = 2025
+EXCEPT
+SELECT position_id, country, department
+FROM position_plan
+WHERE plan_period = 2024
+ORDER BY position_id;
 
--- [hr-t2-doi-soat-dinh-bien] wrong: dem_ca_nguoi_nghi_t12
--- Quân số tháng 12 đếm mọi dòng (gồm người nghỉ trong tháng): chiều lệch quân số mất hết, rớt ở public.
-WITH cuoi_t12 AS (
-  SELECT CAST(LEFT(snapshot_month, 4) AS SIGNED) AS nam, position_id, COUNT(*) AS so_nv
-  FROM employee_monthly_snapshot
-  WHERE snapshot_month IN ('2024-12', '2025-12')
-  GROUP BY nam, position_id
-), trong_nam AS (
-  SELECT CAST(LEFT(snapshot_month, 4) AS SIGNED) AS nam, position_id, COUNT(DISTINCT employee_id) AS so_nv
-  FROM employee_monthly_snapshot
-  WHERE snapshot_month >= '2024-01' AND snapshot_month <= '2025-12'
-  GROUP BY nam, position_id
-)
-SELECT p.plan_period, p.position_id, 'lech_quan_so' AS loai_lech,
-       COALESCE(c.so_nv, 0) AS so_nv_danh_sach, p.actual_headcount
-FROM position_plan p
-LEFT JOIN cuoi_t12 c ON c.nam = p.plan_period AND c.position_id = p.position_id
-WHERE COALESCE(c.so_nv, 0) <> p.actual_headcount
-UNION ALL
-SELECT t.nam, t.position_id, 'khong_co_ke_hoach', t.so_nv, NULL
-FROM trong_nam t
-WHERE NOT EXISTS (SELECT 1 FROM position_plan p
-                  WHERE p.plan_period = t.nam AND p.position_id = t.position_id)
-ORDER BY plan_period, position_id;
+-- [hr-t2-vi-tri-moi-ke-hoach-2025] wrong: dao_hai_ve
+-- Đảo hai vế: ra các vị trí có ở kế hoạch 2024 mà vắng ở 2025, rớt cả hai biến thể.
+SELECT position_id, country, department
+FROM position_plan
+WHERE plan_period = 2024
+EXCEPT
+SELECT position_id, country, department
+FROM position_plan
+WHERE plan_period = 2025
+ORDER BY position_id;
 
--- [hr-t2-doi-soat-dinh-bien] wrong: chi_mot_chieu
--- Chỉ đối soát từ phía kế hoạch, bỏ vị trí có nhân viên mà không có trong kế hoạch: rớt ở public.
-WITH cuoi_t12 AS (
-  SELECT CAST(LEFT(snapshot_month, 4) AS SIGNED) AS nam, position_id,
-         SUM(CASE WHEN attrition_this_month = 0 THEN 1 ELSE 0 END) AS so_nv
-  FROM employee_monthly_snapshot
-  WHERE snapshot_month IN ('2024-12', '2025-12')
-  GROUP BY nam, position_id
-)
-SELECT p.plan_period, p.position_id, 'lech_quan_so' AS loai_lech,
-       COALESCE(c.so_nv, 0) AS so_nv_danh_sach, p.actual_headcount
-FROM position_plan p
-LEFT JOIN cuoi_t12 c ON c.nam = p.plan_period AND c.position_id = p.position_id
-WHERE COALESCE(c.so_nv, 0) <> p.actual_headcount
-ORDER BY plan_period, position_id;
+-- [hr-t2-vi-tri-moi-ke-hoach-2025] wrong: so_ca_dinh_bien
+-- Đưa cả planned_headcount vào hai vế: vị trí nào đổi định biên cũng bị coi là mới, rớt cả hai biến thể.
+SELECT position_id, country, department, planned_headcount
+FROM position_plan
+WHERE plan_period = 2025
+EXCEPT
+SELECT position_id, country, department, planned_headcount
+FROM position_plan
+WHERE plan_period = 2024
+ORDER BY position_id;
 
 -- [hr-t3-pheu-tuyen-dung] solution
 WITH yc AS (
   SELECT requisition_id, offer_accept_date, start_date
   FROM recruiting_pipeline
   WHERE approval_date >= '2025-01-01' AND approval_date < '2026-01-01'
-), pheu AS (
-  SELECT 1 AS buoc, 'duyet' AS ten_buoc, COUNT(*) AS so_yeu_cau FROM yc
-  UNION ALL
-  SELECT 2, 'nhan_loi', COUNT(*) FROM yc WHERE offer_accept_date < '2026-01-01'
-  UNION ALL
-  SELECT 3, 'di_lam', COUNT(*) FROM yc WHERE start_date < '2026-01-01'
 )
-SELECT buoc, ten_buoc, so_yeu_cau,
-       ROUND(100 * so_yeu_cau / MAX(CASE WHEN buoc = 1 THEN so_yeu_cau END) OVER (), 2) AS ty_le_pct
-FROM pheu
+SELECT 1 AS buoc, 'duyet' AS ten_buoc, COUNT(*) AS so_yeu_cau FROM yc
+UNION ALL
+SELECT 2, 'nhan_loi', COUNT(*) FROM yc WHERE offer_accept_date < '2026-01-01'
+UNION ALL
+SELECT 3, 'di_lam', COUNT(*) FROM yc WHERE start_date < '2026-01-01'
 ORDER BY buoc;
 
 -- [hr-t3-pheu-tuyen-dung] wrong: khong_chan_ngay_di_lam
@@ -156,16 +118,12 @@ WITH yc AS (
   SELECT requisition_id, offer_accept_date, start_date
   FROM recruiting_pipeline
   WHERE approval_date >= '2025-01-01' AND approval_date < '2026-01-01'
-), pheu AS (
-  SELECT 1 AS buoc, 'duyet' AS ten_buoc, COUNT(*) AS so_yeu_cau FROM yc
-  UNION ALL
-  SELECT 2, 'nhan_loi', COUNT(offer_accept_date) FROM yc
-  UNION ALL
-  SELECT 3, 'di_lam', COUNT(start_date) FROM yc
 )
-SELECT buoc, ten_buoc, so_yeu_cau,
-       ROUND(100 * so_yeu_cau / MAX(CASE WHEN buoc = 1 THEN so_yeu_cau END) OVER (), 2) AS ty_le_pct
-FROM pheu
+SELECT 1 AS buoc, 'duyet' AS ten_buoc, COUNT(*) AS so_yeu_cau FROM yc
+UNION ALL
+SELECT 2, 'nhan_loi', COUNT(offer_accept_date) FROM yc
+UNION ALL
+SELECT 3, 'di_lam', COUNT(start_date) FROM yc
 ORDER BY buoc;
 
 -- [hr-t3-pheu-tuyen-dung] wrong: quen_can_tren
@@ -174,66 +132,51 @@ WITH yc AS (
   SELECT requisition_id, offer_accept_date, start_date
   FROM recruiting_pipeline
   WHERE approval_date >= '2025-01-01'
-), pheu AS (
-  SELECT 1 AS buoc, 'duyet' AS ten_buoc, COUNT(*) AS so_yeu_cau FROM yc
-  UNION ALL
-  SELECT 2, 'nhan_loi', COUNT(*) FROM yc WHERE offer_accept_date < '2026-01-01'
-  UNION ALL
-  SELECT 3, 'di_lam', COUNT(*) FROM yc WHERE start_date < '2026-01-01'
 )
-SELECT buoc, ten_buoc, so_yeu_cau,
-       ROUND(100 * so_yeu_cau / MAX(CASE WHEN buoc = 1 THEN so_yeu_cau END) OVER (), 2) AS ty_le_pct
-FROM pheu
+SELECT 1 AS buoc, 'duyet' AS ten_buoc, COUNT(*) AS so_yeu_cau FROM yc
+UNION ALL
+SELECT 2, 'nhan_loi', COUNT(*) FROM yc WHERE offer_accept_date < '2026-01-01'
+UNION ALL
+SELECT 3, 'di_lam', COUNT(*) FROM yc WHERE start_date < '2026-01-01'
 ORDER BY buoc;
 
--- [hr-t4-cay-duoi-mot-giam-doc] solution
-WITH RECURSIVE cay AS (
-  SELECT employee_id, manager_id, 0 AS tang
+-- [hr-t4-so-cap-duoi-truc-tiep] solution
+WITH cap_duoi AS (
+  SELECT manager_id, COUNT(*) AS so_cap_duoi
   FROM employee_monthly_snapshot
-  WHERE snapshot_month = '2025-12' AND employee_id = 'E01688'
-  UNION ALL
-  SELECT e.employee_id, e.manager_id, c.tang + 1
-  FROM cay c
-  JOIN employee_monthly_snapshot e
-    ON e.manager_id = c.employee_id AND e.snapshot_month = '2025-12'
-  WHERE c.tang < 20
+  WHERE snapshot_month = '2025-12' AND manager_id IS NOT NULL
+  GROUP BY manager_id
 )
-SELECT tang, employee_id, manager_id
-FROM cay
-ORDER BY tang, employee_id;
+SELECT so_cap_duoi, COUNT(*) AS so_quan_ly
+FROM cap_duoi
+GROUP BY so_cap_duoi
+ORDER BY so_cap_duoi;
 
--- [hr-t4-cay-duoi-mot-giam-doc] wrong: noi_nguoc_chieu
--- Nối ngược (đi lên quản lý thay vì đi xuống cấp dưới): chỉ ra người gốc, rớt ở public.
-WITH RECURSIVE cay AS (
-  SELECT employee_id, manager_id, 0 AS tang
+-- [hr-t4-so-cap-duoi-truc-tiep] wrong: giu_quan_ly_trong
+-- Không bỏ dòng manager_id trống: nhóm NULL bị tính như một quản lý có nhiều cấp dưới, rớt cả hai biến thể.
+WITH cap_duoi AS (
+  SELECT manager_id, COUNT(*) AS so_cap_duoi
   FROM employee_monthly_snapshot
-  WHERE snapshot_month = '2025-12' AND employee_id = 'E01688'
-  UNION ALL
-  SELECT e.employee_id, e.manager_id, c.tang + 1
-  FROM cay c
-  JOIN employee_monthly_snapshot e
-    ON e.employee_id = c.manager_id AND e.snapshot_month = '2025-12'
-  WHERE c.tang < 20
+  WHERE snapshot_month = '2025-12'
+  GROUP BY manager_id
 )
-SELECT tang, employee_id, manager_id
-FROM cay
-ORDER BY tang, employee_id;
+SELECT so_cap_duoi, COUNT(*) AS so_quan_ly
+FROM cap_duoi
+GROUP BY so_cap_duoi
+ORDER BY so_cap_duoi;
 
--- [hr-t4-cay-duoi-mot-giam-doc] wrong: quen_cung_thang
--- Bước đệ quy không giữ tháng 2025-12: kéo cả người đã nghỉ trước đó vào cây, rớt ở public.
-WITH RECURSIVE cay AS (
-  SELECT employee_id, manager_id, 0 AS tang
+-- [hr-t4-so-cap-duoi-truc-tiep] wrong: quen_loc_thang
+-- Không lọc tháng 12/2025: đếm cấp dưới qua cả 24 tháng, rớt cả hai biến thể.
+WITH cap_duoi AS (
+  SELECT manager_id, COUNT(DISTINCT employee_id) AS so_cap_duoi
   FROM employee_monthly_snapshot
-  WHERE snapshot_month = '2025-12' AND employee_id = 'E01688'
-  UNION
-  SELECT e.employee_id, e.manager_id, c.tang + 1
-  FROM cay c
-  JOIN employee_monthly_snapshot e ON e.manager_id = c.employee_id
-  WHERE c.tang < 20
+  WHERE manager_id IS NOT NULL
+  GROUP BY manager_id
 )
-SELECT tang, employee_id, manager_id
-FROM cay
-ORDER BY tang, employee_id;
+SELECT so_cap_duoi, COUNT(*) AS so_quan_ly
+FROM cap_duoi
+GROUP BY so_cap_duoi
+ORDER BY so_cap_duoi;
 
 -- [hr-t5-chuoi-quan-ly-lap] starter
 WITH RECURSIVE chuoi AS (
@@ -304,54 +247,41 @@ ORDER BY buoc;
 
 -- [hr-t6-ty-trong-quy-luong] solution
 WITH phong AS (
-  SELECT department, COUNT(*) AS quan_so, SUM(monthly_salary_usd) AS quy_luong
+  SELECT department, SUM(monthly_salary_usd) AS quy_luong
   FROM employee_monthly_snapshot
   WHERE snapshot_month = '2025-12'
   GROUP BY department
-), tong AS (
-  SELECT SUM(quan_so) AS tong_quan_so, SUM(quy_luong) AS tong_quy_luong FROM phong
 )
-SELECT p.department, p.quan_so, p.quy_luong,
-       ROUND(100 * p.quy_luong / t.tong_quy_luong, 2) AS ty_trong_quy_luong_pct,
-       ROUND(100 * p.quan_so / t.tong_quan_so, 2) AS ty_trong_quan_so_pct
-FROM phong p
-CROSS JOIN tong t
-ORDER BY p.quy_luong DESC, p.department;
+SELECT department, quy_luong,
+       ROUND(100 * quy_luong / (SELECT SUM(quy_luong) FROM phong), 2) AS ty_trong_pct
+FROM phong
+ORDER BY quy_luong DESC, department;
 
 -- [hr-t6-ty-trong-quy-luong] wrong: tong_khong_loc_thang
--- CTE tổng quên lọc tháng nên chia cho quỹ lương của cả 24 tháng: rớt ở public.
+-- Mẫu số lấy tổng tiền lương của cả bảng (24 tháng) thay cho tháng 12/2025: rớt ở public.
 WITH phong AS (
-  SELECT department, COUNT(*) AS quan_so, SUM(monthly_salary_usd) AS quy_luong
+  SELECT department, SUM(monthly_salary_usd) AS quy_luong
   FROM employee_monthly_snapshot
   WHERE snapshot_month = '2025-12'
   GROUP BY department
-), tong AS (
-  SELECT COUNT(*) AS tong_quan_so, SUM(monthly_salary_usd) AS tong_quy_luong
-  FROM employee_monthly_snapshot
 )
-SELECT p.department, p.quan_so, p.quy_luong,
-       ROUND(100 * p.quy_luong / t.tong_quy_luong, 2) AS ty_trong_quy_luong_pct,
-       ROUND(100 * p.quan_so / t.tong_quan_so, 2) AS ty_trong_quan_so_pct
-FROM phong p
-CROSS JOIN tong t
-ORDER BY p.quy_luong DESC, p.department;
+SELECT department, quy_luong,
+       ROUND(100 * quy_luong / (SELECT SUM(monthly_salary_usd) FROM employee_monthly_snapshot), 2) AS ty_trong_pct
+FROM phong
+ORDER BY quy_luong DESC, department;
 
 -- [hr-t6-ty-trong-quy-luong] wrong: chi_tinh_nguoi_con_lam
 -- Bỏ người nghỉ trong tháng 12 khỏi quỹ lương, trái với định nghĩa ``có tên trong tháng'': rớt ở public.
 WITH phong AS (
-  SELECT department, COUNT(*) AS quan_so, SUM(monthly_salary_usd) AS quy_luong
+  SELECT department, SUM(monthly_salary_usd) AS quy_luong
   FROM employee_monthly_snapshot
   WHERE snapshot_month = '2025-12' AND attrition_this_month = 0
   GROUP BY department
-), tong AS (
-  SELECT SUM(quan_so) AS tong_quan_so, SUM(quy_luong) AS tong_quy_luong FROM phong
 )
-SELECT p.department, p.quan_so, p.quy_luong,
-       ROUND(100 * p.quy_luong / t.tong_quy_luong, 2) AS ty_trong_quy_luong_pct,
-       ROUND(100 * p.quan_so / t.tong_quan_so, 2) AS ty_trong_quan_so_pct
-FROM phong p
-CROSS JOIN tong t
-ORDER BY p.quy_luong DESC, p.department;
+SELECT department, quy_luong,
+       ROUND(100 * quy_luong / (SELECT SUM(quy_luong) FROM phong), 2) AS ty_trong_pct
+FROM phong
+ORDER BY quy_luong DESC, department;
 
 -- [hr-t7-cohort-tuyen-moi] solution
 WITH vao AS (
@@ -571,73 +501,66 @@ FROM xep
 WHERE hang <= 3
 ORDER BY country, hang;
 
--- [hr-f2-luy-ke-nghi-viec] solution
+-- [hr-f2-luy-ke-chi-phi-tuyen-dung] solution
 WITH thang AS (
-  SELECT snapshot_month AS thang, SUM(attrition_this_month) AS so_nguoi_nghi
-  FROM employee_monthly_snapshot
-  WHERE snapshot_month >= '2025-01' AND snapshot_month <= '2025-12'
-  GROUP BY snapshot_month
+  SELECT DATE_FORMAT(approval_date, '%Y-%m') AS thang, SUM(recruiting_cost_usd) AS chi_phi
+  FROM recruiting_pipeline
+  WHERE approval_date >= '2025-01-01' AND approval_date < '2026-01-01'
+  GROUP BY DATE_FORMAT(approval_date, '%Y-%m')
 )
-SELECT thang, so_nguoi_nghi,
-       SUM(so_nguoi_nghi) OVER (ORDER BY thang) AS luy_ke,
-       ROUND(100 * SUM(so_nguoi_nghi) OVER (ORDER BY thang) / SUM(so_nguoi_nghi) OVER (), 2) AS ty_le_luy_ke_pct
+SELECT thang, chi_phi,
+       SUM(chi_phi) OVER (ORDER BY thang) AS chi_phi_luy_ke
 FROM thang
 ORDER BY thang;
 
--- [hr-f2-luy-ke-nghi-viec] wrong: quen_can_tren
--- Thiếu cận trên: hidden-1 có thêm tháng '2026-01', ra 13 dòng.
+-- [hr-f2-luy-ke-chi-phi-tuyen-dung] wrong: quen_can_tren
+-- Thiếu cận trên ngày duyệt: hidden-1 có yêu cầu duyệt 2026-01-05, ra 13 dòng.
 WITH thang AS (
-  SELECT snapshot_month AS thang, SUM(attrition_this_month) AS so_nguoi_nghi
-  FROM employee_monthly_snapshot
-  WHERE snapshot_month >= '2025-01'
-  GROUP BY snapshot_month
+  SELECT DATE_FORMAT(approval_date, '%Y-%m') AS thang, SUM(recruiting_cost_usd) AS chi_phi
+  FROM recruiting_pipeline
+  WHERE approval_date >= '2025-01-01'
+  GROUP BY DATE_FORMAT(approval_date, '%Y-%m')
 )
-SELECT thang, so_nguoi_nghi,
-       SUM(so_nguoi_nghi) OVER (ORDER BY thang) AS luy_ke,
-       ROUND(100 * SUM(so_nguoi_nghi) OVER (ORDER BY thang) / SUM(so_nguoi_nghi) OVER (), 2) AS ty_le_luy_ke_pct
+SELECT thang, chi_phi,
+       SUM(chi_phi) OVER (ORDER BY thang) AS chi_phi_luy_ke
 FROM thang
 ORDER BY thang;
 
--- [hr-f2-luy-ke-nghi-viec] wrong: dem_dong_thay_nguoi_nghi
--- COUNT(*) đếm mọi dòng của tháng (quân số) thay cho số người nghỉ: rớt ở public.
+-- [hr-f2-luy-ke-chi-phi-tuyen-dung] wrong: thieu_order_by_trong_over
+-- Bỏ ORDER BY trong OVER: cửa sổ là cả năm nên mọi tháng ra tổng năm, rớt ở public.
 WITH thang AS (
-  SELECT snapshot_month AS thang, COUNT(*) AS so_nguoi_nghi
-  FROM employee_monthly_snapshot
-  WHERE snapshot_month >= '2025-01' AND snapshot_month <= '2025-12'
-  GROUP BY snapshot_month
+  SELECT DATE_FORMAT(approval_date, '%Y-%m') AS thang, SUM(recruiting_cost_usd) AS chi_phi
+  FROM recruiting_pipeline
+  WHERE approval_date >= '2025-01-01' AND approval_date < '2026-01-01'
+  GROUP BY DATE_FORMAT(approval_date, '%Y-%m')
 )
-SELECT thang, so_nguoi_nghi,
-       SUM(so_nguoi_nghi) OVER (ORDER BY thang) AS luy_ke,
-       ROUND(100 * SUM(so_nguoi_nghi) OVER (ORDER BY thang) / SUM(so_nguoi_nghi) OVER (), 2) AS ty_le_luy_ke_pct
+SELECT thang, chi_phi,
+       SUM(chi_phi) OVER () AS chi_phi_luy_ke
 FROM thang
 ORDER BY thang;
 
 -- [hr-f3-de-bat-theo-thang] solution
 WITH truoc AS (
-  SELECT employee_id, snapshot_month, job_level, monthly_salary_usd,
-         LAG(job_level) OVER (PARTITION BY employee_id ORDER BY snapshot_month) AS bac_truoc,
-         LAG(monthly_salary_usd) OVER (PARTITION BY employee_id ORDER BY snapshot_month) AS luong_truoc
+  SELECT employee_id, snapshot_month, job_level,
+         LAG(job_level) OVER (PARTITION BY employee_id ORDER BY snapshot_month) AS bac_truoc
   FROM employee_monthly_snapshot
   WHERE snapshot_month >= '2024-12' AND snapshot_month <= '2025-12'
 )
-SELECT snapshot_month AS thang, COUNT(*) AS so_nguoi_de_bat,
-       ROUND(AVG(100 * (monthly_salary_usd - luong_truoc) / luong_truoc), 2) AS tang_luong_bq_pct
+SELECT snapshot_month AS thang, COUNT(*) AS so_nguoi_de_bat
 FROM truoc
 WHERE job_level > bac_truoc AND snapshot_month >= '2025-01'
 GROUP BY snapshot_month
 ORDER BY thang;
 
 -- [hr-f3-de-bat-theo-thang] wrong: lag_khong_chia_nhan_vien
--- LAG không chia theo nhân viên: so bậc với dòng của người khác, rớt ở public.
+-- LAG không chia theo nhân viên: dòng đầu của mỗi người so bậc với dòng của người khác, rớt ở public.
 WITH truoc AS (
-  SELECT employee_id, snapshot_month, job_level, monthly_salary_usd,
-         LAG(job_level) OVER (ORDER BY employee_id, snapshot_month) AS bac_truoc,
-         LAG(monthly_salary_usd) OVER (ORDER BY employee_id, snapshot_month) AS luong_truoc
+  SELECT employee_id, snapshot_month, job_level,
+         LAG(job_level) OVER (ORDER BY employee_id, snapshot_month) AS bac_truoc
   FROM employee_monthly_snapshot
   WHERE snapshot_month >= '2024-12' AND snapshot_month <= '2025-12'
 )
-SELECT snapshot_month AS thang, COUNT(*) AS so_nguoi_de_bat,
-       ROUND(AVG(100 * (monthly_salary_usd - luong_truoc) / luong_truoc), 2) AS tang_luong_bq_pct
+SELECT snapshot_month AS thang, COUNT(*) AS so_nguoi_de_bat
 FROM truoc
 WHERE job_level > bac_truoc AND snapshot_month >= '2025-01'
 GROUP BY snapshot_month
@@ -646,14 +569,12 @@ ORDER BY thang;
 -- [hr-f3-de-bat-theo-thang] wrong: loc_truoc_khi_lag
 -- Lọc năm 2025 trước khi LAG: tháng 1/2025 không có tháng trước để so, mất dòng tháng 1; rớt ở public.
 WITH truoc AS (
-  SELECT employee_id, snapshot_month, job_level, monthly_salary_usd,
-         LAG(job_level) OVER (PARTITION BY employee_id ORDER BY snapshot_month) AS bac_truoc,
-         LAG(monthly_salary_usd) OVER (PARTITION BY employee_id ORDER BY snapshot_month) AS luong_truoc
+  SELECT employee_id, snapshot_month, job_level,
+         LAG(job_level) OVER (PARTITION BY employee_id ORDER BY snapshot_month) AS bac_truoc
   FROM employee_monthly_snapshot
   WHERE snapshot_month >= '2025-01' AND snapshot_month <= '2025-12'
 )
-SELECT snapshot_month AS thang, COUNT(*) AS so_nguoi_de_bat,
-       ROUND(AVG(100 * (monthly_salary_usd - luong_truoc) / luong_truoc), 2) AS tang_luong_bq_pct
+SELECT snapshot_month AS thang, COUNT(*) AS so_nguoi_de_bat
 FROM truoc
 WHERE job_level > bac_truoc
 GROUP BY snapshot_month
@@ -737,99 +658,74 @@ FROM chuoi
 WHERE snapshot_month = thang_nghi AND so_thang_giam >= 3
 ORDER BY so_thang_giam DESC, employee_id;
 
--- [hr-f5-gan-ket-truot-sales-indonesia] solution
-WITH thang AS (
-  SELECT snapshot_month AS thang, AVG(engagement_score) AS diem
+-- [hr-f5-hang-nghi-viec-sales-theo-chuc-danh] solution
+WITH nhom AS (
+  SELECT country, job_family,
+         COUNT(CASE WHEN attrition_type = 'Voluntary' THEN 1 END) AS so_nguoi_nghi
   FROM employee_monthly_snapshot
-  WHERE country = 'Indonesia' AND department = 'Sales'
+  WHERE department = 'Sales'
     AND snapshot_month >= '2024-01' AND snapshot_month <= '2025-12'
-  GROUP BY snapshot_month
-), truot AS (
-  SELECT thang, diem,
-         AVG(diem) OVER (ORDER BY thang ROWS BETWEEN 2 PRECEDING AND CURRENT ROW) AS tb3,
-         ROW_NUMBER() OVER (ORDER BY thang) AS stt
-  FROM thang
+  GROUP BY country, job_family
 )
-SELECT thang, ROUND(diem, 1) AS diem_bq,
-       CASE WHEN stt >= 3 THEN ROUND(tb3, 1) END AS diem_truot_3t
-FROM truot
-ORDER BY thang;
+SELECT country, job_family, so_nguoi_nghi,
+       RANK() OVER (PARTITION BY country ORDER BY so_nguoi_nghi DESC) AS hang
+FROM nhom
+ORDER BY country, hang, job_family;
 
--- [hr-f5-gan-ket-truot-sales-indonesia] wrong: hai_thang_dau_tinh_thieu
--- Để khung mặc định tính cho hai tháng đầu trên 1 và 2 tháng: rớt ở public.
-WITH thang AS (
-  SELECT snapshot_month AS thang, AVG(engagement_score) AS diem
+-- [hr-f5-hang-nghi-viec-sales-theo-chuc-danh] wrong: dung_row_number
+-- ROW_NUMBER() chia hạng khác nhau cho hai chức danh bằng số người nghỉ (hoà hạng 2 ở Malaysia, Thailand): rớt cả hai biến thể.
+WITH nhom AS (
+  SELECT country, job_family,
+         COUNT(CASE WHEN attrition_type = 'Voluntary' THEN 1 END) AS so_nguoi_nghi
   FROM employee_monthly_snapshot
-  WHERE country = 'Indonesia' AND department = 'Sales'
+  WHERE department = 'Sales'
     AND snapshot_month >= '2024-01' AND snapshot_month <= '2025-12'
-  GROUP BY snapshot_month
+  GROUP BY country, job_family
 )
-SELECT thang, ROUND(diem, 1) AS diem_bq,
-       ROUND(AVG(diem) OVER (ORDER BY thang ROWS BETWEEN 2 PRECEDING AND CURRENT ROW), 1) AS diem_truot_3t
-FROM thang
-ORDER BY thang;
+SELECT country, job_family, so_nguoi_nghi,
+       ROW_NUMBER() OVER (PARTITION BY country ORDER BY so_nguoi_nghi DESC, job_family) AS hang
+FROM nhom
+ORDER BY country, hang, job_family;
 
--- [hr-f5-gan-ket-truot-sales-indonesia] wrong: truot_tren_dong_nhan_vien
--- Trượt trên dòng nhân viên – tháng thay vì trên dòng tháng: rớt ở public.
-WITH dong AS (
-  SELECT snapshot_month AS thang, engagement_score,
-         AVG(engagement_score) OVER (ORDER BY snapshot_month ROWS BETWEEN 2 PRECEDING AND CURRENT ROW) AS tb3
+-- [hr-f5-hang-nghi-viec-sales-theo-chuc-danh] wrong: loc_truoc_khi_gom
+-- Lọc người nghỉ tự nguyện ở WHERE trước khi gom: cặp không có ai nghỉ biến mất (Singapore), rớt cả hai biến thể.
+WITH nhom AS (
+  SELECT country, job_family, COUNT(*) AS so_nguoi_nghi
   FROM employee_monthly_snapshot
-  WHERE country = 'Indonesia' AND department = 'Sales'
+  WHERE department = 'Sales' AND attrition_type = 'Voluntary'
     AND snapshot_month >= '2024-01' AND snapshot_month <= '2025-12'
+  GROUP BY country, job_family
 )
-SELECT thang, ROUND(AVG(engagement_score), 1) AS diem_bq,
-       CASE WHEN thang >= '2024-03' THEN ROUND(AVG(tb3), 1) END AS diem_truot_3t
-FROM dong
-GROUP BY thang
-ORDER BY thang;
+SELECT country, job_family, so_nguoi_nghi,
+       RANK() OVER (PARTITION BY country ORDER BY so_nguoi_nghi DESC) AS hang
+FROM nhom
+ORDER BY country, hang, job_family;
 
--- [hr-f6-yeu-cau-dat-nhat-moi-phong] solution
-WITH yc AS (
-  SELECT department, requisition_id, recruiting_cost_usd,
-         AVG(recruiting_cost_usd) OVER (PARTITION BY department) AS chi_phi_bq,
-         ROW_NUMBER() OVER (PARTITION BY department ORDER BY recruiting_cost_usd DESC, requisition_id) AS hang
-  FROM recruiting_pipeline
-  WHERE approval_date >= '2025-01-01' AND approval_date < '2026-01-01'
-)
-SELECT department, requisition_id, recruiting_cost_usd,
-       ROUND(chi_phi_bq, 0) AS chi_phi_bq_phong,
-       ROUND(recruiting_cost_usd / chi_phi_bq, 2) AS so_lan_binh_quan
-FROM yc
-WHERE hang = 1
-ORDER BY recruiting_cost_usd DESC, department;
+-- [hr-f6-thu-tu-yeu-cau-singapore] solution
+SELECT department, requisition_id, approval_date,
+       ROW_NUMBER() OVER (PARTITION BY department ORDER BY approval_date, requisition_id) AS thu_tu
+FROM recruiting_pipeline
+WHERE country = 'Singapore'
+  AND approval_date >= '2025-01-01' AND approval_date < '2026-01-01'
+ORDER BY department, thu_tu;
 
--- [hr-f6-yeu-cau-dat-nhat-moi-phong] wrong: quen_can_tren
--- Ngày duyệt thiếu cận trên: hidden-1 có yêu cầu duyệt 2026-01-05 làm đổi chi phí bình quân phòng Operations.
-WITH yc AS (
-  SELECT department, requisition_id, recruiting_cost_usd,
-         AVG(recruiting_cost_usd) OVER (PARTITION BY department) AS chi_phi_bq,
-         ROW_NUMBER() OVER (PARTITION BY department ORDER BY recruiting_cost_usd DESC, requisition_id) AS hang
-  FROM recruiting_pipeline
-  WHERE approval_date >= '2025-01-01'
-)
-SELECT department, requisition_id, recruiting_cost_usd,
-       ROUND(chi_phi_bq, 0) AS chi_phi_bq_phong,
-       ROUND(recruiting_cost_usd / chi_phi_bq, 2) AS so_lan_binh_quan
-FROM yc
-WHERE hang = 1
-ORDER BY recruiting_cost_usd DESC, department;
+-- [hr-f6-thu-tu-yeu-cau-singapore] wrong: thieu_partition_by
+-- Không chia nhóm theo phòng ban: đánh số chung cả văn phòng, rớt cả hai biến thể.
+SELECT department, requisition_id, approval_date,
+       ROW_NUMBER() OVER (ORDER BY approval_date, requisition_id) AS thu_tu
+FROM recruiting_pipeline
+WHERE country = 'Singapore'
+  AND approval_date >= '2025-01-01' AND approval_date < '2026-01-01'
+ORDER BY department, thu_tu;
 
--- [hr-f6-yeu-cau-dat-nhat-moi-phong] wrong: binh_quan_toan_cong_ty
--- AVG() OVER () không chia nhóm: so với bình quân toàn công ty, rớt ở public.
-WITH yc AS (
-  SELECT department, requisition_id, recruiting_cost_usd,
-         AVG(recruiting_cost_usd) OVER () AS chi_phi_bq,
-         ROW_NUMBER() OVER (PARTITION BY department ORDER BY recruiting_cost_usd DESC, requisition_id) AS hang
-  FROM recruiting_pipeline
-  WHERE approval_date >= '2025-01-01' AND approval_date < '2026-01-01'
-)
-SELECT department, requisition_id, recruiting_cost_usd,
-       ROUND(chi_phi_bq, 0) AS chi_phi_bq_phong,
-       ROUND(recruiting_cost_usd / chi_phi_bq, 2) AS so_lan_binh_quan
-FROM yc
-WHERE hang = 1
-ORDER BY recruiting_cost_usd DESC, department;
+-- [hr-f6-thu-tu-yeu-cau-singapore] wrong: sap_theo_ma_yeu_cau
+-- Đánh số theo mã yêu cầu thay cho ngày duyệt (mã không cấp theo ngày duyệt): rớt cả hai biến thể.
+SELECT department, requisition_id, approval_date,
+       ROW_NUMBER() OVER (PARTITION BY department ORDER BY requisition_id) AS thu_tu
+FROM recruiting_pipeline
+WHERE country = 'Singapore'
+  AND approval_date >= '2025-01-01' AND approval_date < '2026-01-01'
+ORDER BY department, thu_tu;
 
 -- [hr-f7-top3-lam-them-rank] starter
 WITH xep AS (
@@ -936,56 +832,57 @@ WHERE snapshot_month >= '2025-01'
   AND 100 * (monthly_salary_usd - luong_truoc) / luong_truoc >= 8
 ORDER BY thang, employee_id;
 
--- [hr-f9-luy-ke-khong-reset] starter
+-- [hr-f9-luy-ke-chay-nguoc] starter
 WITH thang AS (
   SELECT snapshot_month AS thang,
          COUNT(CASE WHEN attrition_type = 'Voluntary' THEN 1 END) AS so_nghi_tu_nguyen
   FROM employee_monthly_snapshot
-  WHERE snapshot_month >= '2024-01' AND snapshot_month <= '2025-12'
+  WHERE snapshot_month >= '2025-01' AND snapshot_month <= '2025-12'
   GROUP BY snapshot_month
 )
 SELECT thang, so_nghi_tu_nguyen,
-       SUM(so_nghi_tu_nguyen) OVER (ORDER BY thang) AS luy_ke_trong_nam
+       SUM(so_nghi_tu_nguyen) OVER (ORDER BY thang DESC) AS luy_ke
 FROM thang
 ORDER BY thang;
 
--- [hr-f9-luy-ke-khong-reset] solution
+-- [hr-f9-luy-ke-chay-nguoc] solution
 WITH thang AS (
   SELECT snapshot_month AS thang,
          COUNT(CASE WHEN attrition_type = 'Voluntary' THEN 1 END) AS so_nghi_tu_nguyen
   FROM employee_monthly_snapshot
-  WHERE snapshot_month >= '2024-01' AND snapshot_month <= '2025-12'
+  WHERE snapshot_month >= '2025-01' AND snapshot_month <= '2025-12'
   GROUP BY snapshot_month
 )
 SELECT thang, so_nghi_tu_nguyen,
-       SUM(so_nghi_tu_nguyen) OVER (PARTITION BY LEFT(thang, 4) ORDER BY thang) AS luy_ke_trong_nam
+       SUM(so_nghi_tu_nguyen) OVER (ORDER BY thang) AS luy_ke
 FROM thang
 ORDER BY thang;
 
--- [hr-f9-luy-ke-khong-reset] wrong: chia_nhom_theo_thang
--- PARTITION BY theo tháng: mỗi nhóm một dòng nên luỹ kế chỉ bằng số của tháng đó, rớt ở public.
+-- [hr-f9-luy-ke-chay-nguoc] wrong: bo_order_by_trong_over
+-- Bỏ hẳn ORDER BY trong OVER: cửa sổ là cả năm nên mọi tháng ra tổng năm, rớt cả hai biến thể.
 WITH thang AS (
   SELECT snapshot_month AS thang,
          COUNT(CASE WHEN attrition_type = 'Voluntary' THEN 1 END) AS so_nghi_tu_nguyen
   FROM employee_monthly_snapshot
-  WHERE snapshot_month >= '2024-01' AND snapshot_month <= '2025-12'
+  WHERE snapshot_month >= '2025-01' AND snapshot_month <= '2025-12'
   GROUP BY snapshot_month
 )
 SELECT thang, so_nghi_tu_nguyen,
-       SUM(so_nghi_tu_nguyen) OVER (PARTITION BY thang ORDER BY thang) AS luy_ke_trong_nam
+       SUM(so_nghi_tu_nguyen) OVER () AS luy_ke
 FROM thang
 ORDER BY thang;
 
--- [hr-f9-luy-ke-khong-reset] wrong: dem_moi_loai_nghi
--- Sửa đúng PARTITION BY nhưng đếm cả nghỉ hưu và chấm dứt hợp đồng: rớt ở public.
+-- [hr-f9-luy-ke-chay-nguoc] wrong: sap_theo_so_nguoi_nghi
+-- Sắp trong OVER theo số người nghỉ thay cho tháng: cộng dồn sai thứ tự tháng, rớt cả hai biến thể.
 WITH thang AS (
-  SELECT snapshot_month AS thang, SUM(attrition_this_month) AS so_nghi_tu_nguyen
+  SELECT snapshot_month AS thang,
+         COUNT(CASE WHEN attrition_type = 'Voluntary' THEN 1 END) AS so_nghi_tu_nguyen
   FROM employee_monthly_snapshot
-  WHERE snapshot_month >= '2024-01' AND snapshot_month <= '2025-12'
+  WHERE snapshot_month >= '2025-01' AND snapshot_month <= '2025-12'
   GROUP BY snapshot_month
 )
 SELECT thang, so_nghi_tu_nguyen,
-       SUM(so_nghi_tu_nguyen) OVER (PARTITION BY LEFT(thang, 4) ORDER BY thang) AS luy_ke_trong_nam
+       SUM(so_nghi_tu_nguyen) OVER (ORDER BY so_nghi_tu_nguyen) AS luy_ke
 FROM thang
 ORDER BY thang;
 

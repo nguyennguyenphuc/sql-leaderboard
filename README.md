@@ -26,7 +26,8 @@ CSV trung gian (~1,2 GB) chỉ có trên máy gốc.
 ├── BRIEF-*.md                # hướng dẫn cho từng vai: dựng bộ, soạn gói, kiểm gói, sửa gói, rà soát giọng văn
 ├── quy_chuan/                # chuẩn định dạng câu hỏi (CHOT-FORMAT-CAU-HOI.md), gói mẫu, lộ trình
 ├── style/                    # STYLE-GUIDE-luyen-sql.md và STYLE-<bộ>.md
-├── goi-cau-hoi/<bộ>/goi-<k>/ # mỗi gói: cau-hoi.tex, solution.sql, aio-sql-cauhoi.sty, HUONG_DAN.md (+ file review)
+├── goi-cau-hoi/<bộ>/goi-<k>/ # mỗi gói đúng 4 file: cau-hoi.tex, solution.sql, aio-sql-cauhoi.sty, HUONG_DAN.md
+├── goi-cau-hoi/<bộ>/ho-so/goi-<k>/ # hồ sơ của gói (BANG-PHAN-CONG.md, DA-SUA.md, REVIEW-*.md …), không đưa vào zip
 ├── mysql/                    # script dựng database
 │   ├── .env.example          # mẫu mysql/.env (mật khẩu root, sql_runner)
 │   ├── 01_tao_bang_scm.sql   # tạo bảng

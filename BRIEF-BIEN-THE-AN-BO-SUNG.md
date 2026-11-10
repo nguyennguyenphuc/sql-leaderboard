@@ -3,7 +3,7 @@
 Vấn đề: `<bo>_hidden_1` hiện chỉ đổi bảng sự kiện chính, nên các câu chỉ dùng bảng danh mục / bảng phụ cho kết quả giống hệt public; học viên chép kết quả Chạy thử thành hằng số vẫn qua (cả câu optimize). Giảng viên đã duyệt sửa ngay. Hạn ~35 phút.
 
 ## Đầu vào
-- Danh sách câu bị trùng: trong goi-cau-hoi\<bo>\goi-*\DA-SUA.md (mục "Chờ giảng viên", "hidden-1 trùng public / biến thể giống hệt") và REVIEW-B/C.md. Tự kiểm lại cho đủ: với MỌI câu của 5 gói, chạy khối `solution` trên `<bo>` và `<bo>_hidden_1` (so md5 kết quả) để có danh sách câu trùng hiện tại. Chạy từng câu, KHÔNG chạy bộ kiểm cả gói.
+- Danh sách câu bị trùng: trong goi-cau-hoi\<bo>\ho-so\goi-*\DA-SUA.md (mục "Chờ giảng viên", "hidden-1 trùng public / biến thể giống hệt") và REVIEW-B/C.md. Tự kiểm lại cho đủ: với MỌI câu của 5 gói, chạy khối `solution` trên `<bo>` và `<bo>_hidden_1` (so md5 kết quả) để có danh sách câu trùng hiện tại. Chạy từng câu, KHÔNG chạy bộ kiểm cả gói.
 - mysql\README.md hoặc README-<bo>.md, mysql\<bo>\03_bien_the_an_*.sql (cách dựng hiện tại). Mật khẩu root trong mysql\.env – KHÔNG in ra (dùng `docker exec -e MYSQL_PWD=...`).
 
 ## Cách sửa (chỉ trên `<bo>_hidden_1`, KHÔNG đụng `<bo>` public)

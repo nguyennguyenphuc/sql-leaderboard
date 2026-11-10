@@ -4,37 +4,24 @@
 
 -- ======================================================================= MODULE 9 · DATA QUALITY
 
--- [hr-k1-co-lech-diem-danh-gia] solution
-SELECT high_performer_flag, performance_rating, COUNT(*) AS so_dong,
-       CASE WHEN high_performer_flag = 1 AND performance_rating = 4 THEN 'Khớp'
-            WHEN high_performer_flag = 0 AND performance_rating IN (1, 2, 3) THEN 'Khớp'
-            ELSE 'Lệch' END AS tinh_trang
+-- [hr-k1-de-bat-vuot-tham-nien] solution
+SELECT COUNT(*) AS so_nhan_vien
 FROM employee_monthly_snapshot
-WHERE snapshot_month BETWEEN '2025-01' AND '2025-12'
-GROUP BY high_performer_flag, performance_rating
-ORDER BY high_performer_flag, performance_rating;
+WHERE snapshot_month = '2025-12'
+  AND months_since_promotion > tenure_months;
 
--- [hr-k1-co-lech-diem-danh-gia] wrong: so_sanh_voi_null_thanh_khop
--- Chỉ bắt hai kiểu lệch bằng phép so sánh; dòng điểm trống không thoả phép so sánh nào nên rơi vào 'Khớp'.
-SELECT high_performer_flag, performance_rating, COUNT(*) AS so_dong,
-       CASE WHEN high_performer_flag = 1 AND performance_rating <> 4 THEN 'Lệch'
-            WHEN high_performer_flag = 0 AND performance_rating = 4 THEN 'Lệch'
-            ELSE 'Khớp' END AS tinh_trang
+-- [hr-k1-de-bat-vuot-tham-nien] wrong: lon_hon_hoac_bang
+-- Dùng >=: tính cả người chưa được đề bạt lần nào kể từ khi vào làm (hai số bằng nhau là hợp lý).
+SELECT COUNT(*) AS so_nhan_vien
 FROM employee_monthly_snapshot
-WHERE snapshot_month BETWEEN '2025-01' AND '2025-12'
-GROUP BY high_performer_flag, performance_rating
-ORDER BY high_performer_flag, performance_rating;
+WHERE snapshot_month = '2025-12'
+  AND months_since_promotion >= tenure_months;
 
--- [hr-k1-co-lech-diem-danh-gia] wrong: quen_can_tren
--- Rớt ở hidden-1: dòng '2026-01' của E00002 rơi vào một ô của ma trận.
-SELECT high_performer_flag, performance_rating, COUNT(*) AS so_dong,
-       CASE WHEN high_performer_flag = 1 AND performance_rating = 4 THEN 'Khớp'
-            WHEN high_performer_flag = 0 AND performance_rating IN (1, 2, 3) THEN 'Khớp'
-            ELSE 'Lệch' END AS tinh_trang
+-- [hr-k1-de-bat-vuot-tham-nien] wrong: quen_loc_thang
+-- Không lọc tháng: đếm dòng nhân viên – tháng của cả 24 tháng, một người bị đếm nhiều lần.
+SELECT COUNT(*) AS so_nhan_vien
 FROM employee_monthly_snapshot
-WHERE snapshot_month >= '2025-01'
-GROUP BY high_performer_flag, performance_rating
-ORDER BY high_performer_flag, performance_rating;
+WHERE months_since_promotion > tenure_months;
 
 -- [hr-k2-loai-ly-do-nghi] solution
 SELECT attrition_type, attrition_reason, COUNT(*) AS so_nguoi,
@@ -90,49 +77,117 @@ WHERE snapshot_month BETWEEN '2024-01' AND '2025-12'
 GROUP BY attrition_type, attrition_reason
 ORDER BY attrition_type, attrition_reason;
 
--- [hr-k3-gan-ket-hai-nguon] solution
-SELECT s.department,
-       COUNT(s.engagement_score) AS so_dong_co_diem,
-       SUM(ABS(s.engagement_score - k.engagement_score) > 15) AS so_dong_lech,
-       ROUND(100 * SUM(ABS(s.engagement_score - k.engagement_score) > 15)
-                 / COUNT(s.engagement_score), 2) AS ty_le_lech_pct
-FROM employee_monthly_snapshot s
-JOIN engagement_survey k
-  ON k.employee_id = s.employee_id
- AND k.survey_quarter = CONCAT(LEFT(s.snapshot_month, 4), '-Q', QUARTER(CONCAT(s.snapshot_month, '-01')))
-WHERE s.snapshot_month BETWEEN '2024-01' AND '2025-12'
-GROUP BY s.department
-ORDER BY ty_le_lech_pct DESC, s.department;
+-- [hr-k3-gan-ket-lech-so-cong-ty] solution
+WITH so_sanh AS (
+  SELECT s.department,
+         ABS(s.engagement_score - k.engagement_score) > 10 AS lech
+  FROM employee_monthly_snapshot s
+  JOIN engagement_survey k
+    ON k.employee_id = s.employee_id
+   AND k.survey_quarter = CONCAT(LEFT(s.snapshot_month, 4), '-Q', QUARTER(CONCAT(s.snapshot_month, '-01')))
+  WHERE s.snapshot_month BETWEEN '2024-01' AND '2025-12'
+    AND s.engagement_score IS NOT NULL
+), phong AS (
+  SELECT department, COUNT(*) AS so_dong_so_sanh, SUM(lech) AS so_dong_lech
+  FROM so_sanh
+  GROUP BY department
+)
+SELECT department, so_dong_so_sanh,
+       ROUND(100 * so_dong_lech / so_dong_so_sanh, 2) AS ty_le_lech_pct,
+       ROUND(100 * so_dong_lech / so_dong_so_sanh
+             - 100 * SUM(so_dong_lech) OVER () / SUM(so_dong_so_sanh) OVER (), 2) AS chenh_so_cong_ty
+FROM phong
+ORDER BY chenh_so_cong_ty DESC, department;
 
--- [hr-k3-gan-ket-hai-nguon] wrong: noi_theo_nam
--- Nối theo năm: mỗi dòng tháng gặp cả 4 phiếu khảo sát của năm, số dòng nhân 4.
-SELECT s.department,
-       COUNT(s.engagement_score) AS so_dong_co_diem,
-       SUM(ABS(s.engagement_score - k.engagement_score) > 15) AS so_dong_lech,
-       ROUND(100 * SUM(ABS(s.engagement_score - k.engagement_score) > 15)
-                 / COUNT(s.engagement_score), 2) AS ty_le_lech_pct
-FROM employee_monthly_snapshot s
-JOIN engagement_survey k
-  ON k.employee_id = s.employee_id
- AND LEFT(k.survey_quarter, 4) = LEFT(s.snapshot_month, 4)
-WHERE s.snapshot_month BETWEEN '2024-01' AND '2025-12'
-GROUP BY s.department
-ORDER BY ty_le_lech_pct DESC, s.department;
+-- [hr-k3-gan-ket-lech-so-cong-ty] wrong: noi_theo_nam
+-- Nối phiếu theo năm: mỗi dòng tháng gặp cả 4 phiếu của năm, số dòng so sánh nhân 4 và so với điểm của quý khác.
+WITH so_sanh AS (
+  SELECT s.department,
+         ABS(s.engagement_score - k.engagement_score) > 10 AS lech
+  FROM employee_monthly_snapshot s
+  JOIN engagement_survey k
+    ON k.employee_id = s.employee_id
+   AND LEFT(k.survey_quarter, 4) = LEFT(s.snapshot_month, 4)
+  WHERE s.snapshot_month BETWEEN '2024-01' AND '2025-12'
+    AND s.engagement_score IS NOT NULL
+), phong AS (
+  SELECT department, COUNT(*) AS so_dong_so_sanh, SUM(lech) AS so_dong_lech
+  FROM so_sanh
+  GROUP BY department
+)
+SELECT department, so_dong_so_sanh,
+       ROUND(100 * so_dong_lech / so_dong_so_sanh, 2) AS ty_le_lech_pct,
+       ROUND(100 * so_dong_lech / so_dong_so_sanh
+             - 100 * SUM(so_dong_lech) OVER () / SUM(so_dong_so_sanh) OVER (), 2) AS chenh_so_cong_ty
+FROM phong
+ORDER BY chenh_so_cong_ty DESC, department;
 
--- [hr-k3-gan-ket-hai-nguon] wrong: diem_trong_thanh_0
--- Thay ô trống bằng 0: mọi dòng thiếu điểm tháng thành dòng lệch.
-SELECT s.department,
-       COUNT(*) AS so_dong_co_diem,
-       SUM(ABS(COALESCE(s.engagement_score, 0) - k.engagement_score) > 15) AS so_dong_lech,
-       ROUND(100 * SUM(ABS(COALESCE(s.engagement_score, 0) - k.engagement_score) > 15)
-                 / COUNT(*), 2) AS ty_le_lech_pct
-FROM employee_monthly_snapshot s
-JOIN engagement_survey k
-  ON k.employee_id = s.employee_id
- AND k.survey_quarter = CONCAT(LEFT(s.snapshot_month, 4), '-Q', QUARTER(CONCAT(s.snapshot_month, '-01')))
-WHERE s.snapshot_month BETWEEN '2024-01' AND '2025-12'
-GROUP BY s.department
-ORDER BY ty_le_lech_pct DESC, s.department;
+-- [hr-k3-gan-ket-lech-so-cong-ty] wrong: diem_trong_thanh_0
+-- Thay ô trống bằng 0: dòng thiếu điểm tháng thành dòng so sánh và gần như luôn bị tính là lệch.
+WITH so_sanh AS (
+  SELECT s.department,
+         ABS(COALESCE(s.engagement_score, 0) - k.engagement_score) > 10 AS lech
+  FROM employee_monthly_snapshot s
+  JOIN engagement_survey k
+    ON k.employee_id = s.employee_id
+   AND k.survey_quarter = CONCAT(LEFT(s.snapshot_month, 4), '-Q', QUARTER(CONCAT(s.snapshot_month, '-01')))
+  WHERE s.snapshot_month BETWEEN '2024-01' AND '2025-12'
+), phong AS (
+  SELECT department, COUNT(*) AS so_dong_so_sanh, SUM(lech) AS so_dong_lech
+  FROM so_sanh
+  GROUP BY department
+)
+SELECT department, so_dong_so_sanh,
+       ROUND(100 * so_dong_lech / so_dong_so_sanh, 2) AS ty_le_lech_pct,
+       ROUND(100 * so_dong_lech / so_dong_so_sanh
+             - 100 * SUM(so_dong_lech) OVER () / SUM(so_dong_so_sanh) OVER (), 2) AS chenh_so_cong_ty
+FROM phong
+ORDER BY chenh_so_cong_ty DESC, department;
+
+-- [hr-k3-gan-ket-lech-so-cong-ty] wrong: quen_can_tren
+-- Rớt ở hidden-1: dòng '2026-01' của E00002 ghép được với phiếu '2026-Q1' nên phòng Sales thêm một dòng so sánh.
+WITH so_sanh AS (
+  SELECT s.department,
+         ABS(s.engagement_score - k.engagement_score) > 10 AS lech
+  FROM employee_monthly_snapshot s
+  JOIN engagement_survey k
+    ON k.employee_id = s.employee_id
+   AND k.survey_quarter = CONCAT(LEFT(s.snapshot_month, 4), '-Q', QUARTER(CONCAT(s.snapshot_month, '-01')))
+  WHERE s.snapshot_month >= '2024-01'
+    AND s.engagement_score IS NOT NULL
+), phong AS (
+  SELECT department, COUNT(*) AS so_dong_so_sanh, SUM(lech) AS so_dong_lech
+  FROM so_sanh
+  GROUP BY department
+)
+SELECT department, so_dong_so_sanh,
+       ROUND(100 * so_dong_lech / so_dong_so_sanh, 2) AS ty_le_lech_pct,
+       ROUND(100 * so_dong_lech / so_dong_so_sanh
+             - 100 * SUM(so_dong_lech) OVER () / SUM(so_dong_so_sanh) OVER (), 2) AS chenh_so_cong_ty
+FROM phong
+ORDER BY chenh_so_cong_ty DESC, department;
+
+-- [hr-k3-gan-ket-lech-so-cong-ty] wrong: muc_chung_la_binh_quan_cac_phong
+-- Lấy mức chung là bình quân tỷ lệ của sáu phòng ban: phòng đông người và phòng ít người có trọng số như nhau.
+WITH so_sanh AS (
+  SELECT s.department,
+         ABS(s.engagement_score - k.engagement_score) > 10 AS lech
+  FROM employee_monthly_snapshot s
+  JOIN engagement_survey k
+    ON k.employee_id = s.employee_id
+   AND k.survey_quarter = CONCAT(LEFT(s.snapshot_month, 4), '-Q', QUARTER(CONCAT(s.snapshot_month, '-01')))
+  WHERE s.snapshot_month BETWEEN '2024-01' AND '2025-12'
+    AND s.engagement_score IS NOT NULL
+), phong AS (
+  SELECT department, COUNT(*) AS so_dong_so_sanh, 100 * SUM(lech) / COUNT(*) AS ty_le
+  FROM so_sanh
+  GROUP BY department
+)
+SELECT department, so_dong_so_sanh,
+       ROUND(ty_le, 2) AS ty_le_lech_pct,
+       ROUND(ty_le - AVG(ty_le) OVER (), 2) AS chenh_so_cong_ty
+FROM phong
+ORDER BY chenh_so_cong_ty DESC, department;
 
 -- [hr-k4-bao-cao-vong] solution
 SELECT a.employee_id AS nv_a, a.job_level AS bac_a,
@@ -252,50 +307,38 @@ WHERE s.snapshot_month BETWEEN '2025-01' AND '2025-12'
 GROUP BY s.country
 ORDER BY s.country;
 
--- [hr-k7-tong-theo-bac-lech] starter
-SELECT s.job_level, COUNT(DISTINCT s.employee_id) AS so_nguoi_nghi
-FROM employee_monthly_snapshot s
-WHERE s.snapshot_month BETWEEN '2025-01' AND '2025-12'
-  AND s.employee_id IN (SELECT employee_id
-                        FROM employee_monthly_snapshot
-                        WHERE attrition_this_month = 1
-                          AND snapshot_month BETWEEN '2025-01' AND '2025-12')
-GROUP BY s.job_level
-ORDER BY s.job_level;
-
--- [hr-k7-tong-theo-bac-lech] solution
-SELECT job_level, COUNT(*) AS so_nguoi_nghi
+-- [hr-k7-doi-bac-thua-nguoi] starter
+SELECT employee_id, MIN(job_level) AS bac_thap_nhat, MAX(job_level) AS bac_cao_nhat
 FROM employee_monthly_snapshot
-WHERE attrition_this_month = 1
-  AND snapshot_month BETWEEN '2025-01' AND '2025-12'
-GROUP BY job_level
-ORDER BY job_level;
+WHERE snapshot_month BETWEEN '2025-01' AND '2025-12'
+GROUP BY employee_id
+HAVING COUNT(DISTINCT job_level) >= 1
+ORDER BY employee_id;
 
--- [hr-k7-tong-theo-bac-lech] wrong: chi_dem_tu_nguyen
--- Chỉ đếm nghỉ việc tự nguyện, trong khi đề tính mọi loại nghỉ việc.
-SELECT job_level, COUNT(*) AS so_nguoi_nghi
+-- [hr-k7-doi-bac-thua-nguoi] solution
+SELECT employee_id, MIN(job_level) AS bac_thap_nhat, MAX(job_level) AS bac_cao_nhat
 FROM employee_monthly_snapshot
-WHERE attrition_type = 'Voluntary'
-  AND snapshot_month BETWEEN '2025-01' AND '2025-12'
-GROUP BY job_level
-ORDER BY job_level;
+WHERE snapshot_month BETWEEN '2025-01' AND '2025-12'
+GROUP BY employee_id
+HAVING COUNT(DISTINCT job_level) > 1
+ORDER BY employee_id;
 
--- [hr-k7-tong-theo-bac-lech] wrong: bac_dau_nam
--- Lấy bậc ở tháng đầu tiên trong năm của người nghỉ, không phải bậc ở tháng nghỉ.
-WITH dau AS (
-  SELECT employee_id, MIN(snapshot_month) AS thang_dau
-  FROM employee_monthly_snapshot
-  WHERE snapshot_month BETWEEN '2025-01' AND '2025-12'
-  GROUP BY employee_id
-)
-SELECT s.job_level, COUNT(*) AS so_nguoi_nghi
-FROM employee_monthly_snapshot s
-JOIN dau d ON d.employee_id = s.employee_id AND d.thang_dau = s.snapshot_month
-WHERE s.employee_id IN (SELECT employee_id FROM employee_monthly_snapshot
-                        WHERE attrition_this_month = 1
-                          AND snapshot_month BETWEEN '2025-01' AND '2025-12')
-GROUP BY s.job_level
-ORDER BY s.job_level;
+-- [hr-k7-doi-bac-thua-nguoi] wrong: dem_so_thang
+-- Bỏ DISTINCT: đếm số tháng có tên, nên ai có từ hai tháng trở lên đều vào danh sách.
+SELECT employee_id, MIN(job_level) AS bac_thap_nhat, MAX(job_level) AS bac_cao_nhat
+FROM employee_monthly_snapshot
+WHERE snapshot_month BETWEEN '2025-01' AND '2025-12'
+GROUP BY employee_id
+HAVING COUNT(job_level) > 1
+ORDER BY employee_id;
+
+-- [hr-k7-doi-bac-thua-nguoi] wrong: bo_loc_nam
+-- Bỏ điều kiện tháng: thêm người chỉ đổi bậc trong năm 2024.
+SELECT employee_id, MIN(job_level) AS bac_thap_nhat, MAX(job_level) AS bac_cao_nhat
+FROM employee_monthly_snapshot
+GROUP BY employee_id
+HAVING COUNT(DISTINCT job_level) > 1
+ORDER BY employee_id;
 
 -- [hr-k8-thieu-quan-ly-ra-0] starter
 SELECT department,
@@ -475,75 +518,45 @@ SELECT COUNT(*)                  AS quan_so_cuoi_thang,
 FROM employee_monthly_snapshot
 WHERE snapshot_month = '2025-12';
 
--- [hr-p3-top3-khong-tuong-quan] starter
-WITH t AS (
-  SELECT employee_id, MIN(country) AS country, SUM(overtime_hours) AS tong_gio_lam_them
-  FROM employee_monthly_snapshot
-  WHERE snapshot_month BETWEEN '2025-01' AND '2025-12'
-  GROUP BY employee_id
-)
-SELECT a.country, a.employee_id, a.tong_gio_lam_them,
-       1 + (SELECT COUNT(*) FROM t b
-             WHERE b.country = a.country
-               AND (b.tong_gio_lam_them > a.tong_gio_lam_them
-                    OR (b.tong_gio_lam_them = a.tong_gio_lam_them AND b.employee_id < a.employee_id))) AS hang
-FROM t a
-WHERE (SELECT COUNT(*) FROM t b
-        WHERE b.country = a.country
-          AND (b.tong_gio_lam_them > a.tong_gio_lam_them
-               OR (b.tong_gio_lam_them = a.tong_gio_lam_them AND b.employee_id < a.employee_id))) < 3
-ORDER BY a.country, hang;
+-- [hr-p3-loc-ngay-dung-chi-muc] starter
+SELECT recruitment_source,
+       COUNT(*) AS so_yeu_cau,
+       ROUND(AVG(recruiting_cost_usd), 0) AS chi_phi_bq_usd
+FROM recruiting_pipeline
+WHERE YEAR(approval_date) = 2025
+  AND QUARTER(approval_date) = 4
+GROUP BY recruitment_source
+ORDER BY so_yeu_cau DESC, recruitment_source;
 
--- [hr-p3-top3-khong-tuong-quan] solution
-WITH t AS (
-  SELECT employee_id, MIN(country) AS country, SUM(overtime_hours) AS tong_gio_lam_them
-  FROM employee_monthly_snapshot
-  WHERE snapshot_month BETWEEN '2025-01' AND '2025-12'
-  GROUP BY employee_id
-), h AS (
-  SELECT country, employee_id, tong_gio_lam_them,
-         ROW_NUMBER() OVER (PARTITION BY country
-                            ORDER BY tong_gio_lam_them DESC, employee_id) AS hang
-  FROM t
-)
-SELECT country, employee_id, tong_gio_lam_them, hang
-FROM h
-WHERE hang <= 3
-ORDER BY country, hang;
+-- [hr-p3-loc-ngay-dung-chi-muc] solution
+SELECT recruitment_source,
+       COUNT(*) AS so_yeu_cau,
+       ROUND(AVG(recruiting_cost_usd), 0) AS chi_phi_bq_usd
+FROM recruiting_pipeline
+WHERE approval_date >= '2025-10-01'
+  AND approval_date < '2026-01-01'
+GROUP BY recruitment_source
+ORDER BY so_yeu_cau DESC, recruitment_source;
 
--- [hr-p3-top3-khong-tuong-quan] wrong: dung_rank
--- RANK() cho hai người bằng giờ cùng hạng: nhóm có hoà ở hạng 3 ra 4 dòng, hạng sau bị nhảy.
-WITH t AS (
-  SELECT employee_id, MIN(country) AS country, SUM(overtime_hours) AS tong_gio_lam_them
-  FROM employee_monthly_snapshot
-  WHERE snapshot_month BETWEEN '2025-01' AND '2025-12'
-  GROUP BY employee_id
-), h AS (
-  SELECT country, employee_id, tong_gio_lam_them,
-         RANK() OVER (PARTITION BY country ORDER BY tong_gio_lam_them DESC) AS hang
-  FROM t
-)
-SELECT country, employee_id, tong_gio_lam_them, hang
-FROM h
-WHERE hang <= 3
-ORDER BY country, hang, employee_id;
+-- [hr-p3-loc-ngay-dung-chi-muc] wrong: quen_can_tren
+-- Rớt ở hidden-1: yêu cầu R0801 duyệt ngày 2026-01-05 lọt vào quý 4/2025.
+SELECT recruitment_source,
+       COUNT(*) AS so_yeu_cau,
+       ROUND(AVG(recruiting_cost_usd), 0) AS chi_phi_bq_usd
+FROM recruiting_pipeline
+WHERE approval_date >= '2025-10-01'
+GROUP BY recruitment_source
+ORDER BY so_yeu_cau DESC, recruitment_source;
 
--- [hr-p3-top3-khong-tuong-quan] wrong: quen_partition_theo_nuoc
--- Xếp hạng toàn công ty: chỉ ra 3 người, không phải 3 người mỗi nước.
-WITH t AS (
-  SELECT employee_id, MIN(country) AS country, SUM(overtime_hours) AS tong_gio_lam_them
-  FROM employee_monthly_snapshot
-  WHERE snapshot_month BETWEEN '2025-01' AND '2025-12'
-  GROUP BY employee_id
-), h AS (
-  SELECT country, employee_id, tong_gio_lam_them,
-         ROW_NUMBER() OVER (ORDER BY tong_gio_lam_them DESC, employee_id) AS hang
-  FROM t
-)
-SELECT country, employee_id, tong_gio_lam_them, hang
-FROM h
-WHERE hang <= 3
-ORDER BY country, hang;
+-- [hr-p3-loc-ngay-dung-chi-muc] wrong: doi_ham_khac_van_boc_cot
+-- Đúng kết quả nhưng vẫn bọc cột trong hàm: đọc hết bảng như truy vấn khởi đầu, vượt ngân sách dòng trung gian.
+SELECT recruitment_source,
+       COUNT(*) AS so_yeu_cau,
+       ROUND(AVG(recruiting_cost_usd), 0) AS chi_phi_bq_usd
+FROM recruiting_pipeline
+WHERE DATE_FORMAT(approval_date, '%Y-%m') BETWEEN '2025-10' AND '2025-12'
+GROUP BY recruitment_source
+ORDER BY so_yeu_cau DESC, recruitment_source;
 
 -- [hr-p4-yeu-cau-ngoai-ke-hoach] starter
 SELECT requisition_id, position_id, attrition_month, requisition_type
@@ -651,63 +664,53 @@ WHERE snapshot_month BETWEEN '2025-01' AND '2025-12'
 GROUP BY snapshot_month
 ORDER BY thang;
 
--- [hr-p6-enps-noi-mot-thang] starter
-WITH phieu AS (
-  SELECT DISTINCT k.employee_id, k.survey_quarter, k.eNPS, s.department
-  FROM engagement_survey k
-  JOIN employee_monthly_snapshot s ON s.employee_id = k.employee_id
-  WHERE k.survey_quarter BETWEEN '2025-Q1' AND '2025-Q4'
-)
-SELECT department,
-       COUNT(*) AS so_phieu,
-       ROUND(100 * (SUM(eNPS >= 9) - SUM(eNPS <= 6)) / COUNT(*), 1) AS enps
-FROM phieu
-GROUP BY department
-ORDER BY enps DESC, department;
+-- [hr-p6-y-dinh-o-lai-mot-lan-quet] starter
+SELECT '2025-Q1' AS quy, COUNT(*) AS so_phieu,
+       ROUND(AVG(intent_to_stay), 2) AS y_dinh_o_lai_bq,
+       ROUND(100 * SUM(intent_to_stay = 1) / COUNT(*), 2) AS ty_le_diem_1_pct
+FROM engagement_survey WHERE survey_quarter = '2025-Q1'
+UNION ALL
+SELECT '2025-Q2', COUNT(*), ROUND(AVG(intent_to_stay), 2),
+       ROUND(100 * SUM(intent_to_stay = 1) / COUNT(*), 2)
+FROM engagement_survey WHERE survey_quarter = '2025-Q2'
+UNION ALL
+SELECT '2025-Q3', COUNT(*), ROUND(AVG(intent_to_stay), 2),
+       ROUND(100 * SUM(intent_to_stay = 1) / COUNT(*), 2)
+FROM engagement_survey WHERE survey_quarter = '2025-Q3'
+UNION ALL
+SELECT '2025-Q4', COUNT(*), ROUND(AVG(intent_to_stay), 2),
+       ROUND(100 * SUM(intent_to_stay = 1) / COUNT(*), 2)
+FROM engagement_survey WHERE survey_quarter = '2025-Q4'
+ORDER BY quy;
 
--- [hr-p6-enps-noi-mot-thang] solution
-WITH nv AS (
-  SELECT employee_id, MIN(department) AS department
-  FROM employee_monthly_snapshot
-  WHERE snapshot_month BETWEEN '2025-01' AND '2025-12'
-  GROUP BY employee_id
-)
-SELECT nv.department,
-       COUNT(*) AS so_phieu,
-       ROUND(100 * (SUM(k.eNPS >= 9) - SUM(k.eNPS <= 6)) / COUNT(*), 1) AS enps
-FROM engagement_survey k
-JOIN nv ON nv.employee_id = k.employee_id
-WHERE k.survey_quarter BETWEEN '2025-Q1' AND '2025-Q4'
-GROUP BY nv.department
-ORDER BY enps DESC, nv.department;
+-- [hr-p6-y-dinh-o-lai-mot-lan-quet] solution
+SELECT survey_quarter AS quy, COUNT(*) AS so_phieu,
+       ROUND(AVG(intent_to_stay), 2) AS y_dinh_o_lai_bq,
+       ROUND(100 * SUM(intent_to_stay = 1) / COUNT(*), 2) AS ty_le_diem_1_pct
+FROM engagement_survey
+WHERE survey_quarter BETWEEN '2025-Q1' AND '2025-Q4'
+GROUP BY survey_quarter
+ORDER BY quy;
 
--- [hr-p6-enps-noi-mot-thang] wrong: trung_lap_tinh_phan_doi
--- Tính người cho 7–8 điểm vào nhóm phản đối.
-WITH nv AS (
-  SELECT employee_id, MIN(department) AS department
-  FROM employee_monthly_snapshot
-  WHERE snapshot_month BETWEEN '2025-01' AND '2025-12'
-  GROUP BY employee_id
-)
-SELECT nv.department,
-       COUNT(*) AS so_phieu,
-       ROUND(100 * (SUM(k.eNPS >= 9) - SUM(k.eNPS <= 8)) / COUNT(*), 1) AS enps
-FROM engagement_survey k
-JOIN nv ON nv.employee_id = k.employee_id
-WHERE k.survey_quarter BETWEEN '2025-Q1' AND '2025-Q4'
-GROUP BY nv.department
-ORDER BY enps DESC, nv.department;
+-- [hr-p6-y-dinh-o-lai-mot-lan-quet] wrong: quen_can_tren
+-- Rớt ở hidden-1: phiếu '2026-Q1' của E00002 thành thêm một dòng quý.
+SELECT survey_quarter AS quy, COUNT(*) AS so_phieu,
+       ROUND(AVG(intent_to_stay), 2) AS y_dinh_o_lai_bq,
+       ROUND(100 * SUM(intent_to_stay = 1) / COUNT(*), 2) AS ty_le_diem_1_pct
+FROM engagement_survey
+WHERE survey_quarter >= '2025-Q1'
+GROUP BY survey_quarter
+ORDER BY quy;
 
--- [hr-p6-enps-noi-mot-thang] wrong: bo_distinct_nhan_dong
--- Bỏ DISTINCT mà vẫn nối với mọi tháng: mỗi phiếu đếm nhiều lần.
-SELECT s.department,
-       COUNT(*) AS so_phieu,
-       ROUND(100 * (SUM(k.eNPS >= 9) - SUM(k.eNPS <= 6)) / COUNT(*), 1) AS enps
-FROM engagement_survey k
-JOIN employee_monthly_snapshot s ON s.employee_id = k.employee_id
-WHERE k.survey_quarter BETWEEN '2025-Q1' AND '2025-Q4'
-GROUP BY s.department
-ORDER BY enps DESC, s.department;
+-- [hr-p6-y-dinh-o-lai-mot-lan-quet] wrong: count_dieu_kien
+-- COUNT(điều kiện) đếm cả phiếu có điều kiện sai (giá trị 0 không phải NULL), nên tỷ lệ luôn 100%.
+SELECT survey_quarter AS quy, COUNT(*) AS so_phieu,
+       ROUND(AVG(intent_to_stay), 2) AS y_dinh_o_lai_bq,
+       ROUND(100 * COUNT(intent_to_stay = 1) / COUNT(*), 2) AS ty_le_diem_1_pct
+FROM engagement_survey
+WHERE survey_quarter BETWEEN '2025-Q1' AND '2025-Q4'
+GROUP BY survey_quarter
+ORDER BY quy;
 
 -- [hr-p7-dem-theo-thang-chi-muc] solution
 SELECT snapshot_month AS thang,

@@ -60,7 +60,7 @@ Quy ước:
 | `customer_since` | ngày trở thành khách hàng; thâm niên quan hệ (năm) | tuổi khách hàng | | DA |
 | `customer_status` = 'ACTIVE' / 'DORMANT' / 'CLOSED' | đang hoạt động / không hoạt động / đã đóng | ngủ đông, khách chết, khách "ngủ" | | DA |
 | segment (`segment_code`, `ref_segment`) | phân khúc khách hàng; tên phân khúc lấy đúng `segment_name` | phân đoạn, tệp khách, nhóm khách | | DA |
-| 'MASS' / 'UPPER_MASS' / 'AFFLUENT' / 'PRIORITY'; 'MICRO' / 'SME' / 'CORP' / 'INST' | khách hàng phổ thông / phổ thông cao / khá giả / ưu tiên; hộ kinh doanh và doanh nghiệp siêu nhỏ / doanh nghiệp nhỏ và vừa (SME) / doanh nghiệp lớn / định chế tài chính | VIP, khách sang, khách xịn, tiểu thương | Chỉ dùng khi `segment_name` không có tên tiếng Việt; có thì theo `segment_name`. `ref_segment.party_type` cho biết phân khúc của cá nhân hay tổ chức | DA |
+| 'MASS' / 'UPPER_MASS' / 'AFFLUENT' / 'PRIORITY'; 'MICRO' / 'SME' / 'CORP' / 'INST' | khách hàng đại chúng / khá giả / giàu có / ưu tiên (đúng `segment_name`; v3 10/11: 'AFFLUENT' là "giàu có", 'UPPER_MASS' là "khá giả"); hộ kinh doanh và doanh nghiệp siêu nhỏ / doanh nghiệp nhỏ và vừa (SME) / doanh nghiệp lớn / định chế tài chính | VIP, khách sang, khách xịn, tiểu thương | Chỉ dùng khi `segment_name` không có tên tiếng Việt; có thì theo `segment_name`. `ref_segment.party_type` cho biết phân khúc của cá nhân hay tổ chức | DA |
 | `hist_customer_segment` (`valid_from`, `valid_to`) | lịch sử phân khúc; phân khúc tại thời điểm giao dịch | phân khúc hiện tại (khi đề hỏi theo thời điểm) | Đề phải nói rõ lấy phân khúc hiện tại (`core_customer`) hay phân khúc tại ngày giao dịch (bảng lịch sử) | DA |
 | KYC (`kyc_status`, `core_customer_kyc_event`) | nhận biết khách hàng (KYC) ở lần đầu, sau đó KYC | xác thực danh tính, eKYC (trừ khi nói kênh điện tử) | | DA |
 | `kyc_status` = 'PASS' / 'FAIL' | KYC đạt / KYC không đạt | KYC trượt, rớt KYC | | DA |
@@ -130,7 +130,7 @@ Quy ước:
 | 'CONS' / 'MORT' / 'AUTO' / 'PLEDGE' | cho vay tiêu dùng / cho vay mua nhà / cho vay mua ô tô / cho vay cầm cố | | Tên chính thức theo `product_name` | DA |
 | 'OD_IND' / 'OD_BIZ' | thấu chi cá nhân / thấu chi doanh nghiệp | thấu chi "tín dụng" | TT39 có "cho vay theo hạn mức thấu chi" | TT39*; DA |
 | 'WC_LOAN' | cho vay bổ sung vốn lưu động | vay vốn kinh doanh | | DA |
-| `loan_status` = 'ACTIVE' / 'SETTLED' | đang còn dư nợ / đã tất toán | đã đóng | | DA |
+| `loan_status` = 'ACTIVE' / 'SETTLED' | đang trả nợ bình thường / đã tất toán | đã đóng; "đang còn dư nợ" cho riêng 'ACTIVE' (khoản quá hạn, cơ cấu lại cũng còn dư nợ) | v3 (10/11): chốt "đang trả nợ bình thường", khớp khái niệm `trang-thai-khoan-vay`. Parameter Book sheet 08.Lending: khoản vay chuyển DELINQUENT khi DPD > 0, trở lại khi DPD = 0 | DA |
 | 'DELINQUENT' | khoản vay đang quá hạn | nợ xấu (quá hạn chưa chắc thuộc nhóm 3–5) | | DA; TT31 |
 | 'RESTRUCTURED' | khoản vay đã cơ cấu lại thời hạn trả nợ | tái cấu trúc, giãn nợ | TT31 Điều 3: "nợ cơ cấu lại thời hạn trả nợ" | TT31 |
 | 'WRITTEN_OFF' | khoản vay đã xử lý rủi ro | bị xoá sổ, mất trắng | Cách gọi của ngành; chưa đối chiếu nguyên văn văn bản | DA |
@@ -255,14 +255,14 @@ Ví dụ đạt
 
 ### B.6 Bước kết luận của case (`\phuongan`)
 
-Quy tắc như SCM B.6 và quyết định SCM G.4 ("Đúng. …" / "Chưa đúng. …"). Lỗi lập luận hay gặp ở ngân hàng, dùng làm phương án sai: lấy số khoản vay thay cho dư nợ; coi mọi khoản quá hạn là nợ xấu; cộng cả khoản đã xử lý rủi ro vào dư nợ; so lãi suất danh nghĩa mà bỏ qua kỳ hạn; coi số dư cuối kỳ là số dư bình quân; quy nguyên nhân cho kênh giao dịch khi chỉ thấy tương quan; trình bày giả định của bộ sinh dữ liệu như phát hiện.
+Quy tắc như SCM B.6 và quyết định SCM G.4 (sửa theo quy_chuan lúc 23:05: "Đúng: …" ở phương án đúng, phương án sai không tiền tố). Lỗi lập luận hay gặp ở ngân hàng, dùng làm phương án sai: lấy số khoản vay thay cho dư nợ; coi mọi khoản quá hạn là nợ xấu; cộng cả khoản đã xử lý rủi ro vào dư nợ; so lãi suất danh nghĩa mà bỏ qua kỳ hạn; coi số dư cuối kỳ là số dư bình quân; quy nguyên nhân cho kênh giao dịch khi chỉ thấy tương quan; trình bày giả định của bộ sinh dữ liệu như phát hiện.
 
 Ví dụ đạt
 ```latex
 \phuongan*{Tỷ lệ CASA giảm vì khách hàng chuyển tiền sang tiền gửi có kỳ hạn, còn tổng tiền gửi gần như không đổi.}
-  {Đúng. Bước 1 cho thấy tổng tiền gửi ổn định, bước 2 cho thấy lệnh gửi tiền có kỳ hạn tăng đúng các tháng số dư không kỳ hạn giảm.}
+  {Đúng: bước 1 cho thấy tổng tiền gửi ổn định, bước 2 cho thấy lệnh gửi tiền có kỳ hạn tăng đúng các tháng số dư không kỳ hạn giảm.}
 \phuongan{Tỷ lệ CASA giảm vì khách hàng rút tiền khỏi ngân hàng, nên cần tăng lãi suất tiền gửi có kỳ hạn ngay.}
-  {Chưa đúng. Tổng tiền gửi ở bước 1 không giảm, tiền chỉ chuyển giữa hai loại tiền gửi.}
+  {Tổng tiền gửi ở bước 1 không giảm, tiền chỉ chuyển giữa hai loại tiền gửi.}
 ```
 
 ### B.7 Khai báo khái niệm (`\khaibaokhainiem{ma}{Tên}{Định nghĩa}{Công thức}{Trong bộ dữ liệu}`)
@@ -427,7 +427,7 @@ Cột "trong bộ dữ liệu" dựa trên mô tả 26 bảng của database `ai
 \khaibaokhainiem{giao-dich-bi-dao}{Giao dịch bị đảo, bị từ chối}
   {Giao dịch bị đảo là giao dịch đã được ghi nhận rồi bị huỷ bỏ bằng bút toán ngược chiều. Giao dịch bị từ chối là lệnh không được hệ thống chấp nhận thực hiện.}
   {tỷ lệ bị từ chối = số lệnh bị từ chối / tổng số lệnh}
-  {\code{core_payment_order.payment_status}: \code{'COMPLETED'}, \code{'REVERSED'}, \code{'REJECTED'}. Doanh số giao dịch chỉ tính lệnh \code{'COMPLETED'}; câu hỏi ghi rõ bút toán của lệnh bị đảo có được tính vào số dư hay không.}
+  {\code{core_payment_order.payment_status}: \code{'COMPLETED'}, \code{'REVERSED'}, \code{'REJECTED'}. Doanh số giao dịch chỉ tính lệnh \code{'COMPLETED'}; câu hỏi ghi rõ bút toán của lệnh bị đảo có được tính vào số dư hay không. Bảng bút toán chỉ giữ bút toán gốc của lệnh, không có bút toán ngược chiều cho lệnh bị đảo.} % v3 10/11: câu bổ sung duyệt theo aivb-t2 (Parameter Book: POST.REVERSAL.1 MIRROR, POST.REJECT.1)
 \khaibaokhainiem{kenh-giao-dich}{Kênh giao dịch}
   {Kênh giao dịch là phương tiện khách hàng dùng để gửi lệnh tới ngân hàng.}
   {tỷ trọng kênh = số lệnh (hoặc số tiền) qua kênh / tổng của mọi kênh}
@@ -503,13 +503,13 @@ Ghi chú cho người soạn khi dùng mục E (cần kiểm bằng truy vấn c
 5. "Rút trước hạn" hay "tất toán trước hạn": bộ chuẩn theo TT48 ("rút trước hạn").
 6. Lãi tính dồn theo ngày: chọn "lãi dự thu" (khoản vay) và "lãi dự trả" (tiền gửi). Đề bài giao gộp cả hai là "lãi dự thu" ở mảng `finance`; gộp như vậy sai với phần tiền gửi. Xin xác nhận cách gọi.
 7. Nhóm nợ: bộ câu chỉ dùng tiêu chí số ngày quá hạn (định lượng một phần của TT31 khoản 1 Điều 10), không mô phỏng nợ cơ cấu lại, gia hạn, hay nguyên tắc xếp mọi khoản của một khách hàng vào cùng nhóm. Có cần một câu Khó về nguyên tắc xếp cùng nhóm không?
-8. Tên phân khúc: nếu `ref_segment.segment_name` đã có tên tiếng Việt thì dùng tên đó; cách gọi ở A.1 (phổ thông, phổ thông cao, khá giả, ưu tiên) chỉ là đề xuất.
+8. Tên phân khúc: nếu `ref_segment.segment_name` đã có tên tiếng Việt thì dùng tên đó; v3 (10/11): DB có tên tiếng Việt cho cả 8 phân khúc (đại chúng, khá giả, giàu có, ưu tiên; siêu nhỏ, vừa và nhỏ, doanh nghiệp lớn, định chế), dùng đúng tên này.
 
 ---
 
 ## G. Quyết định tạm (10/11/2026) cho lô thử – chờ giảng viên duyệt
 
-1. Các quyết định tạm 1–7 của `STYLE-scm.md` mục G (gọi tên kỹ thuật SQL trong `yeucau`, `\goiy`; "Đúng. …" / "Chưa đúng. …"; gợi ý chỉ nêu tên hàm; quy ước P95 trên MySQL) áp dụng nguyên cho bộ AIV Bank.
+1. Các quyết định tạm 1–7 của `STYLE-scm.md` mục G (gọi tên kỹ thuật SQL trong `yeucau`, `\goiy`; "Đúng: …" ở phương án đúng, phương án sai không tiền tố; gợi ý nấc cuối được nêu trọn một biểu thức một dòng (G.4, G.5 của STYLE-scm sửa theo quy_chuan lúc 10/11, 23:05); quy ước P95 trên MySQL) áp dụng nguyên cho bộ AIV Bank.
 2. Mọi câu có số ngày quá hạn, tuổi, thâm niên ghi ngày tham chiếu bằng giá trị DB.
 3. Mọi câu có tiền ghi đơn vị cột kết quả; mọi câu có lãi suất ghi "%/năm" hoặc "tỷ lệ".
 4. Mảng nghiệp vụ (`domain`) dùng 6 khoá chuẩn, không thêm khoá mới:
@@ -524,3 +524,43 @@ Ghi chú cho người soạn khi dùng mục E (cần kiểm bằng truy vấn c
 | `after_sales` | nợ quá hạn, nhóm nợ, tỷ lệ nợ xấu, khoản vay `'DELINQUENT'`, `'RESTRUCTURED'`, `'WRITTEN_OFF'`, giao dịch bị đảo và bị từ chối, rút trước hạn, KYC không đạt | `core_loan_schedule`, `core_loan_contract`, `core_payment_order`, `core_deposit_contract`, `core_customer_kyc_event` | **Bộ dữ liệu không có bảng khiếu nại hay yêu cầu hỗ trợ.** "Sau bán" ở đây là chất lượng tín dụng và giao dịch lỗi |
 
 Ranh giới khi một câu chạm hai mảng: chất lượng tín dụng (quá hạn, nợ xấu) luôn là `after_sales` dù có dư nợ; quy mô dư nợ, số dư, lãi là `finance`; số lượng hồ sơ, hợp đồng mới là `sales`; KYC theo vòng và trạng thái là `customer`, riêng câu hỏi về KYC không đạt và lý do từ chối là `after_sales`.
+
+### Quyết định chung 5 bộ (theo `QUYET-DINH-CHUNG.md`, 10/11/2026)
+
+Áp chung cho `scm`, `aivb`, `jelly`, `hr`, `mkt`. Lệch với chỗ khác trong file này thì theo các dòng dưới. **Thứ tự ưu tiên: `quy_chuan` (quy_chuan.rar) > `QUYET-DINH-CHUNG.md` > file STYLE này > brief.** Chi tiết, căn cứ và bảng các điểm đã sửa theo quy chuẩn (10/11, 23:05) ở `QUYET-DINH-CHUNG.md` mục 0.
+
+- **Kết luận case** (sửa theo quy_chuan: goi-cau-hoi-mau/cau-hoi.tex, câu c1–c4, lúc 10/11, 23:05): ba phương án, đúng một `\phuongan*`. Lời giải thích của phương án đúng mở bằng **"Đúng: "** rồi nêu căn cứ; phương án sai **không có tiền tố**, nêu thẳng chỗ sai. Không dùng "Chưa đúng.", "Sai:". 1–2 câu, ≤ 35 tiếng (lời giải thích dài nhất của mẫu, c3, khoảng 34 tiếng), nêu bước nào cho thấy điều gì.
+- **Case Cơ bản:** được `GROUP BY` một cột + một hàm gom trên **một bảng** (theo case mẫu `c1-kenh-nhieu-don` của CHOT); không `JOIN`, `HAVING`, truy vấn con. Ghi lý do một dòng ở `\ghichuthietke`.
+- **Gợi ý** (sửa theo quy_chuan: cau-hoi.tex w1, w3, o3, o4; Huong-dan mục 10 bước 7): 1–2 nấc ở câu, 1 nấc ở mỗi bước case. Nấc đầu nêu hướng (bảng cần dùng, cách tách bước, bẫy); nấc cuối được nêu trọn **một biểu thức một dòng**, kể cả giá trị lọc hoặc tiêu chí hoà, như mẫu w3 `ROW_NUMBER() OVER (PARTITION BY category ORDER BY doanh_thu DESC, product_id)`. Không viết sẵn cả câu SQL, không khung nhiều dòng. **Bỏ** yêu cầu "để trống ít nhất một thành phần".
+- **ERD** (sửa một phần theo quy_chuan: CHOT-FORMAT mục 3, Huong-dan mục 5, mẫu w4, d4, o4, c4): số bảng Cơ bản 1 · Dễ 2 · Trung bình 3–4 · Khó 5–7. Bảng nhiễu: Cơ bản 0 · Dễ ≤ 1 · Trung bình ≤ 1 (quy ước bổ sung) · Khó 1–2, bắt buộc có; câu Khó mà lời giải dùng ≤ 3 bảng được thêm bảng nhiễu cho đủ 5 bảng như mẫu d4, o4. ERD Khó **chỉ khoá, không vẽ `\erdnoi`**; cách nối viết trong `\erdkhoa`. Bảng nhiễu ở Dễ, Trung bình có đường nối đúng với bảng dùng; ở Khó nên có cột khoá chung với bảng dùng (mẫu w4) nhưng không bắt buộc (mẫu o4). Bảng nhiễu không làm tăng cấp.
+- **Cấp** (sửa một phần theo quy_chuan: Huong-dan mục 6, lo-trinh-sql/assets/js/data.js): theo thang `QUYET-DINH-CHUNG.md` mục 2: cấp = mức mà ≥ 3/5 trục đạt (số bảng lời giải cần, số bước, mức mơ hồ, số bẫy, độ sâu nghiệp vụ). Ở M1–3: Dễ = Cơ bản + một bẫy hoặc một bước. **Bỏ ngoại lệ "M7, M8 không có Dễ"**: lộ trình chuẩn cho mọi module đủ 4 cấp; sửa lỗi một chỗ dễ thấy là Dễ, muốn Trung bình thì lỗi phải khó thấy (nối thừa nhân dòng, sai phạm vi cửa sổ) hoặc thêm lỗi, bẫy thật. Câu Khó không bắt buộc ≥ 4 bảng (mẫu o4 dùng 1 bảng). Optimize lấy cấp theo mẫu kỹ thuật của CHOT mục 4.
+- **Yêu cầu (`yeucau`):** thứ tự sắp luôn kết thúc bằng một khoá duy nhất; top N nói rõ lấy đúng N dòng hay lấy cả người hoà; ghi số chữ số và kiểu làm tròn, chỉ làm tròn cột cuối; tỷ lệ trả phần trăm 2 chữ số (tên cột tuỳ: mẫu dùng cả `ty_le_tra` lẫn `thay_doi_pct`), nếu bắt buộc trả 0–1 thì 4 chữ số và đặt `saiso=0.0001`; NULL nói rõ giữ NULL, thay bằng giá trị gì, hay loại dòng; tháng, quý trả chuỗi theo dạng ghi trong đề; năm trả số, trừ khi đề ghi rõ trả chuỗi như mẫu o2; mốc thời gian ghi cả cận dưới và cận trên.
+- **Tiêu đề** (sửa theo quy_chuan: tiêu đề mẫu w3, w4, o3, o4 dài 11–13 tiếng): ngắn, **≤ 13 tiếng**. Câu Tối ưu được nêu ràng buộc trong tiêu đề ("… chỉ với một lần quét", "… không dùng tự nối bảng") như mẫu o1, o4; các loại khác không nhắc kỹ thuật SQL ở tiêu đề (quy ước bổ sung). Bối cảnh không nhắc tên kỹ thuật SQL (CHOT-FORMAT mục 3).
+- **Riêng aivb:** G.1 ở trên dẫn G.4, G.5 của STYLE-scm theo bản sửa theo quy_chuan lúc 10/11, 23:05 ("Đúng: " ở phương án đúng, phương án sai không tiền tố; nấc cuối được nêu trọn biểu thức một dòng). aivb-f7 chấm lại cấp theo dòng **Cấp** (bỏ ngoại lệ M8). ERD gói 1 (R4, R5, R6, R9, N3, N4, N5, N6, N8, N9, cấp Dễ) giữ đúng 1 bảng nhiễu. aivb-k6 hạ Trung bình.
+
+## H. Quyết định v3 của bộ aivb (10/11/2026, gói 1–3)
+
+- **'ACTIVE' của khoản vay** = "đang trả nợ bình thường" (sửa A.4; khớp khái niệm `trang-thai-khoan-vay`).
+- **Phân khúc**: dùng đúng `ref_segment.segment_name`: 'MASS' đại chúng, 'UPPER_MASS' khá giả, 'AFFLUENT' giàu có, 'PRIORITY' ưu tiên (sửa A.1).
+- **Kênh**: "kênh số" (MOBILE, WEB, QR, API) và "kênh vật lý" (quầy, ATM, POS); lần đầu trong câu giải nghĩa "quầy, ATM, POS".
+- **Thấu chi**: `principal` của 'OD_IND', 'OD_BIZ' là hạn mức thấu chi (Parameter Book sheet 08.Lending: revolving, hạn mức bằng 3 lần lương), không phải số đã rút.
+- **Chi nhánh** (khái niệm `chi-nhanh`, chép giống hệt ở mọi gói): "Chi nhánh là đơn vị phụ thuộc của ngân hàng, hạch toán phụ thuộc, thực hiện một phần nghiệp vụ của ngân hàng và quản lý khách hàng, hợp đồng trên một địa bàn." Căn cứ Thông tư 32/2024/TT-NHNN (mạng lưới hoạt động của NHTM), Điều 3.
+- **Tên nhân vật cố định**: mỗi vai đúng một tên, mỗi tên đúng một vai, dùng chung cho cả 5 gói (khớp bảng ở `goi-cau-hoi/aivb/QUYET-DINH-126-g45.md`). Đổi tên khác giới thì đổi cả đại từ trong lời nhắn.
+
+| Vai | Tên |
+|---|---|
+| Trưởng phòng quản lý rủi ro tín dụng | Chị Lan |
+| Giám đốc khối nguồn vốn | Anh Minh |
+| Trưởng phòng phát triển sản phẩm | Chị Hạnh |
+| Chuyên viên thẩm định tín dụng | Anh Hải |
+| Trưởng phòng vận hành thanh toán | Anh Quang |
+| Trưởng phòng khách hàng cá nhân | Chị Ngân |
+| Trưởng phòng khách hàng doanh nghiệp | Anh Tuấn |
+| Chuyên viên quan hệ khách hàng | Anh Bảo |
+| Chuyên viên tuân thủ (KYC) | Chị Mai |
+| Kế toán giao dịch | Anh Khánh |
+| Giám đốc chi nhánh | Anh Hưng |
+| Chuyên viên xử lý nợ | Anh Tâm |
+| Data engineer (câu Tối ưu) | Anh Sơn |
+| Thực tập sinh (Sửa lỗi cấp thấp) | Bạn Vy |
+| Giám đốc khối bán lẻ / Giám đốc khối vận hành | Anh Phong / Anh Quân |

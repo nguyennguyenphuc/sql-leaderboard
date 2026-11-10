@@ -65,28 +65,26 @@ WHERE a.application_status = 'APPROVED'
   AND a.application_date >= '2025-12-01'
 ORDER BY a.application_id;
 
--- [aivb-j3-so-du-casa-theo-phan-khuc] solution
-SELECT c.segment_code, s.segment_name,
-       COUNT(*) AS so_tai_khoan,
-       ROUND(SUM(b.current_balance) / 1000000, 0) AS tong_so_du
-FROM core_account_party ap
-JOIN core_customer c ON c.party_id = ap.party_id
-JOIN ref_segment s ON s.segment_code = c.segment_code
-JOIN core_account_balance b ON b.account_id = ap.account_id
-WHERE ap.role_code = 'PRIMARY_OWNER'
-GROUP BY c.segment_code, s.segment_name
-ORDER BY tong_so_du DESC, c.segment_code;
+-- [aivb-j3-so-du-tai-khoan-mo-thang-12-2025] solution
+SELECT a.account_id, a.open_date, a.account_status, b.current_balance
+FROM core_account a
+JOIN core_account_balance b ON b.account_id = a.account_id
+WHERE a.open_date >= '2025-12-01' AND a.open_date < '2026-01-01'
+ORDER BY b.current_balance DESC, a.account_id;
 
--- [aivb-j3-so-du-casa-theo-phan-khuc] wrong: khong_loc_chu_tai_khoan
-SELECT c.segment_code, s.segment_name,
-       COUNT(*) AS so_tai_khoan,
-       ROUND(SUM(b.current_balance) / 1000000, 0) AS tong_so_du
-FROM core_account_party ap
-JOIN core_customer c ON c.party_id = ap.party_id
-JOIN ref_segment s ON s.segment_code = c.segment_code
-JOIN core_account_balance b ON b.account_id = ap.account_id
-GROUP BY c.segment_code, s.segment_name
-ORDER BY tong_so_du DESC, c.segment_code;
+-- [aivb-j3-so-du-tai-khoan-mo-thang-12-2025] wrong: thieu_can_tren
+SELECT a.account_id, a.open_date, a.account_status, b.current_balance
+FROM core_account a
+JOIN core_account_balance b ON b.account_id = a.account_id
+WHERE a.open_date >= '2025-12-01'
+ORDER BY b.current_balance DESC, a.account_id;
+
+-- [aivb-j3-so-du-tai-khoan-mo-thang-12-2025] wrong: noi_contract_id_voi_account_id
+SELECT a.account_id, a.open_date, a.account_status, b.current_balance
+FROM core_account a
+JOIN core_account_balance b ON b.account_id = a.contract_id
+WHERE a.open_date >= '2025-12-01' AND a.open_date < '2026-01-01'
+ORDER BY b.current_balance DESC, a.account_id;
 
 -- [aivb-j4-ty-le-khach-co-ho-so-vay] solution
 SELECT c.segment_code,
@@ -124,55 +122,123 @@ WHERE s.party_type = 'PERSON'
 GROUP BY c.segment_code
 ORDER BY ty_le_pct DESC, c.segment_code;
 
--- [aivb-j5-doi-soat-giai-ngan] solution
+-- [aivb-j5-doi-soat-du-no-khoan-vay] solution
+WITH gn AS (SELECT loan_id, SUM(amount) AS tong_giai_ngan
+            FROM core_loan_disbursement
+            GROUP BY loan_id),
+     gt AS (SELECT loan_id, SUM(principal_amount) AS tong_goc_da_thu
+            FROM core_loan_payment_allocation
+            GROUP BY loan_id)
 SELECT pv.product_id,
        COUNT(*) AS so_khoan_vay,
-       SUM(CASE WHEN d.tong_giai_ngan <> l.principal THEN 1 ELSE 0 END) AS so_khoan_lech,
-       ROUND(SUM(l.principal) / 1000000, 0) AS tong_goc,
-       ROUND(SUM(d.tong_giai_ngan) / 1000000, 0) AS tong_giai_ngan
+       ROUND(SUM(l.outstanding) / 1000000, 0) AS du_no_hop_dong,
+       ROUND(SUM(COALESCE(gn.tong_giai_ngan, 0) - COALESCE(gt.tong_goc_da_thu, 0)) / 1000000, 0) AS du_no_tinh_lai,
+       SUM(CASE WHEN COALESCE(gn.tong_giai_ngan, 0) - COALESCE(gt.tong_goc_da_thu, 0) <> l.outstanding THEN 1 ELSE 0 END) AS so_khoan_lech
 FROM core_loan_contract l
 JOIN core_contract c ON c.contract_id = l.contract_id
 JOIN ref_product_version pv ON pv.product_version_id = c.product_version_id
-JOIN (SELECT loan_id, SUM(amount) AS tong_giai_ngan
-      FROM core_loan_disbursement
-      GROUP BY loan_id) d ON d.loan_id = l.loan_id
+LEFT JOIN gn ON gn.loan_id = l.loan_id
+LEFT JOIN gt ON gt.loan_id = l.loan_id
+WHERE l.loan_status <> 'SETTLED'
 GROUP BY pv.product_id
 ORDER BY pv.product_id;
 
--- [aivb-j5-doi-soat-giai-ngan] wrong: cong_goc_sau_khi_noi
+-- [aivb-j5-doi-soat-du-no-khoan-vay] wrong: noi_thang_hai_so
 SELECT pv.product_id,
-       COUNT(DISTINCT l.loan_id) AS so_khoan_vay,
-       COUNT(DISTINCT CASE WHEN l.principal <> (SELECT SUM(x.amount) FROM core_loan_disbursement x WHERE x.loan_id = l.loan_id) THEN l.loan_id END) AS so_khoan_lech,
-       ROUND(SUM(l.principal) / 1000000, 0) AS tong_goc,
-       ROUND(SUM(d.amount) / 1000000, 0) AS tong_giai_ngan
-FROM core_loan_contract l
-JOIN core_contract c ON c.contract_id = l.contract_id
+       COUNT(*) AS so_khoan_vay,
+       ROUND(SUM(t.outstanding) / 1000000, 0) AS du_no_hop_dong,
+       ROUND(SUM(t.du_no_tinh_lai) / 1000000, 0) AS du_no_tinh_lai,
+       SUM(CASE WHEN t.du_no_tinh_lai <> t.outstanding THEN 1 ELSE 0 END) AS so_khoan_lech
+FROM (SELECT l.loan_id, l.contract_id, l.outstanding,
+             COALESCE(SUM(d.amount), 0) - COALESCE(SUM(a.principal_amount), 0) AS du_no_tinh_lai
+      FROM core_loan_contract l
+      LEFT JOIN core_loan_disbursement d ON d.loan_id = l.loan_id
+      LEFT JOIN core_loan_payment_allocation a ON a.loan_id = l.loan_id
+      WHERE l.loan_status <> 'SETTLED'
+      GROUP BY l.loan_id, l.contract_id, l.outstanding) t
+JOIN core_contract c ON c.contract_id = t.contract_id
 JOIN ref_product_version pv ON pv.product_version_id = c.product_version_id
-JOIN core_loan_disbursement d ON d.loan_id = l.loan_id
 GROUP BY pv.product_id
 ORDER BY pv.product_id;
 
--- [aivb-j6-khoan-vay-co-van-de-theo-vung] solution
-SELECT b.region,
-       SUM(CASE WHEN l.loan_status = 'DELINQUENT' THEN 1 ELSE 0 END) AS so_qua_han,
-       SUM(CASE WHEN l.loan_status = 'RESTRUCTURED' THEN 1 ELSE 0 END) AS so_co_cau_lai,
-       SUM(CASE WHEN l.loan_status = 'WRITTEN_OFF' THEN 1 ELSE 0 END) AS so_xu_ly_rui_ro
+-- [aivb-j5-doi-soat-du-no-khoan-vay] wrong: inner_join_so_thu_no
+WITH gn AS (SELECT loan_id, SUM(amount) AS tong_giai_ngan
+            FROM core_loan_disbursement
+            GROUP BY loan_id),
+     gt AS (SELECT loan_id, SUM(principal_amount) AS tong_goc_da_thu
+            FROM core_loan_payment_allocation
+            GROUP BY loan_id)
+SELECT pv.product_id,
+       COUNT(*) AS so_khoan_vay,
+       ROUND(SUM(l.outstanding) / 1000000, 0) AS du_no_hop_dong,
+       ROUND(SUM(gn.tong_giai_ngan - gt.tong_goc_da_thu) / 1000000, 0) AS du_no_tinh_lai,
+       SUM(CASE WHEN gn.tong_giai_ngan - gt.tong_goc_da_thu <> l.outstanding THEN 1 ELSE 0 END) AS so_khoan_lech
 FROM core_loan_contract l
 JOIN core_contract c ON c.contract_id = l.contract_id
-JOIN ref_branch b ON b.ref_branch_id = c.home_branch_id
-GROUP BY b.region
-ORDER BY b.region;
+JOIN ref_product_version pv ON pv.product_version_id = c.product_version_id
+JOIN gn ON gn.loan_id = l.loan_id
+JOIN gt ON gt.loan_id = l.loan_id
+WHERE l.loan_status <> 'SETTLED'
+GROUP BY pv.product_id
+ORDER BY pv.product_id;
 
--- [aivb-j6-khoan-vay-co-van-de-theo-vung] wrong: count_case_else_0
-SELECT b.region,
-       COUNT(CASE WHEN l.loan_status = 'DELINQUENT' THEN 1 ELSE 0 END) AS so_qua_han,
-       COUNT(CASE WHEN l.loan_status = 'RESTRUCTURED' THEN 1 ELSE 0 END) AS so_co_cau_lai,
-       COUNT(CASE WHEN l.loan_status = 'WRITTEN_OFF' THEN 1 ELSE 0 END) AS so_xu_ly_rui_ro
+-- [aivb-j5-doi-soat-du-no-khoan-vay] wrong: tru_khong_coalesce
+WITH gn AS (SELECT loan_id, SUM(amount) AS tong_giai_ngan
+            FROM core_loan_disbursement
+            GROUP BY loan_id),
+     gt AS (SELECT loan_id, SUM(principal_amount) AS tong_goc_da_thu
+            FROM core_loan_payment_allocation
+            GROUP BY loan_id)
+SELECT pv.product_id,
+       COUNT(*) AS so_khoan_vay,
+       ROUND(SUM(l.outstanding) / 1000000, 0) AS du_no_hop_dong,
+       ROUND(SUM(gn.tong_giai_ngan - gt.tong_goc_da_thu) / 1000000, 0) AS du_no_tinh_lai,
+       SUM(CASE WHEN gn.tong_giai_ngan - gt.tong_goc_da_thu <> l.outstanding THEN 1 ELSE 0 END) AS so_khoan_lech
 FROM core_loan_contract l
 JOIN core_contract c ON c.contract_id = l.contract_id
-JOIN ref_branch b ON b.ref_branch_id = c.home_branch_id
-GROUP BY b.region
-ORDER BY b.region;
+JOIN ref_product_version pv ON pv.product_version_id = c.product_version_id
+LEFT JOIN gn ON gn.loan_id = l.loan_id
+LEFT JOIN gt ON gt.loan_id = l.loan_id
+WHERE l.loan_status <> 'SETTLED'
+GROUP BY pv.product_id
+ORDER BY pv.product_id;
+
+-- [aivb-j6-cap-san-pham-vay-cung-khach] solution
+WITH sp AS (SELECT DISTINCT party_id, product_id
+            FROM core_loan_application
+            WHERE application_status = 'APPROVED')
+SELECT a.product_id AS san_pham_1, b.product_id AS san_pham_2, COUNT(*) AS so_khach
+FROM sp a
+JOIN sp b ON b.party_id = a.party_id AND a.product_id < b.product_id
+GROUP BY a.product_id, b.product_id
+ORDER BY so_khach DESC, san_pham_1, san_pham_2;
+
+-- [aivb-j6-cap-san-pham-vay-cung-khach] wrong: cap_dao_chieu
+WITH sp AS (SELECT DISTINCT party_id, product_id
+            FROM core_loan_application
+            WHERE application_status = 'APPROVED')
+SELECT a.product_id AS san_pham_1, b.product_id AS san_pham_2, COUNT(*) AS so_khach
+FROM sp a
+JOIN sp b ON b.party_id = a.party_id AND a.product_id <> b.product_id
+GROUP BY a.product_id, b.product_id
+ORDER BY so_khach DESC, san_pham_1, san_pham_2;
+
+-- [aivb-j6-cap-san-pham-vay-cung-khach] wrong: dem_trung_ho_so
+SELECT a.product_id AS san_pham_1, b.product_id AS san_pham_2, COUNT(*) AS so_khach
+FROM core_loan_application a
+JOIN core_loan_application b ON b.party_id = a.party_id AND a.product_id < b.product_id
+WHERE a.application_status = 'APPROVED' AND b.application_status = 'APPROVED'
+GROUP BY a.product_id, b.product_id
+ORDER BY so_khach DESC, san_pham_1, san_pham_2;
+
+-- [aivb-j6-cap-san-pham-vay-cung-khach] wrong: gom_ho_so_bi_tu_choi
+WITH sp AS (SELECT DISTINCT party_id, product_id
+            FROM core_loan_application)
+SELECT a.product_id AS san_pham_1, b.product_id AS san_pham_2, COUNT(*) AS so_khach
+FROM sp a
+JOIN sp b ON b.party_id = a.party_id AND a.product_id < b.product_id
+GROUP BY a.product_id, b.product_id
+ORDER BY so_khach DESC, san_pham_1, san_pham_2;
 
 -- [aivb-j7-chu-so-huu-tai-khoan-da-dong] starter
 SELECT a.account_id, a.close_date, ap.party_id
@@ -207,7 +273,7 @@ SELECT o.channel_code,
 FROM core_account_posting p
 JOIN core_payment_order o ON o.payment_order_id = p.payment_order_id
 WHERE o.payment_status = 'COMPLETED'
-  AND p.transaction_date >= '2026-12-01'
+  AND p.transaction_date >= '2026-12-31'
 GROUP BY o.channel_code
 ORDER BY o.channel_code;
 
@@ -218,7 +284,7 @@ SELECT o.channel_code,
 FROM core_account_posting p
 JOIN core_payment_order o ON o.payment_order_id = p.payment_order_id
 WHERE o.payment_status = 'COMPLETED'
-  AND p.transaction_date >= '2026-12-01' AND p.transaction_date < '2027-01-01'
+  AND p.transaction_date >= '2026-12-31' AND p.transaction_date < '2027-01-01'
 GROUP BY o.channel_code
 ORDER BY o.channel_code;
 
@@ -229,7 +295,7 @@ SELECT o.channel_code,
 FROM core_account_posting p
 JOIN core_payment_order o ON o.payment_order_id = p.payment_order_id
 WHERE o.payment_status = 'COMPLETED'
-  AND p.transaction_date >= '2026-12-01'
+  AND p.transaction_date >= '2026-12-31'
 GROUP BY o.channel_code
 ORDER BY o.channel_code;
 
@@ -239,7 +305,7 @@ SELECT o.channel_code,
        SUM(CASE WHEN p.debit_credit = 'CREDIT' THEN p.amount ELSE -p.amount END) AS dong_tien_rong
 FROM core_account_posting p
 JOIN core_payment_order o ON o.payment_order_id = p.payment_order_id
-WHERE p.transaction_date >= '2026-12-01' AND p.transaction_date < '2027-01-01'
+WHERE p.transaction_date >= '2026-12-31' AND p.transaction_date < '2027-01-01'
 GROUP BY o.channel_code
 ORDER BY o.channel_code;
 
@@ -247,8 +313,8 @@ ORDER BY o.channel_code;
 SELECT COUNT(DISTINCT l.loan_id) AS so_khoan_vay,
        SUM(ia.accrued_amount) AS tong_lai_du_thu
 FROM core_interest_accrual ia
-LEFT JOIN core_loan_contract l ON l.contract_id = ia.contract_id
-WHERE ia.accrual_date >= '2026-01-01';
+JOIN core_loan_contract l ON l.loan_id = ia.contract_id
+WHERE ia.accrual_date >= '2026-01-01' AND ia.accrual_date < '2027-01-01';
 
 -- [aivb-j9-lai-du-thu-cho-vay-2026] solution
 SELECT COUNT(DISTINCT l.loan_id) AS so_khoan_vay,
@@ -257,14 +323,14 @@ FROM core_interest_accrual ia
 JOIN core_loan_contract l ON l.contract_id = ia.contract_id
 WHERE ia.accrual_date >= '2026-01-01' AND ia.accrual_date < '2027-01-01';
 
--- [aivb-j9-lai-du-thu-cho-vay-2026] wrong: inner_join_thieu_can_tren
+-- [aivb-j9-lai-du-thu-cho-vay-2026] wrong: chi_doi_sang_left_join
 SELECT COUNT(DISTINCT l.loan_id) AS so_khoan_vay,
        SUM(ia.accrued_amount) AS tong_lai_du_thu
 FROM core_interest_accrual ia
-JOIN core_loan_contract l ON l.contract_id = ia.contract_id
-WHERE ia.accrual_date >= '2026-01-01';
+LEFT JOIN core_loan_contract l ON l.loan_id = ia.contract_id
+WHERE ia.accrual_date >= '2026-01-01' AND ia.accrual_date < '2027-01-01';
 
--- [aivb-j9-lai-du-thu-cho-vay-2026] wrong: left_join_co_can_tren
+-- [aivb-j9-lai-du-thu-cho-vay-2026] wrong: left_join_dung_khoa
 SELECT COUNT(DISTINCT l.loan_id) AS so_khoan_vay,
        SUM(ia.accrued_amount) AS tong_lai_du_thu
 FROM core_interest_accrual ia
@@ -289,200 +355,266 @@ WHERE loan_status = 'ACTIVE'
   AND outstanding > (SELECT AVG(outstanding) FROM core_loan_contract)
 ORDER BY outstanding DESC, loan_id;
 
--- [aivb-q2-khach-co-khoan-vay-qua-han] solution
-SELECT p.party_id, p.legal_name
-FROM core_party p
-WHERE p.party_id IN (SELECT a.party_id
-                     FROM core_loan_application a
-                     JOIN core_loan_contract l ON l.application_id = a.application_id
-                     JOIN core_loan_schedule s ON s.loan_id = l.loan_id
-                     WHERE s.schedule_status = 'OVERDUE')
-ORDER BY p.party_id;
+-- [aivb-q2-khoan-vay-co-ky-qua-han] solution
+SELECT l.loan_id, l.loan_status, l.outstanding
+FROM core_loan_contract l
+WHERE l.loan_id IN (SELECT s.loan_id
+                    FROM core_loan_schedule s
+                    WHERE s.schedule_status = 'OVERDUE')
+ORDER BY l.loan_id;
 
--- [aivb-q2-khach-co-khoan-vay-qua-han] wrong: join_lap_dong
-SELECT p.party_id, p.legal_name
-FROM core_party p
-JOIN core_loan_application a ON a.party_id = p.party_id
-JOIN core_loan_contract l ON l.application_id = a.application_id
+-- [aivb-q2-khoan-vay-co-ky-qua-han] wrong: join_lap_dong
+SELECT l.loan_id, l.loan_status, l.outstanding
+FROM core_loan_contract l
 JOIN core_loan_schedule s ON s.loan_id = l.loan_id
 WHERE s.schedule_status = 'OVERDUE'
-ORDER BY p.party_id;
+ORDER BY l.loan_id;
 
--- [aivb-q2-khach-co-khoan-vay-qua-han] wrong: chi_xet_trang_thai_delinquent
-SELECT p.party_id, p.legal_name
-FROM core_party p
-WHERE p.party_id IN (SELECT a.party_id
-                     FROM core_loan_application a
-                     JOIN core_loan_contract l ON l.application_id = a.application_id
-                     WHERE l.loan_status = 'DELINQUENT')
-ORDER BY p.party_id;
-
--- [aivb-q3-tien-gui-lai-cao-hon-ky-han] solution
-SELECT d.deposit_id, d.term_months,
-       ROUND(d.interest_rate * 100, 2) AS lai_suat_pct,
-       ROUND((SELECT AVG(x.interest_rate) FROM core_deposit_contract x
-              WHERE x.deposit_status = 'ACTIVE' AND x.term_months = d.term_months) * 100, 2) AS lai_suat_bq_pct
-FROM core_deposit_contract d
-WHERE d.deposit_status = 'ACTIVE'
-  AND d.interest_rate >= 0.005 + (SELECT AVG(x.interest_rate) FROM core_deposit_contract x
-                                  WHERE x.deposit_status = 'ACTIVE' AND x.term_months = d.term_months)
-ORDER BY d.term_months, d.deposit_id;
-
--- [aivb-q3-tien-gui-lai-cao-hon-ky-han] wrong: khong_tuong_quan_ky_han
-SELECT d.deposit_id, d.term_months,
-       ROUND(d.interest_rate * 100, 2) AS lai_suat_pct,
-       ROUND((SELECT AVG(x.interest_rate) FROM core_deposit_contract x
-              WHERE x.deposit_status = 'ACTIVE') * 100, 2) AS lai_suat_bq_pct
-FROM core_deposit_contract d
-WHERE d.deposit_status = 'ACTIVE'
-  AND d.interest_rate >= 0.005 + (SELECT AVG(x.interest_rate) FROM core_deposit_contract x
-                                  WHERE x.deposit_status = 'ACTIVE')
-ORDER BY d.term_months, d.deposit_id;
-
--- [aivb-q4-ho-so-de-nghi-lon-nhat] solution
-SELECT a.product_id, a.application_id, a.application_date, a.requested_amount
-FROM core_loan_application a
-WHERE a.requested_amount = (SELECT MAX(b.requested_amount)
-                            FROM core_loan_application b
-                            WHERE b.product_id = a.product_id)
-ORDER BY a.product_id, a.application_id;
-
--- [aivb-q4-ho-so-de-nghi-lon-nhat] wrong: max_toan_bang
-SELECT a.product_id, a.application_id, a.application_date, a.requested_amount
-FROM core_loan_application a
-WHERE a.requested_amount = (SELECT MAX(b.requested_amount) FROM core_loan_application b)
-ORDER BY a.product_id, a.application_id;
-
--- [aivb-q4-ho-so-de-nghi-lon-nhat] wrong: mot_ho_so_moi_san_pham
-SELECT t.product_id,
-       (SELECT MIN(a.application_id) FROM core_loan_application a
-        WHERE a.product_id = t.product_id AND a.requested_amount = t.mx) AS application_id,
-       (SELECT MIN(a.application_date) FROM core_loan_application a
-        WHERE a.product_id = t.product_id AND a.requested_amount = t.mx) AS application_date,
-       t.mx AS requested_amount
-FROM (SELECT product_id, MAX(requested_amount) AS mx
-      FROM core_loan_application
-      GROUP BY product_id) t
-ORDER BY t.product_id, application_id;
-
--- [aivb-q5-pheu-khach-vay] solution
-SELECT 1 AS buoc, 'khach_hoat_dong' AS ten_buoc, COUNT(*) AS so_khach
-FROM core_customer c
-WHERE c.customer_status = 'ACTIVE'
-  AND c.segment_code IN (SELECT segment_code FROM ref_segment WHERE party_type = 'PERSON')
-UNION ALL
-SELECT 2, 'co_ho_so_vay', COUNT(*)
-FROM core_customer c
-WHERE c.customer_status = 'ACTIVE'
-  AND c.segment_code IN (SELECT segment_code FROM ref_segment WHERE party_type = 'PERSON')
-  AND EXISTS (SELECT 1 FROM core_loan_application a WHERE a.party_id = c.party_id)
-UNION ALL
-SELECT 3, 'co_ho_so_duoc_duyet', COUNT(*)
-FROM core_customer c
-WHERE c.customer_status = 'ACTIVE'
-  AND c.segment_code IN (SELECT segment_code FROM ref_segment WHERE party_type = 'PERSON')
-  AND EXISTS (SELECT 1 FROM core_loan_application a
-              WHERE a.party_id = c.party_id AND a.application_status = 'APPROVED')
-UNION ALL
-SELECT 4, 'co_khoan_vay', COUNT(*)
-FROM core_customer c
-WHERE c.customer_status = 'ACTIVE'
-  AND c.segment_code IN (SELECT segment_code FROM ref_segment WHERE party_type = 'PERSON')
-  AND EXISTS (SELECT 1 FROM core_loan_application a
-              JOIN core_loan_contract l ON l.application_id = a.application_id
-              WHERE a.party_id = c.party_id)
-ORDER BY buoc;
-
--- [aivb-q5-pheu-khach-vay] wrong: dem_ho_so_thay_khach
-SELECT 1 AS buoc, 'khach_hoat_dong' AS ten_buoc, COUNT(*) AS so_khach
-FROM core_customer c
-WHERE c.customer_status = 'ACTIVE'
-  AND c.segment_code IN (SELECT segment_code FROM ref_segment WHERE party_type = 'PERSON')
-UNION ALL
-SELECT 2, 'co_ho_so_vay', COUNT(*)
-FROM core_loan_application a
-WHERE a.party_id IN (SELECT party_id FROM core_customer WHERE customer_status = 'ACTIVE' AND segment_code IN (SELECT segment_code FROM ref_segment WHERE party_type = 'PERSON'))
-UNION ALL
-SELECT 3, 'co_ho_so_duoc_duyet', COUNT(*)
-FROM core_loan_application a
-WHERE a.application_status = 'APPROVED'
-  AND a.party_id IN (SELECT party_id FROM core_customer WHERE customer_status = 'ACTIVE' AND segment_code IN (SELECT segment_code FROM ref_segment WHERE party_type = 'PERSON'))
-UNION ALL
-SELECT 4, 'co_khoan_vay', COUNT(*)
+-- [aivb-q2-khoan-vay-co-ky-qua-han] wrong: chi_xet_trang_thai_delinquent
+SELECT l.loan_id, l.loan_status, l.outstanding
 FROM core_loan_contract l
-JOIN core_loan_application a ON a.application_id = l.application_id
-WHERE a.party_id IN (SELECT party_id FROM core_customer WHERE customer_status = 'ACTIVE' AND segment_code IN (SELECT segment_code FROM ref_segment WHERE party_type = 'PERSON'))
-ORDER BY buoc;
+WHERE l.loan_status = 'DELINQUENT'
+ORDER BY l.loan_id;
 
--- [aivb-q5-pheu-khach-vay] wrong: buoc_4_bang_buoc_3
-SELECT 1 AS buoc, 'khach_hoat_dong' AS ten_buoc, COUNT(*) AS so_khach
-FROM core_customer c
-WHERE c.customer_status = 'ACTIVE'
-  AND c.segment_code IN (SELECT segment_code FROM ref_segment WHERE party_type = 'PERSON')
-UNION ALL
-SELECT 2, 'co_ho_so_vay', COUNT(*)
-FROM core_customer c
-WHERE c.customer_status = 'ACTIVE'
-  AND c.segment_code IN (SELECT segment_code FROM ref_segment WHERE party_type = 'PERSON')
-  AND EXISTS (SELECT 1 FROM core_loan_application a WHERE a.party_id = c.party_id)
-UNION ALL
-SELECT 3, 'co_ho_so_duoc_duyet', COUNT(*)
-FROM core_customer c
-WHERE c.customer_status = 'ACTIVE'
-  AND c.segment_code IN (SELECT segment_code FROM ref_segment WHERE party_type = 'PERSON')
-  AND EXISTS (SELECT 1 FROM core_loan_application a
-              WHERE a.party_id = c.party_id AND a.application_status = 'APPROVED')
-UNION ALL
-SELECT 4, 'co_khoan_vay', COUNT(*)
-FROM core_customer c
-WHERE c.customer_status = 'ACTIVE'
-  AND c.segment_code IN (SELECT segment_code FROM ref_segment WHERE party_type = 'PERSON')
-  AND EXISTS (SELECT 1 FROM core_loan_application a
-              WHERE a.party_id = c.party_id AND a.application_status = 'APPROVED')
-ORDER BY buoc;
+-- [aivb-q3-tien-gui-lon-gap-10-binh-quan] solution
+SELECT deposit_id, term_months, deposit_status, principal
+FROM core_deposit_contract
+WHERE principal > 10 * (SELECT AVG(principal) FROM core_deposit_contract)
+ORDER BY principal DESC, deposit_id;
+
+-- [aivb-q3-tien-gui-lon-gap-10-binh-quan] wrong: quen_he_so_10
+SELECT deposit_id, term_months, deposit_status, principal
+FROM core_deposit_contract
+WHERE principal > (SELECT AVG(principal) FROM core_deposit_contract)
+ORDER BY principal DESC, deposit_id;
+
+-- [aivb-q3-tien-gui-lon-gap-10-binh-quan] wrong: binh_quan_chi_hop_dong_active
+SELECT deposit_id, term_months, deposit_status, principal
+FROM core_deposit_contract
+WHERE principal > 10 * (SELECT AVG(principal) FROM core_deposit_contract WHERE deposit_status = 'ACTIVE')
+ORDER BY principal DESC, deposit_id;
+
+-- [aivb-q4-ho-so-vay-dau-tien] solution
+SELECT f.product_id,
+       COUNT(*) AS so_khach,
+       SUM(CASE WHEN f.application_status = 'APPROVED' THEN 1 ELSE 0 END) AS so_duoc_duyet,
+       ROUND(100 * SUM(CASE WHEN f.application_status = 'APPROVED' THEN 1 ELSE 0 END) / COUNT(*), 2) AS ty_le_duyet_pct
+FROM core_loan_application f
+WHERE f.application_id = (SELECT b.application_id
+                          FROM core_loan_application b
+                          WHERE b.party_id = f.party_id
+                          ORDER BY b.application_date, b.application_id
+                          LIMIT 1)
+GROUP BY f.product_id
+ORDER BY so_khach DESC, f.product_id;
+
+-- [aivb-q4-ho-so-vay-dau-tien] wrong: min_ma_ho_so
+SELECT f.product_id,
+       COUNT(*) AS so_khach,
+       SUM(CASE WHEN f.application_status = 'APPROVED' THEN 1 ELSE 0 END) AS so_duoc_duyet,
+       ROUND(100 * SUM(CASE WHEN f.application_status = 'APPROVED' THEN 1 ELSE 0 END) / COUNT(*), 2) AS ty_le_duyet_pct
+FROM core_loan_application f
+WHERE f.application_id = (SELECT MIN(b.application_id)
+                          FROM core_loan_application b
+                          WHERE b.party_id = f.party_id)
+GROUP BY f.product_id
+ORDER BY so_khach DESC, f.product_id;
+
+-- [aivb-q4-ho-so-vay-dau-tien] wrong: dau_tien_theo_chu_the_va_san_pham
+SELECT f.product_id,
+       COUNT(*) AS so_khach,
+       SUM(CASE WHEN f.application_status = 'APPROVED' THEN 1 ELSE 0 END) AS so_duoc_duyet,
+       ROUND(100 * SUM(CASE WHEN f.application_status = 'APPROVED' THEN 1 ELSE 0 END) / COUNT(*), 2) AS ty_le_duyet_pct
+FROM core_loan_application f
+WHERE f.application_date = (SELECT MIN(b.application_date)
+                            FROM core_loan_application b
+                            WHERE b.party_id = f.party_id AND b.product_id = f.product_id)
+GROUP BY f.product_id
+ORDER BY so_khach DESC, f.product_id;
+
+-- [aivb-q4-ho-so-vay-dau-tien] wrong: khong_tuong_quan
+SELECT f.product_id,
+       COUNT(*) AS so_khach,
+       SUM(CASE WHEN f.application_status = 'APPROVED' THEN 1 ELSE 0 END) AS so_duoc_duyet,
+       ROUND(100 * SUM(CASE WHEN f.application_status = 'APPROVED' THEN 1 ELSE 0 END) / COUNT(*), 2) AS ty_le_duyet_pct
+FROM core_loan_application f
+WHERE f.application_date = (SELECT MIN(b.application_date) FROM core_loan_application b)
+GROUP BY f.product_id
+ORDER BY so_khach DESC, f.product_id;
+
+-- [aivb-q5-pheu-khach-vay-2026] solution
+WITH kh AS (SELECT c.party_id
+            FROM core_customer c
+            JOIN ref_segment s ON s.segment_code = c.segment_code
+            WHERE s.party_type = 'PERSON'),
+     hs AS (SELECT application_id, party_id, application_status
+            FROM core_loan_application
+            WHERE application_date >= '2026-01-01' AND application_date < '2027-01-01'),
+     buoc AS (
+       SELECT 1 AS buoc, 'nop_ho_so' AS ten_buoc, COUNT(*) AS so_khach
+       FROM kh WHERE EXISTS (SELECT 1 FROM hs WHERE hs.party_id = kh.party_id)
+       UNION ALL
+       SELECT 2, 'duoc_duyet', COUNT(*)
+       FROM kh WHERE EXISTS (SELECT 1 FROM hs WHERE hs.party_id = kh.party_id AND hs.application_status = 'APPROVED')
+       UNION ALL
+       SELECT 3, 'co_khoan_vay', COUNT(*)
+       FROM kh WHERE EXISTS (SELECT 1 FROM hs JOIN core_loan_contract l ON l.application_id = hs.application_id
+                             WHERE hs.party_id = kh.party_id)
+       UNION ALL
+       SELECT 4, 'tra_no_binh_thuong', COUNT(*)
+       FROM kh WHERE EXISTS (SELECT 1 FROM hs JOIN core_loan_contract l ON l.application_id = hs.application_id
+                             WHERE hs.party_id = kh.party_id AND l.loan_status = 'ACTIVE'))
+SELECT t.buoc, t.ten_buoc, t.so_khach,
+       ROUND(100 * t.so_khach / p.so_khach, 2) AS ty_le_chuyen_doi_pct
+FROM buoc t
+LEFT JOIN buoc p ON p.buoc = t.buoc - 1
+ORDER BY t.buoc;
+
+-- [aivb-q5-pheu-khach-vay-2026] wrong: dem_ho_so_thay_khach
+WITH kh AS (SELECT c.party_id
+            FROM core_customer c
+            JOIN ref_segment s ON s.segment_code = c.segment_code
+            WHERE s.party_type = 'PERSON'),
+     hs AS (SELECT application_id, party_id, application_status
+            FROM core_loan_application
+            WHERE application_date >= '2026-01-01' AND application_date < '2027-01-01'
+              AND party_id IN (SELECT party_id FROM kh)),
+     buoc AS (
+       SELECT 1 AS buoc, 'nop_ho_so' AS ten_buoc, COUNT(*) AS so_khach FROM hs
+       UNION ALL
+       SELECT 2, 'duoc_duyet', COUNT(*) FROM hs WHERE hs.application_status = 'APPROVED'
+       UNION ALL
+       SELECT 3, 'co_khoan_vay', COUNT(*) FROM hs JOIN core_loan_contract l ON l.application_id = hs.application_id
+       UNION ALL
+       SELECT 4, 'tra_no_binh_thuong', COUNT(*) FROM hs JOIN core_loan_contract l ON l.application_id = hs.application_id
+       WHERE l.loan_status = 'ACTIVE')
+SELECT t.buoc, t.ten_buoc, t.so_khach,
+       ROUND(100 * t.so_khach / p.so_khach, 2) AS ty_le_chuyen_doi_pct
+FROM buoc t
+LEFT JOIN buoc p ON p.buoc = t.buoc - 1
+ORDER BY t.buoc;
+
+-- [aivb-q5-pheu-khach-vay-2026] wrong: khoan_vay_cua_ho_so_bat_ky
+WITH kh AS (SELECT c.party_id
+            FROM core_customer c
+            JOIN ref_segment s ON s.segment_code = c.segment_code
+            WHERE s.party_type = 'PERSON'),
+     hs AS (SELECT application_id, party_id, application_status
+            FROM core_loan_application
+            WHERE application_date >= '2026-01-01' AND application_date < '2027-01-01'),
+     buoc AS (
+       SELECT 1 AS buoc, 'nop_ho_so' AS ten_buoc, COUNT(*) AS so_khach
+       FROM kh WHERE EXISTS (SELECT 1 FROM hs WHERE hs.party_id = kh.party_id)
+       UNION ALL
+       SELECT 2, 'duoc_duyet', COUNT(*)
+       FROM kh WHERE EXISTS (SELECT 1 FROM hs WHERE hs.party_id = kh.party_id AND hs.application_status = 'APPROVED')
+       UNION ALL
+       SELECT 3, 'co_khoan_vay', COUNT(*)
+       FROM kh WHERE EXISTS (SELECT 1 FROM hs WHERE hs.party_id = kh.party_id AND hs.application_status = 'APPROVED')
+                 AND EXISTS (SELECT 1 FROM core_loan_application a JOIN core_loan_contract l ON l.application_id = a.application_id
+                             WHERE a.party_id = kh.party_id)
+       UNION ALL
+       SELECT 4, 'tra_no_binh_thuong', COUNT(*)
+       FROM kh WHERE EXISTS (SELECT 1 FROM hs WHERE hs.party_id = kh.party_id AND hs.application_status = 'APPROVED')
+                 AND EXISTS (SELECT 1 FROM core_loan_application a JOIN core_loan_contract l ON l.application_id = a.application_id
+                             WHERE a.party_id = kh.party_id AND l.loan_status = 'ACTIVE'))
+SELECT t.buoc, t.ten_buoc, t.so_khach,
+       ROUND(100 * t.so_khach / p.so_khach, 2) AS ty_le_chuyen_doi_pct
+FROM buoc t
+LEFT JOIN buoc p ON p.buoc = t.buoc - 1
+ORDER BY t.buoc;
+
+-- [aivb-q5-pheu-khach-vay-2026] wrong: con_du_no_thay_tra_binh_thuong
+WITH kh AS (SELECT c.party_id
+            FROM core_customer c
+            JOIN ref_segment s ON s.segment_code = c.segment_code
+            WHERE s.party_type = 'PERSON'),
+     hs AS (SELECT application_id, party_id, application_status
+            FROM core_loan_application
+            WHERE application_date >= '2026-01-01' AND application_date < '2027-01-01'),
+     buoc AS (
+       SELECT 1 AS buoc, 'nop_ho_so' AS ten_buoc, COUNT(*) AS so_khach
+       FROM kh WHERE EXISTS (SELECT 1 FROM hs WHERE hs.party_id = kh.party_id)
+       UNION ALL
+       SELECT 2, 'duoc_duyet', COUNT(*)
+       FROM kh WHERE EXISTS (SELECT 1 FROM hs WHERE hs.party_id = kh.party_id AND hs.application_status = 'APPROVED')
+       UNION ALL
+       SELECT 3, 'co_khoan_vay', COUNT(*)
+       FROM kh WHERE EXISTS (SELECT 1 FROM hs JOIN core_loan_contract l ON l.application_id = hs.application_id
+                             WHERE hs.party_id = kh.party_id)
+       UNION ALL
+       SELECT 4, 'tra_no_binh_thuong', COUNT(*)
+       FROM kh WHERE EXISTS (SELECT 1 FROM hs JOIN core_loan_contract l ON l.application_id = hs.application_id
+                             WHERE hs.party_id = kh.party_id AND l.outstanding > 0))
+SELECT t.buoc, t.ten_buoc, t.so_khach,
+       ROUND(100 * t.so_khach / p.so_khach, 2) AS ty_le_chuyen_doi_pct
+FROM buoc t
+LEFT JOIN buoc p ON p.buoc = t.buoc - 1
+ORDER BY t.buoc;
+
+-- [aivb-q5-pheu-khach-vay-2026] wrong: ty_le_so_voi_buoc_1
+WITH kh AS (SELECT c.party_id
+            FROM core_customer c
+            JOIN ref_segment s ON s.segment_code = c.segment_code
+            WHERE s.party_type = 'PERSON'),
+     hs AS (SELECT application_id, party_id, application_status
+            FROM core_loan_application
+            WHERE application_date >= '2026-01-01' AND application_date < '2027-01-01'),
+     buoc AS (
+       SELECT 1 AS buoc, 'nop_ho_so' AS ten_buoc, COUNT(*) AS so_khach
+       FROM kh WHERE EXISTS (SELECT 1 FROM hs WHERE hs.party_id = kh.party_id)
+       UNION ALL
+       SELECT 2, 'duoc_duyet', COUNT(*)
+       FROM kh WHERE EXISTS (SELECT 1 FROM hs WHERE hs.party_id = kh.party_id AND hs.application_status = 'APPROVED')
+       UNION ALL
+       SELECT 3, 'co_khoan_vay', COUNT(*)
+       FROM kh WHERE EXISTS (SELECT 1 FROM hs JOIN core_loan_contract l ON l.application_id = hs.application_id
+                             WHERE hs.party_id = kh.party_id)
+       UNION ALL
+       SELECT 4, 'tra_no_binh_thuong', COUNT(*)
+       FROM kh WHERE EXISTS (SELECT 1 FROM hs JOIN core_loan_contract l ON l.application_id = hs.application_id
+                             WHERE hs.party_id = kh.party_id AND l.loan_status = 'ACTIVE'))
+SELECT t.buoc, t.ten_buoc, t.so_khach,
+       CASE WHEN t.buoc = 1 THEN NULL
+            ELSE ROUND(100 * t.so_khach / (SELECT so_khach FROM buoc WHERE buoc = 1), 2) END AS ty_le_chuyen_doi_pct
+FROM buoc t
+ORDER BY t.buoc;
 
 -- [aivb-q6-lenh-lon-bat-thuong] solution
-SELECT o.payment_order_id, o.transaction_type, o.channel_code, o.amount,
-       ROUND(t.bq, 0) AS bq_loai,
-       ROUND(o.amount / t.bq, 1) AS boi_so
+SELECT o.payment_order_id, o.channel_code, o.amount
 FROM core_payment_order o
-JOIN (SELECT transaction_type, AVG(amount) AS bq
-      FROM core_payment_order
-      WHERE payment_status = 'COMPLETED'
-        AND transaction_date >= '2026-01-01' AND transaction_date < '2027-01-01'
-      GROUP BY transaction_type) t ON t.transaction_type = o.transaction_type
-WHERE o.payment_status = 'COMPLETED'
+WHERE o.transaction_type = 'TRANSFER'
+  AND o.payment_status = 'COMPLETED'
   AND o.transaction_date = '2026-12-31'
-  AND o.amount > 10 * t.bq
+  AND o.amount > 5 * (SELECT AVG(x.amount)
+                       FROM core_payment_order x
+                       WHERE x.transaction_type = 'TRANSFER'
+                         AND x.payment_status = 'COMPLETED'
+                         AND x.transaction_date = '2026-12-31')
 ORDER BY o.amount DESC, o.payment_order_id;
 
 -- [aivb-q6-lenh-lon-bat-thuong] wrong: binh_quan_moi_loai_giao_dich
-SELECT o.payment_order_id, o.transaction_type, o.channel_code, o.amount,
-       ROUND(t.bq, 0) AS bq_loai,
-       ROUND(o.amount / t.bq, 1) AS boi_so
+SELECT o.payment_order_id, o.channel_code, o.amount
 FROM core_payment_order o
-CROSS JOIN (SELECT AVG(amount) AS bq
-            FROM core_payment_order
-            WHERE payment_status = 'COMPLETED'
-              AND transaction_date >= '2026-01-01' AND transaction_date < '2027-01-01') t
-WHERE o.payment_status = 'COMPLETED'
+WHERE o.transaction_type = 'TRANSFER'
+  AND o.payment_status = 'COMPLETED'
   AND o.transaction_date = '2026-12-31'
-  AND o.amount > 10 * t.bq
+  AND o.amount > 5 * (SELECT AVG(x.amount)
+                       FROM core_payment_order x
+                       WHERE x.payment_status = 'COMPLETED'
+                         AND x.transaction_date = '2026-12-31')
 ORDER BY o.amount DESC, o.payment_order_id;
 
--- [aivb-q6-lenh-lon-bat-thuong] wrong: binh_quan_thieu_can_tren
-SELECT o.payment_order_id, o.transaction_type, o.channel_code, o.amount,
-       ROUND(t.bq, 0) AS bq_loai,
-       ROUND(o.amount / t.bq, 1) AS boi_so
+-- [aivb-q6-lenh-lon-bat-thuong] wrong: quen_loc_ngay_trong_truy_van_con
+SELECT o.payment_order_id, o.channel_code, o.amount
 FROM core_payment_order o
-JOIN (SELECT transaction_type, AVG(amount) AS bq
-      FROM core_payment_order
-      WHERE payment_status = 'COMPLETED'
-        AND transaction_date >= '2026-01-01'
-      GROUP BY transaction_type) t ON t.transaction_type = o.transaction_type
-WHERE o.payment_status = 'COMPLETED'
+WHERE o.transaction_type = 'TRANSFER'
+  AND o.payment_status = 'COMPLETED'
   AND o.transaction_date = '2026-12-31'
-  AND o.amount > 10 * t.bq
+  AND o.amount > 5 * (SELECT AVG(x.amount)
+                       FROM core_payment_order x
+                       WHERE x.transaction_type = 'TRANSFER'
+                         AND x.payment_status = 'COMPLETED')
 ORDER BY o.amount DESC, o.payment_order_id;
 
 -- [aivb-q7-khach-chua-nop-ho-so] starter
@@ -556,7 +688,7 @@ SELECT t.policy_version_id,
        ROUND(MAX(p.approval_rate) * 100, 2) AS ty_le_duyet_chinh_sach_pct
 FROM (SELECT a.application_id, a.application_status,
              (SELECT pv.policy_version_id FROM ref_policy_version pv
-              WHERE a.application_date >= pv.effective_from
+              WHERE a.application_date > pv.effective_from
                 AND a.application_date < pv.effective_to) AS policy_version_id
       FROM core_loan_application a) t
 JOIN ref_policy_version p ON p.policy_version_id = t.policy_version_id
@@ -571,6 +703,20 @@ SELECT t.policy_version_id,
 FROM (SELECT a.application_id, a.application_status,
              (SELECT pv.policy_version_id FROM ref_policy_version pv
               WHERE a.application_date >= pv.effective_from
+                AND a.application_date <= pv.effective_to) AS policy_version_id
+      FROM core_loan_application a) t
+JOIN ref_policy_version p ON p.policy_version_id = t.policy_version_id
+GROUP BY t.policy_version_id
+ORDER BY t.policy_version_id;
+
+-- [aivb-q9-chinh-sach-hieu-luc-ngay-nop] wrong: chi_sua_can_tren
+SELECT t.policy_version_id,
+       COUNT(*) AS so_ho_so,
+       ROUND(100 * SUM(CASE WHEN t.application_status = 'APPROVED' THEN 1 ELSE 0 END) / COUNT(*), 2) AS ty_le_duyet_pct,
+       ROUND(MAX(p.approval_rate) * 100, 2) AS ty_le_duyet_chinh_sach_pct
+FROM (SELECT a.application_id, a.application_status,
+             (SELECT pv.policy_version_id FROM ref_policy_version pv
+              WHERE a.application_date > pv.effective_from
                 AND a.application_date <= pv.effective_to) AS policy_version_id
       FROM core_loan_application a) t
 JOIN ref_policy_version p ON p.policy_version_id = t.policy_version_id

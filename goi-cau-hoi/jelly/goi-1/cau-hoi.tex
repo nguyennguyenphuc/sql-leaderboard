@@ -26,15 +26,7 @@
 % ---------------------------------------------------------------- khái niệm (từ STYLE-jelly.md mục E, chỉ các khái niệm gói này dùng)
 % \khaibaokhainiem{ma}{Tên}{Định nghĩa}{Công thức}{Trong bộ dữ liệu}
 
-% --- Người chơi, phiên chơi, phiên bản
-\khaibaokhainiem{dau}{DAU (số người chơi hoạt động trong ngày)}
-  {DAU là số người chơi khác nhau có mở game ít nhất một lần trong một ngày.}
-  {số user\_id khác nhau có hoạt động trong ngày}
-  {bảng \code{player_daily}: mỗi dòng là một người chơi trong một ngày có hoạt động; \code{daily_kpi.dau} là số tổng hợp sẵn, khớp với cách đếm này.}
-\khaibaokhainiem{phien-choi}{Phiên chơi và thời lượng phiên}
-  {Phiên chơi là một lần người chơi mở game cho tới khi rời đi. Thời lượng phiên là số phút của phiên đó.}
-  {thời lượng phiên bình quân = tổng duration\_minutes / số phiên}
-  {\code{sessions}; mã phiên có hai dạng, phiên hướng dẫn có \code{entry_screen} = \code{'tutorial'}.}
+% --- Phiên bản, chất lượng ứng dụng
 \khaibaokhainiem{phien-ban-luc-choi}{Phiên bản lúc chơi và lúc cài}
   {Phiên bản lúc chơi là phiên bản ứng dụng người chơi dùng trong ngày hoạt động; người chơi có thể cập nhật sau khi cài.}
   {}
@@ -57,10 +49,6 @@
   {Người chơi trả tiền là người có ít nhất một giao dịch mua trong ứng dụng trong kỳ xét.}
   {số user\_id khác nhau có giao dịch}
   {\code{purchases}; một người có thể có nhiều giao dịch. Theo ngày, người chơi trả tiền là người có \code{player_daily.iap_revenue} lớn hơn 0.}
-\khaibaokhainiem{arpdau}{ARPDAU}
-  {ARPDAU là doanh thu bình quân trên một người chơi hoạt động trong ngày.}
-  {(doanh thu IAP + doanh thu quảng cáo) / DAU}
-  {\code{daily_kpi.arpdau} làm tròn 4 chữ số. ARPDAU của nhiều ngày tính bằng tổng doanh thu chia tổng DAU, không lấy trung bình cột \code{arpdau}.}
 
 % --- Thử nghiệm
 \khaibaokhainiem{thu-nghiem-ab}{Thử nghiệm A/B theo nhánh được chia}
@@ -102,49 +90,59 @@ Gói chờ giảng viên duyệt. Khung xanh nét đứt (\emph{Thiết kế ERD
 \ghichuthietke{Cơ bản: 1 bảng có giá trị mẫu (ngày mẫu tự đặt khác ngày hỏi). Bẫy ở public: quên điều kiện thị trường lấy người cài ở cả 8 thị trường; ghi tên nước \code{'Vietnam'} ra 0 dòng. hidden-1 bỏ người chơi có mã tận cùng bằng 7, nên danh sách khác public, chép kết quả Chạy thử sẽ rớt.}
 \end{cauhoi}
 
-% ================================================================ R2 · Viết · Cơ bản · A1 · sales
-\begin{cauhoi}[ma=jelly-r2-giao-dich-season-pass, dulieu=jelly, domain=sales,
-  hinhthuc=write, cap=basic, dang=A1, kynang={WHERE, ORDER BY}, bay={sai-cot-loc, thieu-can-tren},
+% ================================================================ R2 · Viết · Trung bình · A1 · sales
+\begin{cauhoi}[ma=jelly-r2-goi-tam-trung-chau-my, dulieu=jelly, domain=sales,
+  hinhthuc=write, cap=medium, dang=A1, kynang={IN, BETWEEN, khoảng thời điểm nửa mở}, bay={between-tren-thoi-diem, thu-tu-and-or, bien-duoi-khoang-gia},
   tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
-\tieude{Ai mua Season Pass trong tháng 7?}
-\boicanh[Anh Huy · Quản lý doanh thu]{Đợt Season Pass tháng 7 vừa kết thúc. Anh muốn gửi quà cảm ơn người chơi đã mua gói này, nên cần danh sách giao dịch Season Pass trong tháng.}
+\tieude{Ai ở Mỹ và Brazil mua gói tầm trung tuần cuối tháng 7?}
+\boicanh[Anh Huy · Quản lý doanh thu]{Anh định gửi quà cảm ơn người chơi ở Mỹ và Brazil đã mua gói tầm trung trong tuần cuối tháng 7. Em lập giúp anh danh sách các giao dịch đó, có cả thời điểm mua để anh đối chiếu với cửa hàng ứng dụng.}
 \begin{yeucau}
-  \item Xét giao dịch gói Season Pass (\code{product_type} là \code{'season_pass'}) trong tháng 7/2026.
-  \item Trả về \code{transaction_id}, \code{user_id}, \code{event_time}.
+  \item Xét các giao dịch mua gói tầm trung (định nghĩa ở tab Nghiệp vụ) ở thị trường Mỹ (\code{'US'}) và Brazil (\code{'BR'}), có thời điểm giao dịch (\code{event_time}) từ 0 giờ ngày 25/7/2026 tới hết ngày 31/7/2026.
+  \item Trả về \code{transaction_id}, \code{user_id}, \code{country}, \code{product_name}, \code{event_time}.
   \item Sắp \code{event_time} tăng dần; cùng thời điểm thì \code{transaction_id} nhỏ hơn đứng trước.
 \end{yeucau}
 \begin{erd}
-  \erdbang{purchases}{0,0}{transaction_id:PK, user_id:FK, event_date*=2026-07-20, event_time*=2026-07-20 19:42:05, product_type*='season_pass', product_name='Season Pass', price_usd=9.99}
+  \erdbang{purchases}{0,0}{transaction_id:PK, user_id:FK, event_time*, product_name*, price_usd*, country*, level_id_if_relevant:FK}
+  \erdbang{users}{1,0}{user_id:PK, install_date, country}
+  \erdbang{level_metadata}{1,1}{level_id:PK, world_name}
+  \erdnoi[kieu=n-1]{purchases.user_id}{users.user_id}
+  \erdnoi[kieu=n-1]{purchases.level_id_if_relevant}{level_metadata.level_id}
 \end{erd}
-\begin{nghiepvu}{Lập danh sách người chơi nhận quà cảm ơn khi đợt Season Pass tháng 7 kết thúc.}
+\begin{nghiepvu}{Lập danh sách người chơi nhận quà cảm ơn sau tuần mua sắm cuối tháng 7.}
   \khainiem{doanh-thu-iap}
-  \luuy{\code{product_type} là mã gói, viết thường và nối bằng gạch dưới; \code{product_name} là tên gói hiện trong cửa hàng của game. Hai cột ghi cùng một gói theo hai cách khác nhau.}
+  \luuy{Giá niêm yết của năm gói: Starter Pack 0,99 USD, Extra Moves Pack 1,99 USD, Piggy Bank 2,99 USD, Booster Bundle 4,99 USD, Season Pass 9,99 USD. Gói tầm trung là gói có giá từ 2,99 USD tới 4,99 USD, tính cả hai mức này. Cột \code{event_time} ghi cả ngày lẫn giờ của giao dịch.}
 \end{nghiepvu}
-\goiy{So giá trị mẫu của \code{product_type} và \code{product_name} trong ERD. Giá trị \code{'season_pass'} thuộc cột nào?}
-\goiy{Lọc \code{product_type = 'season_pass'} và \code{event_date} từ \code{'2026-07-01'} tới trước \code{'2026-08-01'}.}
-\ghichuthietke{Cơ bản: 1 bảng có giá trị mẫu. Bẫy ở public: lọc \code{product_name = 'season_pass'} ra 0 dòng (collation không phân biệt hoa thường nhưng dấu gạch dưới khác dấu cách); thiếu cận trên lấy cả giao dịch Season Pass tháng 8. hidden-1 bỏ khoảng 10\% người chơi nên danh sách khác public.}
+\goiy{Giao dịch lúc 20 giờ ngày 31/7 có thoả điều kiện \code{event_time <= '2026-07-31'} không?}
+\goiy{\code{event_time >= '2026-07-25' AND event_time < '2026-08-01'}.}
+\ghichuthietke{Trung bình. 5 trục: 1 bảng; 1 tầng lọc; nhóm gói tầm trung phải tra ở tab Nghiệp vụ; 2 bẫy; điều kiện theo thời điểm có giờ. ERD 3 bảng, chỉ ký hiệu n-1 (CHOT mục 3); Module 1 chưa học nối bảng nên lời giải dùng 1 bảng, hai bảng còn lại là bảng nhiễu. v4: viết lại từ câu Cơ bản ``Ai mua Season Pass trong tháng 7?''. Bẫy ở public: \code{BETWEEN '2026-07-25' AND '2026-07-31'} trên cột có giờ chỉ lấy tới 0 giờ ngày 31/7, mất các giao dịch trong ngày 31/7; ghép hai thị trường bằng \code{OR} không ngoặc lấy mọi giao dịch ở Mỹ; lọc giá \code{> 2.99} mất gói Piggy Bank. hidden-1 bỏ khoảng 10\% người chơi nên danh sách khác public.}
 \end{cauhoi}
 
-% ================================================================ R3 · Viết · Cơ bản · A1 · operations
-\begin{cauhoi}[ma=jelly-r3-man-sieu-kho, dulieu=jelly, domain=operations,
-  hinhthuc=write, cap=basic, dang=A1, kynang={WHERE, ORDER BY}, bay={like-rong, sai-gia-tri-loc},
+% ================================================================ R3 · Viết · Khó · A1 · after_sales
+\begin{cauhoi}[ma=jelly-r3-luot-bat-thuong-volcano, dulieu=jelly, domain=after_sales,
+  hinhthuc=write, cap=hard, dang=A1, kynang={IN, AND/OR, lọc nhiều điều kiện}, bay={thu-tu-and-or, bo-dieu-kien-do-kho, chep-danh-sach-man},
   tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
-\tieude{Màn nào được gắn nhãn siêu khó?}
-\boicanh[Anh Khoa · Thiết kế màn chơi]{Trước khi thiết kế thế giới mới, anh muốn xem lại các màn khó nhất của game. Em liệt kê giúp anh những màn có nhãn siêu khó, kèm thế giới và số lượt đi tối đa.}
+\tieude{Lượt chơi kết thúc bất thường ở Chocolate Volcano trên Android 2.1.1}
+\boicanh[Chị Linh · Kỹ sư QA]{Từ khi có bản 2.1.1, người chơi Android ở Đông Nam Á báo ở các màn khó của thế giới Chocolate Volcano, ứng dụng hay tự thoát, có lúc chơi dở phải bỏ ngang. Chị cần danh sách những lượt chơi như vậy để nhóm tái hiện lỗi.}
 \begin{yeucau}
-  \item Xét các màn có nhãn độ khó (\code{difficulty_tag}) là siêu khó.
-  \item Trả về \code{level_id}, \code{world_name}, \code{moves_limit}.
-  \item Sắp \code{level_id} tăng dần.
+  \item Lấy các lượt chơi kết thúc bất thường ở những màn khó trở lên của thế giới Chocolate Volcano, do người chơi Android ở Đông Nam Á chơi trên bản 2.1.1. Các khái niệm này được định nghĩa ở tab Nghiệp vụ.
+  \item Trả về \code{attempt_id}, \code{event_time}, \code{country}, \code{level_id}, \code{result}.
+  \item Sắp \code{event_time} tăng dần; cùng thời điểm thì \code{attempt_id} nhỏ hơn đứng trước.
 \end{yeucau}
 \begin{erd}
-  \erdbang{level_metadata}{0,0}{level_id:PK, episode, world_name*='Jelly Jungle', difficulty_tag*='hard', moves_limit*=29, designed_fail_probability}
+  \erdbang{level_attempts}{0,0}{attempt_id:PK, user_id:FK, session_id:FK, level_id:FK}
+  \erdbang{level_metadata}{1,0}{level_id:PK}
+  \erdbang{sessions}{2,0}{session_id:PK, user_id:FK}
+  \erdbang{users}{0,1}{user_id:PK}
+  \erdbang{booster_events}{1,1}{booster_event_id:PK, attempt_id:FK}
+  \erdkhoa{\code{level_attempts} đã ghi sẵn thế giới, nhãn độ khó, kết quả, phiên bản, nền tảng và thị trường của từng lượt chơi, nên chỉ cần bảng này. \code{level_metadata} nối theo \code{level_id}, \code{sessions} theo \code{session_id}, \code{users} theo \code{user_id}, \code{booster_events} theo \code{attempt_id}; các bảng này không cần.}
 \end{erd}
-\begin{nghiepvu}{Xác định màn cần xem lại số lượt đi và mục tiêu trước khi thiết kế thế giới mới.}
-  \luuy{Nhãn độ khó có ba mức: \code{'normal'} (thường), \code{'hard'} (khó) và \code{'super_hard'} (siêu khó). Mỗi màn chỉ mang một nhãn.}
+\begin{nghiepvu}{Xác định các lượt chơi cần tái hiện để tìm lỗi của bản 2.1.1 trên Android.}
+  \khainiem{phien-ban-luc-choi}
+  \luuy{Lượt chơi kết thúc bất thường là lượt người chơi bỏ cuộc (\code{'quit'}) hoặc gặp sự cố khiến ứng dụng tự thoát (\code{'crash'}). Màn khó trở lên là màn có nhãn độ khó \code{'hard'} hoặc \code{'super_hard'}; nhóm thiết kế có thể đổi nhãn khi chỉnh màn. Đông Nam Á gồm bốn thị trường VN, TH, PH, ID.}
 \end{nghiepvu}
-\goiy{So khớp một phần chuỗi theo chữ \code{hard} có lấy cả màn mang nhãn \code{'hard'} không?}
-\goiy{So bằng đúng giá trị: \code{difficulty_tag = 'super_hard'}.}
-\ghichuthietke{Cơ bản: 1 bảng có giá trị mẫu; giá trị mẫu \code{'hard'} là manh mối của bẫy. Đề nói ``siêu khó'' bằng lời, học viên tự tra giá trị trong tab Nghiệp vụ. Bẫy ở public: \code{LIKE} có ký tự đại diện hai đầu lấy cả 4 màn \code{'hard'}; lọc khác \code{'normal'} cũng lấy cả hai nhãn. hidden-1 đổi nhãn màn 45 từ \code{'hard'} thành \code{'super_hard'} (5 dòng thay vì 4), nên bài chép 4 mã màn từ lần Chạy thử rớt.}
+\goiy{Viết mỗi khái niệm của đề thành một điều kiện. Khái niệm nào gồm hai giá trị thì đặt cả hai giá trị trong \code{IN} hoặc trong ngoặc.}
+\goiy{\code{difficulty_tag IN ('hard', 'super_hard') AND result IN ('quit', 'crash')}.}
+\ghichuthietke{Khó. 5 trục: 1 bảng; 1 tầng lọc với sáu điều kiện; đề nói bằng lời nghiệp vụ, học viên tự đổi ra cột và giá trị; 3 bẫy, một bẫy chỉ lộ ở hidden-1; định nghĩa nhiều điều kiện. ERD 5 bảng chỉ khoá, không vẽ đường nối, 4 bảng nhiễu (lời giải dùng 1 bảng, thêm cho đủ 5 như mẫu d4). v4: viết lại từ câu Cơ bản ``Màn nào được gắn nhãn siêu khó?'', đổi mảng sang \code{after_sales} (sự cố sau bản cập nhật). Bẫy ở public: \code{OR} không ngoặc giữa hai kết quả lấy mọi lượt bỏ cuộc ở mọi màn, mọi thị trường; bỏ điều kiện độ khó lấy cả màn thường. Bẫy chỉ lộ ở hidden-1: ở public các màn khó trở lên của Chocolate Volcano đều mang nhãn \code{'super_hard'}, nên lọc \code{= 'super_hard'} hoặc chép mã màn 46, 60 vẫn qua; hidden-1 đổi màn 59 thành \code{'hard'} (file 04 mục f) và có lượt bỏ cuộc ở màn 59 của người chơi Android ở VN, PH trên bản 2.1.1, nên hai cách này rớt.}
 \end{cauhoi}
 
 % ================================================================ R4 · Viết · Dễ · A1 · marketing
@@ -198,26 +196,31 @@ Gói chờ giảng viên duyệt. Khung xanh nét đứt (\emph{Thiết kế ERD
 \ghichuthietke{Dễ: 2 bảng, chữ trên đường nối; \code{users} có mặt để làm rõ hai cột phiên bản. Có nhiều lượt bằng thời lượng quanh hạng 20 nên đề ghi tiêu chí phụ. Bẫy ở public: lọc theo \code{users.app_version_install} (phiên bản lúc cài) ra danh sách khác; quên điều kiện nền tảng lẫn lượt iOS. hidden-1 bỏ khoảng 10\% lượt chơi nên danh sách khác public.}
 \end{cauhoi}
 
-% ================================================================ R6 · Viết · Cơ bản · B4 · marketing
-\begin{cauhoi}[ma=jelly-r6-su-kien-thang-8, dulieu=jelly, domain=marketing,
-  hinhthuc=write, cap=basic, dang=B4, kynang={WHERE, AND/OR, so sánh ngày}, bay={hoac-thay-va, giao-khoang-ngay},
+% ================================================================ R6 · Viết · Trung bình · B4 · marketing
+\begin{cauhoi}[ma=jelly-r6-su-kien-ky-14-ngay, dulieu=jelly, domain=marketing,
+  hinhthuc=write, cap=medium, dang=B4, kynang={AND, so sánh ngày, giao hai khoảng ngày}, bay={giao-khoang-ngay, hoac-thay-va, can-cuoi-ky},
   tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
-\tieude{Sự kiện LiveOps nào chạy từ 26/7 tới 9/8?}
-\boicanh[Chị Thảo · Trưởng nhóm LiveOps]{Chị đang viết báo cáo vận hành hai tuần từ 26/7 tới 9/8. Em liệt kê giúp chị các sự kiện trong game có ít nhất một ngày chạy trong hai tuần đó.}
+\tieude{Sự kiện LiveOps nào chạy trong kỳ 14 ngày từ 26/7?}
+\boicanh[Chị Thảo · Trưởng nhóm LiveOps]{Chị đang viết báo cáo vận hành cho kỳ 14 ngày bắt đầu từ 26/7. Em liệt kê giúp chị các sự kiện trong game được tính vào kỳ này.}
 \begin{yeucau}
-  \item Xét các sự kiện LiveOps (sự kiện vận hành trực tiếp trong game) có ít nhất một ngày chạy trong khoảng từ 26/7/2026 tới hết 9/8/2026, dựa vào ngày bắt đầu (\code{start_date}) và ngày kết thúc (\code{end_date}).
-  \item Trả về \code{event_name}, \code{start_date}, \code{end_date}.
-  \item Sắp \code{start_date} tăng dần.
+  \item Kỳ báo cáo gồm 14 ngày liền nhau, ngày đầu là 26/7/2026.
+  \item Lấy các sự kiện LiveOps (sự kiện vận hành trực tiếp trong game) được tính vào kỳ báo cáo theo quy tắc ở tab Nghiệp vụ.
+  \item Trả về \code{event_id}, \code{event_name}, \code{start_date}, \code{end_date}.
+  \item Sắp \code{start_date} tăng dần; cùng ngày bắt đầu thì \code{event_id} nhỏ hơn đứng trước.
 \end{yeucau}
 \begin{erd}
-  \erdbang{liveops_events}{0,0}{event_id:PK, event_name*='Weekend Sugar Rush', start_date*=2026-07-10, end_date*=2026-07-12, mechanic}
+  \erdbang{liveops_events}{0,0}{event_id:PK, event_name*, start_date*, end_date*, mechanic}
+  \erdbang{daily_kpi}{1,0}{date:PK, dau}
+  \erdbang{player_daily}{1,1}{user_id:PK, activity_date:PK}
+  \erdnoi[kieu=1-n]{liveops_events.start_date}{daily_kpi.date}
+  \erdnoi[kieu=1-n]{daily_kpi.date}{player_daily.activity_date}
 \end{erd}
-\begin{nghiepvu}{Lập danh sách sự kiện đưa vào báo cáo vận hành hai tuần.}
-  \luuy{Sự kiện LiveOps chạy theo một khoảng ngày. Sự kiện bắt đầu trước kỳ báo cáo, hoặc kết thúc sau kỳ báo cáo, vẫn có ngày chạy trong kỳ.}
+\begin{nghiepvu}{Lập danh sách sự kiện đưa vào báo cáo vận hành của kỳ.}
+  \luuy{Một sự kiện được tính vào kỳ báo cáo khi có ít nhất một ngày chạy nằm trong kỳ, kể cả sự kiện bắt đầu trước ngày đầu kỳ hoặc kết thúc sau ngày cuối kỳ. Sự kiện chạy từ ngày \code{start_date} tới hết ngày \code{end_date}.}
 \end{nghiepvu}
-\goiy{Sự kiện chạy từ 24/7 tới 28/7 có ngày nào nằm trong kỳ không? Ngày bắt đầu của sự kiện đó có nằm trong kỳ không?}
-\goiy{Hai khoảng ngày giao nhau khi sự kiện bắt đầu không muộn hơn ngày cuối kỳ \code{AND} kết thúc không sớm hơn ngày đầu kỳ.}
-\ghichuthietke{Cơ bản: 1 bảng có giá trị mẫu (sự kiện có thật ngoài kỳ). Dạng B4 vì hỏi sự kiện đang chạy trong một khoảng thời gian. v2: đổi kỳ từ tháng 8 sang 26/7 -- 9/8 để có hai sự kiện vắt qua mốc đầu (24/7 -- 28/7) và mốc cuối (8/8 -- 12/8); mã câu giữ nguyên. Bẫy ở public: chỉ xét ngày bắt đầu trong kỳ ra 1 dòng; đòi nằm trọn trong kỳ ra 0 dòng; nối bằng \code{OR} ra 3 dòng. hidden-1 thêm sự kiện Jungle Jam Weekend (31/7 -- 2/8) nằm trọn trong kỳ (3 dòng thay vì 2), nên bài chép kết quả Chạy thử rớt.}
+\goiy{Ngày cuối của kỳ là ngày nào? Sự kiện bắt đầu đúng vào ngày cuối kỳ có được tính không?}
+\goiy{\code{start_date <= '2026-08-08' AND end_date >= '2026-07-26'}.}
+\ghichuthietke{Trung bình. 5 trục: 1 bảng; 1 tầng lọc; học viên tự tính ngày cuối kỳ và tự suy ra điều kiện giao hai khoảng ngày từ tab Nghiệp vụ; 2 bẫy; điều kiện theo thời điểm. ERD 3 bảng, chỉ ký hiệu 1-n; một sự kiện ứng với nhiều ngày của \code{daily_kpi} theo khoảng ngày chạy (không có khoá); lời giải 1 bảng, hai bảng nhiễu. v4: nâng từ Cơ bản (đề cũ ghi sẵn hai mốc 26/7, 9/8 và cách so trong yêu cầu); nay đề chỉ cho ngày đầu và độ dài kỳ, quy tắc tính vào kỳ ở tab Nghiệp vụ. Kỳ kết thúc ngày 8/8, đúng ngày bắt đầu sự kiện Licorice Rescue (8/8 -- 12/8). Bẫy ở public: chỉ xét ngày bắt đầu trong kỳ ra 1 dòng; đòi nằm trọn trong kỳ ra 0 dòng; nối bằng \code{OR} ra 3 dòng; dùng cận cuối mở \code{start_date < '2026-08-08'} (nhầm 8/8 là ngày sau kỳ) mất Licorice Rescue. hidden-1 thêm sự kiện Jungle Jam Weekend (31/7 -- 2/8) nằm trọn trong kỳ (3 dòng thay vì 2).}
 \end{cauhoi}
 
 % ================================================================ R7 · Sửa lỗi · Cơ bản · A1 · customer
@@ -242,7 +245,7 @@ Gói chờ giảng viên duyệt. Khung xanh nét đứt (\emph{Thiết kế ERD
 
 % ================================================================ R8 · Sửa lỗi · Dễ · A1 · sales
 \begin{cauhoi}[ma=jelly-r8-giao-dich-thang-8-thua, dulieu=jelly, domain=sales,
-  hinhthuc=debug, cap=easy, dang=A1, kynang={WHERE, khoảng ngày nửa mở}, bay={thieu-can-tren, between-gom-dau-mut, lon-hon-thay-lon-hon-bang},
+  hinhthuc=debug, cap=easy, dang=A1, kynang={WHERE, khoảng ngày nửa mở}, bay={thieu-can-tren, between-gom-dau-mut, lon-hon-thay-lon-hon-bang, gan-cung-ngay-cuoi},
   tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
 \tieude{Danh sách giao dịch tháng 8 có dòng tháng 9}
 \boicanh[Chị Hà · Kế toán quản trị]{Mỗi sáng chị chạy lại báo cáo giao dịch tháng 8 của thị trường Anh. Từ khi có thêm dữ liệu ngày mới, danh sách lẫn cả giao dịch tháng 9. Em sửa giúp chị.}
@@ -262,32 +265,35 @@ Gói chờ giảng viên duyệt. Khung xanh nét đứt (\emph{Thiết kế ERD
 \end{nghiepvu}
 \goiy{Một giao dịch ngày 1/9/2026 (như giá trị mẫu trong ERD) có thoả điều kiện ngày hiện tại không?}
 \goiy{Thêm cận trên \code{event_date < '2026-09-01'}, giữ cận dưới \code{>= '2026-08-01'}.}
-\ghichuthietke{Dễ: 2 bảng, chữ trên đường nối; giá trị mẫu 2026-09-01 là manh mối. Starter thiếu cận trên: khớp lời giải ở public (dữ liệu dừng 29/8) nhưng rớt ở hidden-1, vì biến thể có thêm một giao dịch Booster Bundle ngày 2026-09-01 của người chơi ở GB. v2: bỏ điều kiện gói để có giao dịch ngày 1/8 ở public. Bài sai: sửa thành \code{BETWEEN '2026-08-01' AND '2026-09-01'} vẫn gồm ngày 1/9 (rớt ở hidden-1); thêm cận trên nhưng đổi cận dưới thành \code{>} mất các giao dịch ngày 1/8 (rớt ở public). Cách gắn cứng \code{<= '2026-08-29'} chưa bắt được vì không biến thể nào có giao dịch 30/8 hoặc 31/8; chờ giảng viên.}
+\ghichuthietke{Dễ: 2 bảng, chữ trên đường nối; giá trị mẫu 2026-09-01 là manh mối. Starter thiếu cận trên: khớp lời giải ở public (dữ liệu dừng 29/8) nhưng rớt ở hidden-1, vì biến thể có thêm một giao dịch Booster Bundle ngày 2026-09-01 của người chơi ở GB. v2: bỏ điều kiện gói để có giao dịch ngày 1/8 ở public. Bài sai: sửa thành \code{BETWEEN '2026-08-01' AND '2026-09-01'} vẫn gồm ngày 1/9 (rớt ở hidden-1); thêm cận trên nhưng đổi cận dưới thành \code{>} mất các giao dịch ngày 1/8 (rớt ở public); gắn cứng \code{<= '2026-08-29'} mất giao dịch Booster Bundle ngày 2026-08-30 của người chơi ở GB mà hidden-1 có thêm (rớt ở hidden-1, v3).}
 \end{cauhoi}
 
-% ================================================================ R9 · Sửa lỗi · Dễ · A1 · operations
-\begin{cauhoi}[ma=jelly-r9-phien-dai-15-8, dulieu=jelly, domain=operations,
-  hinhthuc=debug, cap=easy, dang=A1, kynang={ORDER BY DESC, tiêu chí phụ, LIMIT}, bay={chieu-sap-xep, thieu-tieu-chi-phu},
+% ================================================================ R9 · Sửa lỗi · Khó · A1 · operations
+\begin{cauhoi}[ma=jelly-r9-phien-ios-ban-cu, dulieu=jelly, domain=operations,
+  hinhthuc=debug, cap=hard, dang=A1, kynang={NOT IN, thứ tự AND/OR, cận trên mở}, bay={thu-tu-and-or, khac-mot-gia-tri, gan-cung-ngay-cuoi},
   tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
-\tieude{Năm phiên dài nhất ngày 15/8 chỉ dài vài phút}
-\boicanh[Bạn Vy · Thực tập sinh phân tích]{Em lấy năm phiên chơi dài nhất ngày 15/8 để gửi nhóm thiết kế, nhưng các phiên trong danh sách chỉ dài vài phút. Chiều nay em phải gửi rồi, nhờ anh chị sửa giúp.}
+\tieude{Danh sách phiên chưa cập nhật ở Việt Nam dài hàng nghìn dòng}
+\boicanh[Chị Mai · Quản lý sản phẩm]{Chị định nhắc bắt buộc cập nhật ứng dụng cho người chơi iOS ở Việt Nam còn dùng bản 2.0. Bạn thực tập để lại bản lọc các phiên đó, nhưng danh sách dài hàng nghìn dòng, có cả phiên ở nước khác. Em sửa giúp chị để hằng ngày chị chạy lại được.}
 \begin{yeucau}
-  \item Truy vấn dưới đây cần lấy 5 phiên chơi có thời lượng (\code{duration_minutes}) dài nhất trong ngày 15/8/2026 nhưng đang lấy sai; sửa lại.
-  \item Hai phiên bằng thời lượng thì \code{session_id} nhỏ hơn đứng trước.
-  \item Giữ nguyên các cột \code{session_id}, \code{user_id}, \code{session_start}, \code{duration_minutes}.
+  \item Truy vấn dưới đây cần liệt kê các phiên chơi của người chơi iOS ở Việt Nam chưa cập nhật lên bản 2.1 (phiên còn chạy bản 2.0), vào game từ màn hình chính (\code{'home'}) hoặc bản đồ (\code{'map'}), từ ngày 25/8/2026 tới ngày mới nhất có trong dữ liệu.
+  \item Truy vấn có ba lỗi chồng nhau; sửa hết để kết quả vẫn đúng khi dữ liệu có thêm ngày mới.
+  \item Giữ nguyên các cột \code{session_id}, \code{user_id}, \code{session_start}, \code{app_version}, \code{entry_screen} và thứ tự sắp.
 \end{yeucau}
 \begin{erd}
-  \erdbang{sessions}{0,0}{session_id:PK, user_id:FK, session_start*=2026-08-15 20:31:00, event_date*=2026-08-15, duration_minutes*=12, entry_screen}
-  \erdbang{users}{1,0}{user_id:PK, platform, country}
-  \erdnoi[kieu=n-1, tren={\code{sessions.user_id = users.user_id}}]{sessions.user_id}{users.user_id}
+  \erdbang{sessions}{0,0}{session_id:PK, user_id:FK}
+  \erdbang{users}{1,0}{user_id:PK}
+  \erdbang{player_daily}{2,0}{user_id:PK, activity_date:PK}
+  \erdbang{level_attempts}{0,1}{attempt_id:PK, session_id:FK}
+  \erdbang{purchases}{1,1}{transaction_id:PK, session_id:FK}
+  \erdkhoa{\code{sessions} đã ghi sẵn phiên bản lúc chơi, nền tảng, thị trường và màn hình vào game của từng phiên, nên chỉ cần bảng này. \code{users}, \code{player_daily} nối theo \code{user_id}; \code{level_attempts}, \code{purchases} nối \code{sessions} theo \code{session_id}; các bảng này không cần.}
 \end{erd}
-\begin{nghiepvu}{Gửi nhóm thiết kế các phiên chơi dài để xem người chơi làm gì trong phiên.}
-  \khainiem{phien-choi}
-  \luuy{Một người chơi có thể có nhiều phiên trong một ngày. \code{session_start} ghi cả ngày và giờ mở phiên, \code{event_date} chỉ ghi ngày.}
+\begin{nghiepvu}{Lập danh sách người chơi nhận thông báo bắt buộc cập nhật ứng dụng.}
+  \khainiem{phien-ban-luc-choi}
+  \luuy{Dữ liệu có ba phiên bản ứng dụng: 2.0.2, 2.1.0 và 2.1.1. Dữ liệu dùng khi Chạy thử dừng ở ngày 29/8/2026; dữ liệu chạy hằng ngày có thêm ngày mới.}
 \end{nghiepvu}
-\goiy{Truy vấn đang sắp thời lượng theo chiều nào? Năm dòng đầu của chiều đó là phiên dài hay phiên ngắn?}
-\goiy{Sắp \code{duration_minutes} giảm dần rồi \code{session_id} tăng dần trước khi lấy 5 dòng.}
-\ghichuthietke{Dễ: 2 bảng, chữ trên đường nối. Starter có hai lỗi: sắp tăng dần và thiếu tiêu chí phụ (hạng 5 có hai phiên bằng thời lượng ở public). Bài sai: sắp tiêu chí phụ ngược chiều (\code{session_id DESC}) làm hai phiên 41 phút đổi chỗ (rớt ở public); so \code{session_start = '2026-08-15'} chỉ khớp phiên mở đúng 0 giờ (rớt ở public). hidden-1 bỏ khoảng 10\% phiên nên danh sách khác public.}
+\goiy{Trong điều kiện lọc, \code{AND} được tính trước \code{OR}. Hai màn hình vào game đang được ghép với các điều kiện còn lại như thế nào? Điều kiện phiên bản hiện tại có loại được bản 2.1.0 không?}
+\goiy{\code{app_version NOT IN ('2.1.0', '2.1.1') AND entry_screen IN ('home', 'map') AND event_date >= '2026-08-25'}.}
+\ghichuthietke{Khó. 5 trục: 1 bảng; 1 tầng lọc; đề nói ``chưa cập nhật lên bản 2.1'' bằng lời, học viên tự đổi ra các phiên bản; ba lỗi chồng nhau, một lỗi chỉ lộ ở hidden-1; định nghĩa nhiều điều kiện. ERD 5 bảng chỉ khoá, trung tính, 4 bảng nhiễu. v4: viết lại từ câu Sửa lỗi Dễ ``Năm phiên dài nhất ngày 15/8 chỉ dài vài phút''. Starter có ba lỗi: thiếu ngoặc quanh hai màn hình vào game (lẫn mọi phiên vào từ bản đồ ở mọi thị trường, nền tảng, phiên bản trong 25/8 -- 29/8); \code{<> '2.1.1'} vẫn lấy bản 2.1.0; \code{BETWEEN '2026-08-25' AND '2026-08-29'} gắn cứng ngày cuối của dữ liệu Chạy thử. Bài sai: sửa hai lỗi đầu nhưng giữ ngày cuối (khớp public, rớt ở hidden-1 vì biến thể có hai phiên ngày 1/9 và 2/9 của một người chơi iOS ở VN còn dùng bản 2.0.2, file 04 mục e); sửa ngoặc và ngày nhưng giữ \code{<> '2.1.1'} (rớt ở public); chỉ thêm ngoặc (rớt cả hai).}
 \end{cauhoi}
 
 
@@ -316,32 +322,35 @@ Gói chờ giảng viên duyệt. Khung xanh nét đứt (\emph{Thiết kế ERD
 \ghichuthietke{Cơ bản: 1 bảng, giá trị mẫu NULL là manh mối. Bẫy ở public: \code{= NULL} ra 0; \code{COUNT(level_id_if_relevant)} bỏ qua ô trống nên cũng ra 0. hidden-1 bỏ khoảng 10\% người chơi nên số khác public.}
 \end{cauhoi}
 
-% ================================================================ N2 · Viết · Cơ bản · A1 · marketing
-\begin{cauhoi}[ma=jelly-n2-chua-tiep-xuc-ab, dulieu=jelly, domain=marketing,
-  hinhthuc=write, cap=basic, dang=A1, kynang={IS NULL, ORDER BY, LIMIT}, bay={bang-null, dao-dieu-kien},
+% ================================================================ N2 · Viết · Trung bình · A2 · marketing
+\begin{cauhoi}[ma=jelly-n2-ty-le-chua-tiep-xuc-nhanh, dulieu=jelly, domain=marketing,
+  hinhthuc=write, cap=medium, dang=A2, kynang={COUNT(CASE WHEN), IS NULL, phép tính}, bay={count-cot-null, sai-mau-so, bang-null},
   tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
-\tieude{Ai được chia nhánh nhưng chưa tiếp xúc ưu đãi?}
-\boicanh[Chị Mai · Quản lý sản phẩm]{Thử nghiệm ưu đãi thêm lượt đi đã chia nhánh xong, nhưng có người chơi chưa thấy ưu đãi. Em lấy giúp chị hai mươi người đầu tiên theo mã người chơi để nhóm QA kiểm tra.}
+\tieude{Tỷ lệ chưa tiếp xúc ưu đãi của hai nhánh thử nghiệm}
+\boicanh[Chị Mai · Quản lý sản phẩm]{Trước khi đọc kết quả thử nghiệm ưu đãi thêm lượt đi, chị muốn biết mỗi nhánh còn bao nhiêu phần người chơi chưa thấy ưu đãi. Nếu hai nhánh chênh nhau nhiều, chị phải báo trước với nhóm.}
 \begin{yeucau}
-  \item Xét thử nghiệm A/B \code{'extra_moves_offer_timing'}.
-  \item Lọc người chơi chưa tiếp xúc ưu đãi (\code{exposed_at} trống).
-  \item Trả về \code{user_id}, \code{variant}.
-  \item Sắp \code{user_id} tăng dần; lấy 20 dòng đầu.
+  \item Xét mọi người chơi được chia nhánh trong thử nghiệm A/B \code{'extra_moves_offer_timing'}.
+  \item Tính tỷ lệ chưa tiếp xúc ưu đãi của nhánh đối chứng và của nhánh thử theo tab Nghiệp vụ, rồi lấy tỷ lệ của nhánh thử trừ tỷ lệ của nhánh đối chứng.
+  \item Trả về một dòng: \code{chua_tiep_xuc_doi_chung_pct}, \code{chua_tiep_xuc_nhanh_thu_pct} (phần trăm), \code{chenh_lech_diem_pct} (điểm phần trăm); cả ba làm tròn 2 chữ số, chỉ làm tròn ở kết quả cuối.
 \end{yeucau}
 \begin{erd}
-  \erdbang{ab_assignments}{0,0}{user_id:PK, experiment_id:PK*, variant*='control_after_3_fails', assigned_at, exposed_at*=NULL, exposure_status='not_exposed'}
+  \erdbang{ab_assignments}{0,0}{user_id:PK, experiment_id:PK*, variant*, assigned_at, exposed_at*, exposure_status}
+  \erdbang{users}{1,0}{user_id:PK, install_date, platform}
+  \erdbang{level_attempts}{1,1}{attempt_id:PK, user_id:FK, extra_moves_offered}
+  \erdnoi[kieu=n-1]{ab_assignments.user_id}{users.user_id}
+  \erdnoi[kieu=1-n]{users.user_id}{level_attempts.user_id}
 \end{erd}
-\begin{nghiepvu}{Kiểm tra vì sao một phần người chơi được chia nhánh chưa tiếp xúc ưu đãi.}
+\begin{nghiepvu}{Quyết định có cần nêu chênh lệch tiếp xúc giữa hai nhánh khi báo cáo kết quả thử nghiệm hay không.}
   \khainiem{thu-nghiem-ab}
-  \luuy{Người chơi chỉ tiếp xúc ưu đãi khi thua màn theo đúng quy tắc của nhánh mình. Người chưa tiếp xúc ưu đãi vẫn thuộc nhánh được chia.}
+  \luuy{Nhánh thử là \code{'early_offer_after_1_fail'}. Tỷ lệ chưa tiếp xúc của một nhánh là số người trong nhánh chưa tiếp xúc ưu đãi chia cho số người được chia vào nhánh đó. Người chưa tiếp xúc ưu đãi có \code{exposed_at} trống (NULL).}
 \end{nghiepvu}
-\goiy{Điều kiện \code{exposed_at = NULL} đúng với dòng nào?}
-\goiy{Dùng \code{exposed_at IS NULL}.}
-\ghichuthietke{Cơ bản: 1 bảng, giá trị mẫu NULL là manh mối. Bẫy ở public: \code{= NULL} ra 0 dòng; \code{IS NOT NULL} lấy người đã tiếp xúc. Lọc \code{exposure_status = 'not_exposed'} cho cùng kết quả (hai cột khớp nhau), chấp nhận. hidden-1 bỏ người chơi có mã tận cùng bằng 7 nên 20 dòng đầu khác public.}
+\goiy{Hàm đếm theo một cột có đếm các ô trống của cột đó không?}
+\goiy{\code{COUNT(CASE WHEN variant = 'early_offer_after_1_fail' AND exposed_at IS NULL THEN 1 END)}.}
+\ghichuthietke{Trung bình. 5 trục: 1 bảng; 2 tầng (đếm có điều kiện, rồi chia và trừ); công thức tỷ lệ ở tab Nghiệp vụ; 2 bẫy; công thức hai thành phần. ERD 3 bảng, chỉ ký hiệu n-1 và 1-n, hai bảng nhiễu (Module 2 chưa học nối bảng). v4: viết lại từ câu Cơ bản ``Ai được chia nhánh nhưng chưa tiếp xúc ưu đãi?''. Chênh lệch tính từ hai tỷ lệ chưa làm tròn; trừ hai số đã làm tròn chỉ lệch tối đa 0,01. Bẫy ở public: \code{COUNT(exposed_at)} đếm người đã tiếp xúc (tỷ lệ ngược); lấy mẫu số là cả hai nhánh làm tỷ lệ còn khoảng một nửa; \code{exposed_at = NULL} ra 0. hidden-1 bỏ khoảng 10\% người chơi nên số khác public.}
 \end{cauhoi}
 
 % ================================================================ N3 · Viết · Dễ · A3 · operations
-\begin{cauhoi}[ma=jelly-n3-nhom-buoc-du, dulieu=jelly, domain=operations,
+\begin{cauhoi}[ma=jelly-n3-nhom-luot-di-du, dulieu=jelly, domain=operations,
   hinhthuc=write, cap=easy, dang=A3, kynang={CASE WHEN}, bay={thu-tu-case, nham-ket-qua-voi-luot-du},
   tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
 \tieude{Lượt chơi màn 28 còn dư bao nhiêu lượt đi?}
@@ -392,58 +401,64 @@ Gói chờ giảng viên duyệt. Khung xanh nét đứt (\emph{Thiết kế ERD
 \ghichuthietke{Dễ: 2 bảng, đường nối ghi rõ là tổng hợp theo ngày; câu chỉ cần \code{daily_kpi}. Bản đồ ghi ``ARPDAU tự tính''; đổi sang tỷ trọng quảng cáo để không trùng câu n8 (ARPDAU), và gắn dạng B1 vì câu theo dõi một chỉ số qua chuỗi 7 ngày. Bẫy ở public: thiếu ngoặc mẫu số; chia cho doanh thu IAP. hidden-1 tính lại \code{daily_kpi} sau khi bỏ khoảng 10\% người chơi nên số khác public.}
 \end{cauhoi}
 
-% ================================================================ N5 · Viết · Dễ · A1 · sales
-\begin{cauhoi}[ma=jelly-n5-gia-quy-doi-vnd, dulieu=jelly, domain=sales,
-  hinhthuc=write, cap=easy, dang=A1, kynang={DISTINCT, phép tính, ROUND âm}, bay={thieu-distinct, lam-tron-sai},
-  tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.01]
-\tieude{Giá các gói vật phẩm quy ra đồng}
-\boicanh[Chị Ngọc · Quản lý doanh thu]{Chị chuẩn bị trình bảng giá bán ở thị trường Việt Nam. Em lập giúp chị giá bán từng gói vật phẩm quy ra đồng, làm tròn tới nghìn đồng.}
+% ================================================================ N5 · Viết · Khó · A1 · sales
+\begin{cauhoi}[ma=jelly-n5-mo-ta-giao-dich-vn, dulieu=jelly, domain=sales,
+  hinhthuc=write, cap=hard, dang=A1, kynang={CONCAT, COALESCE, CASE lồng}, bay={noi-chuoi-voi-null, thay-null-sai-cho, bo-nhanh-khuyen-mai, gan-cung-ngay-cuoi},
+  tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
+\tieude{Dòng mô tả cho từng giao dịch của người chơi Việt Nam}
+\boicanh[Chị Ngọc · Quản lý doanh thu]{Cuối tuần nào chị cũng gửi đối tác phát hành ở Việt Nam danh sách giao dịch mới, mỗi giao dịch kèm một dòng mô tả ngắn: gói gì, mua ở màn nào, giá gốc hay giá khuyến mãi. Tuần này em lập giúp chị, tính từ ngày 27/8.}
 \begin{yeucau}
-  \item Lấy mỗi cặp gói vật phẩm – mức giá đã bán một dòng từ bảng giao dịch \code{purchases}.
-  \item Quy đổi giá theo tỷ giá 25.400 đồng một USD, làm tròn tới hàng nghìn.
-  \item Trả về \code{product_name}, \code{price_usd} (USD), \code{gia_vnd} (đồng).
-  \item Sắp \code{price_usd} tăng dần.
+  \item Xét giao dịch của người chơi ở thị trường \code{'VN'} từ ngày 27/8/2026 tới ngày mới nhất có trong dữ liệu.
+  \item Lập cột \code{mo_ta} theo mẫu ở tab Nghiệp vụ.
+  \item Trả về \code{transaction_id}, \code{event_time}, \code{mo_ta}.
+  \item Sắp \code{event_time} tăng dần; cùng thời điểm thì \code{transaction_id} nhỏ hơn đứng trước.
 \end{yeucau}
 \begin{erd}
-  \erdbang{purchases}{0,0}{transaction_id:PK, product_type, product_name*='Piggy Bank', price_usd*=2.99, level_id_if_relevant:FK}
-  \erdbang{level_metadata}{1,0}{level_id:PK, world_name}
-  \erdnoi[kieu=n-1, tren={\code{purchases.level_id_if_relevant = level_metadata.level_id}}]{purchases.level_id_if_relevant}{level_metadata.level_id}
+  \erdbang{purchases}{0,0}{transaction_id:PK, user_id:FK, session_id:FK, level_id_if_relevant:FK}
+  \erdbang{level_metadata}{1,0}{level_id:PK}
+  \erdbang{users}{2,0}{user_id:PK}
+  \erdbang{sessions}{0,1}{session_id:PK, user_id:FK}
+  \erdbang{player_daily}{1,1}{user_id:PK, activity_date:PK}
+  \erdkhoa{Tên gói, mã gói, giá, thị trường và màn gắn với giao dịch đều nằm trong \code{purchases}, nên chỉ cần bảng này. \code{level_metadata} nối theo \code{level_id_if_relevant} = \code{level_id}; \code{users}, \code{player_daily} nối theo \code{user_id}; \code{sessions} theo \code{session_id}; các bảng này không cần.}
 \end{erd}
-\begin{nghiepvu}{Chuẩn bị bảng giá bán quy ra đồng để trình lãnh đạo duyệt.}
-  \luuy{Mỗi dòng của \code{purchases} là một giao dịch, nên cùng một gói xuất hiện ở nhiều dòng. Gói nào từng bán ở hơn một mức giá thì mỗi mức giá là một dòng.}
+\begin{nghiepvu}{Gửi đối tác phát hành bản kê giao dịch hằng tuần để đối chiếu doanh thu.}
+  \khainiem{doanh-thu-iap}
+  \luuy{Mô tả gồm ba phần nối bằng chuỗi \code{' - '} (dấu cách, gạch nối, dấu cách). Phần một là tên gói (\code{product_name}). Phần hai là nơi mua: \code{'man '} kèm số màn khi giao dịch gắn với một màn, \code{'khong gan man'} khi \code{level_id_if_relevant} trống. Phần ba là mức giá: \code{'khuyen mai'} khi giá thấp hơn giá niêm yết của gói, còn lại là \code{'gia goc'}. Ví dụ: \code{'Extra Moves Pack - man 41 - gia goc'}. Giá niêm yết: Starter Pack 0,99 USD, Extra Moves Pack 1,99 USD, Piggy Bank 2,99 USD, Booster Bundle 4,99 USD, Season Pass 9,99 USD. Nhãn viết không dấu.}
 \end{nghiepvu}
-\goiy{Bảng giao dịch có bao nhiêu dòng cho cùng một gói? Làm sao chỉ giữ mỗi gói một dòng?}
-\goiy{Dùng \code{SELECT DISTINCT}; \code{ROUND} với số chữ số âm làm tròn phần nguyên, \code{-3} là làm tròn tới hàng nghìn.}
-\ghichuthietke{Dễ: 2 bảng, chữ trên đường nối; câu chỉ cần \code{purchases}. Tỷ giá đặt trong đề, không lấy từ dữ liệu. Bẫy ở public: thiếu \code{DISTINCT} ra hàng nghìn dòng; \code{ROUND(x, 3)} giữ phần lẻ thay vì làm tròn tới nghìn. Hai bài sai rớt cả hai biến thể. hidden-1 có thêm giao dịch Starter Pack giá khuyến mãi 0,49 USD, nên solution ra 6 dòng (Starter Pack hai mức giá) và bài chép bảng giá từ lần Chạy thử rớt; yêu cầu ghi ``mỗi cặp gói – mức giá một dòng'' để khớp cả hai biến thể.}
+\goiy{Nối chuỗi với một ô trống (NULL) cho ra gì? Giao dịch không gắn màn sẽ có mô tả thế nào nếu không xử lý ô trống?}
+\goiy{\code{COALESCE(CONCAT('man ', level_id_if_relevant), 'khong gan man')}.}
+\ghichuthietke{Khó. 5 trục: 1 bảng; biểu thức lồng ba tầng (\code{CASE} trong \code{CASE}, \code{CONCAT} bọc \code{COALESCE}); mẫu mô tả và giá niêm yết chỉ có ở tab Nghiệp vụ; 4 bẫy, hai bẫy chỉ lộ ở hidden-1; nhãn nhiều điều kiện. ERD 5 bảng chỉ khoá, không vẽ đường nối, 4 bảng nhiễu. v4: viết lại từ câu Dễ ``Giá các gói vật phẩm quy ra đồng''. Bẫy ở public: nối chuỗi thẳng với ô trống làm mô tả của giao dịch không gắn màn thành NULL; thay ô trống trước khi nối với \code{'man '} ra \code{'man khong gan man'}. Bẫy chỉ lộ ở hidden-1: public không có giao dịch giá khuyến mãi, nên bài luôn ghi \code{'gia goc'} vẫn qua; hidden-1 có giao dịch Starter Pack 0,49 USD ngày 1/9 của người chơi ở VN, không gắn màn (file 04 mục e), nên bài bỏ nhánh khuyến mãi và bài gắn cứng ngày cuối 29/8 đều rớt.}
 \end{cauhoi}
 
-% ================================================================ N6 · Viết · Dễ · A2 · finance
-\begin{cauhoi}[ma=jelly-n6-ngay-choi-khong-doanh-thu, dulieu=jelly, domain=finance,
-  hinhthuc=write, cap=easy, dang=A2, kynang={COUNT(CASE WHEN), phép tính}, bay={lam-tron-truoc-khi-so, thieu-can-tren},
-  tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
-\tieude{Bao nhiêu ngày chơi không phát sinh doanh thu?}
-\boicanh[Anh Phong · Quản lý doanh thu]{Anh đang cân nhắc đặt thêm quảng cáo trong game. Em cho anh biết tháng 7 có bao nhiêu ngày chơi không mang lại đồng doanh thu nào, kể cả doanh thu quảng cáo.}
+% ================================================================ N6 · Viết · Trung bình · C2 · finance
+\begin{cauhoi}[ma=jelly-n6-ty-trong-iap-man-28-30, dulieu=jelly, domain=finance,
+  hinhthuc=write, cap=medium, dang=C2, kynang={SUM(CASE WHEN), NULL trong phép so sánh, ROUND}, bay={not-between-bo-null, lam-tron-som, thieu-can-tren},
+  tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.01]
+\tieude{Màn 28--30 đóng góp bao nhiêu phần doanh thu IAP tháng 7?}
+\boicanh[Anh Phong · Quản lý doanh thu]{Nhóm thiết kế đề nghị đặt thêm gói ưu đãi ở màn 28 tới 30, chỗ người chơi hay thua liên tục. Trước khi đồng ý, anh muốn biết trong tháng 7 các giao dịch gắn với ba màn này mang về bao nhiêu so với phần còn lại.}
 \begin{yeucau}
-  \item Xét các dòng \code{player_daily} có ngày hoạt động (\code{activity_date}) trong tháng 7/2026; mỗi dòng là một ngày chơi của một người chơi.
-  \item Đếm tổng số ngày chơi và số ngày chơi có tổng doanh thu IAP (\code{iap_revenue}) và doanh thu quảng cáo (\code{ad_revenue}) bằng 0.
-  \item Trả về \code{so_ngay_choi}, \code{so_ngay_khong_doanh_thu}.
+  \item Xét các giao dịch IAP (mua hàng trong ứng dụng) trong tháng 7/2026.
+  \item Chia doanh thu IAP thành hai phần: giao dịch gắn với màn 28, 29 hoặc 30, và phần còn lại theo tab Nghiệp vụ. Tính tỷ trọng của phần thứ nhất trong tổng doanh thu IAP tháng 7.
+  \item Trả về một dòng: \code{doanh_thu_man_28_30}, \code{doanh_thu_con_lai} (USD), \code{ty_trong_man_28_30_pct} (phần trăm, làm tròn 2 chữ số, chỉ làm tròn ở kết quả cuối).
 \end{yeucau}
 \begin{erd}
-  \erdbang{player_daily}{0,0}{user_id:PK, activity_date:PK*, sessions, iap_revenue*=0.00, ad_revenue*=0.0031}
-  \erdbang{users}{1,0}{user_id:PK, install_date, country}
-  \erdnoi[kieu=n-1, tren={\code{player_daily.user_id = users.user_id}}]{player_daily.user_id}{users.user_id}
+  \erdbang{purchases}{0,0}{transaction_id:PK, user_id:FK, event_date*, product_type, price_usd*, level_id_if_relevant:FK*}
+  \erdbang{level_metadata}{1,0}{level_id:PK, world_name, difficulty_tag}
+  \erdbang{users}{1,1}{user_id:PK, country}
+  \erdnoi[kieu=n-1]{purchases.level_id_if_relevant}{level_metadata.level_id}
+  \erdnoi[kieu=n-1]{purchases.user_id}{users.user_id}
 \end{erd}
-\begin{nghiepvu}{Ước lượng phần ngày chơi chưa tạo ra doanh thu trước khi cân nhắc thêm vị trí đặt quảng cáo.}
-  \khainiem{doanh-thu-quang-cao}
-  \luuy{Bảng \code{player_daily} chỉ có ngày người chơi có mở game. Doanh thu quảng cáo của một ngày có thể nhỏ hơn 0,01 USD nhưng vẫn khác 0.}
+\begin{nghiepvu}{Quyết định có đặt thêm gói ưu đãi ở điểm khó đột ngột màn 28--30 hay không.}
+  \khainiem{doanh-thu-iap}
+  \luuy{Phần còn lại gồm mọi giao dịch không gắn với màn 28--30, kể cả giao dịch không gắn với màn nào (\code{level_id_if_relevant} trống).}
 \end{nghiepvu}
-\goiy{Ngày chơi có doanh thu quảng cáo 0,0031 USD như giá trị mẫu có phải ngày không có doanh thu không?}
-\goiy{Đếm có điều kiện bằng \code{COUNT(CASE WHEN ... THEN 1 END)}, so tổng hai cột với 0 mà không làm tròn trước.}
-\ghichuthietke{Dễ: 2 bảng, chữ trên đường nối; câu chỉ cần \code{player_daily}. Hai cột doanh thu không có ô trống. Bẫy ở public: làm tròn 2 chữ số trước khi so biến hàng nghìn ngày có doanh thu quảng cáo rất nhỏ thành 0; thiếu cận trên lấy cả tháng 8. hidden-1 bỏ khoảng 10\% người chơi nên số khác public.}
+\goiy{Giao dịch có \code{level_id_if_relevant} trống có thoả điều kiện \code{level_id_if_relevant NOT BETWEEN 28 AND 30} không?}
+\goiy{\code{SUM(CASE WHEN level_id_if_relevant BETWEEN 28 AND 30 THEN 0 ELSE price_usd END)}.}
+\ghichuthietke{Trung bình. 5 trục: 1 bảng; 2 tầng (cộng có điều kiện, rồi chia); phạm vi phần còn lại ở tab Nghiệp vụ; 2 bẫy; công thức hai thành phần. ERD 3 bảng, chỉ ký hiệu n-1, hai bảng nhiễu (Module 2 chưa học nối bảng). v4: viết lại từ câu Dễ ``Bao nhiêu ngày chơi không phát sinh doanh thu?''. Màn 28--30 là điểm khó đột ngột của Jelly Jungle. Bẫy ở public: tính phần còn lại bằng \code{NOT BETWEEN 28 AND 30} bỏ mất giao dịch không gắn màn, nên phần còn lại và tỷ trọng tính theo hai phần đều sai; làm tròn tỷ lệ 2 chữ số trước khi nhân 100; thiếu cận trên lấy cả tháng 8. hidden-1 bỏ khoảng 10\% người chơi nên số khác public.}
 \end{cauhoi}
 
 % ================================================================ N7 · Sửa lỗi · Cơ bản · A2 · after_sales
-\begin{cauhoi}[ma=jelly-n7-crash-null, dulieu=jelly, domain=after_sales,
+\begin{cauhoi}[ma=jelly-n7-crash-khoang-trang, dulieu=jelly, domain=after_sales,
   hinhthuc=debug, cap=basic, dang=A2, kynang={WHERE, so chuỗi}, bay={khoang-trang-thua, nham-nguon-dem},
   tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
 \tieude{Số lượt chơi gặp sự cố ra 0}
@@ -460,36 +475,39 @@ Gói chờ giảng viên duyệt. Khung xanh nét đứt (\emph{Thiết kế ERD
   \luuy{Cột \code{result} có bốn giá trị viết thường: \code{'complete'}, \code{'fail_out_of_moves'}, \code{'quit'}, \code{'crash'}. Khi so chuỗi, dấu cách ở cuối cũng được tính.}
 \end{nghiepvu}
 \goiy{So giá trị trong điều kiện lọc với giá trị mẫu của \code{result} trong ERD, từng ký tự.}
-\ghichuthietke{Cơ bản: lỗi một chỗ, giá trị mẫu là manh mối. Collation \code{utf8mb4_0900_ai_ci} không phân biệt hoa thường nhưng là NO PAD, nên dấu cách thừa ở \code{'Crash '} làm điều kiện không khớp dòng nào. Bài sai: sửa đúng chuỗi nhưng xoá luôn điều kiện tháng (rớt ở public); lấy \code{SUM(crash_count)} của \code{player_daily} (nguồn đếm khác, lệch xa, rớt ở public). Mã câu giữ theo bản đồ dù bẫy là khoảng trắng, không phải NULL.}
+\ghichuthietke{Cơ bản: lỗi một chỗ, giá trị mẫu là manh mối. Collation \code{utf8mb4_0900_ai_ci} không phân biệt hoa thường nhưng là NO PAD, nên dấu cách thừa ở \code{'Crash '} làm điều kiện không khớp dòng nào. Bài sai: sửa đúng chuỗi nhưng xoá luôn điều kiện tháng (rớt ở public); lấy \code{SUM(crash_count)} của \code{player_daily} (nguồn đếm khác, lệch xa, rớt ở public). v3: mã đổi thành \code{jelly-n7-crash-khoang-trang} cho khớp bẫy.}
 \end{cauhoi}
 
-% ================================================================ N8 · Sửa lỗi · Dễ · A2 · finance
-\begin{cauhoi}[ma=jelly-n8-ty-le-sai-chia, dulieu=jelly, domain=finance,
-  hinhthuc=debug, cap=easy, dang=A2, kynang={phép tính, ngoặc, ROUND}, bay={thu-tu-phep-tinh, lam-tron-som},
-  tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.0001]
-\tieude{ARPDAU tự tính lệch với cột có sẵn}
-\boicanh[Bạn Nam · Thực tập sinh phân tích]{Em tính lại ARPDAU từng ngày từ 15/8 tới 21/8 để đối chiếu với bảng chỉ số ngày. Ngày nào số em tính cũng lớn hơn cột có sẵn rất nhiều.}
+% ================================================================ N8 · Sửa lỗi · Khó · B1 · after_sales
+\begin{cauhoi}[ma=jelly-n8-ty-le-su-co-tron-chuc, dulieu=jelly, domain=after_sales,
+  hinhthuc=debug, cap=hard, dang=B1, kynang={phép tính, ROUND, cận trên mở}, bay={sai-mau-so, lam-tron-som, gan-cung-ngay-cuoi},
+  tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.01]
+\tieude{Tỷ lệ sự cố ngày nào cũng tròn chục}
+\boicanh[Chị Linh · Kỹ sư QA]{Chị nhờ bạn thực tập lập bảng tỷ lệ sự cố từng ngày từ 23/8 để theo dõi bản 2.1.1, nhưng bảng ra toàn số 10, có ngày ra 0, trông không thật. Em sửa giúp chị để hằng ngày chị chạy lại được mà không phải sửa ngày.}
 \begin{yeucau}
-  \item Truy vấn dưới đây tính ARPDAU (doanh thu bình quân trên một người chơi hoạt động trong ngày) của từng ngày từ 15/8/2026 tới hết 21/8/2026 nhưng ra số quá lớn. Sửa lại cho đúng công thức ARPDAU.
-  \item Giữ nguyên các cột \code{date}, \code{dau}, \code{arpdau_tinh} (USD, làm tròn 4 chữ số), \code{arpdau} và thứ tự sắp.
+  \item Truy vấn dưới đây cần tính tỷ lệ sự cố trên 1.000 phiên (theo tab Nghiệp vụ) của từng ngày, từ ngày 23/8/2026 tới ngày mới nhất có trong bảng chỉ số ngày \code{daily_kpi}.
+  \item Truy vấn có ba lỗi chồng nhau; sửa hết để kết quả vẫn đúng khi bảng có thêm ngày mới.
+  \item Giữ nguyên các cột \code{date}, \code{sessions}, \code{crash_count}, \code{ty_le_su_co} (làm tròn 2 chữ số, chỉ làm tròn ở kết quả cuối) và thứ tự sắp.
 \end{yeucau}
 \begin{erd}
-  \erdbang{daily_kpi}{0,0}{date:PK*, dau*=1450, iap_revenue*=120.45, ad_revenue*=20.37, arpdau*=0.0971}
-  \erdbang{player_daily}{1,0}{user_id:PK, activity_date:PK, iap_revenue, ad_revenue}
-  \erdnoi[kieu=1-n, tren={tổng hợp theo ngày, không có khoá}]{daily_kpi.date}{player_daily.activity_date}
+  \erdbang{daily_kpi}{0,0}{date:PK}
+  \erdbang{player_daily}{1,0}{user_id:PK, activity_date:PK}
+  \erdbang{sessions}{2,0}{session_id:PK, user_id:FK}
+  \erdbang{level_attempts}{0,1}{attempt_id:PK, session_id:FK}
+  \erdbang{users}{1,1}{user_id:PK}
+  \erdkhoa{\code{daily_kpi} là bảng tổng hợp sẵn theo ngày từ \code{player_daily} (\code{date} ứng với \code{activity_date}), đã có số phiên và số sự cố của từng ngày, nên chỉ cần bảng này. \code{sessions}, \code{level_attempts}, \code{users} không cần.}
 \end{erd}
-\begin{nghiepvu}{Kiểm tra bảng chỉ số ngày trước khi đưa ARPDAU vào báo cáo tuần.}
-  \khainiem{dau}
-  \khainiem{arpdau}
-  \luuy{Cột \code{arpdau} có sẵn được làm tròn 4 chữ số; số tự tính cũng phải làm tròn 4 chữ số mới so được với cột này.}
+\begin{nghiepvu}{Theo dõi chất lượng bản 2.1.1 theo ngày để quyết định có cần phát hành bản vá hay không.}
+  \khainiem{ty-le-su-co}
+  \luuy{Mỗi dòng của \code{daily_kpi} là một ngày. Dữ liệu dùng khi Chạy thử dừng ở ngày 29/8/2026; bảng chỉ số ngày dùng khi chạy hằng ngày có thêm ngày mới.}
 \end{nghiepvu}
-\goiy{Trong biểu thức hiện tại, phép chia cho \code{dau} áp dụng cho những số nào?}
-\goiy{Đặt \code{iap_revenue + ad_revenue} trong ngoặc trước khi chia cho \code{dau}.}
-\ghichuthietke{Dễ: 2 bảng, đường nối ghi rõ là tổng hợp theo ngày. Chấm với \code{saiso=0.0001} vì ARPDAU chỉ cỡ vài phần trăm USD. Starter chỉ chia doanh thu quảng cáo cho DAU rồi cộng cả doanh thu IAP nên số lớn gấp nhiều lần. Bài sai: làm tròn 2 chữ số (rớt ở public với sai số 0,0001); bỏ doanh thu quảng cáo khỏi tử số (rớt ở public). hidden-1 tính lại \code{daily_kpi} nên số khác public.}
+\goiy{So mẫu số trong truy vấn với công thức ở tab Nghiệp vụ. Làm tròn 2 chữ số trước hay sau khi nhân 1.000 thì giữ được phần lẻ?}
+\goiy{\code{ROUND(1000 * crash_count / sessions, 2)}.}
+\ghichuthietke{Khó. 5 trục: 1 bảng; biểu thức một tầng; công thức chỉ có ở khái niệm của tab Nghiệp vụ; ba lỗi chồng nhau, một lỗi chỉ lộ ở hidden-1; sai định nghĩa chỉ số. ERD 5 bảng chỉ khoá, trung tính, 4 bảng nhiễu. v4: viết lại từ câu Sửa lỗi Dễ ``ARPDAU tự tính lệch với cột có sẵn'' (câu cũ cho phép chép thẳng cột \code{arpdau}; chỉ số mới không có cột tính sẵn), đổi mảng sang \code{after_sales}. Starter: chia cho DAU thay vì số phiên (sai định nghĩa); làm tròn 2 chữ số trước khi nhân 1.000 nên chỉ ra bội của 10; \code{BETWEEN '2026-08-23' AND '2026-08-29'} gắn cứng ngày cuối. Bài sai: sửa mẫu số và ngày nhưng vẫn làm tròn trước khi nhân (rớt ở public); sửa làm tròn và ngày nhưng vẫn chia cho DAU (rớt ở public); sửa hai lỗi đầu nhưng giữ ngày cuối (khớp public, rớt ở hidden-1 vì \code{daily_kpi} của biến thể có thêm ngày 30/8, 1/9, 2/9; file 04 mục b, e, j).}
 \end{cauhoi}
 
-% ================================================================ N9 · Sửa lỗi · Dễ · A3 · customer
-\begin{cauhoi}[ma=jelly-n9-nhan-nguoi-tra-tien, dulieu=jelly, domain=customer,
+% ================================================================ N9 · Sửa lỗi · Dễ · A3 · sales
+\begin{cauhoi}[ma=jelly-n9-nhan-nguoi-tra-tien, dulieu=jelly, domain=sales,
   hinhthuc=debug, cap=easy, dang=A3, kynang={CASE WHEN, so sánh biên}, bay={bien-lon-hon-bang, nham-doanh-thu-quang-cao},
   tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
 \tieude{Nhóm trả tiền gồm mọi người chơi}
@@ -540,14 +558,14 @@ Gói chờ giảng viên duyệt. Khung xanh nét đứt (\emph{Thiết kế ERD
 \begin{buoc}[ma=b2, diem=5, hinhthuc=ketluan, bang={ad_events}]{Kết luận}
   \begin{luachon}
     \phuongan*{Quảng cáo có tặng thưởng tạo ra gần chín phần mười doanh thu quảng cáo tháng 7 nhờ số lượt xem lớn; doanh thu trên 1.000 lượt của hai loại gần bằng nhau.}
-      {Đúng. Bước 1 cho thấy lượt xem có tặng thưởng gấp khoảng tám lần, còn doanh thu trên 1.000 lượt của hai loại chỉ chênh chưa tới 0,1 USD.}
+      {Đúng: bước 1 cho thấy lượt xem có tặng thưởng gấp khoảng tám lần, còn doanh thu trên 1.000 lượt của hai loại chỉ chênh chưa tới 0,1 USD.}
     \phuongan{Mỗi lượt xem quảng cáo có tặng thưởng trả cao gấp nhiều lần quảng cáo xen kẽ, nên đây là loại đáng giá hơn hẳn trên từng lượt xem.}
-      {Chưa đúng. Chênh lệch nằm ở tổng doanh thu do số lượt xem; doanh thu trên 1.000 lượt của hai loại gần bằng nhau.}
+      {Chênh lệch nằm ở tổng doanh thu do số lượt xem; doanh thu trên 1.000 lượt của hai loại gần bằng nhau.}
     \phuongan{Quảng cáo xen kẽ chỉ mang lại phần doanh thu nhỏ, nên bỏ hẳn loại này sẽ không làm doanh thu quảng cáo của game giảm.}
-      {Chưa đúng. Bước 1 cho thấy quảng cáo xen kẽ vẫn đóng góp khoảng một phần mười doanh thu quảng cáo của tháng.}
+      {Bước 1 cho thấy quảng cáo xen kẽ vẫn đóng góp khoảng một phần mười doanh thu quảng cáo của tháng.}
   \end{luachon}
 \end{buoc}
-\ghichuthietke{Case Cơ bản: 1 bảng, 1 bước SQL, 1 bước kết luận đọc từ kết quả. Doanh thu trên 1.000 lượt là cách so quen thuộc của mạng quảng cáo (eCPM), đề nói bằng lời. Bài sai ở bước 1: thiếu cận trên lấy cả tháng 8; đếm người xem thay lượt xem. Cả hai rớt ở public. Tỷ lệ lượt xem và doanh thu trên 1.000 lượt giữ gần như cũ ở hidden-1. Bẫy kết luận: nhầm tổng doanh thu với doanh thu trên từng lượt; coi phần nhỏ là không đáng kể.}
+\ghichuthietke{Case Cơ bản: 1 bảng, 1 bước SQL, 1 bước kết luận đọc từ kết quả. Doanh thu trên 1.000 lượt là cách so quen thuộc của mạng quảng cáo (eCPM), đề nói bằng lời. Bài sai ở bước 1: thiếu cận trên lấy cả tháng 8; đếm người xem thay lượt xem. Cả hai rớt ở public. Tỷ lệ lượt xem và doanh thu trên 1.000 lượt giữ gần như cũ ở hidden-1. Bẫy kết luận: nhầm tổng doanh thu với doanh thu trên từng lượt; coi phần nhỏ là không đáng kể. Case Cơ bản: GROUP BY một cột trên một bảng, theo case mẫu c1 (QUYET-DINH-CHUNG 1.2).}
 \end{cauhoi}
 
 % ================================================================ C2 · Case · Cơ bản · sales
@@ -574,11 +592,11 @@ Gói chờ giảng viên duyệt. Khung xanh nét đứt (\emph{Thiết kế ERD
 \begin{buoc}[ma=b2, diem=5, hinhthuc=ketluan, bang={purchases}]{Kết luận}
   \begin{luachon}
     \phuongan*{Starter Pack có nhiều giao dịch nhất nhưng doanh thu thấp nhất trong năm gói; Booster Bundle mang về doanh thu cao nhất.}
-      {Đúng. Bước 1 cho thấy xếp theo số giao dịch và xếp theo doanh thu cho hai thứ tự khác nhau.}
+      {Đúng: bước 1 cho thấy xếp theo số giao dịch và xếp theo doanh thu cho hai thứ tự khác nhau.}
     \phuongan{Starter Pack bán chạy nhất nên cũng tạo ra doanh thu cao nhất; giảm giá thêm sẽ làm doanh thu của game tăng.}
-      {Chưa đúng. Giá Starter Pack thấp nhất nên doanh thu của gói thấp nhất dù nhiều giao dịch; bước 1 cũng không cho biết giảm giá làm số giao dịch tăng bao nhiêu.}
+      {Giá Starter Pack thấp nhất nên doanh thu của gói thấp nhất dù nhiều giao dịch; bước 1 cũng không cho biết giảm giá làm số giao dịch tăng bao nhiêu.}
     \phuongan{Season Pass có giá cao nhất nên thu được doanh thu cao nhất; nên dồn ưu đãi cho Season Pass thay cho Starter Pack.}
-      {Chưa đúng. Season Pass có ít giao dịch; bước 1 cho thấy Booster Bundle có doanh thu cao hơn.}
+      {Season Pass có ít giao dịch; bước 1 cho thấy Booster Bundle có doanh thu cao hơn.}
   \end{luachon}
 \end{buoc}
 \ghichuthietke{Case Cơ bản: 1 bảng, 1 bước SQL, 1 bước kết luận. Không cần lọc \code{is_refund} vì trong kỳ chưa có hoàn tiền (khái niệm doanh thu IAP đã nêu). Bài sai ở bước 1: đếm người mua thay giao dịch (rớt ở public); không giới hạn ngày (rớt ở hidden-1, vì biến thể có thêm giao dịch Booster Bundle ngày 2026-09-01). Bẫy kết luận: nhầm ``bán chạy'' (số giao dịch) với doanh thu cao; suy ra tác động của giảm giá khi chưa có số liệu.}

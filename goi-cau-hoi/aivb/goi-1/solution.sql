@@ -21,44 +21,71 @@ FROM ref_branch
 WHERE city = 'TP. Hồ Chí Minh'
 ORDER BY branch_code;
 
--- [aivb-r2-phien-ban-tien-gui-ca-nhan] solution
-SELECT product_version_id, effective_from, effective_to, product_status
-FROM ref_product_version
-WHERE product_id = 'TD_IND'
-ORDER BY effective_from;
+-- [aivb-r2-ho-so-vay-co-tai-san-bao-dam] solution
+SELECT application_id, product_id, application_date, requested_amount
+FROM core_loan_application
+WHERE product_id IN ('MORT', 'AUTO', 'PLEDGE')
+  AND application_status = 'APPROVED'
+  AND application_date >= '2025-01-01' AND application_date < '2026-01-01'
+  AND requested_amount >= 1000000000
+ORDER BY product_id, requested_amount DESC, application_id;
 
--- [aivb-r2-phien-ban-tien-gui-ca-nhan] wrong: like_lay_ca_doanh_nghiep
-SELECT product_version_id, effective_from, effective_to, product_status
-FROM ref_product_version
-WHERE product_id LIKE 'TD%'
-ORDER BY effective_from;
+-- [aivb-r2-ho-so-vay-co-tai-san-bao-dam] wrong: lay_ca_vay_von_luu_dong
+SELECT application_id, product_id, application_date, requested_amount
+FROM core_loan_application
+WHERE product_id <> 'CONS'
+  AND application_status = 'APPROVED'
+  AND application_date >= '2025-01-01' AND application_date < '2026-01-01'
+  AND requested_amount >= 1000000000
+ORDER BY product_id, requested_amount DESC, application_id;
 
--- [aivb-r2-phien-ban-tien-gui-ca-nhan] wrong: sap_theo_ngay_het_hieu_luc
-SELECT product_version_id, effective_from, effective_to, product_status
-FROM ref_product_version
-WHERE product_id = 'TD_IND'
-ORDER BY effective_to;
+-- [aivb-r2-ho-so-vay-co-tai-san-bao-dam] wrong: thieu_can_tren_nam_nop
+SELECT application_id, product_id, application_date, requested_amount
+FROM core_loan_application
+WHERE product_id IN ('MORT', 'AUTO', 'PLEDGE')
+  AND application_status = 'APPROVED'
+  AND application_date >= '2025-01-01'
+  AND requested_amount >= 1000000000
+ORDER BY product_id, requested_amount DESC, application_id;
 
--- [aivb-r3-kyc-khong-dat-cn01] solution
-SELECT customer_id, segment_code, customer_status
+-- [aivb-r2-ho-so-vay-co-tai-san-bao-dam] wrong: quen_loc_duyet
+SELECT application_id, product_id, application_date, requested_amount
+FROM core_loan_application
+WHERE product_id IN ('MORT', 'AUTO', 'PLEDGE')
+  AND application_date >= '2025-01-01' AND application_date < '2026-01-01'
+  AND requested_amount >= 1000000000
+ORDER BY product_id, requested_amount DESC, application_id;
+
+-- [aivb-r3-kyc-khong-dat-con-quan-he-ha-noi] solution
+SELECT customer_id, home_branch_id, segment_code, customer_status
 FROM core_customer
-WHERE home_branch_id = 'CN01'
+WHERE home_branch_id IN ('CN01', 'CN02', 'CN03')
   AND kyc_status = 'FAIL'
-ORDER BY customer_id;
+  AND customer_status <> 'CLOSED'
+ORDER BY home_branch_id, customer_id;
 
--- [aivb-r3-kyc-khong-dat-cn01] wrong: nham_ma_giao_dich_chi_nhanh
-SELECT customer_id, segment_code, customer_status
+-- [aivb-r3-kyc-khong-dat-con-quan-he-ha-noi] wrong: lay_ca_mien_bac
+SELECT customer_id, home_branch_id, segment_code, customer_status
 FROM core_customer
-WHERE home_branch_id = 'AIVB_CN01'
+WHERE home_branch_id IN ('CN01', 'CN02', 'CN03', 'CN04')
   AND kyc_status = 'FAIL'
-ORDER BY customer_id;
+  AND customer_status <> 'CLOSED'
+ORDER BY home_branch_id, customer_id;
 
--- [aivb-r3-kyc-khong-dat-cn01] wrong: sai_gia_tri_trang_thai
-SELECT customer_id, segment_code, customer_status
+-- [aivb-r3-kyc-khong-dat-con-quan-he-ha-noi] wrong: chi_lay_khach_dang_hoat_dong
+SELECT customer_id, home_branch_id, segment_code, customer_status
 FROM core_customer
-WHERE home_branch_id = 'CN01'
-  AND kyc_status = 'FAILED'
-ORDER BY customer_id;
+WHERE home_branch_id IN ('CN01', 'CN02', 'CN03')
+  AND kyc_status = 'FAIL'
+  AND customer_status = 'ACTIVE'
+ORDER BY home_branch_id, customer_id;
+
+-- [aivb-r3-kyc-khong-dat-con-quan-he-ha-noi] wrong: quen_loai_khach_da_dong
+SELECT customer_id, home_branch_id, segment_code, customer_status
+FROM core_customer
+WHERE home_branch_id IN ('CN01', 'CN02', 'CN03')
+  AND kyc_status = 'FAIL'
+ORDER BY home_branch_id, customer_id;
 
 -- [aivb-r4-top-5-khoan-vay-du-no] solution
 SELECT loan_id, outstanding, interest_rate
@@ -120,31 +147,47 @@ WHERE channel_code = 'WEB'
   AND transaction_date >= '2026-12-01' AND transaction_date < '2027-01-01'
 ORDER BY amount, payment_order_id;
 
--- [aivb-r6-ho-so-vay-nha-hang-a-2025] solution
-SELECT application_id, application_date, requested_amount
-FROM core_loan_application
-WHERE product_id = 'MORT'
-  AND score_band = 'A'
-  AND application_status = 'APPROVED'
-  AND application_date >= '2025-01-01' AND application_date < '2026-01-01'
-ORDER BY application_date, application_id;
+-- [aivb-r6-khoan-vay-xet-giam-lai-suat] solution
+SELECT loan_id, loan_status, interest_rate, outstanding
+FROM core_loan_contract
+WHERE loan_status IN ('ACTIVE', 'RESTRUCTURED')
+  AND interest_rate >= 0.09
+ORDER BY interest_rate DESC, outstanding DESC, loan_id;
 
--- [aivb-r6-ho-so-vay-nha-hang-a-2025] wrong: thieu_can_tren
-SELECT application_id, application_date, requested_amount
-FROM core_loan_application
-WHERE product_id = 'MORT'
-  AND score_band = 'A'
-  AND application_status = 'APPROVED'
-  AND application_date >= '2025-01-01'
-ORDER BY application_date, application_id;
+-- [aivb-r6-khoan-vay-xet-giam-lai-suat] wrong: chi_lay_dang_tra_no_binh_thuong
+SELECT loan_id, loan_status, interest_rate, outstanding
+FROM core_loan_contract
+WHERE loan_status = 'ACTIVE'
+  AND interest_rate >= 0.09
+ORDER BY interest_rate DESC, outstanding DESC, loan_id;
 
--- [aivb-r6-ho-so-vay-nha-hang-a-2025] wrong: quen_loc_duyet
-SELECT application_id, application_date, requested_amount
-FROM core_loan_application
-WHERE product_id = 'MORT'
-  AND score_band = 'A'
-  AND application_date >= '2025-01-01' AND application_date < '2026-01-01'
-ORDER BY application_date, application_id;
+-- [aivb-r6-khoan-vay-xet-giam-lai-suat] wrong: lay_ca_khoan_dang_qua_han
+SELECT loan_id, loan_status, interest_rate, outstanding
+FROM core_loan_contract
+WHERE outstanding > 0
+  AND interest_rate >= 0.09
+ORDER BY interest_rate DESC, outstanding DESC, loan_id;
+
+-- [aivb-r6-khoan-vay-xet-giam-lai-suat] wrong: chi_loai_khoan_dang_qua_han
+SELECT loan_id, loan_status, interest_rate, outstanding
+FROM core_loan_contract
+WHERE loan_status <> 'DELINQUENT'
+  AND interest_rate >= 0.09
+ORDER BY interest_rate DESC, outstanding DESC, loan_id;
+
+-- [aivb-r6-khoan-vay-xet-giam-lai-suat] wrong: bo_sot_dung_9_phan_tram
+SELECT loan_id, loan_status, interest_rate, outstanding
+FROM core_loan_contract
+WHERE loan_status IN ('ACTIVE', 'RESTRUCTURED')
+  AND interest_rate > 0.09
+ORDER BY interest_rate DESC, outstanding DESC, loan_id;
+
+-- [aivb-r6-khoan-vay-xet-giam-lai-suat] wrong: nham_thang_ty_le
+SELECT loan_id, loan_status, interest_rate, outstanding
+FROM core_loan_contract
+WHERE loan_status IN ('ACTIVE', 'RESTRUCTURED')
+  AND interest_rate >= 9
+ORDER BY interest_rate DESC, outstanding DESC, loan_id;
 
 -- [aivb-r7-khach-uu-tien-hoat-dong] starter
 SELECT customer_id, segment_code, customer_status
@@ -172,37 +215,50 @@ FROM core_customer
 WHERE segment_code = 'PRIORITY' AND segment_code = 'AFFLUENT' AND customer_status = 'ACTIVE'
 ORDER BY customer_id;
 
--- [aivb-r8-tien-gui-lai-suat-tren-6] starter
+-- [aivb-r8-tien-gui-lon-ky-han-6-12-thang] starter
 SELECT deposit_id, term_months, interest_rate, principal
 FROM core_deposit_contract
-WHERE deposit_status = 'ACTIVE'
-  AND term_months BETWEEN 6 AND 12
-  AND interest_rate > 5
-ORDER BY deposit_id;
-
--- [aivb-r8-tien-gui-lai-suat-tren-6] solution
-SELECT deposit_id, term_months, interest_rate, principal
-FROM core_deposit_contract
-WHERE deposit_status = 'ACTIVE'
-  AND term_months BETWEEN 6 AND 12
-  AND interest_rate > 0.05
-ORDER BY deposit_id;
-
--- [aivb-r8-tien-gui-lai-suat-tren-6] wrong: doi_sai_thang_ty_le
-SELECT deposit_id, term_months, interest_rate, principal
-FROM core_deposit_contract
-WHERE deposit_status = 'ACTIVE'
-  AND term_months BETWEEN 6 AND 12
-  AND interest_rate > 0.5
-ORDER BY deposit_id;
-
--- [aivb-r8-tien-gui-lai-suat-tren-6] wrong: bo_hai_bien_ky_han
-SELECT deposit_id, term_months, interest_rate, principal
-FROM core_deposit_contract
-WHERE deposit_status = 'ACTIVE'
+WHERE deposit_status <> 'CLOSED'
   AND term_months > 6 AND term_months < 12
-  AND interest_rate > 0.05
-ORDER BY deposit_id;
+  AND principal > 500000000
+  AND interest_rate >= 0.045
+ORDER BY principal DESC, deposit_id;
+
+-- [aivb-r8-tien-gui-lon-ky-han-6-12-thang] solution
+SELECT deposit_id, term_months, interest_rate, principal
+FROM core_deposit_contract
+WHERE deposit_status = 'ACTIVE'
+  AND term_months BETWEEN 6 AND 12
+  AND principal >= 500000000
+  AND interest_rate >= 0.045
+ORDER BY principal DESC, deposit_id;
+
+-- [aivb-r8-tien-gui-lon-ky-han-6-12-thang] wrong: chi_sua_bien_ky_han
+SELECT deposit_id, term_months, interest_rate, principal
+FROM core_deposit_contract
+WHERE deposit_status <> 'CLOSED'
+  AND term_months BETWEEN 6 AND 12
+  AND principal > 500000000
+  AND interest_rate >= 0.045
+ORDER BY principal DESC, deposit_id;
+
+-- [aivb-r8-tien-gui-lon-ky-han-6-12-thang] wrong: con_lan_hop_dong_da_tai_tuc
+SELECT deposit_id, term_months, interest_rate, principal
+FROM core_deposit_contract
+WHERE deposit_status NOT IN ('CLOSED', 'EARLY_TERMINATED')
+  AND term_months BETWEEN 6 AND 12
+  AND principal >= 500000000
+  AND interest_rate >= 0.045
+ORDER BY principal DESC, deposit_id;
+
+-- [aivb-r8-tien-gui-lon-ky-han-6-12-thang] wrong: bo_sot_khoan_dung_500_trieu
+SELECT deposit_id, term_months, interest_rate, principal
+FROM core_deposit_contract
+WHERE deposit_status = 'ACTIVE'
+  AND term_months BETWEEN 6 AND 12
+  AND principal > 500000000
+  AND interest_rate >= 0.045
+ORDER BY principal DESC, deposit_id;
 
 -- [aivb-r9-but-toan-co-lon-nhat] starter
 SELECT posting_id, account_id, amount
@@ -256,93 +312,192 @@ WHERE residence_province = 'HUE'
   AND occupation_code = ''
 ORDER BY party_id;
 
--- [aivb-n2-nhom-thu-nhap] solution
-SELECT party_id, income_band,
+-- [aivb-n2-kha-nang-tich-luy-khach-1990] solution
+SELECT party_id, income_band, dependents_count,
        CASE
-         WHEN income_band IN ('UNDER_10M', '10M_20M') THEN 'Thấp'
-         WHEN income_band = '20M_40M' THEN 'Trung bình'
-         WHEN income_band IN ('40M_80M', 'OVER_80M') THEN 'Cao'
-       END AS nhom_thu_nhap
+         WHEN income_band IN ('20M_40M', '40M_80M', 'OVER_80M') AND dependents_count <= 1 THEN 'Cao'
+         WHEN income_band IN ('UNDER_10M', '10M_20M') AND dependents_count >= 2 THEN 'Thấp'
+         ELSE 'Trung bình'
+       END AS kha_nang_tich_luy
 FROM core_person
 WHERE date_of_birth >= '1990-01-01' AND date_of_birth < '1991-01-01'
 ORDER BY party_id;
 
--- [aivb-n2-nhom-thu-nhap] wrong: case_thieu_muc_cao_nhat
-SELECT party_id, income_band,
+-- [aivb-n2-kha-nang-tich-luy-khach-1990] wrong: so_sanh_chuoi_ma_thu_nhap
+SELECT party_id, income_band, dependents_count,
        CASE
-         WHEN income_band IN ('UNDER_10M', '10M_20M') THEN 'Thấp'
-         WHEN income_band = '20M_40M' THEN 'Trung bình'
-         WHEN income_band = '40M_80M' THEN 'Cao'
-       END AS nhom_thu_nhap
+         WHEN income_band >= '20M_40M' AND dependents_count <= 1 THEN 'Cao'
+         WHEN income_band < '20M_40M' AND dependents_count >= 2 THEN 'Thấp'
+         ELSE 'Trung bình'
+       END AS kha_nang_tich_luy
 FROM core_person
 WHERE date_of_birth >= '1990-01-01' AND date_of_birth < '1991-01-01'
 ORDER BY party_id;
 
--- [aivb-n2-nhom-thu-nhap] wrong: thieu_can_tren_nam_sinh
-SELECT party_id, income_band,
+-- [aivb-n2-kha-nang-tich-luy-khach-1990] wrong: bien_mot_nguoi_phu_thuoc
+SELECT party_id, income_band, dependents_count,
        CASE
-         WHEN income_band IN ('UNDER_10M', '10M_20M') THEN 'Thấp'
-         WHEN income_band = '20M_40M' THEN 'Trung bình'
-         WHEN income_band IN ('40M_80M', 'OVER_80M') THEN 'Cao'
-       END AS nhom_thu_nhap
+         WHEN income_band IN ('20M_40M', '40M_80M', 'OVER_80M') AND dependents_count < 1 THEN 'Cao'
+         WHEN income_band IN ('UNDER_10M', '10M_20M') AND dependents_count >= 2 THEN 'Thấp'
+         ELSE 'Trung bình'
+       END AS kha_nang_tich_luy
 FROM core_person
-WHERE date_of_birth >= '1990-01-01'
+WHERE date_of_birth >= '1990-01-01' AND date_of_birth < '1991-01-01'
 ORDER BY party_id;
 
--- [aivb-n3-so-tien-con-thieu-ky-qua-han] solution
-SELECT loan_id, installment_no, due_date,
-       principal_due + interest_due - principal_paid - interest_paid AS so_tien_con_thieu
+-- [aivb-n2-kha-nang-tich-luy-khach-1990] wrong: thieu_nhanh_con_lai
+SELECT party_id, income_band, dependents_count,
+       CASE
+         WHEN income_band IN ('20M_40M', '40M_80M', 'OVER_80M') AND dependents_count <= 1 THEN 'Cao'
+         WHEN income_band IN ('UNDER_10M', '10M_20M') AND dependents_count >= 2 THEN 'Thấp'
+       END AS kha_nang_tich_luy
+FROM core_person
+WHERE date_of_birth >= '1990-01-01' AND date_of_birth < '1991-01-01'
+ORDER BY party_id;
+
+-- [aivb-n3-ky-qua-han-can-goi-nhac-truoc] solution
+SELECT loan_id, installment_no,
+       principal_due + interest_due - principal_paid - interest_paid AS so_tien_con_thieu,
+       DATEDIFF('2026-12-31', due_date) AS so_ngay_qua_han,
+       CASE
+         WHEN DATEDIFF('2026-12-31', due_date) < 10 THEN 'Dưới 10 ngày'
+         WHEN DATEDIFF('2026-12-31', due_date) <= 90 THEN '10-90 ngày'
+         WHEN DATEDIFF('2026-12-31', due_date) <= 180 THEN '91-180 ngày'
+         ELSE 'Trên 180 ngày'
+       END AS muc_qua_han
 FROM core_loan_schedule
 WHERE schedule_status = 'OVERDUE'
-ORDER BY due_date, loan_id, installment_no;
+ORDER BY so_ngay_qua_han DESC, loan_id, installment_no;
 
--- [aivb-n3-so-tien-con-thieu-ky-qua-han] wrong: chi_tinh_goc
-SELECT loan_id, installment_no, due_date,
-       principal_due - principal_paid AS so_tien_con_thieu
+-- [aivb-n3-ky-qua-han-can-goi-nhac-truoc] wrong: quen_tru_phan_da_tra
+SELECT loan_id, installment_no,
+       principal_due + interest_due AS so_tien_con_thieu,
+       DATEDIFF('2026-12-31', due_date) AS so_ngay_qua_han,
+       CASE
+         WHEN DATEDIFF('2026-12-31', due_date) < 10 THEN 'Dưới 10 ngày'
+         WHEN DATEDIFF('2026-12-31', due_date) <= 90 THEN '10-90 ngày'
+         WHEN DATEDIFF('2026-12-31', due_date) <= 180 THEN '91-180 ngày'
+         ELSE 'Trên 180 ngày'
+       END AS muc_qua_han
 FROM core_loan_schedule
 WHERE schedule_status = 'OVERDUE'
-ORDER BY due_date, loan_id, installment_no;
+ORDER BY so_ngay_qua_han DESC, loan_id, installment_no;
 
--- [aivb-n3-so-tien-con-thieu-ky-qua-han] wrong: lan_ky_chua_den_han_va_da_huy
-SELECT loan_id, installment_no, due_date,
-       principal_due + interest_due - principal_paid - interest_paid AS so_tien_con_thieu
+-- [aivb-n3-ky-qua-han-can-goi-nhac-truoc] wrong: chi_tinh_goc
+SELECT loan_id, installment_no,
+       principal_due - principal_paid AS so_tien_con_thieu,
+       DATEDIFF('2026-12-31', due_date) AS so_ngay_qua_han,
+       CASE
+         WHEN DATEDIFF('2026-12-31', due_date) < 10 THEN 'Dưới 10 ngày'
+         WHEN DATEDIFF('2026-12-31', due_date) <= 90 THEN '10-90 ngày'
+         WHEN DATEDIFF('2026-12-31', due_date) <= 180 THEN '91-180 ngày'
+         ELSE 'Trên 180 ngày'
+       END AS muc_qua_han
+FROM core_loan_schedule
+WHERE schedule_status = 'OVERDUE'
+ORDER BY so_ngay_qua_han DESC, loan_id, installment_no;
+
+-- [aivb-n3-ky-qua-han-can-goi-nhac-truoc] wrong: bien_10_ngay_vao_muc_duoi
+SELECT loan_id, installment_no,
+       principal_due + interest_due - principal_paid - interest_paid AS so_tien_con_thieu,
+       DATEDIFF('2026-12-31', due_date) AS so_ngay_qua_han,
+       CASE
+         WHEN DATEDIFF('2026-12-31', due_date) <= 10 THEN 'Dưới 10 ngày'
+         WHEN DATEDIFF('2026-12-31', due_date) <= 90 THEN '10-90 ngày'
+         WHEN DATEDIFF('2026-12-31', due_date) <= 180 THEN '91-180 ngày'
+         ELSE 'Trên 180 ngày'
+       END AS muc_qua_han
+FROM core_loan_schedule
+WHERE schedule_status = 'OVERDUE'
+ORDER BY so_ngay_qua_han DESC, loan_id, installment_no;
+
+-- [aivb-n3-ky-qua-han-can-goi-nhac-truoc] wrong: bien_90_ngay_vao_muc_tren
+SELECT loan_id, installment_no,
+       principal_due + interest_due - principal_paid - interest_paid AS so_tien_con_thieu,
+       DATEDIFF('2026-12-31', due_date) AS so_ngay_qua_han,
+       CASE
+         WHEN DATEDIFF('2026-12-31', due_date) < 10 THEN 'Dưới 10 ngày'
+         WHEN DATEDIFF('2026-12-31', due_date) < 90 THEN '10-90 ngày'
+         WHEN DATEDIFF('2026-12-31', due_date) <= 180 THEN '91-180 ngày'
+         ELSE 'Trên 180 ngày'
+       END AS muc_qua_han
+FROM core_loan_schedule
+WHERE schedule_status = 'OVERDUE'
+ORDER BY so_ngay_qua_han DESC, loan_id, installment_no;
+
+-- [aivb-n3-ky-qua-han-can-goi-nhac-truoc] wrong: lan_ky_da_huy
+SELECT loan_id, installment_no,
+       principal_due + interest_due - principal_paid - interest_paid AS so_tien_con_thieu,
+       DATEDIFF('2026-12-31', due_date) AS so_ngay_qua_han,
+       CASE
+         WHEN DATEDIFF('2026-12-31', due_date) < 10 THEN 'Dưới 10 ngày'
+         WHEN DATEDIFF('2026-12-31', due_date) <= 90 THEN '10-90 ngày'
+         WHEN DATEDIFF('2026-12-31', due_date) <= 180 THEN '91-180 ngày'
+         ELSE 'Trên 180 ngày'
+       END AS muc_qua_han
 FROM core_loan_schedule
 WHERE schedule_status <> 'PAID'
-ORDER BY due_date, loan_id, installment_no;
+  AND due_date <= '2026-12-31'
+ORDER BY so_ngay_qua_han DESC, loan_id, installment_no;
 
--- [aivb-n4-ty-le-du-no-con-lai] solution
-SELECT loan_id, principal, outstanding,
-       ROUND(outstanding / NULLIF(principal, 0), 4) AS ty_le_con_lai,
+-- [aivb-n4-ty-le-thu-hoi-goc] solution
+SELECT loan_id, loan_status, principal, outstanding,
+       ROUND((principal - outstanding) * 100 / NULLIF(principal, 0), 2) AS ty_le_thu_hoi_goc,
        CASE
-         WHEN outstanding / NULLIF(principal, 0) >= 0.8 THEN 'Mới giải ngân'
-         WHEN outstanding / NULLIF(principal, 0) >= 0.2 THEN 'Giữa kỳ'
-         ELSE 'Sắp tất toán'
-       END AS giai_doan
+         WHEN principal = outstanding THEN 'Chưa thu hồi'
+         WHEN (principal - outstanding) * 100 / NULLIF(principal, 0) < 50 THEN 'Dưới 50%'
+         ELSE 'Từ 50% trở lên'
+       END AS nhom_thu_hoi
+FROM core_loan_contract
+WHERE outstanding > 0
+ORDER BY loan_id;
+
+-- [aivb-n4-ty-le-thu-hoi-goc] wrong: chi_xet_khoan_tra_no_binh_thuong
+SELECT loan_id, loan_status, principal, outstanding,
+       ROUND((principal - outstanding) * 100 / NULLIF(principal, 0), 2) AS ty_le_thu_hoi_goc,
+       CASE
+         WHEN principal = outstanding THEN 'Chưa thu hồi'
+         WHEN (principal - outstanding) * 100 / NULLIF(principal, 0) < 50 THEN 'Dưới 50%'
+         ELSE 'Từ 50% trở lên'
+       END AS nhom_thu_hoi
 FROM core_loan_contract
 WHERE loan_status = 'ACTIVE'
 ORDER BY loan_id;
 
--- [aivb-n4-ty-le-du-no-con-lai] wrong: sai_thu_tu_when
-SELECT loan_id, principal, outstanding,
-       ROUND(outstanding / NULLIF(principal, 0), 4) AS ty_le_con_lai,
+-- [aivb-n4-ty-le-thu-hoi-goc] wrong: nhanh_duoi_50_dat_truoc
+SELECT loan_id, loan_status, principal, outstanding,
+       ROUND((principal - outstanding) * 100 / NULLIF(principal, 0), 2) AS ty_le_thu_hoi_goc,
        CASE
-         WHEN outstanding / NULLIF(principal, 0) >= 0.2 THEN 'Giữa kỳ'
-         WHEN outstanding / NULLIF(principal, 0) >= 0.8 THEN 'Mới giải ngân'
-         ELSE 'Sắp tất toán'
-       END AS giai_doan
+         WHEN (principal - outstanding) * 100 / NULLIF(principal, 0) < 50 THEN 'Dưới 50%'
+         WHEN principal = outstanding THEN 'Chưa thu hồi'
+         ELSE 'Từ 50% trở lên'
+       END AS nhom_thu_hoi
 FROM core_loan_contract
-WHERE loan_status = 'ACTIVE'
+WHERE outstanding > 0
 ORDER BY loan_id;
 
--- [aivb-n4-ty-le-du-no-con-lai] wrong: lan_khoan_da_tat_toan
-SELECT loan_id, principal, outstanding,
-       ROUND(outstanding / NULLIF(principal, 0), 4) AS ty_le_con_lai,
+-- [aivb-n4-ty-le-thu-hoi-goc] wrong: tinh_phan_du_no_con_lai
+SELECT loan_id, loan_status, principal, outstanding,
+       ROUND(outstanding * 100 / NULLIF(principal, 0), 2) AS ty_le_thu_hoi_goc,
        CASE
-         WHEN outstanding / NULLIF(principal, 0) >= 0.8 THEN 'Mới giải ngân'
-         WHEN outstanding / NULLIF(principal, 0) >= 0.2 THEN 'Giữa kỳ'
-         ELSE 'Sắp tất toán'
-       END AS giai_doan
+         WHEN principal = outstanding THEN 'Chưa thu hồi'
+         WHEN outstanding * 100 / NULLIF(principal, 0) < 50 THEN 'Dưới 50%'
+         ELSE 'Từ 50% trở lên'
+       END AS nhom_thu_hoi
 FROM core_loan_contract
+WHERE outstanding > 0
+ORDER BY loan_id;
+
+-- [aivb-n4-ty-le-thu-hoi-goc] wrong: xep_nhom_tren_ty_le_da_lam_tron
+SELECT loan_id, loan_status, principal, outstanding,
+       ROUND((principal - outstanding) * 100 / NULLIF(principal, 0), 2) AS ty_le_thu_hoi_goc,
+       CASE
+         WHEN principal = outstanding THEN 'Chưa thu hồi'
+         WHEN ROUND((principal - outstanding) * 100 / NULLIF(principal, 0), 2) < 50 THEN 'Dưới 50%'
+         ELSE 'Từ 50% trở lên'
+       END AS nhom_thu_hoi
+FROM core_loan_contract
+WHERE outstanding > 0
 ORDER BY loan_id;
 
 -- [aivb-n5-so-ngay-tai-khoan-mo] solution
@@ -486,8 +641,8 @@ ORDER BY party_id;
 SELECT account_party_id, account_id, party_id, valid_from, valid_to
 FROM core_account_party
 WHERE role_code = 'JOINT_OWNER'
-  AND valid_from <= '2026-06-30'
-  AND valid_to > '2026-06-30'
+  AND valid_from < '2026-06-30'
+  AND valid_to >= '2026-06-30'
 ORDER BY account_party_id;
 
 -- [aivb-n9-dong-so-huu-con-hieu-luc] solution
@@ -496,6 +651,22 @@ FROM core_account_party
 WHERE role_code = 'JOINT_OWNER'
   AND valid_from <= '2026-06-30'
   AND (valid_to IS NULL OR valid_to > '2026-06-30')
+ORDER BY account_party_id;
+
+-- [aivb-n9-dong-so-huu-con-hieu-luc] wrong: chi_them_valid_to_trong
+SELECT account_party_id, account_id, party_id, valid_from, valid_to
+FROM core_account_party
+WHERE role_code = 'JOINT_OWNER'
+  AND valid_from < '2026-06-30'
+  AND (valid_to IS NULL OR valid_to >= '2026-06-30')
+ORDER BY account_party_id;
+
+-- [aivb-n9-dong-so-huu-con-hieu-luc] wrong: thieu_ngoac_quanh_or
+SELECT account_party_id, account_id, party_id, valid_from, valid_to
+FROM core_account_party
+WHERE role_code = 'JOINT_OWNER'
+  AND valid_from <= '2026-06-30'
+  AND valid_to IS NULL OR valid_to > '2026-06-30'
 ORDER BY account_party_id;
 
 -- [aivb-n9-dong-so-huu-con-hieu-luc] wrong: chi_lay_valid_to_trong
@@ -510,6 +681,22 @@ ORDER BY account_party_id;
 SELECT account_party_id, account_id, party_id, valid_from, valid_to
 FROM core_account_party
 WHERE role_code = 'JOINT_OWNER'
+  AND (valid_to IS NULL OR valid_to > '2026-06-30')
+ORDER BY account_party_id;
+
+-- [aivb-n9-dong-so-huu-con-hieu-luc] wrong: tinh_ca_ngay_ket_thuc
+SELECT account_party_id, account_id, party_id, valid_from, valid_to
+FROM core_account_party
+WHERE role_code = 'JOINT_OWNER'
+  AND valid_from <= '2026-06-30'
+  AND (valid_to IS NULL OR valid_to >= '2026-06-30')
+ORDER BY account_party_id;
+
+-- [aivb-n9-dong-so-huu-con-hieu-luc] wrong: bo_ngay_bat_dau_dung_moc
+SELECT account_party_id, account_id, party_id, valid_from, valid_to
+FROM core_account_party
+WHERE role_code = 'JOINT_OWNER'
+  AND valid_from < '2026-06-30'
   AND (valid_to IS NULL OR valid_to > '2026-06-30')
 ORDER BY account_party_id;
 
@@ -558,6 +745,15 @@ SELECT deposit_id, term_months, principal,
        maturity_date
 FROM core_deposit_contract
 WHERE maturity_date >= '2027-01-01' AND maturity_date < '2027-02-01'
+ORDER BY lai_suat_pct DESC, deposit_id;
+
+-- [aivb-c2-tien-gui-sap-dao-han.b1] wrong: tinh_ca_ngay_01_02
+SELECT deposit_id, term_months, principal,
+       ROUND(interest_rate * 100, 2) AS lai_suat_pct,
+       maturity_date
+FROM core_deposit_contract
+WHERE deposit_status = 'ACTIVE'
+  AND maturity_date BETWEEN '2027-01-01' AND '2027-02-01'
 ORDER BY lai_suat_pct DESC, deposit_id;
 
 -- [aivb-c2-tien-gui-sap-dao-han.b1] wrong: lai_suat_de_dang_ty_le

@@ -3,31 +3,28 @@
 
 -- ################################################################ MODULE 9 · DATA QUALITY
 
--- [jelly-k1-trung-khoa] solution
-SELECT 'player_daily' AS bang,
-       COUNT(*) AS so_dong,
-       COUNT(DISTINCT user_id, activity_date) AS so_khoa_khac_nhau,
-       COUNT(*) - COUNT(DISTINCT user_id, activity_date) AS so_dong_thua
-FROM player_daily
-UNION ALL
-SELECT 'tutorial_steps',
-       COUNT(*),
-       COUNT(DISTINCT user_id, step_id),
-       COUNT(*) - COUNT(DISTINCT user_id, step_id)
-FROM tutorial_steps;
+-- [jelly-k1-phien-ghi-hai-lan] solution
+SELECT user_id, session_start, COUNT(*) AS so_dong
+FROM sessions
+GROUP BY user_id, session_start
+HAVING COUNT(*) > 1
+ORDER BY user_id, session_start;
 
--- [jelly-k1-trung-khoa] wrong: khoa_thieu_cot_ngay
-SELECT 'player_daily' AS bang,
-       COUNT(*) AS so_dong,
-       COUNT(DISTINCT user_id) AS so_khoa_khac_nhau,
-       COUNT(*) - COUNT(DISTINCT user_id) AS so_dong_thua
-FROM player_daily
-UNION ALL
-SELECT 'tutorial_steps',
-       COUNT(*),
-       COUNT(DISTINCT user_id),
-       COUNT(*) - COUNT(DISTINCT user_id)
-FROM tutorial_steps;
+-- [jelly-k1-phien-ghi-hai-lan] wrong: khoa_ky_thuat_ma_phien
+-- Gom theo session_id (khoá kỹ thuật, không bao giờ trùng): ra 0 dòng.
+SELECT user_id, session_start, COUNT(*) AS so_dong
+FROM sessions
+GROUP BY session_id, user_id, session_start
+HAVING COUNT(*) > 1
+ORDER BY user_id, session_start;
+
+-- [jelly-k1-phien-ghi-hai-lan] wrong: gom_theo_ngay
+-- Gom theo người chơi và ngày: lẫn mọi người chơi mở game nhiều lần trong ngày.
+SELECT user_id, MIN(session_start) AS session_start, COUNT(*) AS so_dong
+FROM sessions
+GROUP BY user_id, event_date
+HAVING COUNT(*) > 1
+ORDER BY user_id, session_start;
 
 -- [jelly-k2-mo-coi] solution
 SELECT p.product_type,
@@ -79,19 +76,24 @@ ORDER BY p.product_type;
 
 -- [jelly-k3-cohort-day-kiem] solution
 SELECT COUNT(*) AS so_dong_kiem,
-       COUNT(CASE WHEN pd.cohort_day <> DATEDIFF(pd.activity_date, u.install_date) THEN 1 END) AS so_lech_cohort_day,
        COUNT(CASE WHEN pd.install_date <> u.install_date THEN 1 END) AS so_lech_ngay_cai,
-       COUNT(CASE WHEN pd.activity_date < u.install_date THEN 1 END) AS so_hoat_dong_truoc_ngay_cai
+       COUNT(CASE WHEN pd.cohort_day <> DATEDIFF(pd.activity_date, u.install_date) THEN 1 END) AS so_lech_cohort_day
 FROM player_daily pd
 JOIN users u ON u.user_id = pd.user_id;
 
 -- [jelly-k3-cohort-day-kiem] wrong: datediff_dao_doi_so
 SELECT COUNT(*) AS so_dong_kiem,
-       COUNT(CASE WHEN pd.cohort_day <> DATEDIFF(u.install_date, pd.activity_date) THEN 1 END) AS so_lech_cohort_day,
        COUNT(CASE WHEN pd.install_date <> u.install_date THEN 1 END) AS so_lech_ngay_cai,
-       COUNT(CASE WHEN pd.activity_date < u.install_date THEN 1 END) AS so_hoat_dong_truoc_ngay_cai
+       COUNT(CASE WHEN pd.cohort_day <> DATEDIFF(u.install_date, pd.activity_date) THEN 1 END) AS so_lech_cohort_day
 FROM player_daily pd
 JOIN users u ON u.user_id = pd.user_id;
+
+-- [jelly-k3-cohort-day-kiem] wrong: so_trong_mot_bang
+-- Không nối users, so hai cột của chính player_daily: ra 0 ở hidden-1 (đáp án 1).
+SELECT COUNT(*) AS so_dong_kiem,
+       COUNT(CASE WHEN pd.install_date <> pd.install_date THEN 1 END) AS so_lech_ngay_cai,
+       COUNT(CASE WHEN pd.cohort_day <> DATEDIFF(pd.activity_date, pd.install_date) THEN 1 END) AS so_lech_cohort_day
+FROM player_daily pd;
 
 -- [jelly-k4-max-level-giam] solution
 WITH ngay AS (
@@ -198,160 +200,121 @@ WHERE a.event_date >= '2026-08-01' AND a.event_date < '2026-09-01'
 GROUP BY a.event_date
 ORDER BY a.event_date;
 
--- [jelly-k6-ad-revenue-lam-tron] solution
-WITH chi_tiet AS (
-  SELECT user_id, event_date, SUM(revenue_usd) AS dt_chi_tiet
-  FROM ad_events
-  GROUP BY user_id, event_date
-)
-SELECT COUNT(*) AS so_ngay_nguoi_doi_soat,
-       COUNT(CASE WHEN ABS(pd.ad_revenue - c.dt_chi_tiet) > 0.00005 THEN 1 END) AS so_ngay_nguoi_lech,
-       ROUND(SUM(pd.ad_revenue - c.dt_chi_tiet), 5) AS tong_chenh_lech_usd,
-       ROUND(MAX(ABS(pd.ad_revenue - c.dt_chi_tiet)), 5) AS chenh_lech_lon_nhat_usd
-FROM player_daily pd
-JOIN chi_tiet c ON c.user_id = pd.user_id AND c.event_date = pd.activity_date;
+-- [jelly-k6-quang-cao-bang-ngay] solution
+SELECT k.`date` AS ngay,
+       k.ad_revenue AS dt_bang_ngay_usd,
+       ROUND(SUM(a.revenue_usd), 2) AS dt_tinh_lai_usd
+FROM daily_kpi k
+JOIN ad_events a ON a.event_date = k.`date`
+WHERE k.`date` >= '2026-07-01' AND k.`date` < '2026-08-30'
+GROUP BY k.`date`, k.ad_revenue
+HAVING k.ad_revenue <> ROUND(SUM(a.revenue_usd), 2)
+ORDER BY k.`date`;
 
--- [jelly-k6-ad-revenue-lam-tron] wrong: so_bang_dau_khac
-WITH chi_tiet AS (
-  SELECT user_id, event_date, SUM(revenue_usd) AS dt_chi_tiet
-  FROM ad_events
-  GROUP BY user_id, event_date
-)
-SELECT COUNT(*) AS so_ngay_nguoi_doi_soat,
-       COUNT(CASE WHEN pd.ad_revenue <> c.dt_chi_tiet THEN 1 END) AS so_ngay_nguoi_lech,
-       ROUND(SUM(pd.ad_revenue - c.dt_chi_tiet), 5) AS tong_chenh_lech_usd,
-       ROUND(MAX(ABS(pd.ad_revenue - c.dt_chi_tiet)), 5) AS chenh_lech_lon_nhat_usd
-FROM player_daily pd
-JOIN chi_tiet c ON c.user_id = pd.user_id AND c.event_date = pd.activity_date;
+-- [jelly-k6-quang-cao-bang-ngay] wrong: so_voi_tong_chua_lam_tron
+SELECT k.`date` AS ngay,
+       k.ad_revenue AS dt_bang_ngay_usd,
+       ROUND(SUM(a.revenue_usd), 2) AS dt_tinh_lai_usd
+FROM daily_kpi k
+JOIN ad_events a ON a.event_date = k.`date`
+WHERE k.`date` >= '2026-07-01' AND k.`date` < '2026-08-30'
+GROUP BY k.`date`, k.ad_revenue
+HAVING k.ad_revenue <> SUM(a.revenue_usd)
+ORDER BY k.`date`;
 
--- [jelly-k6-ad-revenue-lam-tron] wrong: lam_tron_roi_so_bang
-WITH chi_tiet AS (
-  SELECT user_id, event_date, SUM(revenue_usd) AS dt_chi_tiet
-  FROM ad_events
-  GROUP BY user_id, event_date
-)
-SELECT COUNT(*) AS so_ngay_nguoi_doi_soat,
-       COUNT(CASE WHEN pd.ad_revenue <> ROUND(c.dt_chi_tiet, 4) THEN 1 END) AS so_ngay_nguoi_lech,
-       ROUND(SUM(pd.ad_revenue - c.dt_chi_tiet), 5) AS tong_chenh_lech_usd,
-       ROUND(MAX(ABS(pd.ad_revenue - c.dt_chi_tiet)), 5) AS chenh_lech_lon_nhat_usd
-FROM player_daily pd
-JOIN chi_tiet c ON c.user_id = pd.user_id AND c.event_date = pd.activity_date;
+-- [jelly-k6-quang-cao-bang-ngay] wrong: lam_tron_tung_lan_xem
+SELECT k.`date` AS ngay,
+       k.ad_revenue AS dt_bang_ngay_usd,
+       SUM(ROUND(a.revenue_usd, 2)) AS dt_tinh_lai_usd
+FROM daily_kpi k
+JOIN ad_events a ON a.event_date = k.`date`
+WHERE k.`date` >= '2026-07-01' AND k.`date` < '2026-08-30'
+GROUP BY k.`date`, k.ad_revenue
+HAVING k.ad_revenue <> SUM(ROUND(a.revenue_usd, 2))
+ORDER BY k.`date`;
 
--- [jelly-k7-bat-thuong-chi] starter
-WITH ngay AS (
-  SELECT campaign_id, `date` AS ngay, SUM(spend_usd) AS chi_ngay
-  FROM campaign_spend
-  WHERE `date` >= '2026-07-01' AND `date` < '2026-08-30'
-  GROUP BY campaign_id, `date`
-),
-chuan AS (
-  SELECT AVG(chi_ngay) AS chi_tb, STDDEV_POP(chi_ngay) AS do_lech
-  FROM ngay
-)
-SELECT n.campaign_id, n.ngay, n.chi_ngay, ROUND(c.chi_tb, 2) AS chi_tb_chien_dich
-FROM ngay n
-CROSS JOIN chuan c
-WHERE n.chi_ngay > c.chi_tb + 2 * c.do_lech
-ORDER BY n.campaign_id, n.ngay;
+-- [jelly-k6-quang-cao-bang-ngay] wrong: cong_bang_ngay_sau_khi_noi
+SELECT k.`date` AS ngay,
+       SUM(k.ad_revenue) AS dt_bang_ngay_usd,
+       ROUND(SUM(a.revenue_usd), 2) AS dt_tinh_lai_usd
+FROM daily_kpi k
+JOIN ad_events a ON a.event_date = k.`date`
+WHERE k.`date` >= '2026-07-01' AND k.`date` < '2026-08-30'
+GROUP BY k.`date`
+HAVING SUM(k.ad_revenue) <> ROUND(SUM(a.revenue_usd), 2)
+ORDER BY k.`date`;
 
--- [jelly-k7-bat-thuong-chi] solution
-WITH ngay AS (
-  SELECT campaign_id, `date` AS ngay, SUM(spend_usd) AS chi_ngay
-  FROM campaign_spend
-  WHERE `date` >= '2026-07-01' AND `date` < '2026-08-30'
-  GROUP BY campaign_id, `date`
-),
-chuan AS (
-  SELECT campaign_id, AVG(chi_ngay) AS chi_tb, STDDEV_POP(chi_ngay) AS do_lech
-  FROM ngay
-  GROUP BY campaign_id
-)
-SELECT n.campaign_id, n.ngay, n.chi_ngay, ROUND(c.chi_tb, 2) AS chi_tb_chien_dich
-FROM ngay n
-JOIN chuan c ON c.campaign_id = n.campaign_id
-WHERE n.chi_ngay > c.chi_tb + 2 * c.do_lech
-ORDER BY n.campaign_id, n.ngay;
+-- [jelly-k7-dau-doi-soat-phien] starter
+SELECT k.`date` AS ngay,
+       k.dau AS dau_bang_ngay,
+       COUNT(s.user_id) AS dau_tinh_lai,
+       k.dau - COUNT(s.user_id) AS chenh_lech
+FROM daily_kpi k
+JOIN sessions s ON s.event_date = k.`date`
+WHERE k.`date` >= '2026-07-01' AND k.`date` < '2026-07-08'
+GROUP BY k.`date`, k.dau
+ORDER BY k.`date`;
 
--- [jelly-k7-bat-thuong-chi] wrong: chuan_tren_dong_quoc_gia
-WITH chuan AS (
-  SELECT campaign_id, AVG(spend_usd) AS chi_tb, STDDEV_POP(spend_usd) AS do_lech
-  FROM campaign_spend
-  WHERE `date` >= '2026-07-01' AND `date` < '2026-08-30'
-  GROUP BY campaign_id
-),
-ngay AS (
-  SELECT campaign_id, `date` AS ngay, SUM(spend_usd) AS chi_ngay
-  FROM campaign_spend
-  WHERE `date` >= '2026-07-01' AND `date` < '2026-08-30'
-  GROUP BY campaign_id, `date`
-)
-SELECT n.campaign_id, n.ngay, n.chi_ngay, ROUND(c.chi_tb, 2) AS chi_tb_chien_dich
-FROM ngay n
-JOIN chuan c ON c.campaign_id = n.campaign_id
-WHERE n.chi_ngay > c.chi_tb + 2 * c.do_lech
-ORDER BY n.campaign_id, n.ngay;
+-- [jelly-k7-dau-doi-soat-phien] solution
+SELECT k.`date` AS ngay,
+       k.dau AS dau_bang_ngay,
+       COUNT(DISTINCT s.user_id) AS dau_tinh_lai,
+       k.dau - COUNT(DISTINCT s.user_id) AS chenh_lech
+FROM daily_kpi k
+JOIN sessions s ON s.event_date = k.`date`
+WHERE k.`date` >= '2026-07-01' AND k.`date` < '2026-07-08'
+GROUP BY k.`date`, k.dau
+ORDER BY k.`date`;
 
--- [jelly-k7-bat-thuong-chi] wrong: quen_can_tren
-WITH ngay AS (
-  SELECT campaign_id, `date` AS ngay, SUM(spend_usd) AS chi_ngay
-  FROM campaign_spend
-  WHERE `date` >= '2026-07-01'
-  GROUP BY campaign_id, `date`
-),
-chuan AS (
-  SELECT campaign_id, AVG(chi_ngay) AS chi_tb, STDDEV_POP(chi_ngay) AS do_lech
-  FROM ngay
-  GROUP BY campaign_id
-)
-SELECT n.campaign_id, n.ngay, n.chi_ngay, ROUND(c.chi_tb, 2) AS chi_tb_chien_dich
-FROM ngay n
-JOIN chuan c ON c.campaign_id = n.campaign_id
-WHERE n.chi_ngay > c.chi_tb + 2 * c.do_lech
-ORDER BY n.campaign_id, n.ngay;
+-- [jelly-k7-dau-doi-soat-phien] wrong: chi_sua_cot_dau_tinh_lai
+SELECT k.`date` AS ngay,
+       k.dau AS dau_bang_ngay,
+       COUNT(DISTINCT s.user_id) AS dau_tinh_lai,
+       k.dau - COUNT(s.user_id) AS chenh_lech
+FROM daily_kpi k
+JOIN sessions s ON s.event_date = k.`date`
+WHERE k.`date` >= '2026-07-01' AND k.`date` < '2026-07-08'
+GROUP BY k.`date`, k.dau
+ORDER BY k.`date`;
 
--- [jelly-k8-hoan-tien] starter
-SELECT product_type,
-       COUNT(*) AS so_giao_dich,
-       SUM(price_usd) AS doanh_thu_gop,
-       SUM(CASE WHEN is_refund = 0 THEN price_usd ELSE 0 END) AS tien_hoan,
-       SUM(CASE WHEN is_refund = 0 THEN -price_usd ELSE price_usd END) AS doanh_thu_thuan
+-- [jelly-k7-dau-doi-soat-phien] wrong: bo_can_tren_cua_tuan
+SELECT k.`date` AS ngay,
+       k.dau AS dau_bang_ngay,
+       COUNT(DISTINCT s.user_id) AS dau_tinh_lai,
+       k.dau - COUNT(DISTINCT s.user_id) AS chenh_lech
+FROM daily_kpi k
+JOIN sessions s ON s.event_date = k.`date`
+WHERE k.`date` >= '2026-07-01'
+GROUP BY k.`date`, k.dau
+ORDER BY k.`date`;
+
+-- [jelly-k8-thuan-ra-0] starter
+SELECT COUNT(*) AS so_giao_dich,
+       SUM(price_usd) AS doanh_thu_gop_usd,
+       SUM(CASE WHEN is_refund = 1 THEN price_usd ELSE 0 END) AS doanh_thu_thuan_usd
 FROM purchases
-WHERE event_date >= '2026-07-01' AND event_date < '2026-08-01'
-GROUP BY product_type
-ORDER BY doanh_thu_thuan DESC, product_type;
+WHERE event_date >= '2026-07-01' AND event_date < '2026-08-01';
 
--- [jelly-k8-hoan-tien] solution
-SELECT product_type,
-       COUNT(*) AS so_giao_dich,
-       SUM(price_usd) AS doanh_thu_gop,
-       SUM(CASE WHEN is_refund = 1 THEN price_usd ELSE 0 END) AS tien_hoan,
-       SUM(CASE WHEN is_refund = 1 THEN 0 ELSE price_usd END) AS doanh_thu_thuan
+-- [jelly-k8-thuan-ra-0] solution
+SELECT COUNT(*) AS so_giao_dich,
+       SUM(price_usd) AS doanh_thu_gop_usd,
+       SUM(CASE WHEN is_refund = 0 THEN price_usd ELSE 0 END) AS doanh_thu_thuan_usd
 FROM purchases
-WHERE event_date >= '2026-07-01' AND event_date < '2026-08-01'
-GROUP BY product_type
-ORDER BY doanh_thu_thuan DESC, product_type;
+WHERE event_date >= '2026-07-01' AND event_date < '2026-08-01';
 
--- [jelly-k8-hoan-tien] wrong: chi_sua_cot_thuan
-SELECT product_type,
-       COUNT(*) AS so_giao_dich,
-       SUM(price_usd) AS doanh_thu_gop,
-       SUM(CASE WHEN is_refund = 0 THEN price_usd ELSE 0 END) AS tien_hoan,
-       SUM(CASE WHEN is_refund = 1 THEN 0 ELSE price_usd END) AS doanh_thu_thuan
+-- [jelly-k8-thuan-ra-0] wrong: dao_co_kieu_khac
+SELECT COUNT(*) AS so_giao_dich,
+       SUM(price_usd) AS doanh_thu_gop_usd,
+       SUM(CASE WHEN is_refund = 0 THEN 0 ELSE price_usd END) AS doanh_thu_thuan_usd
 FROM purchases
-WHERE event_date >= '2026-07-01' AND event_date < '2026-08-01'
-GROUP BY product_type
-ORDER BY doanh_thu_thuan DESC, product_type;
+WHERE event_date >= '2026-07-01' AND event_date < '2026-08-01';
 
--- [jelly-k8-hoan-tien] wrong: case_thieu_else
-SELECT product_type,
-       COUNT(*) AS so_giao_dich,
-       SUM(price_usd) AS doanh_thu_gop,
-       SUM(CASE WHEN is_refund = 1 THEN price_usd END) AS tien_hoan,
-       SUM(CASE WHEN is_refund = 1 THEN 0 ELSE price_usd END) AS doanh_thu_thuan
+-- [jelly-k8-thuan-ra-0] wrong: bo_can_tren_thang
+SELECT COUNT(*) AS so_giao_dich,
+       SUM(price_usd) AS doanh_thu_gop_usd,
+       SUM(CASE WHEN is_refund = 0 THEN price_usd ELSE 0 END) AS doanh_thu_thuan_usd
 FROM purchases
-WHERE event_date >= '2026-07-01' AND event_date < '2026-08-01'
-GROUP BY product_type
-ORDER BY doanh_thu_thuan DESC, product_type;
+WHERE event_date >= '2026-07-01';
 
 -- [jelly-k9-phien-hai-dang-ma] starter
 WITH phien_dau AS (
@@ -668,68 +631,36 @@ WHERE p.event_date >= '2026-07-01' AND p.event_date < '2026-08-30'
 GROUP BY u.channel
 ORDER BY so_nguoi_tra_tien DESC, u.channel;
 
--- [jelly-p6-dau-tu-sessions] starter
-SELECT u.platform,
-       COUNT(*) AS so_nguoi_cai,
-       COUNT(d1.user_id) AS so_con_d1,
-       COUNT(d7.user_id) AS so_con_d7,
-       ROUND(100 * COUNT(d1.user_id) / COUNT(*), 2) AS ty_le_d1_pct,
-       ROUND(100 * COUNT(d7.user_id) / COUNT(*), 2) AS ty_le_d7_pct
-FROM users u
-LEFT JOIN (SELECT user_id FROM player_daily WHERE cohort_day = 1) d1 ON d1.user_id = u.user_id
-LEFT JOIN (SELECT user_id FROM player_daily WHERE cohort_day = 7) d7 ON d7.user_id = u.user_id
-WHERE u.install_date >= '2026-07-01' AND u.install_date <= '2026-08-22'
-GROUP BY u.platform
-ORDER BY u.platform;
+-- [jelly-p6-d1-d3-d7-mot-lan-quet] starter
+SELECT
+  (SELECT COUNT(*) FROM player_daily
+    WHERE install_date >= '2026-07-01' AND install_date < '2026-07-08' AND cohort_day = 1) AS so_con_d1,
+  (SELECT COUNT(*) FROM player_daily
+    WHERE install_date >= '2026-07-01' AND install_date < '2026-07-08' AND cohort_day = 3) AS so_con_d3,
+  (SELECT COUNT(*) FROM player_daily
+    WHERE install_date >= '2026-07-01' AND install_date < '2026-07-08' AND cohort_day = 7) AS so_con_d7;
 
--- [jelly-p6-dau-tu-sessions] solution
-SELECT u.platform,
-       COUNT(*) AS so_nguoi_cai,
-       SUM(COALESCE(h.d1, 0)) AS so_con_d1,
-       SUM(COALESCE(h.d7, 0)) AS so_con_d7,
-       ROUND(100 * SUM(COALESCE(h.d1, 0)) / COUNT(*), 2) AS ty_le_d1_pct,
-       ROUND(100 * SUM(COALESCE(h.d7, 0)) / COUNT(*), 2) AS ty_le_d7_pct
-FROM users u
-LEFT JOIN (SELECT user_id,
-                  MAX(CASE WHEN cohort_day = 1 THEN 1 ELSE 0 END) AS d1,
-                  MAX(CASE WHEN cohort_day = 7 THEN 1 ELSE 0 END) AS d7
-           FROM player_daily
-           WHERE cohort_day IN (1, 7)
-           GROUP BY user_id) h ON h.user_id = u.user_id
-WHERE u.install_date >= '2026-07-01' AND u.install_date <= '2026-08-22'
-GROUP BY u.platform
-ORDER BY u.platform;
+-- [jelly-p6-d1-d3-d7-mot-lan-quet] solution
+SELECT COUNT(CASE WHEN cohort_day = 1 THEN 1 END) AS so_con_d1,
+       COUNT(CASE WHEN cohort_day = 3 THEN 1 END) AS so_con_d3,
+       COUNT(CASE WHEN cohort_day = 7 THEN 1 END) AS so_con_d7
+FROM player_daily
+WHERE install_date >= '2026-07-01' AND install_date < '2026-07-08';
 
--- [jelly-p6-dau-tu-sessions] wrong: gom_ca_nhom_chua_du_ngay
-SELECT u.platform,
-       COUNT(*) AS so_nguoi_cai,
-       SUM(COALESCE(h.d1, 0)) AS so_con_d1,
-       SUM(COALESCE(h.d7, 0)) AS so_con_d7,
-       ROUND(100 * SUM(COALESCE(h.d1, 0)) / COUNT(*), 2) AS ty_le_d1_pct,
-       ROUND(100 * SUM(COALESCE(h.d7, 0)) / COUNT(*), 2) AS ty_le_d7_pct
-FROM users u
-LEFT JOIN (SELECT user_id,
-                  MAX(CASE WHEN cohort_day = 1 THEN 1 ELSE 0 END) AS d1,
-                  MAX(CASE WHEN cohort_day = 7 THEN 1 ELSE 0 END) AS d7
-           FROM player_daily
-           WHERE cohort_day IN (1, 7)
-           GROUP BY user_id) h ON h.user_id = u.user_id
-WHERE u.install_date >= '2026-07-01'
-GROUP BY u.platform
-ORDER BY u.platform;
+-- [jelly-p6-d1-d3-d7-mot-lan-quet] wrong: group_by_ra_ba_dong
+SELECT cohort_day, COUNT(*) AS so_con
+FROM player_daily
+WHERE install_date >= '2026-07-01' AND install_date < '2026-07-08'
+  AND cohort_day IN (1, 3, 7)
+GROUP BY cohort_day
+ORDER BY cohort_day;
 
--- [jelly-p6-dau-tu-sessions] wrong: mau_so_tu_bang_hoat_dong
-SELECT pd.platform,
-       COUNT(DISTINCT pd.user_id) AS so_nguoi_cai,
-       COUNT(DISTINCT CASE WHEN pd.cohort_day = 1 THEN pd.user_id END) AS so_con_d1,
-       COUNT(DISTINCT CASE WHEN pd.cohort_day = 7 THEN pd.user_id END) AS so_con_d7,
-       ROUND(100 * COUNT(DISTINCT CASE WHEN pd.cohort_day = 1 THEN pd.user_id END) / COUNT(DISTINCT pd.user_id), 2) AS ty_le_d1_pct,
-       ROUND(100 * COUNT(DISTINCT CASE WHEN pd.cohort_day = 7 THEN pd.user_id END) / COUNT(DISTINCT pd.user_id), 2) AS ty_le_d7_pct
-FROM player_daily pd
-WHERE pd.install_date >= '2026-07-01' AND pd.install_date <= '2026-08-22'
-  AND pd.cohort_day IN (1, 7)
-GROUP BY pd.platform
-ORDER BY pd.platform;
+-- [jelly-p6-d1-d3-d7-mot-lan-quet] wrong: count_bieu_thuc_so_sanh
+SELECT COUNT(cohort_day = 1) AS so_con_d1,
+       COUNT(cohort_day = 3) AS so_con_d3,
+       COUNT(cohort_day = 7) AS so_con_d7
+FROM player_daily
+WHERE install_date >= '2026-07-01' AND install_date < '2026-07-08';
 
 -- [jelly-p7-index-ngay] starter
 SELECT level_id,
@@ -786,45 +717,29 @@ GROUP BY level_id
 ORDER BY so_luot DESC, level_id
 LIMIT 10;
 
--- [jelly-p8-ham-tren-cot] starter
-SELECT DATE_FORMAT(activity_date, '%Y-%m') AS thang,
-       COUNT(user_id) AS mau,
-       ROUND(COUNT(*) / DAY(LAST_DAY(MIN(activity_date))), 2) AS dau_binh_quan,
-       ROUND(COUNT(*) / DAY(LAST_DAY(MIN(activity_date))) / COUNT(user_id), 4) AS muc_do_gan_bo
+-- [jelly-p8-moc-dau-dot-su-kien] starter
+SELECT COUNT(*) AS so_ngay_nguoi,
+       SUM(sessions) AS so_phien
 FROM player_daily
-WHERE YEAR(activity_date) = 2026
-GROUP BY DATE_FORMAT(activity_date, '%Y-%m')
-ORDER BY thang;
+WHERE activity_date > '2026-08-08' AND activity_date <= '2026-08-12';
 
--- [jelly-p8-ham-tren-cot] solution
-SELECT DATE_FORMAT(activity_date, '%Y-%m') AS thang,
-       COUNT(DISTINCT user_id) AS mau,
-       ROUND(COUNT(*) / COUNT(DISTINCT activity_date), 2) AS dau_binh_quan,
-       ROUND(COUNT(*) / COUNT(DISTINCT activity_date) / COUNT(DISTINCT user_id), 4) AS muc_do_gan_bo
+-- [jelly-p8-moc-dau-dot-su-kien] solution
+SELECT COUNT(*) AS so_ngay_nguoi,
+       SUM(sessions) AS so_phien
 FROM player_daily
-WHERE activity_date >= '2026-07-01' AND activity_date < '2026-09-01'
-GROUP BY DATE_FORMAT(activity_date, '%Y-%m')
-ORDER BY thang;
+WHERE activity_date >= '2026-08-08' AND activity_date <= '2026-08-12';
 
--- [jelly-p8-ham-tren-cot] wrong: chia_so_ngay_lich
-SELECT DATE_FORMAT(activity_date, '%Y-%m') AS thang,
-       COUNT(DISTINCT user_id) AS mau,
-       ROUND(COUNT(*) / DAY(LAST_DAY(MIN(activity_date))), 2) AS dau_binh_quan,
-       ROUND(COUNT(*) / DAY(LAST_DAY(MIN(activity_date))) / COUNT(DISTINCT user_id), 4) AS muc_do_gan_bo
+-- [jelly-p8-moc-dau-dot-su-kien] wrong: bo_can_tren
+SELECT COUNT(*) AS so_ngay_nguoi,
+       SUM(sessions) AS so_phien
 FROM player_daily
-WHERE activity_date >= '2026-07-01' AND activity_date < '2026-09-01'
-GROUP BY DATE_FORMAT(activity_date, '%Y-%m')
-ORDER BY thang;
+WHERE activity_date >= '2026-08-08';
 
--- [jelly-p8-ham-tren-cot] wrong: giu_ham_year
-SELECT DATE_FORMAT(activity_date, '%Y-%m') AS thang,
-       COUNT(DISTINCT user_id) AS mau,
-       ROUND(COUNT(*) / COUNT(DISTINCT activity_date), 2) AS dau_binh_quan,
-       ROUND(COUNT(*) / COUNT(DISTINCT activity_date) / COUNT(DISTINCT user_id), 4) AS muc_do_gan_bo
+-- [jelly-p8-moc-dau-dot-su-kien] wrong: mat_ngay_cuoi
+SELECT COUNT(*) AS so_ngay_nguoi,
+       SUM(sessions) AS so_phien
 FROM player_daily
-WHERE YEAR(activity_date) = 2026
-GROUP BY DATE_FORMAT(activity_date, '%Y-%m')
-ORDER BY thang;
+WHERE activity_date >= '2026-08-08' AND activity_date < '2026-08-12';
 
 -- [jelly-p9-select-distinct-thua] starter
 WITH nguoi AS (
@@ -981,23 +896,22 @@ WITH nhom AS (
   FROM ab_assignments
   WHERE experiment_id = 'extra_moves_offer_timing' AND assigned_at < '2026-08-23'
 ),
-mua AS (
-  SELECT n.user_id, COUNT(p.transaction_id) AS so_giao_dich
+nhan AS (
+  SELECT n.user_id, COALESCE(SUM(a.extra_moves_purchased), 0) AS so_luot_nhan
   FROM nhom n
-  LEFT JOIN purchases p
-    ON p.user_id = n.user_id
-   AND p.product_type = 'extra_moves_pack'
-   AND p.event_date >= n.ngay_chia
-   AND p.event_date <= n.ngay_chia + INTERVAL 6 DAY
+  LEFT JOIN level_attempts a
+    ON a.user_id = n.user_id
+   AND a.event_date >= n.ngay_chia
+   AND a.event_date <= n.ngay_chia + INTERVAL 6 DAY
   GROUP BY n.user_id
 )
 SELECT n.variant,
        COUNT(*) AS so_nguoi,
-       SUM(m.so_giao_dich) AS so_giao_dich,
-       ROUND(SUM(m.so_giao_dich) / COUNT(*), 4) AS giao_dich_moi_nguoi,
-       ROUND(100 * COUNT(CASE WHEN m.so_giao_dich > 0 THEN 1 END) / COUNT(*), 2) AS ty_le_nguoi_mua_pct
+       SUM(m.so_luot_nhan) AS so_luot_nhan,
+       ROUND(SUM(m.so_luot_nhan) / COUNT(*), 4) AS luot_nhan_moi_nguoi,
+       ROUND(100 * COUNT(CASE WHEN m.so_luot_nhan > 0 THEN 1 END) / COUNT(*), 2) AS ty_le_nguoi_nhan_pct
 FROM nhom n
-JOIN mua m ON m.user_id = n.user_id
+JOIN nhan m ON m.user_id = n.user_id
 GROUP BY n.variant
 ORDER BY n.variant;
 
@@ -1008,8 +922,33 @@ WITH nhom AS (
   WHERE experiment_id = 'extra_moves_offer_timing' AND assigned_at < '2026-08-23'
     AND exposure_status = 'exposed'
 ),
-mua AS (
-  SELECT n.user_id, COUNT(p.transaction_id) AS so_giao_dich
+nhan AS (
+  SELECT n.user_id, COALESCE(SUM(a.extra_moves_purchased), 0) AS so_luot_nhan
+  FROM nhom n
+  LEFT JOIN level_attempts a
+    ON a.user_id = n.user_id
+   AND a.event_date >= n.ngay_chia
+   AND a.event_date <= n.ngay_chia + INTERVAL 6 DAY
+  GROUP BY n.user_id
+)
+SELECT n.variant,
+       COUNT(*) AS so_nguoi,
+       SUM(m.so_luot_nhan) AS so_luot_nhan,
+       ROUND(SUM(m.so_luot_nhan) / COUNT(*), 4) AS luot_nhan_moi_nguoi,
+       ROUND(100 * COUNT(CASE WHEN m.so_luot_nhan > 0 THEN 1 END) / COUNT(*), 2) AS ty_le_nguoi_nhan_pct
+FROM nhom n
+JOIN nhan m ON m.user_id = n.user_id
+GROUP BY n.variant
+ORDER BY n.variant;
+
+-- [jelly-c9-ab-mua-them-buoc.b2] wrong: dem_giao_dich_goi_thay_co
+WITH nhom AS (
+  SELECT user_id, variant, DATE(assigned_at) AS ngay_chia
+  FROM ab_assignments
+  WHERE experiment_id = 'extra_moves_offer_timing' AND assigned_at < '2026-08-23'
+),
+nhan AS (
+  SELECT n.user_id, COUNT(p.transaction_id) AS so_luot_nhan
   FROM nhom n
   LEFT JOIN purchases p
     ON p.user_id = n.user_id
@@ -1020,11 +959,11 @@ mua AS (
 )
 SELECT n.variant,
        COUNT(*) AS so_nguoi,
-       SUM(m.so_giao_dich) AS so_giao_dich,
-       ROUND(SUM(m.so_giao_dich) / COUNT(*), 4) AS giao_dich_moi_nguoi,
-       ROUND(100 * COUNT(CASE WHEN m.so_giao_dich > 0 THEN 1 END) / COUNT(*), 2) AS ty_le_nguoi_mua_pct
+       SUM(m.so_luot_nhan) AS so_luot_nhan,
+       ROUND(SUM(m.so_luot_nhan) / COUNT(*), 4) AS luot_nhan_moi_nguoi,
+       ROUND(100 * COUNT(CASE WHEN m.so_luot_nhan > 0 THEN 1 END) / COUNT(*), 2) AS ty_le_nguoi_nhan_pct
 FROM nhom n
-JOIN mua m ON m.user_id = n.user_id
+JOIN nhan m ON m.user_id = n.user_id
 GROUP BY n.variant
 ORDER BY n.variant;
 

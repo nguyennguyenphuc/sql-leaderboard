@@ -35,76 +35,137 @@ WHERE r.approval_date >= '2025-01-01' AND r.approval_date < '2026-01-01'
 GROUP BY p.job_level
 ORDER BY so_yeu_cau DESC, p.job_level;
 
--- [hr-j2-vi-tri-ngoai-ke-hoach] solution
+-- [hr-j2-ngoai-dinh-bien-van-tuyen] solution
 SELECT s.position_id,
        LEFT(s.snapshot_month, 4) AS nam,
-       COUNT(*) AS so_dong,
+       s.department,
+       s.job_level,
        COUNT(DISTINCT s.employee_id) AS so_nhan_vien,
-       y.so_dong_ca_nam
+       COUNT(*) AS so_dong,
+       COALESCE(y.so_yeu_cau, 0) AS so_yeu_cau
 FROM employee_monthly_snapshot s
-JOIN (SELECT LEFT(snapshot_month, 4) AS nam, COUNT(*) AS so_dong_ca_nam
-      FROM employee_monthly_snapshot
-      GROUP BY LEFT(snapshot_month, 4)) y ON y.nam = LEFT(s.snapshot_month, 4)
 LEFT JOIN position_plan p
   ON p.position_id = s.position_id
  AND p.plan_period = LEFT(s.snapshot_month, 4)
+LEFT JOIN (SELECT position_id, YEAR(approval_date) AS nam, COUNT(*) AS so_yeu_cau
+           FROM recruiting_pipeline
+           GROUP BY position_id, YEAR(approval_date)) y
+  ON y.position_id = s.position_id
+ AND y.nam = LEFT(s.snapshot_month, 4)
 WHERE s.snapshot_month >= '2024-01' AND s.snapshot_month <= '2025-12'
   AND p.position_id IS NULL
-GROUP BY s.position_id, LEFT(s.snapshot_month, 4), y.so_dong_ca_nam
+GROUP BY s.position_id, LEFT(s.snapshot_month, 4), s.department, s.job_level, y.so_yeu_cau
 ORDER BY nam, s.position_id;
 
--- [hr-j2-vi-tri-ngoai-ke-hoach] wrong: noi_thieu_nam
--- Chỉ nối theo vị trí: vị trí có trong kế hoạch của năm khác vẫn khớp, chỉ còn vị trí vắng ở cả hai năm.
+-- [hr-j2-ngoai-dinh-bien-van-tuyen] wrong: noi_ke_hoach_thieu_nam
+-- Nối kế hoạch chỉ theo vị trí: vị trí có trong kế hoạch của năm khác vẫn khớp, chỉ còn vị trí vắng ở cả hai năm.
 SELECT s.position_id,
        LEFT(s.snapshot_month, 4) AS nam,
-       COUNT(*) AS so_dong,
+       s.department,
+       s.job_level,
        COUNT(DISTINCT s.employee_id) AS so_nhan_vien,
-       y.so_dong_ca_nam
+       COUNT(*) AS so_dong,
+       COALESCE(y.so_yeu_cau, 0) AS so_yeu_cau
 FROM employee_monthly_snapshot s
-JOIN (SELECT LEFT(snapshot_month, 4) AS nam, COUNT(*) AS so_dong_ca_nam
-      FROM employee_monthly_snapshot
-      GROUP BY LEFT(snapshot_month, 4)) y ON y.nam = LEFT(s.snapshot_month, 4)
 LEFT JOIN position_plan p ON p.position_id = s.position_id
+LEFT JOIN (SELECT position_id, YEAR(approval_date) AS nam, COUNT(*) AS so_yeu_cau
+           FROM recruiting_pipeline
+           GROUP BY position_id, YEAR(approval_date)) y
+  ON y.position_id = s.position_id
+ AND y.nam = LEFT(s.snapshot_month, 4)
 WHERE s.snapshot_month >= '2024-01' AND s.snapshot_month <= '2025-12'
   AND p.position_id IS NULL
-GROUP BY s.position_id, LEFT(s.snapshot_month, 4), y.so_dong_ca_nam
+GROUP BY s.position_id, LEFT(s.snapshot_month, 4), s.department, s.job_level, y.so_yeu_cau
 ORDER BY nam, s.position_id;
 
--- [hr-j2-vi-tri-ngoai-ke-hoach] wrong: inner_join
+-- [hr-j2-ngoai-dinh-bien-van-tuyen] wrong: noi_thang_yeu_cau
+-- Nối thẳng bảng tuyển dụng vào dòng nhân viên – tháng: vị trí có hai yêu cầu thì mỗi dòng lặp hai lần, số dòng gấp đôi.
 SELECT s.position_id,
        LEFT(s.snapshot_month, 4) AS nam,
-       COUNT(*) AS so_dong,
+       s.department,
+       s.job_level,
        COUNT(DISTINCT s.employee_id) AS so_nhan_vien,
-       y.so_dong_ca_nam
-FROM employee_monthly_snapshot s
-JOIN (SELECT LEFT(snapshot_month, 4) AS nam, COUNT(*) AS so_dong_ca_nam
-      FROM employee_monthly_snapshot
-      GROUP BY LEFT(snapshot_month, 4)) y ON y.nam = LEFT(s.snapshot_month, 4)
-JOIN position_plan p
-  ON p.position_id = s.position_id
- AND p.plan_period = LEFT(s.snapshot_month, 4)
-WHERE s.snapshot_month >= '2024-01' AND s.snapshot_month <= '2025-12'
-  AND p.position_id IS NULL
-GROUP BY s.position_id, LEFT(s.snapshot_month, 4), y.so_dong_ca_nam
-ORDER BY nam, s.position_id;
-
--- [hr-j2-vi-tri-ngoai-ke-hoach] wrong: thieu_can_tren
--- Rớt ở hidden-1: dòng '2026-01' của E00002 không có kế hoạch năm 2026 nên thành một vị trí ngoài kế hoạch.
-SELECT s.position_id,
-       LEFT(s.snapshot_month, 4) AS nam,
        COUNT(*) AS so_dong,
-       COUNT(DISTINCT s.employee_id) AS so_nhan_vien,
-       y.so_dong_ca_nam
+       COUNT(DISTINCT r.requisition_id) AS so_yeu_cau
 FROM employee_monthly_snapshot s
-JOIN (SELECT LEFT(snapshot_month, 4) AS nam, COUNT(*) AS so_dong_ca_nam
-      FROM employee_monthly_snapshot
-      GROUP BY LEFT(snapshot_month, 4)) y ON y.nam = LEFT(s.snapshot_month, 4)
 LEFT JOIN position_plan p
   ON p.position_id = s.position_id
  AND p.plan_period = LEFT(s.snapshot_month, 4)
+LEFT JOIN recruiting_pipeline r
+  ON r.position_id = s.position_id
+ AND YEAR(r.approval_date) = LEFT(s.snapshot_month, 4)
+WHERE s.snapshot_month >= '2024-01' AND s.snapshot_month <= '2025-12'
+  AND p.position_id IS NULL
+GROUP BY s.position_id, LEFT(s.snapshot_month, 4), s.department, s.job_level
+ORDER BY nam, s.position_id;
+
+-- [hr-j2-ngoai-dinh-bien-van-tuyen] wrong: phong_ban_tu_ke_hoach
+-- Lấy phòng ban, bậc từ bảng kế hoạch: dòng không khớp kế hoạch nên hai cột này trống.
+SELECT s.position_id,
+       LEFT(s.snapshot_month, 4) AS nam,
+       p.department,
+       p.job_level,
+       COUNT(DISTINCT s.employee_id) AS so_nhan_vien,
+       COUNT(*) AS so_dong,
+       COALESCE(y.so_yeu_cau, 0) AS so_yeu_cau
+FROM employee_monthly_snapshot s
+LEFT JOIN position_plan p
+  ON p.position_id = s.position_id
+ AND p.plan_period = LEFT(s.snapshot_month, 4)
+LEFT JOIN (SELECT position_id, YEAR(approval_date) AS nam, COUNT(*) AS so_yeu_cau
+           FROM recruiting_pipeline
+           GROUP BY position_id, YEAR(approval_date)) y
+  ON y.position_id = s.position_id
+ AND y.nam = LEFT(s.snapshot_month, 4)
+WHERE s.snapshot_month >= '2024-01' AND s.snapshot_month <= '2025-12'
+  AND p.position_id IS NULL
+GROUP BY s.position_id, LEFT(s.snapshot_month, 4), p.department, p.job_level, y.so_yeu_cau
+ORDER BY nam, s.position_id;
+
+-- [hr-j2-ngoai-dinh-bien-van-tuyen] wrong: inner_join_yeu_cau
+-- INNER JOIN với bảng đếm yêu cầu: vị trí ngoài định biên không có yêu cầu nào bị rơi khỏi danh sách.
+SELECT s.position_id,
+       LEFT(s.snapshot_month, 4) AS nam,
+       s.department,
+       s.job_level,
+       COUNT(DISTINCT s.employee_id) AS so_nhan_vien,
+       COUNT(*) AS so_dong,
+       y.so_yeu_cau
+FROM employee_monthly_snapshot s
+LEFT JOIN position_plan p
+  ON p.position_id = s.position_id
+ AND p.plan_period = LEFT(s.snapshot_month, 4)
+JOIN (SELECT position_id, YEAR(approval_date) AS nam, COUNT(*) AS so_yeu_cau
+      FROM recruiting_pipeline
+      GROUP BY position_id, YEAR(approval_date)) y
+  ON y.position_id = s.position_id
+ AND y.nam = LEFT(s.snapshot_month, 4)
+WHERE s.snapshot_month >= '2024-01' AND s.snapshot_month <= '2025-12'
+  AND p.position_id IS NULL
+GROUP BY s.position_id, LEFT(s.snapshot_month, 4), s.department, s.job_level, y.so_yeu_cau
+ORDER BY nam, s.position_id;
+
+-- [hr-j2-ngoai-dinh-bien-van-tuyen] wrong: thieu_can_tren
+-- Rớt ở hidden-1: dòng '2026-01' của E00002 không có kế hoạch năm 2026 nên thành thêm một vị trí ngoài định biên.
+SELECT s.position_id,
+       LEFT(s.snapshot_month, 4) AS nam,
+       s.department,
+       s.job_level,
+       COUNT(DISTINCT s.employee_id) AS so_nhan_vien,
+       COUNT(*) AS so_dong,
+       COALESCE(y.so_yeu_cau, 0) AS so_yeu_cau
+FROM employee_monthly_snapshot s
+LEFT JOIN position_plan p
+  ON p.position_id = s.position_id
+ AND p.plan_period = LEFT(s.snapshot_month, 4)
+LEFT JOIN (SELECT position_id, YEAR(approval_date) AS nam, COUNT(*) AS so_yeu_cau
+           FROM recruiting_pipeline
+           GROUP BY position_id, YEAR(approval_date)) y
+  ON y.position_id = s.position_id
+ AND y.nam = LEFT(s.snapshot_month, 4)
 WHERE s.snapshot_month >= '2024-01'
   AND p.position_id IS NULL
-GROUP BY s.position_id, LEFT(s.snapshot_month, 4), y.so_dong_ca_nam
+GROUP BY s.position_id, LEFT(s.snapshot_month, 4), s.department, s.job_level, y.so_yeu_cau
 ORDER BY nam, s.position_id;
 
 -- [hr-j3-tuyen-thay-nguoi-nghi-vi-luong] solution
@@ -130,30 +191,38 @@ WHERE r.approval_date >= '2025-01-01' AND r.approval_date < '2026-01-01'
   AND s.attrition_reason = 'Compensation'
 ORDER BY r.approval_date, r.requisition_id;
 
--- [hr-j4-tin-tuong-quan-ly-theo-phong] solution
-SELECT s.department,
-       COUNT(*) AS so_phieu,
+-- [hr-j4-tin-tuong-quan-ly-cskh-philippines] solution
+SELECT COUNT(*) AS so_phieu,
        ROUND(AVG(k.manager_trust_score), 2) AS tin_tuong_bq
 FROM engagement_survey k
 JOIN employee_monthly_snapshot s
   ON s.employee_id = k.employee_id
  AND s.snapshot_month = '2025-12'
 WHERE k.survey_quarter = '2025-Q4'
-GROUP BY s.department
-ORDER BY tin_tuong_bq, s.department;
+  AND s.country = 'Philippines'
+  AND s.department = 'Customer Support';
 
--- [hr-j4-tin-tuong-quan-ly-theo-phong] wrong: noi_ca_quy
--- Nối với cả ba tháng của quý: mỗi phiếu lặp lại theo số tháng có tên.
-SELECT s.department,
-       COUNT(*) AS so_phieu,
+-- [hr-j4-tin-tuong-quan-ly-cskh-philippines] wrong: thieu_dieu_kien_thang
+-- Nối chỉ theo mã nhân viên: mỗi phiếu lặp lại theo số tháng có tên của người trả lời.
+SELECT COUNT(*) AS so_phieu,
+       ROUND(AVG(k.manager_trust_score), 2) AS tin_tuong_bq
+FROM engagement_survey k
+JOIN employee_monthly_snapshot s ON s.employee_id = k.employee_id
+WHERE k.survey_quarter = '2025-Q4'
+  AND s.country = 'Philippines'
+  AND s.department = 'Customer Support';
+
+-- [hr-j4-tin-tuong-quan-ly-cskh-philippines] wrong: noi_ca_quy
+-- Nối với cả ba tháng của quý thay cho tháng 12: mỗi phiếu lặp tới ba lần.
+SELECT COUNT(*) AS so_phieu,
        ROUND(AVG(k.manager_trust_score), 2) AS tin_tuong_bq
 FROM engagement_survey k
 JOIN employee_monthly_snapshot s
   ON s.employee_id = k.employee_id
  AND s.snapshot_month >= '2025-10' AND s.snapshot_month <= '2025-12'
 WHERE k.survey_quarter = '2025-Q4'
-GROUP BY s.department
-ORDER BY tin_tuong_bq, s.department;
+  AND s.country = 'Philippines'
+  AND s.department = 'Customer Support';
 
 -- [hr-j5-luong-duoi-thi-truong] solution
 SELECT s.country,
@@ -257,46 +326,53 @@ WHERE k.survey_quarter = '2025-Q4'
 GROUP BY s.department
 ORDER BY s.department;
 
--- [hr-j8-nghi-co-tuyen-thay-the] solution
-SELECT COUNT(*) AS so_nguoi_nghi,
-       COUNT(r.requisition_id) AS so_co_yeu_cau,
-       ROUND(100 * COUNT(r.requisition_id) / COUNT(*), 2) AS ty_le_pct
+-- [hr-j8-nghi-thang-11-ra-rong] solution
+SELECT s.employee_id, s.attrition_type, r.requisition_id, r.start_date
 FROM employee_monthly_snapshot s
-LEFT JOIN recruiting_pipeline r
-  ON r.vacated_employee_id = s.employee_id
- AND r.attrition_month = s.snapshot_month
-WHERE s.snapshot_month >= '2024-01' AND s.snapshot_month <= '2025-12'
-  AND s.attrition_this_month = 1;
+JOIN recruiting_pipeline r ON r.vacated_employee_id = s.employee_id
+WHERE s.snapshot_month = '2025-11'
+  AND s.attrition_this_month = 1
+  AND s.department = 'Engineering'
+ORDER BY s.employee_id;
 
--- [hr-j8-nghi-co-tuyen-thay-the] starter
-SELECT COUNT(*) AS so_nguoi_nghi,
-       COUNT(r.requisition_id) AS so_co_yeu_cau,
-       ROUND(100 * COUNT(r.requisition_id) / COUNT(*), 2) AS ty_le_pct
+-- [hr-j8-nghi-thang-11-ra-rong] starter
+SELECT s.employee_id, s.attrition_type, r.requisition_id, r.start_date
+FROM employee_monthly_snapshot s
+JOIN recruiting_pipeline r ON r.requisition_id = s.employee_id
+WHERE s.snapshot_month = '2025-11'
+  AND s.attrition_this_month = 1
+  AND s.department = 'Engineering'
+ORDER BY s.employee_id;
+
+-- [hr-j8-nghi-thang-11-ra-rong] wrong: noi_theo_vi_tri
+-- Nối theo vị trí và tháng nghỉ: người nghỉ khớp cả yêu cầu thay cho người khác cùng vị trí, cùng tháng.
+SELECT s.employee_id, s.attrition_type, r.requisition_id, r.start_date
 FROM employee_monthly_snapshot s
 JOIN recruiting_pipeline r
-  ON r.vacated_employee_id = s.employee_id
+  ON r.position_id = s.position_id
  AND r.attrition_month = s.snapshot_month
-WHERE s.snapshot_month >= '2024-01' AND s.snapshot_month <= '2025-12'
-  AND s.attrition_this_month = 1;
-
--- [hr-j8-nghi-co-tuyen-thay-the] wrong: loc_bang_phai_o_where
--- LEFT JOIN nhưng lọc cột của bảng tuyển dụng ở WHERE: dòng không khớp có NULL nên bị loại, quay lại như INNER JOIN.
-SELECT COUNT(*) AS so_nguoi_nghi,
-       COUNT(r.requisition_id) AS so_co_yeu_cau,
-       ROUND(100 * COUNT(r.requisition_id) / COUNT(*), 2) AS ty_le_pct
-FROM employee_monthly_snapshot s
-LEFT JOIN recruiting_pipeline r
-  ON r.vacated_employee_id = s.employee_id
- AND r.attrition_month = s.snapshot_month
-WHERE s.snapshot_month >= '2024-01' AND s.snapshot_month <= '2025-12'
+WHERE s.snapshot_month = '2025-11'
   AND s.attrition_this_month = 1
-  AND r.requisition_type = 'Backfill';
+  AND s.department = 'Engineering'
+ORDER BY s.employee_id;
 
--- [hr-j9-trang-thai-quan-ly] solution
+-- [hr-j8-nghi-thang-11-ra-rong] wrong: left_join_giu_nguoi_chua_co_yeu_cau
+-- LEFT JOIN giữ cả người chưa có yêu cầu tuyển thay thế. Public: mọi người đều có yêu cầu nên chỉ rớt ở hidden-1.
+SELECT s.employee_id, s.attrition_type, r.requisition_id, r.start_date
+FROM employee_monthly_snapshot s
+LEFT JOIN recruiting_pipeline r ON r.vacated_employee_id = s.employee_id
+WHERE s.snapshot_month = '2025-11'
+  AND s.attrition_this_month = 1
+  AND s.department = 'Engineering'
+ORDER BY s.employee_id;
+
+-- [hr-j9-trang-thai-quan-ly-vuot-100] solution
 SELECT CASE WHEN e.manager_id IS NULL THEN 'khong_ghi_quan_ly'
             WHEN m.employee_id IS NULL THEN 'quan_ly_khong_con_ten'
             ELSE 'quan_ly_con_ten' END AS tinh_trang,
-       COUNT(*) AS so_nhan_vien
+       COUNT(*) AS so_nhan_vien,
+       ROUND(100 * COUNT(*) / (SELECT COUNT(*) FROM employee_monthly_snapshot
+                               WHERE snapshot_month = '2025-12'), 2) AS ty_le_pct
 FROM employee_monthly_snapshot e
 LEFT JOIN employee_monthly_snapshot m
   ON m.employee_id = e.manager_id
@@ -305,11 +381,41 @@ WHERE e.snapshot_month = '2025-12'
 GROUP BY tinh_trang
 ORDER BY tinh_trang;
 
--- [hr-j9-trang-thai-quan-ly] starter
+-- [hr-j9-trang-thai-quan-ly-vuot-100] starter
 SELECT CASE WHEN e.manager_id IS NULL THEN 'khong_ghi_quan_ly'
             WHEN m.employee_id IS NULL THEN 'quan_ly_khong_con_ten'
             ELSE 'quan_ly_con_ten' END AS tinh_trang,
-       COUNT(*) AS so_nhan_vien
+       COUNT(*) AS so_nhan_vien,
+       ROUND(100 * COUNT(*) / (SELECT COUNT(*) FROM employee_monthly_snapshot
+                               WHERE snapshot_month = '2025-12'), 2) AS ty_le_pct
+FROM employee_monthly_snapshot e
+JOIN employee_monthly_snapshot m ON m.employee_id = e.manager_id
+WHERE e.snapshot_month = '2025-12'
+GROUP BY tinh_trang
+ORDER BY tinh_trang;
+
+-- [hr-j9-trang-thai-quan-ly-vuot-100] wrong: chi_sua_left_join
+-- Chỉ đổi sang LEFT JOIN: quản lý đã nghỉ vẫn khớp các tháng cũ, mỗi nhân viên lặp nhiều dòng và mất nhóm quản lý không còn tên.
+SELECT CASE WHEN e.manager_id IS NULL THEN 'khong_ghi_quan_ly'
+            WHEN m.employee_id IS NULL THEN 'quan_ly_khong_con_ten'
+            ELSE 'quan_ly_con_ten' END AS tinh_trang,
+       COUNT(*) AS so_nhan_vien,
+       ROUND(100 * COUNT(*) / (SELECT COUNT(*) FROM employee_monthly_snapshot
+                               WHERE snapshot_month = '2025-12'), 2) AS ty_le_pct
+FROM employee_monthly_snapshot e
+LEFT JOIN employee_monthly_snapshot m ON m.employee_id = e.manager_id
+WHERE e.snapshot_month = '2025-12'
+GROUP BY tinh_trang
+ORDER BY tinh_trang;
+
+-- [hr-j9-trang-thai-quan-ly-vuot-100] wrong: chi_them_cung_thang
+-- Chỉ thêm điều kiện cùng tháng, giữ INNER JOIN: nhân viên không ghi quản lý và nhân viên có quản lý đã nghỉ bị rơi.
+SELECT CASE WHEN e.manager_id IS NULL THEN 'khong_ghi_quan_ly'
+            WHEN m.employee_id IS NULL THEN 'quan_ly_khong_con_ten'
+            ELSE 'quan_ly_con_ten' END AS tinh_trang,
+       COUNT(*) AS so_nhan_vien,
+       ROUND(100 * COUNT(*) / (SELECT COUNT(*) FROM employee_monthly_snapshot
+                               WHERE snapshot_month = '2025-12'), 2) AS ty_le_pct
 FROM employee_monthly_snapshot e
 JOIN employee_monthly_snapshot m
   ON m.employee_id = e.manager_id
@@ -318,12 +424,14 @@ WHERE e.snapshot_month = '2025-12'
 GROUP BY tinh_trang
 ORDER BY tinh_trang;
 
--- [hr-j9-trang-thai-quan-ly] wrong: left_join_thieu_cung_thang
--- LEFT JOIN đúng nhưng bỏ điều kiện cùng tháng: quản lý đã nghỉ vẫn khớp với các tháng cũ, mỗi nhân viên lặp nhiều dòng.
+-- [hr-j9-trang-thai-quan-ly-vuot-100] wrong: dem_distinct_thay_cung_thang
+-- LEFT JOIN thiếu điều kiện cùng tháng, chữa nhân dòng bằng COUNT(DISTINCT): người có quản lý đã nghỉ vẫn bị xếp vào nhóm quản lý còn tên.
 SELECT CASE WHEN e.manager_id IS NULL THEN 'khong_ghi_quan_ly'
             WHEN m.employee_id IS NULL THEN 'quan_ly_khong_con_ten'
             ELSE 'quan_ly_con_ten' END AS tinh_trang,
-       COUNT(*) AS so_nhan_vien
+       COUNT(DISTINCT e.employee_id) AS so_nhan_vien,
+       ROUND(100 * COUNT(DISTINCT e.employee_id) / (SELECT COUNT(*) FROM employee_monthly_snapshot
+                                                    WHERE snapshot_month = '2025-12'), 2) AS ty_le_pct
 FROM employee_monthly_snapshot e
 LEFT JOIN employee_monthly_snapshot m ON m.employee_id = e.manager_id
 WHERE e.snapshot_month = '2025-12'
@@ -414,7 +522,7 @@ GROUP BY r.country
 ORDER BY so_yeu_cau DESC, r.country;
 
 -- [hr-q3-gan-ket-cao-nhat-moi-phong] solution
-SELECT s.country, s.department, s.employee_id, s.engagement_score
+SELECT s.country, s.department, s.engagement_score AS diem_cao_nhat, COUNT(*) AS so_nguoi_dat
 FROM employee_monthly_snapshot s
 WHERE s.snapshot_month = '2025-12'
   AND (s.country, s.department, s.engagement_score) IN
@@ -422,11 +530,12 @@ WHERE s.snapshot_month = '2025-12'
        FROM employee_monthly_snapshot s2
        WHERE s2.snapshot_month = '2025-12'
        GROUP BY s2.country, s2.department)
-ORDER BY s.country, s.department, s.employee_id;
+GROUP BY s.country, s.department, s.engagement_score
+ORDER BY s.country, s.department;
 
 -- [hr-q3-gan-ket-cao-nhat-moi-phong] wrong: max_ca_nuoc
 -- Truy vấn con chỉ gom theo nước: mỗi nước chỉ còn phòng có người đạt mức cao nhất của cả nước.
-SELECT s.country, s.department, s.employee_id, s.engagement_score
+SELECT s.country, s.department, s.engagement_score AS diem_cao_nhat, COUNT(*) AS so_nguoi_dat
 FROM employee_monthly_snapshot s
 WHERE s.snapshot_month = '2025-12'
   AND (s.country, s.engagement_score) IN
@@ -434,73 +543,122 @@ WHERE s.snapshot_month = '2025-12'
        FROM employee_monthly_snapshot s2
        WHERE s2.snapshot_month = '2025-12'
        GROUP BY s2.country)
-ORDER BY s.country, s.department, s.employee_id;
+GROUP BY s.country, s.department, s.engagement_score
+ORDER BY s.country, s.department;
 
 -- [hr-q3-gan-ket-cao-nhat-moi-phong] wrong: max_ca_24_thang
 -- Truy vấn con thiếu điều kiện tháng: so với điểm cao nhất của mỗi nhóm trong cả 24 tháng.
-SELECT s.country, s.department, s.employee_id, s.engagement_score
+SELECT s.country, s.department, s.engagement_score AS diem_cao_nhat, COUNT(*) AS so_nguoi_dat
 FROM employee_monthly_snapshot s
 WHERE s.snapshot_month = '2025-12'
   AND (s.country, s.department, s.engagement_score) IN
       (SELECT s2.country, s2.department, MAX(s2.engagement_score)
        FROM employee_monthly_snapshot s2
        GROUP BY s2.country, s2.department)
-ORDER BY s.country, s.department, s.employee_id;
+GROUP BY s.country, s.department, s.engagement_score
+ORDER BY s.country, s.department;
 
--- [hr-q3-gan-ket-cao-nhat-moi-phong] wrong: moi_nhom_mot_nguoi
--- Gom theo nhóm rồi lấy mã nhỏ nhất: nhóm có hai người cùng điểm cao nhất chỉ còn một người.
-SELECT s.country, s.department, MIN(s.employee_id) AS employee_id, MAX(s.engagement_score) AS engagement_score
+-- [hr-q3-gan-ket-cao-nhat-moi-phong] wrong: quen_thang_truy_van_ngoai
+-- Truy vấn ngoài thiếu điều kiện tháng: đếm cả dòng của tháng khác có cùng điểm với mức cao nhất tháng 12.
+SELECT s.country, s.department, s.engagement_score AS diem_cao_nhat, COUNT(*) AS so_nguoi_dat
 FROM employee_monthly_snapshot s
-WHERE s.snapshot_month = '2025-12'
-  AND (s.country, s.department, s.engagement_score) IN
+WHERE (s.country, s.department, s.engagement_score) IN
       (SELECT s2.country, s2.department, MAX(s2.engagement_score)
        FROM employee_monthly_snapshot s2
        WHERE s2.snapshot_month = '2025-12'
        GROUP BY s2.country, s2.department)
-GROUP BY s.country, s.department
-ORDER BY s.country, s.department, employee_id;
+GROUP BY s.country, s.department, s.engagement_score
+ORDER BY s.country, s.department;
 
--- [hr-q4-nghi-du-dinh-o-lai-cao] solution
-SELECT s.employee_id, s.snapshot_month AS thang_nghi,
-       k.survey_quarter, k.intent_to_stay
+-- [hr-q4-khao-sat-khong-bao-truoc] solution
+SELECT s.country,
+       COUNT(*) AS so_nguoi_nghi,
+       COUNT(CASE WHEN k.intent_to_stay >= 3 THEN 1 END) AS so_khong_bao_truoc,
+       ROUND(100 * COUNT(CASE WHEN k.intent_to_stay >= 3 THEN 1 END) / COUNT(*), 2) AS ty_le_pct
 FROM employee_monthly_snapshot s
-JOIN engagement_survey k ON k.employee_id = s.employee_id
+LEFT JOIN engagement_survey k
+  ON k.employee_id = s.employee_id
+ AND k.survey_quarter = (SELECT MAX(k2.survey_quarter)
+                         FROM engagement_survey k2
+                         WHERE k2.employee_id = s.employee_id
+                           AND k2.survey_quarter <= CONCAT(LEFT(s.snapshot_month, 4), '-Q',
+                                                           QUARTER(CONCAT(s.snapshot_month, '-01'))))
 WHERE s.snapshot_month >= '2025-01' AND s.snapshot_month <= '2025-12'
   AND s.attrition_type = 'Voluntary'
-  AND k.survey_quarter = (SELECT MAX(k2.survey_quarter)
-                          FROM engagement_survey k2
-                          WHERE k2.employee_id = s.employee_id
-                            AND k2.survey_quarter <= CONCAT(LEFT(s.snapshot_month, 4), '-Q',
-                                                            QUARTER(CONCAT(s.snapshot_month, '-01'))))
-  AND k.intent_to_stay >= 4
-ORDER BY thang_nghi, s.employee_id;
+GROUP BY s.country
+ORDER BY ty_le_pct DESC, s.country;
 
--- [hr-q4-nghi-du-dinh-o-lai-cao] wrong: quy_moi_nhat_ca_bang
--- Lấy quý lớn nhất của cả bảng khảo sát: chỉ còn người nghỉ trong quý 4.
-SELECT s.employee_id, s.snapshot_month AS thang_nghi,
-       k.survey_quarter, k.intent_to_stay
+-- [hr-q4-khao-sat-khong-bao-truoc] wrong: quy_moi_nhat_ca_bang
+-- Lấy quý lớn nhất của cả bảng khảo sát: chỉ người nghỉ trong quý 4 có phiếu khớp (hidden-1: quý lớn nhất là 2026-Q1, không ai khớp).
+SELECT s.country,
+       COUNT(*) AS so_nguoi_nghi,
+       COUNT(CASE WHEN k.intent_to_stay >= 3 THEN 1 END) AS so_khong_bao_truoc,
+       ROUND(100 * COUNT(CASE WHEN k.intent_to_stay >= 3 THEN 1 END) / COUNT(*), 2) AS ty_le_pct
 FROM employee_monthly_snapshot s
-JOIN engagement_survey k ON k.employee_id = s.employee_id
+LEFT JOIN engagement_survey k
+  ON k.employee_id = s.employee_id
+ AND k.survey_quarter = (SELECT MAX(k2.survey_quarter) FROM engagement_survey k2)
 WHERE s.snapshot_month >= '2025-01' AND s.snapshot_month <= '2025-12'
   AND s.attrition_type = 'Voluntary'
-  AND k.survey_quarter = (SELECT MAX(k2.survey_quarter) FROM engagement_survey k2)
-  AND k.intent_to_stay >= 4
-ORDER BY thang_nghi, s.employee_id;
+GROUP BY s.country
+ORDER BY ty_le_pct DESC, s.country;
 
--- [hr-q4-nghi-du-dinh-o-lai-cao] wrong: so_quy_voi_thang
--- So chuỗi quý '2025-Q2' với chuỗi tháng '2025-05': chữ Q đứng sau chữ số nên mọi quý cùng năm đều bị loại.
-SELECT s.employee_id, s.snapshot_month AS thang_nghi,
-       k.survey_quarter, k.intent_to_stay
+-- [hr-q4-khao-sat-khong-bao-truoc] wrong: so_quy_voi_thang
+-- So chuỗi quý '2025-Q2' với chuỗi tháng '2025-05': chữ Q đứng sau chữ số nên mọi quý cùng năm bị loại, lấy nhầm phiếu năm trước.
+SELECT s.country,
+       COUNT(*) AS so_nguoi_nghi,
+       COUNT(CASE WHEN k.intent_to_stay >= 3 THEN 1 END) AS so_khong_bao_truoc,
+       ROUND(100 * COUNT(CASE WHEN k.intent_to_stay >= 3 THEN 1 END) / COUNT(*), 2) AS ty_le_pct
 FROM employee_monthly_snapshot s
-JOIN engagement_survey k ON k.employee_id = s.employee_id
+LEFT JOIN engagement_survey k
+  ON k.employee_id = s.employee_id
+ AND k.survey_quarter = (SELECT MAX(k2.survey_quarter)
+                         FROM engagement_survey k2
+                         WHERE k2.employee_id = s.employee_id
+                           AND k2.survey_quarter <= s.snapshot_month)
 WHERE s.snapshot_month >= '2025-01' AND s.snapshot_month <= '2025-12'
   AND s.attrition_type = 'Voluntary'
-  AND k.survey_quarter = (SELECT MAX(k2.survey_quarter)
-                          FROM engagement_survey k2
-                          WHERE k2.employee_id = s.employee_id
-                            AND k2.survey_quarter <= s.snapshot_month)
-  AND k.intent_to_stay >= 4
-ORDER BY thang_nghi, s.employee_id;
+GROUP BY s.country
+ORDER BY ty_le_pct DESC, s.country;
+
+-- [hr-q4-khao-sat-khong-bao-truoc] wrong: loc_y_dinh_o_where
+-- Lọc điểm ý định ở lại ở WHERE: mẫu số chỉ còn người khảo sát không báo trước, tỷ lệ nước nào cũng 100%.
+SELECT s.country,
+       COUNT(*) AS so_nguoi_nghi,
+       COUNT(CASE WHEN k.intent_to_stay >= 3 THEN 1 END) AS so_khong_bao_truoc,
+       ROUND(100 * COUNT(CASE WHEN k.intent_to_stay >= 3 THEN 1 END) / COUNT(*), 2) AS ty_le_pct
+FROM employee_monthly_snapshot s
+JOIN engagement_survey k
+  ON k.employee_id = s.employee_id
+ AND k.survey_quarter = (SELECT MAX(k2.survey_quarter)
+                         FROM engagement_survey k2
+                         WHERE k2.employee_id = s.employee_id
+                           AND k2.survey_quarter <= CONCAT(LEFT(s.snapshot_month, 4), '-Q',
+                                                           QUARTER(CONCAT(s.snapshot_month, '-01'))))
+WHERE s.snapshot_month >= '2025-01' AND s.snapshot_month <= '2025-12'
+  AND s.attrition_type = 'Voluntary'
+  AND k.intent_to_stay >= 3
+GROUP BY s.country
+ORDER BY ty_le_pct DESC, s.country;
+
+-- [hr-q4-khao-sat-khong-bao-truoc] wrong: mau_so_moi_loai_nghi
+-- Tính mọi lượt nghỉ (cả nghỉ hưu, chấm dứt hợp đồng) thay cho nghỉ tự nguyện.
+SELECT s.country,
+       COUNT(*) AS so_nguoi_nghi,
+       COUNT(CASE WHEN k.intent_to_stay >= 3 THEN 1 END) AS so_khong_bao_truoc,
+       ROUND(100 * COUNT(CASE WHEN k.intent_to_stay >= 3 THEN 1 END) / COUNT(*), 2) AS ty_le_pct
+FROM employee_monthly_snapshot s
+LEFT JOIN engagement_survey k
+  ON k.employee_id = s.employee_id
+ AND k.survey_quarter = (SELECT MAX(k2.survey_quarter)
+                         FROM engagement_survey k2
+                         WHERE k2.employee_id = s.employee_id
+                           AND k2.survey_quarter <= CONCAT(LEFT(s.snapshot_month, 4), '-Q',
+                                                           QUARTER(CONCAT(s.snapshot_month, '-01'))))
+WHERE s.snapshot_month >= '2025-01' AND s.snapshot_month <= '2025-12'
+  AND s.attrition_this_month = 1
+GROUP BY s.country
+ORDER BY ty_le_pct DESC, s.country;
 
 -- [hr-q5-sales-lam-them-tren-bq] solution
 SELECT t.country,
@@ -547,23 +705,21 @@ WHERE t.tong_gio > (SELECT AVG(s2.overtime_hours)
 GROUP BY t.country
 ORDER BY t.country;
 
--- [hr-q6-yeu-cau-tuyen-lau] solution
-SELECT COUNT(*) AS so_yeu_cau_lau,
-       ROUND((SELECT AVG(time_to_fill_days) FROM recruiting_pipeline
-              WHERE approval_date >= '2025-01-01' AND approval_date < '2026-01-01'), 1) AS so_ngay_tuyen_bq
+-- [hr-q6-yeu-cau-thang-12-tuyen-lau] solution
+SELECT requisition_id, department, approval_date, time_to_fill_days
 FROM recruiting_pipeline
-WHERE approval_date >= '2025-01-01' AND approval_date < '2026-01-01'
-  AND time_to_fill_days > (SELECT AVG(time_to_fill_days)
-                           FROM recruiting_pipeline
-                           WHERE approval_date >= '2025-01-01' AND approval_date < '2026-01-01');
+WHERE approval_date >= '2025-12-01' AND approval_date < '2026-01-01'
+  AND time_to_fill_days > (SELECT AVG(time_to_fill_days) FROM recruiting_pipeline)
+ORDER BY time_to_fill_days DESC, requisition_id;
 
--- [hr-q6-yeu-cau-tuyen-lau] wrong: bq_ca_hai_nam
--- Mức bình quân lấy trên mọi yêu cầu của cả năm 2024 và 2025.
-SELECT COUNT(*) AS so_yeu_cau_lau,
-       ROUND((SELECT AVG(time_to_fill_days) FROM recruiting_pipeline), 1) AS so_ngay_tuyen_bq
+-- [hr-q6-yeu-cau-thang-12-tuyen-lau] wrong: bq_rieng_thang_12
+-- Mức bình quân chỉ lấy các yêu cầu tháng 12/2025 thay cho mọi yêu cầu trong bảng.
+SELECT requisition_id, department, approval_date, time_to_fill_days
 FROM recruiting_pipeline
-WHERE approval_date >= '2025-01-01' AND approval_date < '2026-01-01'
-  AND time_to_fill_days > (SELECT AVG(time_to_fill_days) FROM recruiting_pipeline);
+WHERE approval_date >= '2025-12-01' AND approval_date < '2026-01-01'
+  AND time_to_fill_days > (SELECT AVG(time_to_fill_days) FROM recruiting_pipeline
+                           WHERE approval_date >= '2025-12-01' AND approval_date < '2026-01-01')
+ORDER BY time_to_fill_days DESC, requisition_id;
 
 -- [hr-q7-chua-quan-ly-ai-ra-rong] solution
 SELECT e.country, COUNT(*) AS so_nguoi
@@ -600,45 +756,46 @@ WHERE e.snapshot_month = '2025-12'
 GROUP BY e.country
 ORDER BY e.country;
 
--- [hr-q8-tren-bq-bac-sai-thang] solution
-SELECT s.employee_id, s.department, s.job_level, s.monthly_salary_usd
-FROM employee_monthly_snapshot s
-WHERE s.snapshot_month = '2025-12'
-  AND s.country = 'Singapore'
-  AND s.monthly_salary_usd > (SELECT AVG(s2.monthly_salary_usd)
-                              FROM employee_monthly_snapshot s2
-                              WHERE s2.snapshot_month = '2025-12'
-                                AND s2.country = s.country
-                                AND s2.department = s.department
-                                AND s2.job_level = s.job_level)
-ORDER BY s.department, s.job_level, s.employee_id;
+-- [hr-q8-tren-bq-phong-sai-nam] solution
+SELECT employee_id, job_level, monthly_salary_usd
+FROM employee_monthly_snapshot
+WHERE snapshot_month = '2025-12'
+  AND country = 'Singapore'
+  AND department = 'Finance'
+  AND monthly_salary_usd > (SELECT AVG(monthly_salary_usd)
+                            FROM employee_monthly_snapshot
+                            WHERE snapshot_month = '2025-12'
+                              AND country = 'Singapore'
+                              AND department = 'Finance')
+ORDER BY monthly_salary_usd DESC, employee_id;
 
--- [hr-q8-tren-bq-bac-sai-thang] starter
-SELECT s.employee_id, s.department, s.job_level, s.monthly_salary_usd
-FROM employee_monthly_snapshot s
-WHERE s.snapshot_month = '2025-12'
-  AND s.country = 'Singapore'
-  AND s.monthly_salary_usd > (SELECT AVG(s2.monthly_salary_usd)
-                              FROM employee_monthly_snapshot s2
-                              WHERE s2.country = s.country
-                                AND s2.department = s.department
-                                AND s2.job_level = s.job_level)
-ORDER BY s.department, s.job_level, s.employee_id;
+-- [hr-q8-tren-bq-phong-sai-nam] starter
+SELECT employee_id, job_level, monthly_salary_usd
+FROM employee_monthly_snapshot
+WHERE snapshot_month = '2025-12'
+  AND country = 'Singapore'
+  AND department = 'Finance'
+  AND monthly_salary_usd > (SELECT AVG(monthly_salary_usd)
+                            FROM employee_monthly_snapshot
+                            WHERE snapshot_month = '2024-12'
+                              AND country = 'Singapore'
+                              AND department = 'Finance')
+ORDER BY monthly_salary_usd DESC, employee_id;
 
--- [hr-q8-tren-bq-bac-sai-thang] wrong: thieu_tuong_quan_phong
--- Thêm điều kiện tháng nhưng bỏ điều kiện cùng phòng ban: so với bình quân bậc của cả nước.
-SELECT s.employee_id, s.department, s.job_level, s.monthly_salary_usd
-FROM employee_monthly_snapshot s
-WHERE s.snapshot_month = '2025-12'
-  AND s.country = 'Singapore'
-  AND s.monthly_salary_usd > (SELECT AVG(s2.monthly_salary_usd)
-                              FROM employee_monthly_snapshot s2
-                              WHERE s2.snapshot_month = '2025-12'
-                                AND s2.country = s.country
-                                AND s2.job_level = s.job_level)
-ORDER BY s.department, s.job_level, s.employee_id;
+-- [hr-q8-tren-bq-phong-sai-nam] wrong: bo_loc_nuoc
+-- Sửa đúng tháng nhưng bỏ điều kiện nước trong truy vấn con: so với bình quân phòng Tài chính của cả sáu nước.
+SELECT employee_id, job_level, monthly_salary_usd
+FROM employee_monthly_snapshot
+WHERE snapshot_month = '2025-12'
+  AND country = 'Singapore'
+  AND department = 'Finance'
+  AND monthly_salary_usd > (SELECT AVG(monthly_salary_usd)
+                            FROM employee_monthly_snapshot
+                            WHERE snapshot_month = '2025-12'
+                              AND department = 'Finance')
+ORDER BY monthly_salary_usd DESC, employee_id;
 
--- [hr-q9-ly-do-pho-bien-moi-nuoc] solution
+-- [hr-q9-ly-do-pho-bien-hai-loi] solution
 SELECT t.country, t.attrition_reason, t.so_nguoi
 FROM (SELECT country, attrition_reason, COUNT(*) AS so_nguoi
       FROM employee_monthly_snapshot
@@ -654,23 +811,23 @@ WHERE t.so_nguoi = (SELECT MAX(t2.so_nguoi)
                     WHERE t2.country = t.country)
 ORDER BY t.country, t.attrition_reason;
 
--- [hr-q9-ly-do-pho-bien-moi-nuoc] starter
+-- [hr-q9-ly-do-pho-bien-hai-loi] starter
 SELECT t.country, t.attrition_reason, t.so_nguoi
 FROM (SELECT country, attrition_reason, COUNT(*) AS so_nguoi
       FROM employee_monthly_snapshot
       WHERE snapshot_month >= '2025-01' AND snapshot_month <= '2025-12'
-        AND attrition_type = 'Voluntary'
+        AND attrition_this_month = 1
       GROUP BY country, attrition_reason) t
 WHERE t.so_nguoi = (SELECT MAX(t2.so_nguoi)
                     FROM (SELECT country, attrition_reason, COUNT(*) AS so_nguoi
                           FROM employee_monthly_snapshot
                           WHERE snapshot_month >= '2025-01' AND snapshot_month <= '2025-12'
-                            AND attrition_type = 'Voluntary'
+                            AND attrition_this_month = 1
                           GROUP BY country, attrition_reason) t2)
 ORDER BY t.country, t.attrition_reason;
 
--- [hr-q9-ly-do-pho-bien-moi-nuoc] wrong: tinh_ca_nghi_huu
--- Tương quan đúng nhưng đếm mọi loại nghỉ việc: lý do nghỉ hưu bị tính thêm vào danh sách.
+-- [hr-q9-ly-do-pho-bien-hai-loi] wrong: chi_sua_tuong_quan
+-- Chỉ thêm tương quan theo nước, vẫn đếm mọi loại nghỉ: lý do nghỉ hưu lọt vào nhóm hoà ở Thái Lan.
 SELECT t.country, t.attrition_reason, t.so_nguoi
 FROM (SELECT country, attrition_reason, COUNT(*) AS so_nguoi
       FROM employee_monthly_snapshot
@@ -684,6 +841,22 @@ WHERE t.so_nguoi = (SELECT MAX(t2.so_nguoi)
                             AND attrition_this_month = 1
                           GROUP BY country, attrition_reason) t2
                     WHERE t2.country = t.country)
+ORDER BY t.country, t.attrition_reason;
+
+-- [hr-q9-ly-do-pho-bien-hai-loi] wrong: chi_sua_loai_nghi
+-- Chỉ đổi sang nghỉ tự nguyện, truy vấn con vẫn lấy số lớn nhất của cả công ty: bảng còn một nước.
+SELECT t.country, t.attrition_reason, t.so_nguoi
+FROM (SELECT country, attrition_reason, COUNT(*) AS so_nguoi
+      FROM employee_monthly_snapshot
+      WHERE snapshot_month >= '2025-01' AND snapshot_month <= '2025-12'
+        AND attrition_type = 'Voluntary'
+      GROUP BY country, attrition_reason) t
+WHERE t.so_nguoi = (SELECT MAX(t2.so_nguoi)
+                    FROM (SELECT country, attrition_reason, COUNT(*) AS so_nguoi
+                          FROM employee_monthly_snapshot
+                          WHERE snapshot_month >= '2025-01' AND snapshot_month <= '2025-12'
+                            AND attrition_type = 'Voluntary'
+                          GROUP BY country, attrition_reason) t2)
 ORDER BY t.country, t.attrition_reason;
 
 -- ================================================================ CASE STUDY

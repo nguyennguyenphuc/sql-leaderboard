@@ -527,7 +527,7 @@ WHERE start_date >= '2025-05-01'
 GROUP BY type_id
 ORDER BY ctr_pct DESC, type_id;
 
--- [mkt-c2-nhieu-don-vao-thuong-hieu-nao.b1] solution
+-- [mkt-c2-file-tho-thieu-nhieu-nhat.b1] solution
 SELECT brand_id, COUNT(*) AS so_dong_thieu
 FROM campaigns_raw
 WHERE impressions IS NULL
@@ -539,7 +539,7 @@ WHERE impressions IS NULL
 GROUP BY brand_id
 ORDER BY brand_id;
 
--- [mkt-c2-nhieu-don-vao-thuong-hieu-nao.b1] wrong: chi_xet_cot_pheu
+-- [mkt-c2-file-tho-thieu-nhieu-nhat.b1] wrong: chi_xet_cot_pheu
 -- Rớt ở public: chỉ xét bốn cột phễu, bỏ revenue và acquisition_cost.
 SELECT brand_id, COUNT(*) AS so_dong_thieu
 FROM campaigns_raw
@@ -550,7 +550,7 @@ WHERE impressions IS NULL
 GROUP BY brand_id
 ORDER BY brand_id;
 
--- [mkt-c2-nhieu-don-vao-thuong-hieu-nao.b1] wrong: dem_dong_co_gia_tri
+-- [mkt-c2-file-tho-thieu-nhieu-nhat.b1] wrong: dem_dong_co_gia_tri
 -- Rớt ở public: COUNT(revenue) đếm dòng có doanh thu, không phải dòng thiếu.
 SELECT brand_id, COUNT(revenue) AS so_dong_thieu
 FROM campaigns_raw

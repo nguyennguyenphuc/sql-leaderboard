@@ -221,7 +221,7 @@ Kế thừa nguyên STYLE-scm mục C (C.1 cụm cấm, K1–K15; C.2 K16–K32)
 
 ---
 
-## E. Khái niệm khai báo cho bộ `jelly` (22 khái niệm)
+## E. Khái niệm khai báo cho bộ `jelly` (23 khái niệm)
 
 Mọi cột đã đối chiếu MySQL `jelly`. Người soạn chỉ chép khái niệm gói mình dùng.
 
@@ -249,6 +249,7 @@ Mọi cột đã đối chiếu MySQL `jelly`. Người soạn chỉ chép khái
 | 20 | `thu-nghiem-ab` | Thử nghiệm A/B theo nhánh được chia | `ab_assignments` |
 | 21 | `vat-pham-ho-tro` | Vật phẩm hỗ trợ (booster) | `booster_events` |
 | 22 | `doi-soat-tong-hop` | Đối soát bảng tổng hợp | `daily_kpi`, `player_daily` |
+| 23 | `kenh-thu-hut` | Kênh thu hút và chi phí quảng cáo | `users`, `campaign_spend` (bổ sung theo QUYET-DINH-CHUNG 1.8; định nghĩa chép giống hệt gói 2) |
 
 ```latex
 \khaibaokhainiem{dau}{DAU (số người chơi hoạt động trong ngày)}
@@ -326,7 +327,11 @@ Mọi cột đã đối chiếu MySQL `jelly`. Người soạn chỉ chép khái
 \khaibaokhainiem{roas}{ROAS}
   {ROAS là doanh thu thu về trên mỗi đồng chi cho quảng cáo thu hút người chơi.}
   {doanh thu của nhóm người cài từ kênh / chi phí của kênh}
-  {doanh thu lấy từ \code{player_daily} của người chơi cùng \code{campaign_id}; đề phải nêu cửa sổ doanh thu (ví dụ D0–D6).}
+  {doanh thu lấy từ \code{player_daily} của người chơi cùng \code{campaign_id}; đề phải nêu cửa sổ doanh thu bằng số ngày tuổi. Chuẩn của bộ: ROAS D7 lấy doanh thu D0--D6, ROAS D30 lấy D0--D29 (số ngày tuổi đầu bằng con số sau chữ D), chỉ xét người cài đã đủ số ngày quan sát đó.}
+\khaibaokhainiem{kenh-thu-hut}{Kênh thu hút và chi phí quảng cáo}
+  {Kênh thu hút là nguồn đưa người chơi tới cài game, gồm kênh tự nhiên không trả phí và các kênh quảng cáo trả phí. Chi phí quảng cáo là tiền studio trả cho các kênh trả phí.}
+  {}
+  {\code{users.channel}, \code{users.campaign_id} ghi kênh lúc cài; kênh tự nhiên \code{'Organic'} có mã \code{'ORG-000'} và không có chi phí. \code{campaign_spend}: mỗi dòng là chi phí một ngày của một chiến dịch tại một quốc gia trên một nền tảng.}
 \khaibaokhainiem{thu-nghiem-ab}{Thử nghiệm A/B theo nhánh được chia}
   {Thử nghiệm A/B so sánh hai nhánh người chơi được chia ngẫu nhiên, mỗi nhánh nhận một cách thiết kế khác nhau.}
   {chỉ số của nhánh thử − chỉ số của nhánh đối chứng}
@@ -384,3 +389,16 @@ Khai báo gợi ý (`cau-hoi.tex`):
 \khaibaodomain{finance}{Doanh thu}{Tổng doanh thu, ARPDAU, ARPPU, CPI, ROAS.}
 \khaibaodomain{after_sales}{Chất lượng sau phát hành}{Sự cố, hoàn tiền, đối soát sau bản vá.}
 ```
+
+### Quyết định chung 5 bộ (theo `QUYET-DINH-CHUNG.md`, 10/11/2026)
+
+Áp chung cho `scm`, `aivb`, `jelly`, `hr`, `mkt`. Lệch với chỗ khác trong file này thì theo các dòng dưới. **Thứ tự ưu tiên: `quy_chuan` (quy_chuan.rar) > `QUYET-DINH-CHUNG.md` > file STYLE này > brief.** Chi tiết, căn cứ và bảng các điểm đã sửa theo quy chuẩn (10/11, 23:05) ở `QUYET-DINH-CHUNG.md` mục 0.
+
+- **Kết luận case** (sửa theo quy_chuan: goi-cau-hoi-mau/cau-hoi.tex, câu c1–c4, lúc 10/11, 23:05): ba phương án, đúng một `\phuongan*`. Lời giải thích của phương án đúng mở bằng **"Đúng: "** rồi nêu căn cứ; phương án sai **không có tiền tố**, nêu thẳng chỗ sai. Không dùng "Chưa đúng.", "Sai:". 1–2 câu, ≤ 35 tiếng (lời giải thích dài nhất của mẫu, c3, khoảng 34 tiếng), nêu bước nào cho thấy điều gì.
+- **Case Cơ bản:** được `GROUP BY` một cột + một hàm gom trên **một bảng** (theo case mẫu `c1-kenh-nhieu-don` của CHOT); không `JOIN`, `HAVING`, truy vấn con. Ghi lý do một dòng ở `\ghichuthietke`.
+- **Gợi ý** (sửa theo quy_chuan: cau-hoi.tex w1, w3, o3, o4; Huong-dan mục 10 bước 7): 1–2 nấc ở câu, 1 nấc ở mỗi bước case. Nấc đầu nêu hướng (bảng cần dùng, cách tách bước, bẫy); nấc cuối được nêu trọn **một biểu thức một dòng**, kể cả giá trị lọc hoặc tiêu chí hoà, như mẫu w3 `ROW_NUMBER() OVER (PARTITION BY category ORDER BY doanh_thu DESC, product_id)`. Không viết sẵn cả câu SQL, không khung nhiều dòng. **Bỏ** yêu cầu "để trống ít nhất một thành phần".
+- **ERD** (sửa một phần theo quy_chuan: CHOT-FORMAT mục 3, Huong-dan mục 5, mẫu w4, d4, o4, c4): số bảng Cơ bản 1 · Dễ 2 · Trung bình 3–4 · Khó 5–7. Bảng nhiễu: Cơ bản 0 · Dễ ≤ 1 · Trung bình ≤ 1 (quy ước bổ sung) · Khó 1–2, bắt buộc có; câu Khó mà lời giải dùng ≤ 3 bảng được thêm bảng nhiễu cho đủ 5 bảng như mẫu d4, o4. ERD Khó **chỉ khoá, không vẽ `\erdnoi`**; cách nối viết trong `\erdkhoa`. Bảng nhiễu ở Dễ, Trung bình có đường nối đúng với bảng dùng; ở Khó nên có cột khoá chung với bảng dùng (mẫu w4) nhưng không bắt buộc (mẫu o4). Bảng nhiễu không làm tăng cấp.
+- **Cấp** (sửa một phần theo quy_chuan: Huong-dan mục 6, lo-trinh-sql/assets/js/data.js): theo thang `QUYET-DINH-CHUNG.md` mục 2: cấp = mức mà ≥ 3/5 trục đạt (số bảng lời giải cần, số bước, mức mơ hồ, số bẫy, độ sâu nghiệp vụ). Ở M1–3: Dễ = Cơ bản + một bẫy hoặc một bước. **Bỏ ngoại lệ "M7, M8 không có Dễ"**: lộ trình chuẩn cho mọi module đủ 4 cấp; sửa lỗi một chỗ dễ thấy là Dễ, muốn Trung bình thì lỗi phải khó thấy (nối thừa nhân dòng, sai phạm vi cửa sổ) hoặc thêm lỗi, bẫy thật. Câu Khó không bắt buộc ≥ 4 bảng (mẫu o4 dùng 1 bảng). Optimize lấy cấp theo mẫu kỹ thuật của CHOT mục 4.
+- **Yêu cầu (`yeucau`):** thứ tự sắp luôn kết thúc bằng một khoá duy nhất; top N nói rõ lấy đúng N dòng hay lấy cả người hoà; ghi số chữ số và kiểu làm tròn, chỉ làm tròn cột cuối; tỷ lệ trả phần trăm 2 chữ số (tên cột tuỳ: mẫu dùng cả `ty_le_tra` lẫn `thay_doi_pct`), nếu bắt buộc trả 0–1 thì 4 chữ số và đặt `saiso=0.0001`; NULL nói rõ giữ NULL, thay bằng giá trị gì, hay loại dòng; tháng, quý trả chuỗi theo dạng ghi trong đề; năm trả số, trừ khi đề ghi rõ trả chuỗi như mẫu o2; mốc thời gian ghi cả cận dưới và cận trên.
+- **Tiêu đề** (sửa theo quy_chuan: tiêu đề mẫu w3, w4, o3, o4 dài 11–13 tiếng): ngắn, **≤ 13 tiếng**. Câu Tối ưu được nêu ràng buộc trong tiêu đề ("… chỉ với một lần quét", "… không dùng tự nối bảng") như mẫu o1, o4; các loại khác không nhắc kỹ thuật SQL ở tiêu đề (quy ước bổ sung). Bối cảnh không nhắc tên kỹ thuật SQL (CHOT-FORMAT mục 3).
+- **Riêng jelly:** khái niệm `kenh-thu-hut` (gói 2: s9, a3, c4) được duyệt, thuộc mảng `marketing`; định nghĩa duy nhất đã ghi ở mục E (chép giống hệt gói 2, v3 10/11). Kế thừa STYLE-scm G.1, G.4, G.5 theo bản sửa theo quy_chuan lúc 10/11, 23:05. jelly-t7, jelly-f9 chấm lại cấp theo dòng **Cấp** (bỏ ngoại lệ M7, M8). jelly-f6 đổi kỹ năng sang `FIRST_VALUE` hoặc `NTILE`; jelly-j4/q5 đổi ô của một câu.

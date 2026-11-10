@@ -169,7 +169,7 @@ Mã danh mục dùng trong đề: thương hiệu \code{brand_id} 1 Nykaa, 2 Pur
 \begin{cauhoi}[ma=mkt-s3-bat-dau-cuoi-tuan, dulieu=mkt, domain=operations,
   hinhthuc=write, cap=easy, dang=A3, kynang={WEEKDAY, DAYOFWEEK, SUM(CASE)}, bay={dayofweek-1-la-chu-nhat, thieu-can-tren},
   tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.01]
-\tieude{Mỗi loại chiến dịch có bao nhiêu phần trăm bắt đầu vào cuối tuần?}
+\tieude{Mỗi loại chiến dịch có bao nhiêu phần trăm bắt đầu cuối tuần?}
 \boicanh[Chị Hạnh · Trưởng phòng marketing số]{Phòng mình đang tính có cần người trực thứ Bảy, Chủ nhật để theo dõi chiến dịch mới mở không. Chị muốn biết mỗi loại chiến dịch có bao nhiêu phần trăm mở vào cuối tuần.}
 \begin{yeucau}
   \item Xét mọi chiến dịch của ba thương hiệu bắt đầu từ ngày 1/7/2024 tới hết ngày 30/6/2025.
@@ -197,7 +197,7 @@ Mã danh mục dùng trong đề: thương hiệu \code{brand_id} 1 Nykaa, 2 Pur
   hinhthuc=write, cap=easy, dang=A1, kynang={LIKE, LENGTH, REPLACE, COUNT(DISTINCT)}, bay={like-moi-vi-tri, dong-trung},
   tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, socot=vitri]
 \tieude{Bao nhiêu chiến dịch ba kênh ghi YouTube đầu tiên?}
-\boicanh[Anh Vinh · Trưởng nhóm quảng cáo trả phí]{Đại lý quảng cáo YouTube đề nghị đối soát các chiến dịch chạy ba kênh có YouTube ghi đầu tiên trong file gốc. Em đếm giúp anh mỗi thương hiệu có bao nhiêu chiến dịch như vậy.}
+\boicanh[Anh Vinh · Trưởng nhóm quảng cáo trả phí]{Nhóm dữ liệu sắp tách cột kênh của file gốc thành từng kênh riêng để làm báo cáo theo kênh. Trước khi dùng bảng đã tách, anh cần một con số để đối chiếu: mỗi thương hiệu có bao nhiêu chiến dịch chạy ba kênh mà YouTube được ghi đầu tiên.}
 \begin{yeucau}
   \item Xét cột \code{channel_used} của dữ liệu thô \code{campaigns_raw}: tên kênh cách nhau bởi dấu phẩy và một dấu cách, ví dụ \code{'YouTube, Instagram, Email'}.
   \item Chọn các dòng có đúng ba kênh và kênh ghi đầu tiên là YouTube.
@@ -209,7 +209,7 @@ Mã danh mục dùng trong đề: thương hiệu \code{brand_id} 1 Nykaa, 2 Pur
   \erdbang{brands}{2,0}{brand_id:PK, brand_name, source_file}
   \erdnoi[kieu=n-1, tren={\code{campaigns_raw.brand_id = brands.brand_id}}]{campaigns_raw.brand_id}{brands.brand_id}
 \end{erd}
-\begin{nghiepvu}{Lập danh sách chiến dịch cần đối soát với đại lý quảng cáo trên YouTube.}
+\begin{nghiepvu}{Có số đối chiếu cho bước tách chuỗi kênh thành từng kênh riêng.}
   \khainiem{kenh-da-tri}
   \khainiem{du-lieu-tho}
   \luuy{Thứ tự kênh trong chuỗi chỉ là thứ tự ghi trong file, không cho biết kênh nào chính. Một chiến dịch có thể xuất hiện ở nhiều dòng của bản thô.}
@@ -223,7 +223,7 @@ Mã danh mục dùng trong đề: thương hiệu \code{brand_id} 1 Nykaa, 2 Pur
 \begin{cauhoi}[ma=mkt-s5-ngay-tho-khong-doc-duoc, dulieu=mkt, domain=operations,
   hinhthuc=write, cap=easy, dang=E1, kynang={STR_TO_DATE, IS NULL, OR}, bay={ngay-doc-duoc-ngoai-ky, so-sanh-voi-null},
   tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
-\tieude{Mỗi file thô có bao nhiêu dòng mang ngày bắt đầu không hợp lệ?}
+\tieude{Mỗi file thô có mấy dòng mang ngày bắt đầu không hợp lệ?}
 \boicanh[Anh Bảo · Chuyên viên phân tích marketing]{Anh sắp gộp ba file vào báo cáo tháng. Trước đó anh cần biết mỗi file có bao nhiêu dòng có ngày bắt đầu bị trống, ghi sai hoặc nằm ngoài kỳ.}
 \begin{yeucau}
   \item Xét mọi dòng của dữ liệu thô \code{campaigns_raw}; ngày bắt đầu nằm ở cột chuỗi \code{date_raw}, dạng ngày-tháng-năm như \code{'15-03-2025'}.
@@ -460,7 +460,7 @@ Mã danh mục dùng trong đề: thương hiệu \code{brand_id} 1 Nykaa, 2 Pur
 \end{cauhoi}
 
 % ================================================================ A5 · Viết · Trung bình · A1 · operations
-\begin{cauhoi}[ma=mkt-a5-ngay-tren-500-chien-dich, dulieu=mkt, domain=operations,
+\begin{cauhoi}[ma=mkt-a5-ngay-tren-350-co-lai, dulieu=mkt, domain=operations,
   hinhthuc=write, cap=medium, dang=A1, kynang={GROUP BY, HAVING, SUM(CASE)}, bay={loc-dong-o-where, having-sai-dieu-kien, thieu-can-tren},
   tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, socot=vitri]
 \tieude{Ngày nào tháng 3/2025 khởi chạy hơn 350 chiến dịch có lãi?}
@@ -485,7 +485,7 @@ Mã danh mục dùng trong đề: thương hiệu \code{brand_id} 1 Nykaa, 2 Pur
 \end{nghiepvu}
 \goiy{Nếu lọc \code{roi > 0} trước khi gom, cột \code{so_chien_dich} còn đếm đủ mọi chiến dịch của ngày không? Điều kiện trên từng dòng xét trước khi đếm, điều kiện trên số đếm của cả ngày chỉ xét được sau khi đã đếm.}
 \goiy{Đếm chiến dịch có lãi bằng \code{SUM(CASE WHEN roi > 0 THEN 1 ELSE 0 END)} và đặt ngưỡng trên chính biểu thức đó trong \code{HAVING}.}
-\ghichuthietke{Trung bình: 3 bảng, chỉ ký hiệu n-1; câu chỉ cần \code{campaigns}. Bản đồ ghi ``trên 500 chiến dịch'' nhưng tháng 3/2025 chỉ có hai ngày như vậy; đổi thành ngưỡng trên số chiến dịch có lãi để câu dạy cả \code{HAVING} lẫn đếm có điều kiện, giữ mã. Bẫy ở public: lọc lãi ở \code{WHERE} làm sai cột tổng; \code{HAVING COUNT(*) > 350} giữ gần như mọi ngày; thiếu cận trên lấy cả các ngày tháng 4, 5. hidden-1 bỏ 10\% chiến dịch nên chỉ còn rất ít ngày vượt ngưỡng (chép kết quả Chạy thử sẽ rớt). Chờ giảng viên: mã nói 500 chiến dịch, đề nói 350 chiến dịch có lãi; ngưỡng đặt trên số đếm gần như chỉ phản ánh số chiến dịch mở trong ngày (tỷ lệ có lãi mỗi ngày khoảng 75–80\%), cân nhắc thêm cột tỷ lệ hoặc đổi mã.}
+\ghichuthietke{Trung bình: 3 bảng, chỉ ký hiệu n-1; câu chỉ cần \code{campaigns}. Bản đồ ghi ``trên 500 chiến dịch'' nhưng tháng 3/2025 chỉ có hai ngày như vậy; đổi thành ngưỡng trên số chiến dịch có lãi để câu dạy cả \code{HAVING} lẫn đếm có điều kiện. Bẫy ở public: lọc lãi ở \code{WHERE} làm sai cột tổng; \code{HAVING COUNT(*) > 350} giữ gần như mọi ngày; thiếu cận trên lấy cả các ngày tháng 4, 5. hidden-1 bỏ 10\% chiến dịch nên chỉ còn rất ít ngày vượt ngưỡng (chép kết quả Chạy thử sẽ rớt). Quyết định v3 (10/11): mã đổi thành \code{mkt-a5-ngay-tren-350-co-lai} cho khớp đề; giữ ngưỡng trên số đếm vì câu dạy \code{HAVING} trên đếm có điều kiện. Tỷ lệ có lãi mỗi ngày chỉ dao động khoảng 75–80\%, nên ngưỡng này chủ yếu phản ánh số chiến dịch mở trong ngày; câu không dùng để so hiệu quả giữa các ngày.}
 \end{cauhoi}
 
 % ================================================================ A6 · Viết · Dễ · B1 · sales
@@ -599,7 +599,7 @@ Mã danh mục dùng trong đề: thương hiệu \code{brand_id} 1 Nykaa, 2 Pur
 % ################################################################ CASE STUDY
 
 % ================================================================ C3 · Case · Cơ bản · marketing
-\begin{cauhoi}[ma=mkt-c3-thang-nykaa-mo-nhieu-nhat, dulieu=mkt, domain=marketing,
+\begin{cauhoi}[ma=mkt-c3-thang-purplle-mo-nhieu-nhat, dulieu=mkt, domain=marketing,
   hinhthuc=case, cap=basic, diem=10, tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.01]
 \tieude{Tháng nào Purplle mở chiến dịch dày nhất?}
 \boicanh[Chị Ngân · Quản lý thương hiệu Purplle]{Chị đang tính số người cần cho đội Purplle năm sau, nên muốn biết trong năm qua tháng nào Purplle mở chiến dịch dày nhất.}
@@ -622,11 +622,11 @@ Mã danh mục dùng trong đề: thương hiệu \code{brand_id} 1 Nykaa, 2 Pur
 \begin{buoc}[ma=b2, diem=5, hinhthuc=ketluan, bang={campaigns}]{Kết luận}
   \begin{luachon}
     \phuongan*{Tháng 9/2024 có bình quân mỗi ngày cao nhất, nhưng chỉ hơn tháng thấp nhất chưa tới 10\%, nên có thể chưa có mùa cao điểm rõ rệt.}
-      {Đúng. Bước 1 cho thấy tháng 9/2024 đứng đầu cột bình quân mỗi ngày, còn khoảng cách giữa các tháng nhỏ.}
+      {Đúng: Bước 1 cho thấy tháng 9/2024 đứng đầu cột bình quân mỗi ngày, còn khoảng cách giữa các tháng nhỏ.}
     \phuongan{Tháng 2/2025 có tổng số chiến dịch thấp nhất trong 11 tháng, nên có thể Purplle đã giảm nhịp mở chiến dịch vào tháng này.}
-      {Chưa đúng. Tháng 2 chỉ có 28 ngày; bình quân mỗi ngày của tháng 2 vẫn ở nhóm giữa chứ không thấp nhất.}
+      {Tháng 2 chỉ có 28 ngày; bình quân mỗi ngày của tháng 2 vẫn ở nhóm giữa chứ không thấp nhất.}
     \phuongan{Tháng 9/2024 có bình quân mỗi ngày cao nhất, nên năm sau nên dồn thêm người theo dõi vào tháng 9 cho mùa cao điểm.}
-      {Chưa đúng. Tháng 9/2024 chỉ nhỉnh hơn các tháng khác một chút; chênh lệch nhỏ như vậy chưa đủ để coi là mùa cao điểm.}
+      {Tháng 9/2024 chỉ nhỉnh hơn các tháng khác một chút; chênh lệch nhỏ như vậy chưa đủ để coi là mùa cao điểm.}
   \end{luachon}
 \end{buoc}
 \ghichuthietke{Case Cơ bản: 1 bảng, 1 bước SQL, 1 bước kết luận. v2 đổi từ Nykaa sang Purplle để không trùng s1 (Nykaa theo tháng); mã giữ nguyên. Trên public tháng 9/2024 cao nhất về bình quân mỗi ngày (tổng số cao nhất lại là tháng 12/2024), tháng 3/2025 thấp nhất, chênh khoảng 7\%; tháng 2/2025 thấp nhất về tổng số nhưng bình quân mỗi ngày ở giữa. hidden-1 giữ các điểm này (chênh khoảng 6\%). Ba phương án dài gần bằng nhau, từ rào ``có thể'' có ở cả phương án đúng và phương án sai thứ hai (K32). Bài sai ở bước 1: giữ tháng 6/2025 chưa đủ; chia mọi tháng cho 31 ngày. Cả hai rớt ở public.}
@@ -666,11 +666,11 @@ Mã danh mục dùng trong đề: thương hiệu \code{brand_id} 1 Nykaa, 2 Pur
 \begin{buoc}[ma=b3, diem=6, hinhthuc=ketluan, bang={campaigns}]{Kết luận}
   \begin{luachon}
     \phuongan*{Influencer (marketing người ảnh hưởng) và SEO có ROI thấp hơn mức chung, nhưng chỉ thấp hơn chưa tới 0,03 nên chưa đủ căn cứ để cắt ngân sách hai loại này.}
-      {Đúng. Bước 1 và bước 2 cho thấy hai loại nằm dưới mức chung với khoảng cách rất nhỏ so với độ lớn của ROI.}
+      {Đúng: Bước 1 và bước 2 cho thấy hai loại nằm dưới mức chung với khoảng cách rất nhỏ so với độ lớn của ROI.}
     \phuongan{Cả năm loại đều có ROI thấp hơn mức chung khoảng 2,69, nên cần xem lại ngân sách của mọi loại chiến dịch.}
-      {Chưa đúng. Khoảng 2,69 là bình quân giản đơn cột \code{roi}; mức chung phải tính như bước 2, cùng cách với ROI từng loại ở bước 1.}
+      {Khoảng 2,69 là bình quân giản đơn cột \code{roi}; mức chung phải tính như bước 2, cùng cách với ROI từng loại ở bước 1.}
     \phuongan{Influencer có ROI thấp nhất; chưa có số liệu về nguyên nhân, nhưng nên chuyển dần ngân sách Influencer sang Paid Ads có ROI cao nhất.}
-      {Chưa đúng. Các bước chỉ đo ROI, không đo nguyên nhân; chênh lệch giữa các loại quá nhỏ để chuyển ngân sách.}
+      {Các bước chỉ đo ROI, không đo nguyên nhân; chênh lệch giữa các loại quá nhỏ để chuyển ngân sách.}
   \end{luachon}
 \end{buoc}
 \ghichuthietke{Case Dễ: 2 bảng, 2 bước SQL, 1 bước kết luận (7 + 7 + 6 = 20 điểm). Trên public ROI chung khoảng 1,94; Influencer và SEO dưới mức chung, Email cao hơn rất ít; độ lệch lớn nhất khoảng 0,026 (Influencer). Ở hidden-1 vẫn đúng hai loại đó. Ba phương án dài gần bằng nhau; phương án sai thứ ba cũng có từ rào (K32). Bài sai: bước 1 \code{AVG(roi)} (rớt ở public), thiếu cận trên (rớt ở hidden-1); bước 2 doanh thu chia chi phí (ROAS, rớt ở public), thiếu cận trên (rớt ở hidden-1). Bình quân năm ROI loại ở bước 2 không bắt được vì năm loại có quy mô gần bằng nhau (ra 1,94048, trùng ROI chung ở 4 chữ số), nên không dùng làm bài sai.}

@@ -58,89 +58,87 @@ SELECT b.step_id AS buoc, b.step_name, b.so_bat_dau, b.so_hoan_thanh,
 FROM buoc b CROSS JOIN tong
 ORDER BY b.step_id;
 
--- [jelly-t2-buoc-4-android-210] solution
-WITH b4 AS (
-  SELECT app_version, platform, step_completed
+-- [jelly-t2-so-buoc-hoan-thanh] solution
+WITH moi_nguoi AS (
+  SELECT user_id, SUM(step_completed) AS so_buoc_hoan_thanh
   FROM tutorial_steps
-  WHERE step_id = 4
-), chung AS (
-  SELECT 100 * AVG(step_completed) AS ty_le FROM b4
-), nhom AS (
-  SELECT app_version, platform, COUNT(*) AS so_bat_dau, 100 * AVG(step_completed) AS ty_le
-  FROM b4
-  GROUP BY app_version, platform
-)
-SELECT n.app_version, n.platform, n.so_bat_dau,
-       ROUND(n.ty_le, 2) AS ty_le_hoan_thanh_pct,
-       ROUND(n.ty_le - c.ty_le, 2) AS chenh_lech_diem
-FROM nhom n
-CROSS JOIN chung c
-ORDER BY chenh_lech_diem, n.app_version, n.platform;
-
--- [jelly-t2-buoc-4-android-210] wrong: muc_chung_la_tb_cac_ty_le
--- Mức chung lấy trung bình cộng tỷ lệ của 6 nhóm, bỏ qua quy mô nhóm (rớt ở public).
-WITH b4 AS (
-  SELECT app_version, platform, step_completed FROM tutorial_steps WHERE step_id = 4
-), nhom AS (
-  SELECT app_version, platform, COUNT(*) AS so_bat_dau, 100 * AVG(step_completed) AS ty_le
-  FROM b4 GROUP BY app_version, platform
-), chung AS (
-  SELECT AVG(ty_le) AS ty_le FROM nhom
-)
-SELECT n.app_version, n.platform, n.so_bat_dau,
-       ROUND(n.ty_le, 2) AS ty_le_hoan_thanh_pct,
-       ROUND(n.ty_le - c.ty_le, 2) AS chenh_lech_diem
-FROM nhom n CROSS JOIN chung c
-ORDER BY chenh_lech_diem, n.app_version, n.platform;
-
--- [jelly-t3-d1-d7-theo-kenh] solution
-WITH nhom AS (
-  SELECT user_id, channel
-  FROM users
-  WHERE install_date <= '2026-08-22'
-), hd AS (
-  SELECT user_id, MAX(cohort_day = 1) AS co_d1, MAX(cohort_day = 7) AS co_d7
-  FROM player_daily
-  WHERE cohort_day IN (1, 7)
+  WHERE install_date >= '2026-07-01' AND install_date < '2026-08-01'
   GROUP BY user_id
 )
-SELECT n.channel, COUNT(*) AS so_nguoi_cai,
-       ROUND(100 * SUM(COALESCE(h.co_d1, 0)) / COUNT(*), 2) AS ty_le_d1_pct,
-       ROUND(100 * SUM(COALESCE(h.co_d7, 0)) / COUNT(*), 2) AS ty_le_d7_pct
-FROM nhom n
-LEFT JOIN hd h ON h.user_id = n.user_id
-GROUP BY n.channel
-ORDER BY ty_le_d7_pct DESC, n.channel;
+SELECT so_buoc_hoan_thanh, COUNT(*) AS so_nguoi
+FROM moi_nguoi
+GROUP BY so_buoc_hoan_thanh
+ORDER BY so_buoc_hoan_thanh;
 
--- [jelly-t3-d1-d7-theo-kenh] wrong: khong_loai_nhom_chua_du_ngay
--- Giữ cả người cài sau 22/8, chưa đủ 7 ngày quan sát (rớt ở public).
-WITH nhom AS (
-  SELECT user_id, channel FROM users
-), hd AS (
-  SELECT user_id, MAX(cohort_day = 1) AS co_d1, MAX(cohort_day = 7) AS co_d7
-  FROM player_daily WHERE cohort_day IN (1, 7) GROUP BY user_id
+-- [jelly-t2-so-buoc-hoan-thanh] wrong: dem_buoc_da_bat_dau
+-- Đếm mọi dòng của người chơi, gồm cả bước bắt đầu nhưng bỏ dở (rớt ở public).
+WITH moi_nguoi AS (
+  SELECT user_id, COUNT(*) AS so_buoc_hoan_thanh
+  FROM tutorial_steps
+  WHERE install_date >= '2026-07-01' AND install_date < '2026-08-01'
+  GROUP BY user_id
 )
-SELECT n.channel, COUNT(*) AS so_nguoi_cai,
-       ROUND(100 * SUM(COALESCE(h.co_d1, 0)) / COUNT(*), 2) AS ty_le_d1_pct,
-       ROUND(100 * SUM(COALESCE(h.co_d7, 0)) / COUNT(*), 2) AS ty_le_d7_pct
-FROM nhom n LEFT JOIN hd h ON h.user_id = n.user_id
-GROUP BY n.channel
-ORDER BY ty_le_d7_pct DESC, n.channel;
+SELECT so_buoc_hoan_thanh, COUNT(*) AS so_nguoi
+FROM moi_nguoi GROUP BY so_buoc_hoan_thanh ORDER BY so_buoc_hoan_thanh;
 
--- [jelly-t3-d1-d7-theo-kenh] wrong: inner_join_mat_mau_so
--- INNER JOIN với người có hoạt động D1 hoặc D7: mẫu số mất người không quay lại (rớt ở public).
-WITH nhom AS (
-  SELECT user_id, channel FROM users WHERE install_date <= '2026-08-22'
-), hd AS (
-  SELECT user_id, MAX(cohort_day = 1) AS co_d1, MAX(cohort_day = 7) AS co_d7
-  FROM player_daily WHERE cohort_day IN (1, 7) GROUP BY user_id
+-- [jelly-t2-so-buoc-hoan-thanh] wrong: thieu_can_tren_thang_7
+-- Lọc ngày cài từ 1/7 trở đi, lẫn người cài tháng 8 (rớt ở public).
+WITH moi_nguoi AS (
+  SELECT user_id, SUM(step_completed) AS so_buoc_hoan_thanh
+  FROM tutorial_steps
+  WHERE install_date >= '2026-07-01'
+  GROUP BY user_id
 )
-SELECT n.channel, COUNT(*) AS so_nguoi_cai,
-       ROUND(100 * SUM(h.co_d1) / COUNT(*), 2) AS ty_le_d1_pct,
-       ROUND(100 * SUM(h.co_d7) / COUNT(*), 2) AS ty_le_d7_pct
-FROM nhom n JOIN hd h ON h.user_id = n.user_id
-GROUP BY n.channel
-ORDER BY ty_le_d7_pct DESC, n.channel;
+SELECT so_buoc_hoan_thanh, COUNT(*) AS so_nguoi
+FROM moi_nguoi GROUP BY so_buoc_hoan_thanh ORDER BY so_buoc_hoan_thanh;
+
+-- [jelly-t3-mua-tu-3-lan] solution
+WITH moi_nguoi AS (
+  SELECT user_id, COUNT(*) AS so_lan_mua, SUM(price_usd) AS tong_chi
+  FROM purchases
+  WHERE event_date >= '2026-07-01' AND event_date < '2026-08-30'
+  GROUP BY user_id
+)
+SELECT user_id, so_lan_mua, ROUND(tong_chi, 2) AS tong_chi_usd
+FROM moi_nguoi
+WHERE so_lan_mua >= 3
+ORDER BY so_lan_mua DESC, tong_chi_usd DESC, user_id;
+
+-- [jelly-t3-mua-tu-3-lan] wrong: lon_hon_3
+-- Dùng > 3 nên bỏ mất người mua đúng 3 lần (rớt ở public).
+WITH moi_nguoi AS (
+  SELECT user_id, COUNT(*) AS so_lan_mua, SUM(price_usd) AS tong_chi
+  FROM purchases
+  WHERE event_date >= '2026-07-01' AND event_date < '2026-08-30'
+  GROUP BY user_id
+)
+SELECT user_id, so_lan_mua, ROUND(tong_chi, 2) AS tong_chi_usd
+FROM moi_nguoi WHERE so_lan_mua > 3
+ORDER BY so_lan_mua DESC, tong_chi_usd DESC, user_id;
+
+-- [jelly-t3-mua-tu-3-lan] wrong: dem_loai_goi
+-- Đếm số loại gói khác nhau thay vì số lần mua (rớt ở public).
+WITH moi_nguoi AS (
+  SELECT user_id, COUNT(DISTINCT product_type) AS so_lan_mua, SUM(price_usd) AS tong_chi
+  FROM purchases
+  WHERE event_date >= '2026-07-01' AND event_date < '2026-08-30'
+  GROUP BY user_id
+)
+SELECT user_id, so_lan_mua, ROUND(tong_chi, 2) AS tong_chi_usd
+FROM moi_nguoi WHERE so_lan_mua >= 3
+ORDER BY so_lan_mua DESC, tong_chi_usd DESC, user_id;
+
+-- [jelly-t3-mua-tu-3-lan] wrong: thieu_can_tren
+-- Không chặn ngày cuối cửa sổ: hidden-1 có thêm giao dịch 30/8 và 1/9 của jta_user_000648 (rớt ở hidden-1).
+WITH moi_nguoi AS (
+  SELECT user_id, COUNT(*) AS so_lan_mua, SUM(price_usd) AS tong_chi
+  FROM purchases
+  WHERE event_date >= '2026-07-01'
+  GROUP BY user_id
+)
+SELECT user_id, so_lan_mua, ROUND(tong_chi, 2) AS tong_chi_usd
+FROM moi_nguoi WHERE so_lan_mua >= 3
+ORDER BY so_lan_mua DESC, tong_chi_usd DESC, user_id;
 
 -- [jelly-t4-kenh-co-va-khong-chi] solution
 WITH cai AS (
@@ -342,51 +340,56 @@ SELECT COUNT(*) AS so_ngay, SUM(khop) AS so_ngay_khop, SUM(lech_qc_truc_tiep) AS
        ROUND(SUM(iap + qc_chi_tiet), 2) AS tong_doanh_thu_tinh_lai_usd
 FROM so;
 
--- [jelly-t6-crash-hai-nguon] solution
+-- [jelly-t6-tong-su-co-hai-nguon] solution
 WITH luot AS (
-  SELECT event_date AS ngay, COUNT(*) AS so_luot_su_co
+  SELECT COUNT(*) AS so_luot_su_co
   FROM level_attempts
   WHERE result = 'crash' AND event_date >= '2026-07-01' AND event_date < '2026-08-01'
-  GROUP BY event_date
 ), ngay AS (
-  SELECT activity_date AS ngay, SUM(crash_count) AS tong_crash_count
+  SELECT SUM(crash_count) AS tong_crash_count
   FROM player_daily
   WHERE activity_date >= '2026-07-01' AND activity_date < '2026-08-01'
-  GROUP BY activity_date
 )
-SELECT d.ngay, COALESCE(l.so_luot_su_co, 0) AS so_luot_su_co, d.tong_crash_count,
-       COALESCE(l.so_luot_su_co, 0) - d.tong_crash_count AS chenh_lech
-FROM ngay d
-LEFT JOIN luot l ON l.ngay = d.ngay
-ORDER BY d.ngay;
+SELECT l.so_luot_su_co, n.tong_crash_count, l.so_luot_su_co - n.tong_crash_count AS chenh_lech
+FROM luot l
+CROSS JOIN ngay n;
 
--- [jelly-t6-crash-hai-nguon] wrong: noi_truc_tiep_nhan_dong
+-- [jelly-t6-tong-su-co-hai-nguon] wrong: noi_truc_tiep_nhan_dong
 -- Nối thẳng lượt chơi với bảng hoạt động ngày theo người chơi và ngày: crash_count bị cộng lặp (rớt ở public).
-SELECT p.activity_date AS ngay,
-       COUNT(CASE WHEN a.result = 'crash' THEN 1 END) AS so_luot_su_co,
+SELECT COUNT(CASE WHEN a.result = 'crash' THEN 1 END) AS so_luot_su_co,
        SUM(p.crash_count) AS tong_crash_count,
        COUNT(CASE WHEN a.result = 'crash' THEN 1 END) - SUM(p.crash_count) AS chenh_lech
 FROM player_daily p
 LEFT JOIN level_attempts a ON a.user_id = p.user_id AND a.event_date = p.activity_date
-WHERE p.activity_date >= '2026-07-01' AND p.activity_date < '2026-08-01'
-GROUP BY p.activity_date
-ORDER BY p.activity_date;
+WHERE p.activity_date >= '2026-07-01' AND p.activity_date < '2026-08-01';
 
--- [jelly-t6-crash-hai-nguon] wrong: union_mat_dong_trung
--- Xếp hai nguồn thành dòng bằng UNION: ngày có hai số bằng nhau, hoặc hai người cùng số, bị gộp mất (rớt ở public).
-WITH gop AS (
-  SELECT event_date AS ngay, 'luot' AS nguon, 1 AS so
+-- [jelly-t6-tong-su-co-hai-nguon] wrong: dem_ngay_nguoi_co_su_co
+-- Đếm số ngày-người có sự cố thay vì cộng crash_count (rớt ở public: có ngày-người ghi 3 sự cố).
+WITH luot AS (
+  SELECT COUNT(*) AS so_luot_su_co
   FROM level_attempts
   WHERE result = 'crash' AND event_date >= '2026-07-01' AND event_date < '2026-08-01'
-  UNION
-  SELECT activity_date, 'ngay', crash_count
+), ngay AS (
+  SELECT COUNT(*) AS tong_crash_count
+  FROM player_daily
+  WHERE crash_count > 0 AND activity_date >= '2026-07-01' AND activity_date < '2026-08-01'
+)
+SELECT l.so_luot_su_co, n.tong_crash_count, l.so_luot_su_co - n.tong_crash_count AS chenh_lech
+FROM luot l CROSS JOIN ngay n;
+
+-- [jelly-t6-tong-su-co-hai-nguon] wrong: luot_thieu_can_tren
+-- Nhánh lượt chơi lọc từ 1/7 trở đi, lẫn lượt tháng 8 (rớt ở public).
+WITH luot AS (
+  SELECT COUNT(*) AS so_luot_su_co
+  FROM level_attempts
+  WHERE result = 'crash' AND event_date >= '2026-07-01'
+), ngay AS (
+  SELECT SUM(crash_count) AS tong_crash_count
   FROM player_daily
   WHERE activity_date >= '2026-07-01' AND activity_date < '2026-08-01'
 )
-SELECT ngay, SUM(CASE WHEN nguon = 'luot' THEN so ELSE 0 END) AS so_luot_su_co,
-       SUM(CASE WHEN nguon = 'ngay' THEN so ELSE 0 END) AS tong_crash_count,
-       SUM(CASE WHEN nguon = 'luot' THEN so ELSE -so END) AS chenh_lech
-FROM gop GROUP BY ngay ORDER BY ngay;
+SELECT l.so_luot_su_co, n.tong_crash_count, l.so_luot_su_co - n.tong_crash_count AS chenh_lech
+FROM luot l CROSS JOIN ngay n;
 
 -- [jelly-t7-union-doanh-thu] starter
 WITH nguon AS (
@@ -481,6 +484,24 @@ WITH nhom AS (
   JOIN player_daily p ON p.user_id = u.user_id AND p.cohort_day = 7
   WHERE u.install_date <= '2026-08-22'
   GROUP BY p.app_version
+)
+SELECT n.app_version_install, n.so_nguoi_cai, COALESCE(d.so_giu_chan, 0) AS so_giu_chan_d7,
+       ROUND(100 * COALESCE(d.so_giu_chan, 0) / n.so_nguoi_cai, 2) AS ty_le_d7_pct
+FROM nhom n LEFT JOIN d7 d ON d.app_version_install = n.app_version_install
+ORDER BY n.app_version_install;
+
+-- [jelly-t8-cte-loc-sai-cho] wrong: mau_so_bo_ngay_22_8
+-- Thêm điều kiện ở mẫu số nhưng viết < '2026-08-22', bỏ mất người cài ngày 22/8 (rớt ở public).
+WITH nhom AS (
+  SELECT app_version_install, COUNT(*) AS so_nguoi_cai
+  FROM users WHERE install_date < '2026-08-22'
+  GROUP BY app_version_install
+), d7 AS (
+  SELECT u.app_version_install, COUNT(*) AS so_giu_chan
+  FROM users u
+  JOIN player_daily p ON p.user_id = u.user_id AND p.cohort_day = 7
+  WHERE u.install_date <= '2026-08-22'
+  GROUP BY u.app_version_install
 )
 SELECT n.app_version_install, n.so_nguoi_cai, COALESCE(d.so_giu_chan, 0) AS so_giu_chan_d7,
        ROUND(100 * COALESCE(d.so_giu_chan, 0) / n.so_nguoi_cai, 2) AS ty_le_d7_pct
@@ -634,37 +655,40 @@ WHERE `date` >= '2026-07-01'
 WINDOW w AS (ORDER BY `date` ROWS BETWEEN 6 PRECEDING AND CURRENT ROW)
 ORDER BY ngay;
 
--- [jelly-f3-luy-ke-chi] solution
-WITH chi_ngay AS (
-  SELECT channel, `date` AS ngay, SUM(spend_usd) AS chi
-  FROM campaign_spend
-  WHERE `date` >= '2026-07-01' AND `date` < '2026-08-01'
-  GROUP BY channel, `date`
-)
-SELECT channel, ngay, chi AS chi_ngay_usd,
-       SUM(chi) OVER (PARTITION BY channel ORDER BY ngay) AS chi_luy_ke_usd
-FROM chi_ngay
-ORDER BY channel, ngay;
-
--- [jelly-f3-luy-ke-chi] wrong: thieu_partition_by_kenh
--- Luỹ kế không chia theo kênh: cộng dồn lẫn bốn kênh (rớt ở public).
-WITH chi_ngay AS (
-  SELECT channel, `date` AS ngay, SUM(spend_usd) AS chi
-  FROM campaign_spend
-  WHERE `date` >= '2026-07-01' AND `date` < '2026-08-01'
-  GROUP BY channel, `date`
-)
-SELECT channel, ngay, chi AS chi_ngay_usd,
-       SUM(chi) OVER (ORDER BY channel, ngay) AS chi_luy_ke_usd
-FROM chi_ngay ORDER BY channel, ngay;
-
--- [jelly-f3-luy-ke-chi] wrong: khong_gom_ngay_truoc
--- Không gom theo ngày trước khi luỹ kế: mỗi ngày còn 8 dòng thị trường (rớt ở public).
-SELECT channel, `date` AS ngay, spend_usd AS chi_ngay_usd,
-       SUM(spend_usd) OVER (PARTITION BY channel ORDER BY `date`) AS chi_luy_ke_usd
+-- [jelly-f3-luy-ke-chi-mot-chien-dich] solution
+SELECT `date` AS ngay, spend_usd AS chi_ngay_usd,
+       SUM(spend_usd) OVER (ORDER BY `date`) AS chi_luy_ke_usd
 FROM campaign_spend
-WHERE `date` >= '2026-07-01' AND `date` < '2026-08-01'
-ORDER BY channel, ngay, country;
+WHERE campaign_id = 'JTA-VIDEO-330' AND country = 'VN' AND target_platform = 'Android'
+  AND `date` >= '2026-07-01' AND `date` < '2026-08-01'
+ORDER BY ngay;
+
+-- [jelly-f3-luy-ke-chi-mot-chien-dich] wrong: cua_so_thieu_order_by
+-- OVER () không có ORDER BY nên dòng nào cũng ra tổng cả tháng (rớt ở public).
+SELECT `date` AS ngay, spend_usd AS chi_ngay_usd,
+       SUM(spend_usd) OVER () AS chi_luy_ke_usd
+FROM campaign_spend
+WHERE campaign_id = 'JTA-VIDEO-330' AND country = 'VN' AND target_platform = 'Android'
+  AND `date` >= '2026-07-01' AND `date` < '2026-08-01'
+ORDER BY ngay;
+
+-- [jelly-f3-luy-ke-chi-mot-chien-dich] wrong: quen_loc_nen_tang
+-- Quên lọc nền tảng: lẫn các dòng nhắm tới iOS ở Việt Nam (rớt ở public).
+SELECT `date` AS ngay, spend_usd AS chi_ngay_usd,
+       SUM(spend_usd) OVER (ORDER BY `date`) AS chi_luy_ke_usd
+FROM campaign_spend
+WHERE campaign_id = 'JTA-VIDEO-330' AND country = 'VN'
+  AND `date` >= '2026-07-01' AND `date` < '2026-08-01'
+ORDER BY ngay, target_platform;
+
+-- [jelly-f3-luy-ke-chi-mot-chien-dich] wrong: cong_don_theo_tien
+-- Sắp cửa sổ theo số tiền thay vì theo ngày (rớt ở public).
+SELECT `date` AS ngay, spend_usd AS chi_ngay_usd,
+       SUM(spend_usd) OVER (ORDER BY spend_usd) AS chi_luy_ke_usd
+FROM campaign_spend
+WHERE campaign_id = 'JTA-VIDEO-330' AND country = 'VN' AND target_platform = 'Android'
+  AND `date` >= '2026-07-01' AND `date` < '2026-08-01'
+ORDER BY ngay;
 
 -- [jelly-f4-doanh-thu-tuan-wow] solution
 WITH tuan AS (
@@ -746,51 +770,36 @@ GROUP BY user_id
 ORDER BY chuoi_dai_nhat DESC, user_id
 LIMIT 10;
 
--- [jelly-f6-nguoi-chi-top-quoc-gia] solution
-WITH chi AS (
-  SELECT country, user_id, SUM(price_usd) AS tong_chi
-  FROM purchases
-  WHERE event_date >= '2026-07-01' AND event_date < '2026-08-30'
-  GROUP BY country, user_id
-), xep AS (
-  SELECT country, user_id, tong_chi,
-         ROW_NUMBER() OVER (PARTITION BY country ORDER BY tong_chi DESC, user_id) AS hang
-  FROM chi
-)
-SELECT country, user_id, tong_chi AS tong_chi_usd, hang
-FROM xep
-WHERE hang <= 3
-ORDER BY country, hang;
+-- [jelly-f6-chia-4-nhom-ngay-dau] solution
+SELECT `date` AS ngay, dau,
+       NTILE(4) OVER (ORDER BY dau DESC, `date`) AS nhom
+FROM daily_kpi
+WHERE `date` >= '2026-08-01' AND `date` < '2026-08-30'
+ORDER BY ngay;
 
--- [jelly-f6-nguoi-chi-top-quoc-gia] wrong: rank_ra_thua_dong
--- RANK() để nhiều người cùng tổng chi chung hạng (rớt ở public).
-WITH chi AS (
-  SELECT country, user_id, SUM(price_usd) AS tong_chi
-  FROM purchases
-  WHERE event_date >= '2026-07-01' AND event_date < '2026-08-30'
-  GROUP BY country, user_id
-), xep AS (
-  SELECT country, user_id, tong_chi,
-         RANK() OVER (PARTITION BY country ORDER BY tong_chi DESC) AS hang
-  FROM chi
-)
-SELECT country, user_id, tong_chi AS tong_chi_usd, hang FROM xep WHERE hang <= 3
-ORDER BY country, hang, user_id;
+-- [jelly-f6-chia-4-nhom-ngay-dau] wrong: xep_dau_tang_dan
+-- Xếp DAU tăng dần nên nhóm 1 là nhóm vắng người chơi nhất (rớt ở public).
+SELECT `date` AS ngay, dau,
+       NTILE(4) OVER (ORDER BY dau, `date`) AS nhom
+FROM daily_kpi
+WHERE `date` >= '2026-08-01' AND `date` < '2026-08-30'
+ORDER BY ngay;
 
--- [jelly-f6-nguoi-chi-top-quoc-gia] wrong: dem_giao_dich_thay_tien
--- Xếp theo số giao dịch thay vì tổng tiền (rớt ở public).
-WITH chi AS (
-  SELECT country, user_id, SUM(price_usd) AS tong_chi, COUNT(*) AS so_gd
-  FROM purchases
-  WHERE event_date >= '2026-07-01' AND event_date < '2026-08-30'
-  GROUP BY country, user_id
-), xep AS (
-  SELECT country, user_id, tong_chi,
-         ROW_NUMBER() OVER (PARTITION BY country ORDER BY so_gd DESC, user_id) AS hang
-  FROM chi
-)
-SELECT country, user_id, tong_chi AS tong_chi_usd, hang FROM xep WHERE hang <= 3
-ORDER BY country, hang;
+-- [jelly-f6-chia-4-nhom-ngay-dau] wrong: chia_theo_ngay
+-- Chia nhóm theo thứ tự ngày thay vì theo DAU (rớt ở public).
+SELECT `date` AS ngay, dau,
+       NTILE(4) OVER (ORDER BY `date`) AS nhom
+FROM daily_kpi
+WHERE `date` >= '2026-08-01' AND `date` < '2026-08-30'
+ORDER BY ngay;
+
+-- [jelly-f6-chia-4-nhom-ngay-dau] wrong: thieu_can_tren
+-- Lọc từ 1/8 trở đi, không chặn ngày cuối: hidden-1 có thêm ngày 30/8, 1/9, 2/9 (rớt ở hidden-1).
+SELECT `date` AS ngay, dau,
+       NTILE(4) OVER (ORDER BY dau DESC, `date`) AS nhom
+FROM daily_kpi
+WHERE `date` >= '2026-08-01'
+ORDER BY ngay;
 
 -- [jelly-f7-rank-thay-row-number] starter
 WITH su_co AS (

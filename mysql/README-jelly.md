@@ -20,7 +20,7 @@ Game: *Jelly Trail Academy* (studio Jellybridge Learning Lab), game giải đố
 bash mysql/jelly/02_nap_jelly.sh            # xuất CSV từ PG (chỉ đọc) + 01_tao_bang_jelly.sql + nạp + so số dòng (~1 phút)
                                             # --chi-nap: dùng lại CSV có sẵn trong mysql/jelly/du-lieu/
 docker exec -i sqllb-mysql sh -c 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql -uroot' < mysql/jelly/03_bien_the_an_jelly.sql   # ~50 giây
-docker exec -i sqllb-mysql sh -c 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql -uroot' < mysql/jelly/04_bo_sung_bien_the_jelly.sql  # bổ sung (d)–(i), chạy lặp lại được; luôn chạy sau 03
+docker exec -i sqllb-mysql sh -c 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql -uroot' < mysql/jelly/04_bo_sung_bien_the_jelly.sql  # bổ sung (d)–(j), chạy lặp lại được; luôn chạy sau 03
 # quyền: chạy lại 05_tai_khoan_cham_bai.sql (xem README.md) hoặc chỉ 2 lệnh GRANT của jelly
 ```
 
@@ -127,7 +127,7 @@ Danh mục: `platform` iOS 4.301 / Android 10.054 người chơi · `channel` (`
 
 ## Biến thể ẩn `jelly_hidden_1` (`jelly/03_bien_the_an_jelly.sql` + `jelly/04_bo_sung_bien_the_jelly.sql`)
 
-Bản sao `jelly` rồi đổi như sau (khuôn `datathon_2026_hidden_1`, `scm_hidden_1`); (a)–(c) ở 03, (d)–(i) ở 04 (bổ sung 10/11/2026 để câu chỉ dùng bảng danh mục / bảng phụ cũng khác public):
+Bản sao `jelly` rồi đổi như sau (khuôn `datathon_2026_hidden_1`, `scm_hidden_1`); (a)–(c) ở 03, (d)–(j) ở 04 (bổ sung 10/11/2026 để câu chỉ dùng bảng danh mục / bảng phụ cũng khác public):
 
 | Biến thể · thay đổi | Khác public ở đâu | Bắt lỗi gì |
 |---|---|---|
@@ -142,6 +142,7 @@ Bản sao `jelly` rồi đổi như sau (khuôn `datathon_2026_hidden_1`, `scm_h
 | (g) thêm sự kiện `LIVE_004` *Jungle Jam Weekend* 2026-07-31 → 2026-08-02, không chồng sự kiện khác (04) | `liveops_events` 4 dòng | bài chép danh sách sự kiện trong kỳ (r6) |
 | (h) `campaign_spend` `JTA-VIDEO-330` · VN · Android **+150 USD** ở 2026-07-11 và 2026-08-10 (ngày giữa sự kiện) (04) | 2 dòng đổi giá trị (số dòng giữ 1.921); Video Network có 2 ngày chi vượt bình quân + 2 độ lệch chuẩn | bài chép kết quả chi theo kênh tháng 8 (a3), luỹ kế tháng 7 (f3), ngày chi bất thường (k7: chỉ thấy khi lấy mức nền theo từng chiến dịch) |
 | (i) `player_daily` `jta_user_003773` · 2026-08-24: `install_date` 2026-07-14 (users: 2026-07-15), `cohort_day` 41 tính theo ngày ghi lệch (04) | 1 dòng lệch ngày cài, chỉ thấy khi nối `users` | k3: bài so hai cột trong `player_daily` ra 0 lệch, bài đúng ra 1 |
+| (j) `jta_user_000648` (GB, Organic) có thêm hoạt động **2026-08-30**: 1 phiên `jta_session_00122702`, 1 giao dịch Booster Bundle 4,99 USD `jta_txn_00002664` (màn 57), 1 dòng `player_daily`; `daily_kpi` có dòng 30/8 (04, v3 10/11) | ngày trong tháng 8 nhưng sau ngày cuối của public | r8: bài gắn cứng `event_date <= '2026-08-29'` rớt ở hidden-1 |
 
 Không nạp lại phần (a) vào `campaign_spend`, `level_metadata`, `liveops_events` (không theo người chơi). Muốn có bẫy mới (ví dụ
 trùng tên sản phẩm, thêm hoàn tiền) thì thêm `jelly_hidden_2` theo cùng cách và ghi vào bảng này.
@@ -156,6 +157,6 @@ cả cận trên để rớt wrong ở hidden-1. Câu top N trên Licorice Lagoo
 | `jelly/01_tao_bang_jelly.sql` | 13 bảng + 2 view, PK/FK/index; không ghi tên database |
 | `jelly/02_nap_jelly.sh` | xuất CSV từ PG (`COPY … TO STDOUT WITH CSV HEADER`, `NULL '\N'`, bỏ dòng live), tạo `jelly`, `LOAD DATA LOCAL INFILE`, `ANALYZE`, so số dòng |
 | `jelly/03_bien_the_an_jelly.sql` | tạo `jelly_hidden_1` (gọi `SOURCE /sqllb/jelly/01_tao_bang_jelly.sql`), in số dòng và cặp hoà |
-| `jelly/04_bo_sung_bien_the_jelly.sql` | bổ sung `jelly_hidden_1` (d)–(i) để câu chỉ dùng bảng danh mục/bảng phụ cũng khác public; chạy sau 03, lặp lại được |
+| `jelly/04_bo_sung_bien_the_jelly.sql` | bổ sung `jelly_hidden_1` (d)–(j) để câu chỉ dùng bảng danh mục/bảng phụ cũng khác public; chạy sau 03, lặp lại được |
 | `05_tai_khoan_cham_bai.sql` | thêm `GRANT SELECT` cho `jelly`, `jelly\_hidden\_%` |
 | `jelly/du-lieu/` | CSV + `so-dong-pg.txt` (không đưa vào gói) |
