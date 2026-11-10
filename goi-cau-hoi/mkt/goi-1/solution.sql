@@ -7,7 +7,7 @@
 --   -- [ma-cau.b1] solution       SQL của bước b1 trong case study
 -- Các dòng trước dòng đánh dấu đầu tiên (như khối chú thích này) bị bỏ qua.
 -- Mã danh mục: brand_id 1 Nykaa, 2 Purplle, 3 Tira Beauty; type_id 1 Email, 2 Influencer, 3 Paid Ads, 4 SEO,
--- 5 Social Media; audience_id 4 Working Women, 5 Youth; language_id 4 Tamil.
+-- 5 Social Media; audience_id 1 College Students, 2 Premium Shoppers, 4 Working Women, 5 Youth; language_id 3 Hindi.
 
 -- ================================================ MODULE 1 · RETRIEVAL
 
@@ -40,56 +40,86 @@ WHERE brand_id = 2
   AND impressions > 98000
 ORDER BY impressions, campaign_id;
 
--- [mkt-r2-working-women-tamil-tira] solution
-SELECT campaign_id, start_date, duration_days
+-- [mkt-r2-qua-8-3-tira-ban-tot] solution
+SELECT campaign_id, start_date, target_audience_id, duration_days, conversions
 FROM campaigns
 WHERE brand_id = 3
-  AND target_audience_id = 4
-  AND language_id = 3
-  AND start_date = '2025-03-08'
-ORDER BY campaign_id;
+  AND start_date BETWEEN '2025-03-01' AND '2025-03-08'
+  AND target_audience_id IN (2, 4)
+  AND duration_days BETWEEN 7 AND 14
+  AND conversions >= 2000
+ORDER BY conversions DESC, campaign_id;
 
--- [mkt-r2-working-women-tamil-tira] wrong: nham_phan_khuc_voi_doi_tuong
--- Rớt ở public: segment_id là phân khúc khách hàng, không phải đối tượng mục tiêu.
-SELECT campaign_id, start_date, duration_days
+-- [mkt-r2-qua-8-3-tira-ban-tot] wrong: bo_hai_bien_thoi_luong
+-- Rớt ở public: "từ 7 tới 14 ngày" gồm cả hai đầu; > 7 AND < 14 bỏ chiến dịch đúng 7 hoặc
+-- 14 ngày (15 dòng so với 19).
+SELECT campaign_id, start_date, target_audience_id, duration_days, conversions
 FROM campaigns
 WHERE brand_id = 3
-  AND segment_id = 4
-  AND language_id = 3
-  AND start_date = '2025-03-08'
-ORDER BY campaign_id;
+  AND start_date BETWEEN '2025-03-01' AND '2025-03-08'
+  AND target_audience_id IN (2, 4)
+  AND duration_days > 7 AND duration_days < 14
+  AND conversions >= 2000
+ORDER BY conversions DESC, campaign_id;
 
--- [mkt-r3-roi-thap-nhat-nykaa-q4] solution
-SELECT campaign_id, start_date, roi
+-- [mkt-r2-qua-8-3-tira-ban-tot] wrong: loc_theo_phan_khuc
+-- Rớt ở public: segment_id là phân khúc khách hàng; nhóm chiến dịch nhắm tới nằm ở
+-- target_audience_id (13 dòng).
+SELECT campaign_id, start_date, target_audience_id, duration_days, conversions
 FROM campaigns
-WHERE brand_id = 1
+WHERE brand_id = 3
+  AND start_date BETWEEN '2025-03-01' AND '2025-03-08'
+  AND segment_id IN (2, 4)
+  AND duration_days BETWEEN 7 AND 14
+  AND conversions >= 2000
+ORDER BY conversions DESC, campaign_id;
+
+-- [mkt-r2-qua-8-3-tira-ban-tot] wrong: bo_ngay_8_3
+-- Rớt ở public: cận trên < '2025-03-08' bỏ chính ngày 8/3 (17 dòng).
+SELECT campaign_id, start_date, target_audience_id, duration_days, conversions
+FROM campaigns
+WHERE brand_id = 3
+  AND start_date >= '2025-03-01' AND start_date < '2025-03-08'
+  AND target_audience_id IN (2, 4)
+  AND duration_days BETWEEN 7 AND 14
+  AND conversions >= 2000
+ORDER BY conversions DESC, campaign_id;
+
+-- [mkt-r3-10-lo-nang-thue-ngoai-purplle-q4] solution
+SELECT campaign_id, type_id, start_date, roi
+FROM campaigns
+WHERE brand_id = 2
+  AND type_id IN (2, 3)
   AND start_date >= '2024-10-01' AND start_date < '2025-01-01'
 ORDER BY roi, campaign_id
 LIMIT 10;
 
--- [mkt-r3-roi-thap-nhat-nykaa-q4] wrong: sap_giam_dan
--- Rớt ở public: lấy 10 chiến dịch lãi nhiều nhất.
-SELECT campaign_id, start_date, roi
+-- [mkt-r3-10-lo-nang-thue-ngoai-purplle-q4] wrong: hoa_theo_ma_giam_dan
+-- Rớt ở public: 5 chiến dịch cùng roi -0,91 ở hạng 10-14; quy tắc hoà ngược chiều lấy
+-- PU-CMP-55466 thay PU-CMP-14986.
+SELECT campaign_id, type_id, start_date, roi
 FROM campaigns
-WHERE brand_id = 1
-  AND start_date >= '2024-10-01' AND start_date < '2025-01-01'
-ORDER BY roi DESC, campaign_id
-LIMIT 10;
-
--- [mkt-r3-roi-thap-nhat-nykaa-q4] wrong: hoa_theo_ma_giam_dan
--- Rớt ở public: 9 chiến dịch cùng roi -0,95 ở hạng 3-11; quy tắc hoà ngược chiều đổi tập 10 dòng.
-SELECT campaign_id, start_date, roi
-FROM campaigns
-WHERE brand_id = 1
+WHERE brand_id = 2
+  AND type_id IN (2, 3)
   AND start_date >= '2024-10-01' AND start_date < '2025-01-01'
 ORDER BY roi, campaign_id DESC
 LIMIT 10;
 
--- [mkt-r3-roi-thap-nhat-nykaa-q4] wrong: thieu_can_tren
--- Rớt ở public: xét cả chiến dịch năm 2025.
-SELECT campaign_id, start_date, roi
+-- [mkt-r3-10-lo-nang-thue-ngoai-purplle-q4] wrong: moi_loai_chien_dich
+-- Rớt ở public: không lọc nhóm thuê ngoài, lẫn chiến dịch Email, SEO, Social Media.
+SELECT campaign_id, type_id, start_date, roi
 FROM campaigns
-WHERE brand_id = 1
+WHERE brand_id = 2
+  AND start_date >= '2024-10-01' AND start_date < '2025-01-01'
+ORDER BY roi, campaign_id
+LIMIT 10;
+
+-- [mkt-r3-10-lo-nang-thue-ngoai-purplle-q4] wrong: thieu_can_tren
+-- Rớt ở public: xét cả chiến dịch năm 2025.
+SELECT campaign_id, type_id, start_date, roi
+FROM campaigns
+WHERE brand_id = 2
+  AND type_id IN (2, 3)
   AND start_date >= '2024-10-01'
 ORDER BY roi, campaign_id
 LIMIT 10;
@@ -102,7 +132,8 @@ WHERE type_id = 1
 ORDER BY conversions DESC, campaign_id;
 
 -- [mkt-r4-email-chuyen-doi-cao] wrong: nham_loai_voi_kenh_email
--- Rớt ở public: lấy chiến dịch có chạy kênh Email (channel_id = 1), không phải loại Email.
+-- Rớt ở public: lấy chiến dịch có chạy kênh Email (channel_id = 1), không phải loại
+-- Email.
 SELECT campaign_id, brand_id, conversions
 FROM campaigns
 WHERE campaign_id IN (SELECT campaign_id FROM campaign_channels WHERE channel_id = 1)
@@ -142,25 +173,70 @@ WHERE brand_id = 2
   AND start_date >= '2025-05-28'
 ORDER BY campaign_id;
 
--- [mkt-r6-diem-tuong-tac-tu-30] solution
-SELECT campaign_id, brand_id, engagement_score
+-- [mkt-r6-noi-dung-mau-sinh-vien-nykaa-q2] solution
+SELECT campaign_id, type_id, start_date, duration_days, engagement_score
 FROM campaigns
-WHERE engagement_score >= 30
+WHERE brand_id = 1
+  AND start_date >= '2025-04-01' AND start_date < '2025-07-01'
+  AND target_audience_id = 1
+  AND language_id = 3
+  AND type_id NOT IN (2, 3)
+  AND duration_days >= 14
+  AND engagement_score >= 20
 ORDER BY engagement_score DESC, campaign_id;
 
--- [mkt-r6-diem-tuong-tac-tu-30] wrong: lon_hon_bo_dung_30
--- Rớt ở public: có chiến dịch điểm đúng 30,00.
-SELECT campaign_id, brand_id, engagement_score
+-- [mkt-r6-noi-dung-mau-sinh-vien-nykaa-q2] wrong: thieu_can_tren
+-- Chỉ rớt ở hidden-1: public không có chiến dịch sau 24/6/2025; hidden-1 có NY-CMP-56555
+-- (Nykaa, Social Media, sinh viên, Hindi, 21 ngày, điểm 20,98) bắt đầu 1/7/2025.
+SELECT campaign_id, type_id, start_date, duration_days, engagement_score
 FROM campaigns
-WHERE engagement_score > 30
+WHERE brand_id = 1
+  AND start_date >= '2025-04-01'
+  AND target_audience_id = 1
+  AND language_id = 3
+  AND type_id NOT IN (2, 3)
+  AND duration_days >= 14
+  AND engagement_score >= 20
 ORDER BY engagement_score DESC, campaign_id;
 
--- [mkt-r6-diem-tuong-tac-tu-30] wrong: hoa_theo_ma_giam_dan
--- Rớt ở public nếu có hai chiến dịch cùng điểm (quy tắc hoà ngược chiều).
-SELECT campaign_id, brand_id, engagement_score
+-- [mkt-r6-noi-dung-mau-sinh-vien-nykaa-q2] wrong: loc_theo_phan_khuc
+-- Rớt ở public: segment_id là phân khúc khách hàng, không phải nhóm chiến dịch nhắm tới
+-- (31 dòng so với 38).
+SELECT campaign_id, type_id, start_date, duration_days, engagement_score
 FROM campaigns
-WHERE engagement_score >= 30
-ORDER BY engagement_score DESC, campaign_id DESC;
+WHERE brand_id = 1
+  AND start_date >= '2025-04-01' AND start_date < '2025-07-01'
+  AND segment_id = 1
+  AND language_id = 3
+  AND type_id NOT IN (2, 3)
+  AND duration_days >= 14
+  AND engagement_score >= 20
+ORDER BY engagement_score DESC, campaign_id;
+
+-- [mkt-r6-noi-dung-mau-sinh-vien-nykaa-q2] wrong: giu_noi_dung_thue_ngoai
+-- Rớt ở public: không loại Influencer, Paid Ads (nội dung do bên ngoài làm), 62 dòng.
+SELECT campaign_id, type_id, start_date, duration_days, engagement_score
+FROM campaigns
+WHERE brand_id = 1
+  AND start_date >= '2025-04-01' AND start_date < '2025-07-01'
+  AND target_audience_id = 1
+  AND language_id = 3
+  AND duration_days >= 14
+  AND engagement_score >= 20
+ORDER BY engagement_score DESC, campaign_id;
+
+-- [mkt-r6-noi-dung-mau-sinh-vien-nykaa-q2] wrong: tren_20_diem
+-- Rớt ở public: "từ 20 điểm" gồm điểm đúng 20,00 (NY-CMP-44885).
+SELECT campaign_id, type_id, start_date, duration_days, engagement_score
+FROM campaigns
+WHERE brand_id = 1
+  AND start_date >= '2025-04-01' AND start_date < '2025-07-01'
+  AND target_audience_id = 1
+  AND language_id = 3
+  AND type_id NOT IN (2, 3)
+  AND duration_days >= 14
+  AND engagement_score > 20
+ORDER BY engagement_score DESC, campaign_id;
 
 -- [mkt-r7-paid-ads-ra-rong] starter
 SELECT campaign_id, start_date, impressions, clicks
@@ -179,7 +255,8 @@ WHERE brand_id = 1
 ORDER BY campaign_id;
 
 -- [mkt-r7-paid-ads-ra-rong] wrong: bo_dieu_kien_loai
--- Rớt ở public: xoá điều kiện gây lỗi thay vì sửa, ra mọi loại chiến dịch của Nykaa trong ngày.
+-- Rớt ở public: xoá điều kiện gây lỗi thay vì sửa, ra mọi loại chiến dịch của Nykaa trong
+-- ngày.
 SELECT campaign_id, start_date, impressions, clicks
 FROM campaigns
 WHERE brand_id = 1
@@ -211,43 +288,61 @@ WHERE brand_id = 3
   AND start_date BETWEEN '2025-02-01' AND '2025-03-01'
 ORDER BY start_date, campaign_id;
 
--- [mkt-r9-youth-hoac-working-women-thua] starter
-SELECT campaign_id, target_audience_id, start_date
+-- [mkt-r9-gioi-tre-cuoi-thang-6-thua] starter
+SELECT campaign_id, type_id, target_audience_id, start_date
 FROM campaigns
-WHERE brand_id = 3
-  AND type_id = 3
-  AND start_date = '2025-04-12'
-  AND target_audience_id = 5 OR target_audience_id = 4
-ORDER BY campaign_id;
+WHERE brand_id = 1
+  AND language_id = 3
+  AND (type_id <> 1 OR type_id <> 4)
+  AND start_date >= '2025-06-16'
+  AND target_audience_id = 1 OR target_audience_id = 5
+ORDER BY start_date, campaign_id;
 
--- [mkt-r9-youth-hoac-working-women-thua] solution
-SELECT campaign_id, target_audience_id, start_date
+-- [mkt-r9-gioi-tre-cuoi-thang-6-thua] solution
+SELECT campaign_id, type_id, target_audience_id, start_date
 FROM campaigns
-WHERE brand_id = 3
-  AND type_id = 3
-  AND start_date = '2025-04-12'
-  AND (target_audience_id = 5 OR target_audience_id = 4)
-ORDER BY campaign_id;
+WHERE brand_id = 1
+  AND language_id = 3
+  AND type_id NOT IN (1, 4)
+  AND start_date >= '2025-06-16' AND start_date < '2025-07-01'
+  AND (target_audience_id = 1 OR target_audience_id = 5)
+ORDER BY start_date, campaign_id;
 
--- [mkt-r9-youth-hoac-working-women-thua] wrong: and_thay_or
--- Rớt ở public: một chiến dịch không thể cùng lúc nhắm hai nhóm, ra 0 dòng.
-SELECT campaign_id, target_audience_id, start_date
+-- [mkt-r9-gioi-tre-cuoi-thang-6-thua] wrong: quen_can_tren
+-- Chỉ rớt ở hidden-1: sửa ngoặc và điều kiện loại nhưng vẫn thiếu cận trên; hidden-1 có
+-- NY-CMP-56555
+-- (Nykaa, Social Media, sinh viên, Hindi) bắt đầu 1/7/2025.
+SELECT campaign_id, type_id, target_audience_id, start_date
 FROM campaigns
-WHERE brand_id = 3
-  AND type_id = 3
-  AND start_date = '2025-04-12'
-  AND target_audience_id = 5 AND target_audience_id = 4
-ORDER BY campaign_id;
+WHERE brand_id = 1
+  AND language_id = 3
+  AND type_id NOT IN (1, 4)
+  AND start_date >= '2025-06-16'
+  AND (target_audience_id = 1 OR target_audience_id = 5)
+ORDER BY start_date, campaign_id;
 
--- [mkt-r9-youth-hoac-working-women-thua] wrong: loc_theo_phan_khuc
--- Rớt ở public: segment_id là phân khúc khách hàng, không phải đối tượng mục tiêu.
-SELECT campaign_id, target_audience_id, start_date
+-- [mkt-r9-gioi-tre-cuoi-thang-6-thua] wrong: giu_or_loai_tru
+-- Rớt ở public: (type_id <> 1 OR type_id <> 4) luôn đúng nên vẫn lấy Email và SEO (33
+-- dòng so với 17).
+SELECT campaign_id, type_id, target_audience_id, start_date
 FROM campaigns
-WHERE brand_id = 3
-  AND type_id = 3
-  AND start_date = '2025-04-12'
-  AND segment_id IN (4, 5)
-ORDER BY campaign_id;
+WHERE brand_id = 1
+  AND language_id = 3
+  AND (type_id <> 1 OR type_id <> 4)
+  AND start_date >= '2025-06-16' AND start_date < '2025-07-01'
+  AND (target_audience_id = 1 OR target_audience_id = 5)
+ORDER BY start_date, campaign_id;
+
+-- [mkt-r9-gioi-tre-cuoi-thang-6-thua] wrong: nham_ma_seo
+-- Rớt ở public: loại mã 5 (Social Media) thay vì mã 4 (SEO), 23 dòng.
+SELECT campaign_id, type_id, target_audience_id, start_date
+FROM campaigns
+WHERE brand_id = 1
+  AND language_id = 3
+  AND type_id NOT IN (1, 5)
+  AND start_date >= '2025-06-16' AND start_date < '2025-07-01'
+  AND (target_audience_id = 1 OR target_audience_id = 5)
+ORDER BY start_date, campaign_id;
 
 -- ================================================ MODULE 2 · NULL & EXPRESSIONS
 
@@ -314,7 +409,8 @@ WHERE brand_id = 3
 ORDER BY chi_phi DESC, campaign_id;
 
 -- [mkt-n3-chi-phi-chien-dich-8-3] wrong: coi_cpa_la_chi_phi
--- Rớt ở public: acquisition_cost là chi phí trên một lượt chuyển đổi, không phải tổng chi phí.
+-- Rớt ở public: acquisition_cost là chi phí trên một lượt chuyển đổi, không phải tổng chi
+-- phí.
 SELECT campaign_id, conversions, acquisition_cost,
        acquisition_cost AS chi_phi,
        revenue
@@ -335,28 +431,78 @@ WHERE brand_id = 3
   AND start_date = '2025-03-08'
 ORDER BY chi_phi DESC, campaign_id;
 
--- [mkt-n4-lai-hoa-lo-quy-1] solution
-SELECT COUNT(CASE WHEN roi > 0 THEN 1 END) AS so_lai,
-       COUNT(CASE WHEN roi = 0 THEN 1 END) AS so_hoa_von,
-       COUNT(CASE WHEN roi < 0 THEN 1 END) AS so_lo
+-- [mkt-n4-nhom-lai-lo-nykaa-quy-2] solution
+SELECT CASE WHEN type_id IN (2, 3) AND roi < 0.5 THEN 'xem_lai_hop_dong'
+            WHEN roi < 0 THEN 'lo'
+            WHEN roi = 0 THEN 'hoa_von'
+            ELSE 'co_lai' END AS nhom_roi,
+       COUNT(*) AS so_chien_dich,
+       ROUND(SUM(acquisition_cost * conversions), 2) AS tong_chi_phi
 FROM campaigns
-WHERE start_date >= '2025-01-01' AND start_date < '2025-04-01';
+WHERE brand_id = 1
+  AND start_date >= '2025-04-01' AND start_date < '2025-07-01'
+GROUP BY nhom_roi
+ORDER BY nhom_roi;
 
--- [mkt-n4-lai-hoa-lo-quy-1] wrong: hoa_von_tinh_vao_lai
--- Rớt ở public: roi = 0 bị đếm vào nhóm lãi.
-SELECT COUNT(CASE WHEN roi >= 0 THEN 1 END) AS so_lai,
-       COUNT(CASE WHEN roi = 0 THEN 1 END) AS so_hoa_von,
-       COUNT(CASE WHEN roi < 0 THEN 1 END) AS so_lo
+-- [mkt-n4-nhom-lai-lo-nykaa-quy-2] wrong: xet_lo_truoc_ngoai_le
+-- Rớt ở public: nhánh lỗ đứng trước nhánh xem lại hợp đồng, chiến dịch Influencer, Paid
+-- Ads lỗ rơi vào nhóm lỗ.
+SELECT CASE WHEN roi < 0 THEN 'lo'
+            WHEN type_id IN (2, 3) AND roi < 0.5 THEN 'xem_lai_hop_dong'
+            WHEN roi = 0 THEN 'hoa_von'
+            ELSE 'co_lai' END AS nhom_roi,
+       COUNT(*) AS so_chien_dich,
+       ROUND(SUM(acquisition_cost * conversions), 2) AS tong_chi_phi
 FROM campaigns
-WHERE start_date >= '2025-01-01' AND start_date < '2025-04-01';
+WHERE brand_id = 1
+  AND start_date >= '2025-04-01' AND start_date < '2025-07-01'
+GROUP BY nhom_roi
+ORDER BY nhom_roi;
 
--- [mkt-n4-lai-hoa-lo-quy-1] wrong: thieu_can_tren
--- Rớt ở public: đếm cả chiến dịch từ tháng 4 tới tháng 6/2025.
-SELECT COUNT(CASE WHEN roi > 0 THEN 1 END) AS so_lai,
-       COUNT(CASE WHEN roi = 0 THEN 1 END) AS so_hoa_von,
-       COUNT(CASE WHEN roi < 0 THEN 1 END) AS so_lo
+-- [mkt-n4-nhom-lai-lo-nykaa-quy-2] wrong: tu_0_5_van_xem_lai
+-- Rớt ở public: "dưới 0,5" không gồm ROI đúng 0,50 (5 chiến dịch Influencer, Paid Ads).
+SELECT CASE WHEN type_id IN (2, 3) AND roi <= 0.5 THEN 'xem_lai_hop_dong'
+            WHEN roi < 0 THEN 'lo'
+            WHEN roi = 0 THEN 'hoa_von'
+            ELSE 'co_lai' END AS nhom_roi,
+       COUNT(*) AS so_chien_dich,
+       ROUND(SUM(acquisition_cost * conversions), 2) AS tong_chi_phi
 FROM campaigns
-WHERE start_date >= '2025-01-01';
+WHERE brand_id = 1
+  AND start_date >= '2025-04-01' AND start_date < '2025-07-01'
+GROUP BY nhom_roi
+ORDER BY nhom_roi;
+
+-- [mkt-n4-nhom-lai-lo-nykaa-quy-2] wrong: chi_phi_la_cpa
+-- Rớt ở public: cộng acquisition_cost (chi phí trên một lượt chuyển đổi) thay vì chi phí
+-- chiến dịch.
+SELECT CASE WHEN type_id IN (2, 3) AND roi < 0.5 THEN 'xem_lai_hop_dong'
+            WHEN roi < 0 THEN 'lo'
+            WHEN roi = 0 THEN 'hoa_von'
+            ELSE 'co_lai' END AS nhom_roi,
+       COUNT(*) AS so_chien_dich,
+       ROUND(SUM(acquisition_cost), 2) AS tong_chi_phi
+FROM campaigns
+WHERE brand_id = 1
+  AND start_date >= '2025-04-01' AND start_date < '2025-07-01'
+GROUP BY nhom_roi
+ORDER BY nhom_roi;
+
+-- [mkt-n4-nhom-lai-lo-nykaa-quy-2] wrong: thieu_can_tren
+-- Chỉ rớt ở hidden-1: hidden-1 có NY-CMP-56555 (Nykaa, Social Media, ROI 6,14) bắt đầu
+-- 1/7/2025,
+-- nhóm có lãi thêm 1 chiến dịch.
+SELECT CASE WHEN type_id IN (2, 3) AND roi < 0.5 THEN 'xem_lai_hop_dong'
+            WHEN roi < 0 THEN 'lo'
+            WHEN roi = 0 THEN 'hoa_von'
+            ELSE 'co_lai' END AS nhom_roi,
+       COUNT(*) AS so_chien_dich,
+       ROUND(SUM(acquisition_cost * conversions), 2) AS tong_chi_phi
+FROM campaigns
+WHERE brand_id = 1
+  AND start_date >= '2025-04-01'
+GROUP BY nhom_roi
+ORDER BY nhom_roi;
 
 -- [mkt-n5-dong-thieu-chi-so-pheu] solution
 SELECT brand_id, COUNT(*) AS so_dong_thieu
@@ -389,48 +535,78 @@ WHERE impressions IS NULL
 GROUP BY brand_id
 ORDER BY brand_id;
 
--- [mkt-n6-gia-tri-don-11-11] solution
-SELECT campaign_id, revenue, conversions,
-       ROUND(revenue / NULLIF(conversions, 0), 2) AS gia_tri_don
+-- [mkt-n6-ty-le-roi-sau-nhap-11-11] solution
+SELECT campaign_id, clicks, leads,
+       ROUND((1 - leads / NULLIF(clicks, 0)) * 100, 2) AS ty_le_roi_pct
 FROM campaigns
 WHERE brand_id = 2
   AND type_id = 2
   AND start_date = '2024-11-11'
-ORDER BY gia_tri_don DESC, campaign_id;
+ORDER BY ty_le_roi_pct DESC, campaign_id;
 
--- [mkt-n6-gia-tri-don-11-11] wrong: chia_nguoc
--- Rớt ở public: lượt chuyển đổi chia doanh thu.
-SELECT campaign_id, revenue, conversions,
-       ROUND(conversions / NULLIF(revenue, 0), 2) AS gia_tri_don
+-- [mkt-n6-ty-le-roi-sau-nhap-11-11] wrong: tinh_ty_le_giu_lai
+-- Rớt ở public: quên lấy 1 trừ, ra tỷ lệ khách hàng tiềm năng (phần đi tiếp) thay vì tỷ
+-- lệ rơi.
+SELECT campaign_id, clicks, leads,
+       ROUND(leads / NULLIF(clicks, 0) * 100, 2) AS ty_le_roi_pct
 FROM campaigns
 WHERE brand_id = 2
   AND type_id = 2
   AND start_date = '2024-11-11'
-ORDER BY gia_tri_don DESC, campaign_id;
+ORDER BY ty_le_roi_pct DESC, campaign_id;
 
--- [mkt-n6-gia-tri-don-11-11] wrong: chia_cho_khach_hang_tiem_nang
--- Rớt ở public: mẫu số là leads thay vì conversions.
-SELECT campaign_id, revenue, conversions,
-       ROUND(revenue / NULLIF(leads, 0), 2) AS gia_tri_don
+-- [mkt-n6-ty-le-roi-sau-nhap-11-11] wrong: mau_so_luot_hien_thi
+-- Rớt ở public: lấy lượt hiển thị (tầng nhận biết) làm mẫu số thay vì tầng ngay trước.
+SELECT campaign_id, clicks, leads,
+       ROUND((1 - leads / NULLIF(impressions, 0)) * 100, 2) AS ty_le_roi_pct
 FROM campaigns
 WHERE brand_id = 2
   AND type_id = 2
   AND start_date = '2024-11-11'
-ORDER BY gia_tri_don DESC, campaign_id;
+ORDER BY ty_le_roi_pct DESC, campaign_id;
 
--- [mkt-n7-doanh-thu-tho-thap-bat-thuong] starter
-SELECT ROUND(AVG(COALESCE(revenue, 0)), 2) AS doanh_thu_tb
-FROM campaigns_raw;
+-- [mkt-n6-ty-le-roi-sau-nhap-11-11] wrong: quen_nhan_100
+-- Rớt ở public: trả tỷ số 0-1 thay vì phần trăm.
+SELECT campaign_id, clicks, leads,
+       ROUND(1 - leads / NULLIF(clicks, 0), 2) AS ty_le_roi_pct
+FROM campaigns
+WHERE brand_id = 2
+  AND type_id = 2
+  AND start_date = '2024-11-11'
+ORDER BY ty_le_roi_pct DESC, campaign_id;
 
--- [mkt-n7-doanh-thu-tho-thap-bat-thuong] solution
-SELECT ROUND(AVG(revenue), 2) AS doanh_thu_tb
+-- [mkt-n7-gia-tri-don-tho-lech] starter
+SELECT ROUND(SUM(revenue) / SUM(conversions), 2) AS gia_tri_don
 FROM campaigns_raw
 WHERE revenue > 0;
 
--- [mkt-n7-doanh-thu-tho-thap-bat-thuong] wrong: con_gia_tri_am
--- Rớt ở public: bỏ COALESCE nên ô trống không còn thành 0, nhưng 75 dòng doanh thu âm vẫn vào bình quân.
-SELECT ROUND(AVG(revenue), 2) AS doanh_thu_tb
-FROM campaigns_raw;
+-- [mkt-n7-gia-tri-don-tho-lech] solution
+SELECT ROUND(SUM(revenue) / SUM(conversions), 2) AS gia_tri_don
+FROM campaigns_raw
+WHERE revenue > 0
+  AND conversions IS NOT NULL;
+
+-- [mkt-n7-gia-tri-don-tho-lech] wrong: bo_loc_doanh_thu_duong
+-- Rớt ở public: lọc conversions IS NOT NULL nhưng bỏ revenue > 0, nên doanh thu âm vào tử
+-- số
+-- và lượt chuyển đổi của dòng trống doanh thu vào mẫu số.
+SELECT ROUND(SUM(revenue) / SUM(conversions), 2) AS gia_tri_don
+FROM campaigns_raw
+WHERE conversions IS NOT NULL;
+
+-- [mkt-n7-gia-tri-don-tho-lech] wrong: coalesce_mau_so
+-- Rớt ở public: COALESCE(conversions, 0) không đổi tổng mẫu số, tử số vẫn còn doanh thu
+-- của dòng trống lượt chuyển đổi.
+SELECT ROUND(SUM(revenue) / SUM(COALESCE(conversions, 0)), 2) AS gia_tri_don
+FROM campaigns_raw
+WHERE revenue > 0;
+
+-- [mkt-n7-gia-tri-don-tho-lech] wrong: binh_quan_gian_don
+-- Rớt ở public: bình quân giá trị đơn của từng dòng, không phải tỷ lệ của tổng.
+SELECT ROUND(AVG(revenue / conversions), 2) AS gia_tri_don
+FROM campaigns_raw
+WHERE revenue > 0
+  AND conversions IS NOT NULL;
 
 -- [mkt-n8-roi-tinh-lai-lech] starter
 SELECT campaign_id, roi,
@@ -470,31 +646,66 @@ WHERE brand_id = 2
   AND start_date = '2025-04-01'
 ORDER BY campaign_id;
 
--- [mkt-n9-thieu-chi-phi-ra-0] starter
-SELECT brand_id, COUNT(CASE WHEN acquisition_cost = NULL THEN 1 END) AS so_dong_thieu
-FROM campaigns_raw
-GROUP BY brand_id
-ORDER BY brand_id;
+-- [mkt-n9-cpc-cpm-nykaa-thang-6-lech] starter
+SELECT campaign_id, clicks, impressions,
+       ROUND(acquisition_cost / clicks, 2) AS cpc,
+       ROUND(acquisition_cost / impressions, 2) * 1000 AS cpm
+FROM campaigns
+WHERE brand_id = 1
+  AND type_id = 5
+  AND language_id = 3
+  AND start_date >= '2025-06-15'
+ORDER BY cpc DESC, campaign_id;
 
--- [mkt-n9-thieu-chi-phi-ra-0] solution
-SELECT brand_id, COUNT(CASE WHEN acquisition_cost IS NULL THEN 1 END) AS so_dong_thieu
-FROM campaigns_raw
-GROUP BY brand_id
-ORDER BY brand_id;
+-- [mkt-n9-cpc-cpm-nykaa-thang-6-lech] solution
+SELECT campaign_id, clicks, impressions,
+       ROUND(acquisition_cost * conversions / clicks, 2) AS cpc,
+       ROUND(acquisition_cost * conversions / impressions * 1000, 2) AS cpm
+FROM campaigns
+WHERE brand_id = 1
+  AND type_id = 5
+  AND language_id = 3
+  AND start_date >= '2025-06-15' AND start_date < '2025-07-01'
+ORDER BY cpc DESC, campaign_id;
 
--- [mkt-n9-thieu-chi-phi-ra-0] wrong: dem_bieu_thuc_dieu_kien
--- Rớt ở public: COUNT đếm mọi giá trị khác NULL, mà acquisition_cost IS NULL luôn là 0 hoặc 1.
-SELECT brand_id, COUNT(acquisition_cost IS NULL) AS so_dong_thieu
-FROM campaigns_raw
-GROUP BY brand_id
-ORDER BY brand_id;
+-- [mkt-n9-cpc-cpm-nykaa-thang-6-lech] wrong: quen_can_tren
+-- Chỉ rớt ở hidden-1: sửa chi phí và làm tròn nhưng vẫn thiếu cận trên; hidden-1 có
+-- NY-CMP-56555
+-- (Nykaa, Social Media, Hindi) bắt đầu 1/7/2025.
+SELECT campaign_id, clicks, impressions,
+       ROUND(acquisition_cost * conversions / clicks, 2) AS cpc,
+       ROUND(acquisition_cost * conversions / impressions * 1000, 2) AS cpm
+FROM campaigns
+WHERE brand_id = 1
+  AND type_id = 5
+  AND language_id = 3
+  AND start_date >= '2025-06-15'
+ORDER BY cpc DESC, campaign_id;
 
--- [mkt-n9-thieu-chi-phi-ra-0] wrong: dem_o_co_gia_tri
--- Rớt ở public: COUNT(cột) đếm ô có giá trị, ngược với số ô trống.
-SELECT brand_id, COUNT(acquisition_cost) AS so_dong_thieu
-FROM campaigns_raw
-GROUP BY brand_id
-ORDER BY brand_id;
+-- [mkt-n9-cpc-cpm-nykaa-thang-6-lech] wrong: giu_lam_tron_som
+-- Rớt ở public: làm tròn chi phí trên một lượt hiển thị trước khi nhân 1.000, CPM lệch
+-- tới vài đơn vị tiền.
+SELECT campaign_id, clicks, impressions,
+       ROUND(acquisition_cost * conversions / clicks, 2) AS cpc,
+       ROUND(acquisition_cost * conversions / impressions, 2) * 1000 AS cpm
+FROM campaigns
+WHERE brand_id = 1
+  AND type_id = 5
+  AND language_id = 3
+  AND start_date >= '2025-06-15' AND start_date < '2025-07-01'
+ORDER BY cpc DESC, campaign_id;
+
+-- [mkt-n9-cpc-cpm-nykaa-thang-6-lech] wrong: giu_cpa_lam_chi_phi
+-- Rớt ở public: vẫn lấy acquisition_cost (CPA) làm chi phí chiến dịch.
+SELECT campaign_id, clicks, impressions,
+       ROUND(acquisition_cost / clicks, 2) AS cpc,
+       ROUND(acquisition_cost / impressions * 1000, 2) AS cpm
+FROM campaigns
+WHERE brand_id = 1
+  AND type_id = 5
+  AND language_id = 3
+  AND start_date >= '2025-06-15' AND start_date < '2025-07-01'
+ORDER BY cpc DESC, campaign_id;
 
 -- ================================================ CASE STUDY · CƠ BẢN
 

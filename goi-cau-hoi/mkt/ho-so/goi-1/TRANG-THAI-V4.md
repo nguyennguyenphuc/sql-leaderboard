@@ -1,3 +1,5 @@
+XONG v4 – xem DA-SUA.md
+
 # Trạng thái v4 của mkt goi-1 (chốt 11/11 04:46 – agent bị ngắt giữa chừng vì rate limit)
 
 Mục tiêu: mỗi module 2 Cơ bản · 3 Dễ · 2 Trung bình · 2 Khó (BRIEF-CAP-DO-MODULE.md). Thời gian sửa file lần cuối: cau-hoi.tex 10/11 23:41, solution.sql 10/11 22:45.
