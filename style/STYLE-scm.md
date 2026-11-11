@@ -414,7 +414,7 @@ Cột "trong bộ dữ liệu" đã đối chiếu cấu trúc schema `scm` (DB,
 | 23 | `lead-time-don` | Lead time của đơn và bốn thành phần | `orders` | S 1743, 6633 |
 | 24 | `thoi-gian-chua-gan` | Thời gian chưa gán | `orders` | S 4328 |
 | 25 | `ty-le-huy` | Tỷ lệ huỷ | `orders` | S 1853, 6644 |
-| 26 | `ngay-cao-diem` | Ngày cao điểm và ngày nền | `event_calendar` | S 6642, 6643 |
+| 26 | `ngay-cao-diem` | Ngày cao điểm, ngày nền và ngày thường | `event_calendar` | S 6642, 6643 |
 | 27 | `nang-luc-ngay` | Năng lực ngày | `warehouse_daily_ops`, `staffing_plan` | S 6641 |
 | 28 | `ty-le-tai` | Tỷ lệ tải (workload ratio) | `warehouse_daily_ops` | S 1851, 4462, 6645 |
 | 29 | `don-ton-dong` | Đơn tồn đọng (backlog) | `warehouse_daily_ops` | S 1847, 4265 |
@@ -526,7 +526,7 @@ Cột "trong bộ dữ liệu" đã đối chiếu cấu trúc schema `scm` (DB,
 \khaibaokhainiem{lead-time-don}{Lead time của đơn và bốn thành phần}
   {Lead time của đơn là thời gian từ lúc tạo đơn tới lúc giao thành công. Bốn thành phần là t1 (tạo đơn tới lấy hàng), t2 (lấy hàng tới xuất kho), middle mile (t3a di chuyển cộng t3b phân loại) và t4 (kho tới giao thành công).}
   {lead time = delivered\_at - created\_at (giờ)}
-  {\code{orders.lead_time_total_h}; năm cột chặng \code{t1_tao_don_pick_h}, \code{t2_pick_xuat_h}, \code{t3a_di_chuyen_h}, \code{t3b_sorting_h}, \code{t4_kho_giao_h}.}
+  {\code{orders.lead_time_total_h} (giờ, có phần lẻ); \code{created_at}, \code{delivered_at} là mốc thời gian tới phần triệu giây; năm cột chặng \code{t1_tao_don_pick_h}, \code{t2_pick_xuat_h}, \code{t3a_di_chuyen_h}, \code{t3b_sorting_h}, \code{t4_kho_giao_h}. Kho xuất ở \code{origin_hub_id}, kho đích ở \code{dest_hub_id}, cùng nối \code{sorting_hubs}.}
 \khaibaokhainiem{thoi-gian-chua-gan}{Thời gian chưa gán}
   {Thời gian chưa gán là phần lead time không thuộc chặng nào trong năm cột chặng.}
   {lead time - tổng năm cột chặng}
@@ -535,10 +535,10 @@ Cột "trong bộ dữ liệu" đã đối chiếu cấu trúc schema `scm` (DB,
   {Tỷ lệ huỷ là phần đơn bị huỷ trong tổng số đơn được tạo.}
   {số đơn huỷ / tổng số đơn tạo}
   {\code{orders.is_cancelled}.}
-\khaibaokhainiem{ngay-cao-diem}{Ngày cao điểm và ngày nền}
-  {Ngày cao điểm là ngày khuyến mãi hoặc ngày lễ trong lịch sự kiện, khi lượng đơn tăng mạnh. Ngày nền là ngày nằm ngoài cửa sổ hai ngày trước và sau mỗi ngày cao điểm.}
+\khaibaokhainiem{ngay-cao-diem}{Ngày cao điểm, ngày nền và ngày thường}
+  {Ngày cao điểm là ngày khuyến mãi hoặc ngày lễ trong lịch sự kiện, khi lượng đơn tăng mạnh. Ngày thường là ngày không có trong lịch sự kiện. Ngày nền là ngày nằm ngoài cửa sổ hai ngày trước và sau mỗi ngày cao điểm.}
   {}
-  {\code{event_calendar}: mỗi dòng là một sự kiện; \code{tier} là quy mô (\code{'nho'}, \code{'vua'}, \code{'lon'}, \code{'le'}); \code{demand_multiplier} là hệ số nhu cầu.}
+  {\code{event_calendar}: mỗi dòng là một ngày sự kiện; \code{tier} là quy mô (\code{'nho'}, \code{'vua'}, \code{'lon'}, \code{'le'}); \code{demand_multiplier} là hệ số nhu cầu.}
 \khaibaokhainiem{nang-luc-ngay}{Năng lực ngày}
   {Năng lực ngày là số đơn một kho xử lý được trong ngày với nhân sự có mặt.}
   {nhân sự có mặt × 130 × 0,93}
