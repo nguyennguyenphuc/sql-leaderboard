@@ -12,7 +12,7 @@
 | `scm-s8-von-ton-cuoi-ky-2017` | Agent gói 2 | B, C | v5 | Đạt (bộ kiểm đầy đủ sua-v4 11/11, 0 lỗi) | Đã sửa (V4: thu về cửa hàng 1 cho nhanh), xem DA-SUA |
 | `scm-s9-muc-tang-ngay-cao-diem-2016` (cũ `scm-s9-huy-cuoi-tuan-kho-ve-tinh`) | Agent gói 2 | B, C | v5 | Đạt (bộ kiểm đầy đủ sua-v4 11/11, 0 lỗi) | Đã sửa theo KIEM-V4 C (khái niệm ngay-cao-diem thống nhất 4 gói) |
 | `scm-a1-chuyen-giao-theo-dc-2016` (cũ `scm-a1-dung-han-theo-dc-2016`) | Agent gói 2 | B, C | v4 | Đạt (KIEM-V4 B, 11/11) | Đạt (KIEM-V4 B, 11/11) |
-| `scm-a2-dai-chi-so-kho-dich-2017` (cũ `scm-a2-ty-le-lo-truot-100`) | Agent gói 2 | B, C | v5 | Đạt (bộ kiểm đầy đủ sua-v4 11/11, 0 lỗi) | Đã sửa theo KIEM-V4 C (bảng chỉ số, ghi chú thiết kế); chờ giảng viên về sách dự án |
+| `scm-a2-dai-chi-so-kho-dich-2017` (cũ `scm-a2-ty-le-lo-truot-100`) | Agent gói 2 | B, C | v5 | Đạt (bộ kiểm đầy đủ sua-v4 11/11, 0 lỗi) | Đã sửa theo KIEM-V4 C (bảng chỉ số, ghi chú thiết kế); đã đối chiếu sách dự án 11/11 (Mục III.3.11, III.3.12, VI.5.1): đáp án đúng, sửa ghi chú dẫn nguồn |
 | `scm-a3-voucher-theo-loai-kho` | Agent gói 2 | B, C | v3 | Đạt (KIEM-V4 B, 11/11) | Đạt (KIEM-V4 B, 11/11) |
 | `scm-a4-cua-hang-vang-khach-2016` | Agent gói 2 | B, C | v2 | Đạt (MySQL 0 lỗi hoặc tĩnh 0 lỗi) | Đã sửa theo B/C |
 | `scm-a5-so-ma-ban-cua-hang-44` | Agent gói 2 | B, C | v2 | Đạt (MySQL 0 lỗi hoặc tĩnh 0 lỗi) | Đã sửa theo B/C |
