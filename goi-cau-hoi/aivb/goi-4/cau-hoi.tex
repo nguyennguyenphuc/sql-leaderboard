@@ -93,7 +93,7 @@
 \khaibaokhainiem{tien-gui-co-ky-han}{Tiền gửi có kỳ hạn}
   {Tiền gửi có kỳ hạn là khoản tiền của khách hàng gửi tại tổ chức tín dụng trong một thời hạn nhất định, với nguyên tắc hoàn trả đầy đủ tiền gốc và lãi.}
   {}
-  {\code{core_deposit_contract}: \code{principal} (số tiền gửi), \code{deposit_status} (\code{'ACTIVE'}, \code{'RENEWED'} là còn hiệu lực), \code{settlement_account_id} (tài khoản thanh toán nhận gốc và lãi).}
+  {\code{core_deposit_contract}: \code{principal} (số tiền gửi), \code{deposit_status} (\code{'ACTIVE'} là đang còn hiệu lực), \code{settlement_account_id} (tài khoản thanh toán nhận gốc và lãi).}
 \khaibaokhainiem{lai-du-thu-du-tra}{Lãi dự thu, lãi dự trả}
   {Lãi dự thu là tiền lãi của khoản vay ngân hàng đã tính cho từng ngày nhưng chưa thu. Lãi dự trả là tiền lãi của khoản tiền gửi ngân hàng đã tính cho từng ngày nhưng chưa trả.}
   {lãi một ngày ≈ số tiền gốc × lãi suất năm / số ngày quy ước của năm}
@@ -270,28 +270,28 @@
 \end{cauhoi}
 
 % ================================================================ t6 · write · Cơ bản
-\begin{cauhoi}[ma=aivb-t6-ky-han-tien-gui-tu-200-ty, dulieu=aivb, domain=finance,
+\begin{cauhoi}[ma=aivb-t6-ky-han-tien-gui-tu-90-ty, dulieu=aivb, domain=finance,
   hinhthuc=write, cap=basic, dang=A3, kynang={WITH, SUM, WHERE trên CTE}, bay={sai-don-vi-nguong},
   tacgia={Agent gói 4}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.01]
-\tieude{Kỳ hạn nào có từ 200 tỷ đồng tiền gửi trở lên?}
-\boicanh[Chị Hạnh · Trưởng phòng phát triển sản phẩm]{Chị sắp điều chỉnh biểu lãi suất tiền gửi, ưu tiên các kỳ hạn đang giữ nhiều tiền nhất. Em lọc giúp chị các kỳ hạn có từ 200 tỷ đồng tiền gửi trở lên.}
+\tieude{Kỳ hạn nào có từ 90 tỷ đồng tiền gửi trở lên?}
+\boicanh[Chị Hạnh · Trưởng phòng phát triển sản phẩm]{Chị sắp điều chỉnh biểu lãi suất tiền gửi, ưu tiên các kỳ hạn đang giữ nhiều tiền nhất. Em lọc giúp chị các kỳ hạn có từ 90 tỷ đồng tiền gửi trở lên.}
 \begin{yeucau}
-  \item Xét tiền gửi có kỳ hạn còn hiệu lực (\code{deposit_status} là \code{'ACTIVE'} hoặc \code{'RENEWED'}).
-  \item Viết bằng CTE: bước 1 tính số hợp đồng và tổng số tiền gửi (\code{principal}) theo kỳ hạn (\code{term_months}); bước 2 chỉ giữ kỳ hạn có tổng từ 200 tỷ đồng trở lên.
-  \item Trả về \code{term_months}, \code{so_hop_dong}, \code{tong_tien_gui_ty_dong} (tỷ đồng, làm tròn 2 chữ số).
-  \item Sắp \code{tong_tien_gui_ty_dong} giảm dần; bằng nhau thì \code{term_months} nhỏ hơn đứng trước.
+  \item Xét tiền gửi có kỳ hạn đang còn hiệu lực (\code{deposit_status = 'ACTIVE'}).
+  \item Viết bằng CTE: bước 1 tính số hợp đồng và tổng số tiền gửi (\code{principal}) theo kỳ hạn (\code{term_months}); bước 2 chỉ giữ kỳ hạn có tổng từ 90 tỷ đồng trở lên.
+  \item Trả về \code{term_months}, \code{so_hop_dong}, \code{tong_tien_gui_trieu_dong} (triệu đồng, làm tròn 0 chữ số).
+  \item Sắp \code{tong_tien_gui_trieu_dong} giảm dần; bằng nhau thì \code{term_months} nhỏ hơn đứng trước.
 \end{yeucau}
 \begin{erd}
-  \erdbang{core_deposit_contract}{0,0}{deposit_id:PK, principal*=500000000, term_months*=12, deposit_status*='RENEWED', interest_rate}
+  \erdbang{core_deposit_contract}{0,0}{deposit_id:PK, principal*=500000000, term_months*=12, deposit_status*='ACTIVE', interest_rate}
 \end{erd}
 \begin{nghiepvu}{Chọn kỳ hạn cần ưu tiên khi điều chỉnh biểu lãi suất tiền gửi.}
   \khainiem{tien-gui-co-ky-han}
   \khainiem{tien-va-lai-suat}
-  \luuy{Tiền gửi đã tái tục vẫn còn hiệu lực. Tiền gửi đã tất toán hoặc đã rút trước hạn không còn tính vào tiền gửi đang huy động.}
+  \luuy{Khi tái tục, ngân hàng mở hợp đồng mới cho kỳ hạn mới; hợp đồng cũ ở trạng thái tái tục, hợp đồng đã tất toán hoặc đã rút trước hạn không còn tính vào tiền gửi đang huy động.}
 \end{nghiepvu}
 \goiy{CTE gom \code{core_deposit_contract} theo \code{term_months}; truy vấn ngoài lọc trên cột tổng của CTE.}
-\goiy{Lọc \code{tong_tien >= 200000000000} rồi mới đổi sang tỷ đồng.}
-\ghichuthietke{Cơ bản (v4, viết lại từ câu Trung bình lãi dự thu và lãi dự trả năm 2026). 1 bảng, giá trị mẫu. 5 trục: số bảng 1 (Cơ bản); số bước, một CTE gom rồi lọc ở truy vấn ngoài, đúng kỹ năng chính của module (Cơ bản); mơ hồ thấp, trạng thái ghi rõ mã, ngưỡng ghi rõ (Cơ bản); bẫy 0 (Cơ bản); nghiệp vụ 1 khái niệm tiền gửi có kỳ hạn còn hiệu lực (Cơ bản). Wrong chỉ tính \code{'ACTIVE'} (không kỳ hạn nào đạt ngưỡng) và wrong ngưỡng thiếu ba chữ số 0 (200 triệu đồng, ra mọi kỳ hạn) rớt ở public. hidden-1 thêm hai tiền gửi kỳ hạn 12 tháng (H(g)), tổng của kỳ hạn này khác public.}
+\goiy{Lọc \code{tong_tien >= 90000000000} rồi mới đổi sang triệu đồng.}
+\ghichuthietke{Cơ bản (v4, viết lại từ câu Trung bình lãi dự thu và lãi dự trả năm 2026; sửa theo KIEM-V4 ngày 11/11/2026, mã cũ \code{aivb-t6-ky-han-tien-gui-tu-200-ty}). 1 bảng, giá trị mẫu. 5 trục: số bảng 1 (Cơ bản); số bước, một CTE gom rồi lọc ở truy vấn ngoài, đúng kỹ năng chính của module (Cơ bản); mơ hồ thấp, trạng thái ghi rõ mã, ngưỡng ghi rõ (Cơ bản); bẫy 0 (Cơ bản); nghiệp vụ 1 khái niệm tiền gửi có kỳ hạn còn hiệu lực (Cơ bản). Bản trước tính cả \code{'RENEWED'} là sai: hợp đồng \code{'RENEWED'} là hợp đồng cũ đã được thay bằng hợp đồng tái tục mới (4.465/4.478 dòng \code{'RENEWED'} đến hạn không muộn hơn 31/12/2026, mọi dòng \code{'ACTIVE'} đến hạn từ 05/01/2027), cộng hai trạng thái là tính trùng; nay thống nhất với r8, c2 và khái niệm \code{tien-gui-co-ky-han} của gói 1. Ngưỡng hạ từ 200 tỷ xuống 90 tỷ đồng và cột tính bằng triệu đồng vì ở tỷ đồng hai kỳ 12 và 36 tháng cùng ra 91,76. Public 4 dòng (24, 36, 12, 18 tháng); hidden-1 thêm hai tiền gửi kỳ hạn 12 tháng (H(g)) nên kỳ 12 tháng lên trên kỳ 36 tháng. Wrong cộng cả hợp đồng tái tục (\code{IN ('ACTIVE', 'RENEWED')}) và wrong ngưỡng thiếu ba chữ số 0 (90 triệu đồng, ra mọi kỳ hạn) rớt ở cả hai biến thể.}
 \end{cauhoi}
 
 % ================================================================ t7 · debug · Dễ
@@ -656,6 +656,7 @@
   \begin{yeucau}
     \item Cùng phạm vi như bước 1. Trả về \code{thang}, \code{ty_trong_kenh_so_pct} (giá trị qua kênh số chia tổng giá trị của mọi kênh, phần trăm, làm tròn 2 chữ số); sắp theo \code{thang}.
   \end{yeucau}
+  \goiy{Chia tổng có điều kiện của kênh số cho \code{SUM(amount)} của cả tháng.}
 \end{buoc}
 \begin{buoc}[ma=b3, diem=7, hinhthuc=write, bang={core_payment_order}]{Tỷ trọng thay đổi thế nào so với tháng trước?}
   \begin{yeucau}

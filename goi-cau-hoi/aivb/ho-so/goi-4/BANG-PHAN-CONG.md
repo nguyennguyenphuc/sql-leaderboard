@@ -11,7 +11,7 @@ v3 (10/11/2026): quyết định giảng viên cho các điểm chờ (bảng `.
 | aivb-t3-nguoi-vay-theo-so-khoan-vay | Agent gói 4 | B, C | v4 | Đạt (bộ kiểm cả gói 11/11 v4: 0 lỗi) | v4 viết lại cho đủ 4 cấp (DA-SUA.md mục v4); chờ kiểm B/C: Trung bình → Dễ (mã cũ `aivb-t3-phan-nhom-khach-giao-dich`) |
 | aivb-t4-du-no-theo-nhom-no | Agent gói 4 | B, C | v2 | Đạt (tĩnh 0 lỗi) | Đã sửa; quyết định GV v3 xong (QUYET-DINH-126-g45.md) |
 | aivb-t5-lenh-binh-quan-ngay-theo-kenh | Agent gói 4 | B, C | v4 | Đạt (bộ kiểm cả gói 11/11 v4: 0 lỗi) | v4 viết lại cho đủ 4 cấp (DA-SUA.md mục v4); chờ kiểm B/C: Trung bình → Cơ bản (mã cũ `aivb-t5-kenh-loai-giao-dich-ty-le-bi-dao`) |
-| aivb-t6-ky-han-tien-gui-tu-200-ty | Agent gói 4 | B, C | v4 | Đạt (bộ kiểm cả gói 11/11 v4: 0 lỗi) | v4 viết lại cho đủ 4 cấp (DA-SUA.md mục v4); chờ kiểm B/C: Trung bình → Cơ bản (mã cũ `aivb-t6-lai-du-thu-tien-gui-va-vay`) |
+| aivb-t6-ky-han-tien-gui-tu-90-ty (mã cũ aivb-t6-ky-han-tien-gui-tu-200-ty) | Agent gói 4 | B, C | v4 | Đạt (bộ kiểm cả gói 11/11 v4: 0 lỗi) | v4 viết lại cho đủ 4 cấp (DA-SUA.md mục v4); chờ kiểm B/C: Trung bình → Cơ bản (mã cũ `aivb-t6-lai-du-thu-tien-gui-va-vay`) · **Sửa theo KIEM-V4 (11/11/2026):** KIEM-V4 (B) Cần sửa nghiệp vụ: chỉ tính 'ACTIVE' (RENEWED là hợp đồng cũ đã tái tục), ngưỡng 90 tỷ, cột triệu đồng, mã đổi; khái niệm tien-gui-co-ky-han sửa theo gói 1; bộ kiểm 0 lỗi, 2 wrong rớt cả hai biến thể. Nay Đạt. |
 | aivb-t7-chu-the-can-ra-soat-dem-trung | Agent gói 4 | B, C | v4 | Đạt (bộ kiểm cả gói 11/11 v4: 0 lỗi) | v4 viết lại cho đủ 4 cấp (DA-SUA.md mục v4); chờ kiểm B/C: Trung bình → Dễ (mã cũ `aivb-t7-khach-co-san-pham`) |
 | aivb-t8-giai-ngan-so-voi-nam-truoc | Agent gói 4 | B, C | v2 | Đạt (tĩnh 0 lỗi) | Đã sửa; quyết định GV v3 xong (QUYET-DINH-126-g45.md) |
 | aivb-t9-qua-han-nhung-khong-delinquent | Agent gói 4 | B, C | v3 | Đạt (bộ kiểm cả gói 10/11 23:35: 0 lỗi) | Đã sửa; quyết định GV v3 xong (QUYET-DINH-126-g45.md) |
@@ -24,5 +24,5 @@ v3 (10/11/2026): quyết định giảng viên cho các điểm chờ (bảng `.
 | aivb-f7-ho-so-moi-nhat | Agent gói 4 | B, C | v3 | Đạt (bộ kiểm cả gói 10/11 23:35: 0 lỗi) | Hạ Dễ v3 (QUYET-DINH-CHUNG 0.1 mục 5); xem DA-SUA.md |
 | aivb-f8-top-5-khoan-vay-dung-5-dong | Agent gói 4 | B, C | v3 | Đạt (bộ kiểm cả gói 10/11 23:35: 0 lỗi) | Đã sửa; quyết định GV v3 xong (QUYET-DINH-126-g45.md) |
 | aivb-f9-dong-tien-luy-ke-chi-tang | Agent gói 4 | B, C | v4 | Đạt (bộ kiểm cả gói 11/11 v4: 0 lỗi) | v4 viết lại cho đủ 4 cấp (DA-SUA.md mục v4); chờ kiểm B/C: Khó → Dễ (mã cũ `aivb-f9-so-du-chay-tai-khoan`) |
-| aivb-c7-kenh-so-va-quay | Agent gói 4 | B, C | v3 | Đạt (bộ kiểm cả gói 10/11 23:35: 0 lỗi) | Đã sửa; quyết định GV v3 xong (QUYET-DINH-126-g45.md) |
+| aivb-c7-kenh-so-va-quay | Agent gói 4 | B, C | v3 | Đạt (bộ kiểm cả gói 10/11 23:35: 0 lỗi) | Đã sửa; quyết định GV v3 xong (QUYET-DINH-126-g45.md) · **Sửa theo KIEM-V4 (11/11/2026):** KIEM-V4 (B) Đạt; góp ý: thêm gợi ý b2. |
 | aivb-c8-chat-luong-tin-dung-cohort | Agent gói 4 | B, C | v3 | Đạt (bộ kiểm cả gói 10/11 23:35: 0 lỗi) | Đã sửa; quyết định GV v3 xong (QUYET-DINH-126-g45.md) |

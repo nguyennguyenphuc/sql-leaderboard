@@ -111,3 +111,15 @@ Kiểm lại:
 Ô trùng: trong gói không trùng (dạng × mảng × cấp × hình thức). Ngoài gói: q2 (A1 · after_sales · easy · write) trùng ô aivb-n3 (gói 1, M2, kỹ năng khác). Các ô mới khác (E2 operations hard, A4 sales hard, C1 sales hard, D1 customer hard, A1 finance basic write, A2 finance basic debug, C3 sales basic, E1 operations basic) chưa có trong `BAN-DO-100-CAU.md` lúc sửa; agent khác đang sửa song song nên có thể trùng sau.
 
 `BAN-DO-100-CAU.md`: sửa 9 dòng của câu viết lại và dòng j8 (tiêu đề, phạm vi ngày 31/12/2026 theo chuẩn hoá 10/11). Phần thống kê cuối file chưa sinh lại.
+
+## Sửa theo KIEM-V4 (11/11/2026)
+
+Căn cứ `ho-so/KIEM-V4-B.md`, `ho-so/KIEM-V4-C.md`. Không đổi SQL, cấp, mã.
+
+| Mã | Điểm B/C | Đã sửa gì | Kết quả kiểm |
+|---|---|---|---|
+| aivb-q3-tien-gui-lon-gap-10-binh-quan | C: dòng quyết định "Nhận diện các khoản tiền gửi lớn để giao chuyên viên chăm sóc riêng." không khớp phạm vi "mọi trạng thái" | → "Đặt ngưỡng nhận diện tiền gửi lớn cần báo cáo riêng, dựa trên các hợp đồng lớn ngân hàng từng nhận." | Chỉ sửa chữ |
+| aivb-q2-khoan-vay-co-ky-qua-han | B (góp ý): câu cuối `\ghichuthietke` nói trùng ô với n3 đã cũ | Xoá câu "Ô A1 after\_sales easy write trùng aivb-n3 (gói 1)…" (n3 nay là Khó) | Chỉ sửa chữ |
+| aivb-j3-so-du-tai-khoan-mo-thang-12-2025 | B (góp ý): lẫn "số dư hiện tại" / "số dư chốt" | Lời nhắn → "kèm số dư chốt của từng tài khoản" | Chỉ sửa chữ |
+
+Kiểm cả gói: bộ kiểm đầy đủ `cong-cu/ket-qua/sua-v4/aivb-goi-3`: KIEM TRA: 0 loi; biên dịch `cong-cu/ket-qua/sua-v4/aivb-goi-3/bien-dich`: 54 trang, 0 lỗi LaTeX.

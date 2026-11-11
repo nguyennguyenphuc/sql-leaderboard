@@ -165,7 +165,7 @@
   hinhthuc=write, cap=basic, dang=A1, kynang={INNER JOIN}, bay={quen-can-tren},
   tacgia={Agent gói 3}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
 \tieude{Tài khoản mở tháng 12/2025 hiện có số dư bao nhiêu?}
-\boicanh[Anh Bảo · Chuyên viên quan hệ khách hàng]{Anh muốn gọi hỏi thăm các khách mở tài khoản thanh toán trong tháng 12/2025. Em lập giúp anh danh sách tài khoản kèm số dư hiện tại.}
+\boicanh[Anh Bảo · Chuyên viên quan hệ khách hàng]{Anh muốn gọi hỏi thăm các khách mở tài khoản thanh toán trong tháng 12/2025. Em lập giúp anh danh sách tài khoản kèm số dư chốt của từng tài khoản.}
 \begin{yeucau}
   \item Lấy các tài khoản thanh toán có ngày mở tài khoản (\code{open_date}) từ ngày 01/12/2025 tới hết ngày 31/12/2025, mọi trạng thái tài khoản.
   \item Lấy số dư chốt của từng tài khoản trong \code{core_account_balance}.
@@ -413,7 +413,7 @@
 \end{nghiepvu}
 \goiy{Một khoản vay quá hạn ba kỳ thì phép nối thẳng với lịch trả nợ trả về mấy dòng cho khoản đó?}
 \goiy{Lọc \code{loan_id IN (SELECT loan_id FROM core_loan_schedule WHERE schedule_status = 'OVERDUE')}.}
-\ghichuthietke{Dễ (v4, hạ từ Trung bình): bản v2 đi tiếp từ khoản vay về chủ thể (truy vấn con nối 3 bảng); v4 dừng ở khoản vay, như bài easy q2-khach-tung-tra-hang (IN / EXISTS, 2 bảng) của lộ trình M6. Năm trục: 2 bảng; 2 tầng (truy vấn con lọc tập, truy vấn ngoài); đề ghi rõ cột và giá trị lọc, ERD có chữ trên đường nối; 1 bẫy (nối thẳng làm lặp dòng, 67 khoản có từ 2 kỳ quá hạn); 1 khái niệm. Wrong: nối thẳng (lặp dòng); chỉ lấy \code{loan_status = 'DELINQUENT'} (thiếu khoản đã cơ cấu lại, đã xử lý rủi ro còn kỳ quá hạn). Hidden-1 thêm khoản \code{SYN_LON_H000003} có hai kỳ quá hạn (94 so với 93 dòng). Ô A1 after\_sales easy write trùng aivb-n3 (gói 1), khác module và kỹ năng.}
+\ghichuthietke{Dễ (v4, hạ từ Trung bình): bản v2 đi tiếp từ khoản vay về chủ thể (truy vấn con nối 3 bảng); v4 dừng ở khoản vay, như bài easy q2-khach-tung-tra-hang (IN / EXISTS, 2 bảng) của lộ trình M6. Năm trục: 2 bảng; 2 tầng (truy vấn con lọc tập, truy vấn ngoài); đề ghi rõ cột và giá trị lọc, ERD có chữ trên đường nối; 1 bẫy (nối thẳng làm lặp dòng, 67 khoản có từ 2 kỳ quá hạn); 1 khái niệm. Wrong: nối thẳng (lặp dòng); chỉ lấy \code{loan_status = 'DELINQUENT'} (thiếu khoản đã cơ cấu lại, đã xử lý rủi ro còn kỳ quá hạn). Hidden-1 thêm khoản \code{SYN_LON_H000003} có hai kỳ quá hạn (94 so với 93 dòng).}
 \end{cauhoi}
 
 % ================================================================ Q3 · write · Cơ bản
@@ -432,7 +432,7 @@
 \begin{erd}
   \erdbang{core_deposit_contract}{0,0}{deposit_id:PK='SYN_DEP_0006922', principal*=6580997664, term_months=12, deposit_status='CLOSED'}
 \end{erd}
-\begin{nghiepvu}{Nhận diện các khoản tiền gửi lớn để giao chuyên viên chăm sóc riêng.}
+\begin{nghiepvu}{Đặt ngưỡng nhận diện tiền gửi lớn cần báo cáo riêng, dựa trên các hợp đồng lớn ngân hàng từng nhận.}
   \khainiem{tien-gui-co-ky-han}
   \luuy{Mức bình quân là một giá trị duy nhất cho cả bảng.}
 \end{nghiepvu}

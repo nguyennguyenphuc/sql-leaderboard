@@ -88,7 +88,7 @@
 \khaibaokhainiem{trang-thai-khoan-vay}{Trạng thái khoản vay}
   {Trạng thái khoản vay cho biết khoản vay đang được trả bình thường, đang quá hạn, đã cơ cấu lại thời hạn trả nợ, đã xử lý rủi ro hay đã tất toán.}
   {}
-  {\code{core_loan_contract.loan_status}: \code{'ACTIVE'} (đang còn dư nợ), \code{'DELINQUENT'} (đang quá hạn), \code{'RESTRUCTURED'} (đã cơ cấu lại), \code{'WRITTEN_OFF'} (đã xử lý rủi ro), \code{'SETTLED'} (đã tất toán). \code{'DELINQUENT'} không đồng nghĩa với nợ xấu.}
+  {\code{core_loan_contract.loan_status}: \code{'ACTIVE'}, \code{'DELINQUENT'} (đang quá hạn), \code{'RESTRUCTURED'} (đã cơ cấu lại), \code{'WRITTEN_OFF'} (đã xử lý rủi ro), \code{'SETTLED'} (đã tất toán). \code{'DELINQUENT'} không đồng nghĩa với nợ xấu.}
 \khaibaokhainiem{san-pham-cho-vay}{Cho vay theo món và thấu chi}
   {Cho vay theo món là khoản vay có số tiền vay xác định, giải ngân theo hợp đồng và trả nợ theo lịch. Thấu chi là cho vay theo hạn mức: khách hàng được chi vượt số dư tài khoản thanh toán trong hạn mức ngân hàng cấp.}
   {}
@@ -181,12 +181,12 @@
   hinhthuc=write, cap=medium, dang=B4, kynang={SUBSTRING_INDEX, so sánh ngày, IS NULL, SUM(CASE WHEN)}, bay={bo-sot-null, trang-thai-hien-tai, sum-ra-null},
   tacgia={Agent gói 2}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
 \tieude{Tài khoản thanh toán năm 2026 tăng giảm ra sao?}
-\boicanh[Anh Quang · Trưởng phòng vận hành thanh toán]{Anh cần bảng biến động tài khoản thanh toán năm 2026 của từng dòng sản phẩm: đầu năm có bao nhiêu, trong năm mở thêm, đóng đi bao nhiêu và cuối năm còn bao nhiêu.}
+\boicanh[Anh Quang · Trưởng phòng vận hành thanh toán]{Anh cần bảng biến động tài khoản thanh toán năm 2026 của từng sản phẩm: đầu năm có bao nhiêu, trong năm mở thêm, đóng đi bao nhiêu và cuối năm còn bao nhiêu.}
 \begin{yeucau}
-  \item Lấy dòng sản phẩm là phần mã phiên bản sản phẩm (\code{product_version_id}) đứng trước dấu gạch dưới thứ hai, ví dụ \code{'CASA_IND_V1'} thuộc dòng \code{'CASA_IND'}.
-  \item Tính cho từng dòng sản phẩm số tài khoản đầu kỳ, mở mới, đóng, cuối kỳ của năm 2026 và tỷ lệ đóng, theo tab Nghiệp vụ.
-  \item Trả về \code{dong_san_pham}, \code{so_dau_ky}, \code{so_mo_moi}, \code{so_dong}, \code{so_cuoi_ky}, \code{ty_le_dong_pct} (phần trăm, làm tròn 2 chữ số). Dòng sản phẩm không có tài khoản nào đóng thì ghi 0 ở \code{so_dong} và \code{ty_le_dong_pct}, không để trống.
-  \item Sắp \code{dong_san_pham} theo thứ tự chữ cái.
+  \item Lấy mã sản phẩm là phần mã phiên bản sản phẩm (\code{product_version_id}) đứng trước dấu gạch dưới thứ hai, ví dụ \code{'CASA_IND_V1'} thuộc sản phẩm \code{'CASA_IND'}.
+  \item Tính cho từng sản phẩm số tài khoản đầu kỳ, mở mới, đóng, cuối kỳ của năm 2026 và tỷ lệ đóng, theo tab Nghiệp vụ.
+  \item Trả về \code{san_pham}, \code{so_dau_ky}, \code{so_mo_moi}, \code{so_dong}, \code{so_cuoi_ky}, \code{ty_le_dong_pct} (phần trăm, làm tròn 2 chữ số). Sản phẩm không có tài khoản nào đóng thì ghi 0 ở \code{so_dong} và \code{ty_le_dong_pct}, không để trống.
+  \item Sắp \code{san_pham} theo thứ tự chữ cái.
 \end{yeucau}
 \begin{erd}
   \erdbang{core_account}{0,0}{account_id:PK, product_version_id:FK*, open_date*, close_date*, account_status}
@@ -202,7 +202,7 @@
 \end{nghiepvu}
 \goiy{Ngày đóng trống nghĩa là tài khoản chưa đóng. Phép so sánh với giá trị trống cho kết quả gì, và \code{SUM} của một cột toàn giá trị trống ra gì?}
 \goiy{Đang mở cuối kỳ là \code{open_date <= '2026-12-31' AND (close_date IS NULL OR close_date > '2026-12-31')}.}
-\ghichuthietke{Trung bình (v4, nâng từ Dễ; mã cũ \code{aivb-s4-tai-khoan-mo-giua-nam}). 5 trục: số bảng 1 (ERD 3 bảng có ký hiệu 1-n, 2 bảng không cần như a4, a5; nối \code{ref_product_version} lấy \code{product_id} cũng ra đúng dòng sản phẩm); số bước 2 tầng (tách dòng sản phẩm, bốn phép đếm có điều kiện theo thời điểm rồi tỷ lệ); mơ hồ mức Trung bình (đầu kỳ, cuối kỳ, tỷ lệ đóng định nghĩa ở tab Nghiệp vụ); bẫy 2 (ngày đóng trống ở ba phép đếm; \code{SUM} của phép so sánh ra NULL ở dòng \code{CASA_BIZ} vì không có tài khoản nào đóng); nghiệp vụ công thức 2 thành phần, điều kiện theo thời điểm. Đạt Trung bình ở 3/5 trục (mơ hồ, bẫy, nghiệp vụ). Bài sai thiếu \code{close_date IS NULL}, lấy cuối kỳ theo \code{account_status = 'ACTIVE'}, cộng thẳng phép so sánh và giữ nguyên mã phiên bản đều rớt ở public. Hidden-1 có thêm tài khoản mở 10/12/2025 đóng 15/09/2026 và hai tài khoản mở năm 2024, nên số khác public.}
+\ghichuthietke{Trung bình (v4, nâng từ Dễ; mã cũ \code{aivb-s4-tai-khoan-mo-giua-nam}). 5 trục: số bảng 1 (ERD 3 bảng có ký hiệu 1-n, 2 bảng không cần như a4, a5; nối \code{ref_product_version} lấy \code{product_id} cũng ra đúng sản phẩm); số bước 2 tầng (tách mã sản phẩm, bốn phép đếm có điều kiện theo thời điểm rồi tỷ lệ); mơ hồ mức Trung bình (đầu kỳ, cuối kỳ, tỷ lệ đóng định nghĩa ở tab Nghiệp vụ); bẫy 2 (ngày đóng trống ở ba phép đếm; \code{SUM} của phép so sánh ra NULL ở dòng \code{CASA_BIZ} vì không có tài khoản nào đóng); nghiệp vụ công thức 2 thành phần, điều kiện theo thời điểm. Đạt Trung bình ở 3/5 trục (mơ hồ, bẫy, nghiệp vụ). Bài sai thiếu \code{close_date IS NULL}, lấy cuối kỳ theo \code{account_status = 'ACTIVE'}, cộng thẳng phép so sánh và giữ nguyên mã phiên bản đều rớt ở public. Hidden-1 có thêm tài khoản mở 10/12/2025 đóng 15/09/2026 và hai tài khoản mở năm 2024, nên số khác public.}
 \end{cauhoi}
 
 % ================================================================ S5 · write · Khó
@@ -223,13 +223,13 @@
   \erdbang{core_contract}{2,0}{contract_id:PK, product_version_id, home_branch_id}
   \erdbang{core_loan_schedule}{0,1}{schedule_id:PK, loan_id:FK}
   \erdbang{core_payment_order}{1,1}{payment_order_id:PK}
-  \erdkhoa{\code{core_loan_disbursement} nối \code{core_loan_contract} theo \code{loan_id}; mỗi dòng của nó là một lần giải ngân, còn \code{core_loan_contract} chỉ ghi ngày giải ngân đầu và số tiền vay ban đầu. \code{core_contract}, \code{core_loan_schedule}, \code{core_payment_order} không cần.}
+  \erdkhoa{\code{core_loan_disbursement} nối \code{core_loan_contract} theo \code{loan_id}; mỗi dòng của bảng này là một lần giải ngân, còn \code{core_loan_contract} chỉ ghi ngày giải ngân đầu và số tiền vay ban đầu. \code{core_contract}, \code{core_loan_schedule}, \code{core_payment_order} không cần.}
 \end{erd}
 \begin{nghiepvu}{Tìm tháng có dấu hiệu dồn giải ngân để đạt chỉ tiêu, trước khi rà soát từng hồ sơ.}
   \khainiem{giai-ngan}
-  \luuy{Giải ngân cuối tháng là lần giải ngân rơi vào năm ngày cuối cùng theo lịch của tháng, tính cả ngày cuối tháng. Tỷ trọng giải ngân cuối tháng là số tiền giải ngân cuối tháng chia tổng số tiền giải ngân của tháng.}
+  \luuy{Giải ngân cuối tháng là lần giải ngân có ngày giải ngân thuộc năm ngày cuối cùng theo lịch của tháng, tính cả ngày cuối tháng. Tỷ trọng giải ngân cuối tháng là số tiền giải ngân cuối tháng chia tổng số tiền giải ngân của tháng.}
 \end{nghiepvu}
-\goiy{Tháng 2/2025 có 28 ngày, tháng 6 có 30 ngày: năm ngày cuối của chúng bắt đầu từ ngày nào? Đo khoảng cách tới ngày cuối tháng thay vì so với một ngày cố định.}
+\goiy{Tháng 2/2025 có 28 ngày, tháng 6 có 30 ngày: năm ngày cuối của hai tháng này bắt đầu từ ngày nào? Đo khoảng cách tới ngày cuối tháng thay vì so với một ngày cố định.}
 \goiy{Một lần giải ngân là cuối tháng khi \code{DATEDIFF(LAST_DAY(disbursement_date), disbursement_date) < 5}.}
 \ghichuthietke{Khó (v4, nâng từ Dễ; mã cũ \code{aivb-s5-giai-ngan-ngay-cuoi-thang}). 5 trục: số bảng 1 (như mẫu o4; ERD 5 bảng chỉ khoá, 3 bảng không cần, cách nối ở \code{erdkhoa}); số bước 4 tầng (gắn cờ cuối tháng theo độ dài từng tháng, gom theo tháng, tính tỷ trọng, lọc nhóm bằng \code{HAVING}); mơ hồ mức Khó (đề nói ``giải ngân dồn cuối tháng'', định nghĩa ở tab Nghiệp vụ, học viên tự chọn bảng có mọi lần giải ngân); bẫy 3 (tháng 30 ngày và tháng 2 khác tháng 31 ngày; lệch một ngày khi lấy năm ngày cuối; bảng hợp đồng chỉ có lần giải ngân đầu); nghiệp vụ chỉ số nhiều điều kiện. Đạt Khó ở 4/5 trục. Bài sai lấy cố định từ ngày 27 (sót các tháng 30 ngày), lấy sáu ngày cuối, dùng \code{core_loan_contract} đều rớt ở public. Hidden-1 có một lần giải ngân lớn ngày 30/04/2025 và một lần ngày 31/12/2025, nên tỷ trọng tháng 4 khác public. Không tháng nào có tỷ trọng sát ngưỡng 30\%.}
 \end{cauhoi}
@@ -239,7 +239,7 @@
   hinhthuc=write, cap=hard, dang=B1, kynang={LAST_DAY, DATE_FORMAT, SUM(CASE WHEN)}, bay={so-sanh-so-thang, quen-can-tren, quen-loc-thanh-cong},
   tacgia={Agent gói 2}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
 \tieude{Bao nhiêu giao dịch cuối tháng có ngày giá trị tháng sau?}
-\boicanh[Anh Khánh · Kế toán giao dịch]{Khoá sổ cuối tháng, anh phải tách riêng giao dịch có ngày giá trị rơi sang tháng sau. Anh cần biết năm 2026 mỗi tháng có bao nhiêu giao dịch như vậy và chúng chiếm bao nhiêu phần giá trị.}
+\boicanh[Anh Khánh · Kế toán giao dịch]{Khi khoá sổ cuối tháng, anh phải tách riêng giao dịch có ngày giá trị sang tháng sau. Anh cần biết năm 2026 mỗi tháng có bao nhiêu giao dịch như vậy và các giao dịch này chiếm bao nhiêu phần giá trị.}
 \begin{yeucau}
   \item Xét các lệnh thanh toán thành công có ngày giao dịch trong năm 2026.
   \item Tính cho từng tháng của ngày giao dịch: số lệnh, số lệnh có ngày giá trị sang tháng sau (theo tab Nghiệp vụ), tổng số tiền của các lệnh này và tỷ lệ của số tiền đó trên tổng số tiền mọi lệnh trong tháng.
@@ -261,7 +261,7 @@
 \end{nghiepvu}
 \goiy{Lệnh ngày 31/12/2026 có ngày giá trị 01/01/2027: so số tháng của hai ngày cho kết quả gì?}
 \goiy{Một lệnh sang tháng sau khi \code{value_date > LAST_DAY(transaction_date)}.}
-\ghichuthietke{Khó (v4, nâng từ Dễ; mã cũ \code{aivb-s6-ngay-gia-tri-lech}). 5 trục: số bảng 1 (như mẫu o4; ERD 5 bảng chỉ khoá, 4 bảng không cần, cách nối ở \code{erdkhoa}); số bước 3 tầng (gắn cờ cắt kỳ theo ngày cuối tháng, gom theo tháng, tỷ lệ trên tổng của tháng); mơ hồ mức Khó (đề nói bằng ngôn ngữ khoá sổ, không ghi mã trạng thái, học viên tự suy ra phép so ngày); bẫy 3, có 1 bẫy chỉ lộ ở hidden-1 (so \code{MONTH} bỏ mất lệnh ngày 31/12/2026 có ngày giá trị năm 2027; thiếu cận trên ra thêm nhóm 2027-01 chỉ ở hidden-1, H(b); quên lọc lệnh thành công); nghiệp vụ chỉ số nhiều điều kiện (cắt kỳ, trạng thái, tỷ lệ theo giá trị). Đạt Khó ở 3/5 trục (mơ hồ, bẫy, nghiệp vụ). Dữ liệu có ngày giá trị lệch 1, 3, 4, 5, 10 ngày do cuối tuần và nghỉ lễ. Bài sai so \code{MONTH}, đếm mọi lệnh lệch ngày, quên lọc thành công rớt ở public; bài sai thiếu cận trên rớt ở hidden-1. H(a) làm mọi số của hidden-1 khác public.}
+\ghichuthietke{Khó (v4, nâng từ Dễ; mã cũ \code{aivb-s6-ngay-gia-tri-lech}). 5 trục: số bảng 1 (như mẫu o4; ERD 5 bảng chỉ khoá, 4 bảng không cần, cách nối ở \code{erdkhoa}); số bước 3 tầng (gắn cờ cắt kỳ theo ngày cuối tháng, gom theo tháng, tỷ lệ trên tổng của tháng); mơ hồ mức Khó (đề nói bằng ngôn ngữ khoá sổ, không ghi mã trạng thái, học viên tự suy ra phép so ngày); bẫy 3, có 1 bẫy chỉ lộ ở hidden-1 (so \code{MONTH} bỏ mất lệnh ngày 31/12/2026 có ngày giá trị năm 2027; thiếu cận trên ra thêm nhóm 2027-01 chỉ ở hidden-1, H(b); quên lọc lệnh thành công); nghiệp vụ chỉ số nhiều điều kiện (cắt kỳ, trạng thái, tỷ lệ theo giá trị). Đạt Khó ở 3/5 trục (mơ hồ, bẫy, nghiệp vụ). Dữ liệu có ngày giá trị lệch 1, 3, 4, 5, 10 ngày do cuối tuần và nghỉ lễ. Bài sai so \code{MONTH}, đếm mọi lệnh lệch ngày, quên lọc thành công rớt ở public; bài sai thiếu cận trên rớt ở hidden-1. H(a) làm mọi số của hidden-1 khác public. Sửa theo KIEM-V4 (11/11/2026): lời giải mẫu gom theo năm, tháng dạng số trong bảng dẫn xuất rồi mới ghép chuỗi \code{'yyyy-mm'} (gom trực tiếp theo \code{DATE_FORMAT} trên khoảng 2 triệu lệnh chạy 11--33 giây, bản mới khoảng 4 giây); kết quả không đổi.}
 \end{cauhoi}
 
 % ================================================================ S7 · debug · Trung bình
@@ -296,7 +296,7 @@
   hinhthuc=debug, cap=easy, dang=B1, kynang={DATE_FORMAT, GROUP BY}, bay={dinh-dang-thang-sai},
   tacgia={Agent gói 2}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
 \tieude{Thống kê lệnh bị đảo theo tháng ra 31 nhóm}
-\boicanh[Bạn Vy · Thực tập sinh]{Em lập báo cáo lệnh bị đảo theo tháng năm 2026 mà báo cáo ra tới 31 tháng. Em chưa hiểu vì sao.}
+\boicanh[Bạn Vy · Thực tập sinh]{Em lập báo cáo lệnh bị đảo theo tháng năm 2026 mà kết quả ra tới 31 dòng. Em chưa hiểu vì sao.}
 \begin{yeucau}
   \item Truy vấn dưới đây cần đếm số lệnh bị đảo (\code{payment_status = 'REVERSED'}) theo tháng của ngày giao dịch trong năm 2026, nhưng lại ra 31 nhóm. Sửa để mỗi tháng chỉ còn một nhóm.
   \item Giữ nguyên cột \code{thang} (chuỗi dạng \code{'yyyy-mm'}), \code{so_lenh_bi_dao} và thứ tự sắp.

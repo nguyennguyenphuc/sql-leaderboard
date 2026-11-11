@@ -311,43 +311,43 @@ FROM theo_ngay
 GROUP BY channel_code
 ORDER BY so_lenh_binh_quan DESC, channel_code;
 
--- [aivb-t6-ky-han-tien-gui-tu-200-ty] solution
-WITH theo_ky_han AS (
-  SELECT term_months, COUNT(*) AS so_hop_dong, SUM(principal) AS tong_tien
-  FROM core_deposit_contract
-  WHERE deposit_status IN ('ACTIVE', 'RENEWED')
-  GROUP BY term_months
-)
-SELECT term_months, so_hop_dong, ROUND(tong_tien / 1000000000, 2) AS tong_tien_gui_ty_dong
-FROM theo_ky_han
-WHERE tong_tien >= 200000000000
-ORDER BY tong_tien_gui_ty_dong DESC, term_months;
-
--- [aivb-t6-ky-han-tien-gui-tu-200-ty] wrong: chi_tinh_active
--- Bỏ sót tiền gửi đã tái tục: không kỳ hạn nào đạt ngưỡng (rớt ở public).
+-- [aivb-t6-ky-han-tien-gui-tu-90-ty] solution
 WITH theo_ky_han AS (
   SELECT term_months, COUNT(*) AS so_hop_dong, SUM(principal) AS tong_tien
   FROM core_deposit_contract
   WHERE deposit_status = 'ACTIVE'
   GROUP BY term_months
 )
-SELECT term_months, so_hop_dong, ROUND(tong_tien / 1000000000, 2) AS tong_tien_gui_ty_dong
+SELECT term_months, so_hop_dong, ROUND(tong_tien / 1000000, 0) AS tong_tien_gui_trieu_dong
 FROM theo_ky_han
-WHERE tong_tien >= 200000000000
-ORDER BY tong_tien_gui_ty_dong DESC, term_months;
+WHERE tong_tien >= 90000000000
+ORDER BY tong_tien_gui_trieu_dong DESC, term_months;
 
--- [aivb-t6-ky-han-tien-gui-tu-200-ty] wrong: nguong_thieu_ba_so_0
--- Viết ngưỡng 200 triệu đồng thay cho 200 tỷ đồng: ra mọi kỳ hạn (rớt ở public).
+-- [aivb-t6-ky-han-tien-gui-tu-90-ty] wrong: cong_ca_hop_dong_tai_tuc
+-- Cộng cả hợp đồng cũ đã tái tục: tính trùng với hợp đồng tái tục mới (rớt ở cả hai biến thể).
 WITH theo_ky_han AS (
   SELECT term_months, COUNT(*) AS so_hop_dong, SUM(principal) AS tong_tien
   FROM core_deposit_contract
   WHERE deposit_status IN ('ACTIVE', 'RENEWED')
   GROUP BY term_months
 )
-SELECT term_months, so_hop_dong, ROUND(tong_tien / 1000000000, 2) AS tong_tien_gui_ty_dong
+SELECT term_months, so_hop_dong, ROUND(tong_tien / 1000000, 0) AS tong_tien_gui_trieu_dong
 FROM theo_ky_han
-WHERE tong_tien >= 200000000
-ORDER BY tong_tien_gui_ty_dong DESC, term_months;
+WHERE tong_tien >= 90000000000
+ORDER BY tong_tien_gui_trieu_dong DESC, term_months;
+
+-- [aivb-t6-ky-han-tien-gui-tu-90-ty] wrong: nguong_thieu_ba_so_0
+-- Viết ngưỡng 90 triệu đồng thay cho 90 tỷ đồng: ra mọi kỳ hạn (rớt ở cả hai biến thể).
+WITH theo_ky_han AS (
+  SELECT term_months, COUNT(*) AS so_hop_dong, SUM(principal) AS tong_tien
+  FROM core_deposit_contract
+  WHERE deposit_status = 'ACTIVE'
+  GROUP BY term_months
+)
+SELECT term_months, so_hop_dong, ROUND(tong_tien / 1000000, 0) AS tong_tien_gui_trieu_dong
+FROM theo_ky_han
+WHERE tong_tien >= 90000000
+ORDER BY tong_tien_gui_trieu_dong DESC, term_months;
 
 -- [aivb-t7-chu-the-can-ra-soat-dem-trung] starter
 SELECT COUNT(*) AS so_chu_the

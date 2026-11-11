@@ -44,7 +44,7 @@ Phiên bản: v1 (2026-11-10) · trạng thái: review · nguồn dữ liệu: d
 | aivb-s1-chi-nhanh-quan | 2 | M3 String & Date | write | basic | A1 | operations | Chi nhánh nào còn chữ “Quận” trong tên? | Xét các chi nhánh có tên (`branch_name`) chứa chữ “Quận” ở bất kỳ vị trí nào. · Trả về `ref_branch_id`, `branch_name`, `city`. | ref_branch | thieu-ky-tu-dai-dien |
 | aivb-s2-ho-kinh-doanh-fnb | 2 | M3 String & Date | write | basic | A1 | customer | Hộ kinh doanh ngành ăn uống là những ai? | Xét các chủ thể là tổ chức (`party_type = 'ORGANIZATION'`) có tên (`legal_name`) bắt đầu bằng `'Ho Kinh Doanh'` và kết thúc bằng chuỗi “F&B”. · Trả về `party_id`, `legal_name`. | core_party | dat-sai-ky-tu-dai-dien, sap-theo-ten |
 | aivb-s3-lenh-mobile-theo-thang | 2 | M3 String & Date | write | easy | B1 | marketing | Số lệnh qua ứng dụng di động từng tháng năm 2026 | Xét các lệnh thanh toán thành công (`payment_status = 'COMPLETED'`) qua kênh ứng dụng di động (`channel_code = 'MOBILE'`) có ngày giao dịch trong năm 2026. · Đếm số lệnh theo tháng của ngày giao dịch. | core_payment_order | quen-can-tren, quen-loc-thanh-cong |
-| aivb-s4-bien-dong-tai-khoan-2026 | 2 | M3 String & Date | write | medium | B4 | operations | Tài khoản thanh toán năm 2026 tăng giảm ra sao? | Lấy dòng sản phẩm là phần mã phiên bản sản phẩm (`product_version_id`) đứng trước dấu gạch dưới thứ hai, ví dụ `'CASA_IND_V1'` thuộc dòng `'CASA_IND'`. · Tính cho từng dòng sản phẩm số tài khoản đầu kỳ, mở mới, đóng, cuối kỳ … | core_account | bo-sot-null, trang-thai-hien-tai, sum-ra-null |
+| aivb-s4-bien-dong-tai-khoan-2026 | 2 | M3 String & Date | write | medium | B4 | operations | Tài khoản thanh toán năm 2026 tăng giảm ra sao? | Lấy mã sản phẩm là phần mã phiên bản sản phẩm (`product_version_id`) đứng trước dấu gạch dưới thứ hai, ví dụ `'CASA_IND_V1'` thuộc sản phẩm `'CASA_IND'`. · Tính cho từng sản phẩm số tài khoản đầu kỳ, mở mới, đóng, cuối kỳ … | core_account | bo-sot-null, trang-thai-hien-tai, sum-ra-null |
 | aivb-s5-giai-ngan-don-cuoi-thang | 2 | M3 String & Date | write | hard | E1 | sales | Tháng nào năm 2025 giải ngân dồn vào cuối tháng? | Xét mọi lần giải ngân trong năm 2025, kể cả các lần giải ngân sau của cùng một khoản vay. · Tính cho từng tháng tỷ trọng giải ngân cuối tháng theo tab Nghiệp vụ; chỉ giữ tháng có tỷ trọng từ 30% trở lên … | core_loan_disbursement | ngay-co-dinh, lech-mot-ngay, chi-lan-giai-ngan-dau |
 | aivb-s6-ngay-gia-tri-sang-thang-sau | 2 | M3 String & Date | write | hard | B1 | operations | Bao nhiêu giao dịch cuối tháng có ngày giá trị tháng sau? | Xét các lệnh thanh toán thành công có ngày giao dịch trong năm 2026. · Tính cho từng tháng của ngày giao dịch: số lệnh, số lệnh có ngày giá trị sang tháng sau (theo tab Nghiệp vụ), tổng số tiền … | core_payment_order | so-sanh-so-thang, quen-can-tren, quen-loc-thanh-cong |
 | aivb-s7-tham-nien-khach-hang | 2 | M3 String & Date | debug | medium | C4 | customer | Thâm niên khách hàng bị cộng dư một năm | Truy vấn dưới đây cần đếm số khách hàng đang hoạt động (`customer_status = 'ACTIVE'`) theo thâm niên tại ngày tham chiếu `'2026-06-30'`, nhưng nhiều khách bị tính dư một năm. Sửa để thâm niên đúng như tab Nghiệp vụ. · … | core_customer | tru-so-nam |
@@ -86,7 +86,7 @@ Phiên bản: v1 (2026-11-10) · trạng thái: review · nguồn dữ liệu: d
 | aivb-t3-nguoi-vay-theo-so-khoan-vay | 4 | M7 CTE & Set Operations | write | easy | C4 | customer | Người vay đang có mấy khoản vay còn dư nợ? | Xét các khoản vay còn dư nợ. Người vay của một khoản vay là chủ thể đứng tên hồ sơ vay của khoản vay đó. · Đếm số khoản vay còn dư nợ của từng người vay, rồi gom người vay theo số khoản vay đó. | core_loan_contract, core_loan_application | tinh-khoan-vay-du-no-0 |
 | aivb-t4-du-no-theo-nhom-no | 4 | M7 CTE & Set Operations | write | hard | C4 | after_sales | Dư nợ cuối năm 2026 phân bổ vào nhóm nợ nào? | Lấy ngày tham chiếu `'2026-12-31'`. Xét khoản vay còn dư nợ (`'ACTIVE'`, `'DELINQUENT'`, `'RESTRUCTURED'`). · Tính số ngày quá hạn và xếp nhóm nợ theo tab Nghiệp vụ; khoản không có kỳ quá hạn thuộc nhóm 1. | core_loan_schedule, core_loan_contract | ky-qua-han-muon-nhat, gom-khoan-da-xu-ly, nhom-trong-mat-dong |
 | aivb-t5-lenh-binh-quan-ngay-theo-kenh | 4 | M7 CTE & Set Operations | write | basic | A2 | marketing | Mỗi kênh bình quân một ngày có bao nhiêu lệnh tháng 12/2026? | Xét lệnh thanh toán thành công (`payment_status = 'COMPLETED'`) có ngày giao dịch trong tháng 12/2026. · Viết bằng CTE: bước 1 đếm số lệnh của từng kênh trong từng ngày giao dịch; bước 2 lấy bình quân các số đó theo kênh. | core_payment_order | chia-so-ngay-lich |
-| aivb-t6-ky-han-tien-gui-tu-200-ty | 4 | M7 CTE & Set Operations | write | basic | A3 | finance | Kỳ hạn nào có từ 200 tỷ đồng tiền gửi trở lên? | Xét tiền gửi có kỳ hạn còn hiệu lực (`deposit_status` là `'ACTIVE'` hoặc `'RENEWED'`). · Viết bằng CTE: bước 1 tính số hợp đồng và tổng số tiền gửi (`principal`) theo kỳ hạn (`term_months`); bước 2 chỉ giữ kỳ hạn có tổng từ 200 tỷ … | core_deposit_contract | sai-don-vi-nguong |
+| aivb-t6-ky-han-tien-gui-tu-90-ty | 4 | M7 CTE & Set Operations | write | basic | A3 | finance | Kỳ hạn nào có từ 90 tỷ đồng tiền gửi trở lên? | Xét tiền gửi có kỳ hạn đang còn hiệu lực (`deposit_status = 'ACTIVE'`). · Viết bằng CTE: bước 1 tính số hợp đồng và tổng số tiền gửi (`principal`) theo kỳ hạn (`term_months`); bước 2 chỉ giữ kỳ hạn có tổng từ 90 tỷ … | core_deposit_contract | sai-don-vi-nguong |
 | aivb-t7-chu-the-can-ra-soat-dem-trung | 4 | M7 CTE & Set Operations | debug | easy | A2 | after_sales | Số chủ thể cần rà soát lại bị đếm trùng | Truy vấn dưới đây cần đếm số chủ thể có ít nhất một trong hai dấu hiệu: là khách hàng có KYC không đạt (`kyc_status = 'FAIL'`), hoặc có hồ sơ vay bị từ chối (`application_status = 'REJECTED'`). Kết quả đang lớn hơn thực tế vì một chủ … | core_customer, core_loan_application | union-all-dem-trung |
 | aivb-t8-giai-ngan-so-voi-nam-truoc | 4 | M7 CTE & Set Operations | debug | hard | B2 | sales | Tăng trưởng cho vay mới bị lệch một năm | Truy vấn dưới đây tính giá trị cho vay mới từng năm và tăng trưởng so với năm liền trước, nhưng có hai lỗi chồng nhau. Sửa cả hai. · Cho vay mới của một năm là tổng số tiền vay ban đầu của các khoản vay có ngày giải … | core_loan_contract | noi-nguoc-chieu, inner-join-mat-nam-dau |
 | aivb-t9-qua-han-nhung-khong-delinquent | 4 | M7 CTE & Set Operations | debug | medium | E1 | after_sales | Khoản vay có kỳ quá hạn bị đếm gấp nhiều lần | Truy vấn dưới đây cần trả về số khoản vay có ít nhất một kỳ quá hạn và tổng dư nợ của các khoản đó, theo từng trạng thái khác `'DELINQUENT'`. Kết quả đang sai ở cả hai cột; sửa cho đúng. · Giữ nguyên cột `loan_status`, … | core_loan_contract, core_loan_schedule | dem-ky-thay-khoan, du-no-bi-nhan |
@@ -107,7 +107,7 @@ Phiên bản: v1 (2026-11-10) · trạng thái: review · nguồn dữ liệu: d
 | aivb-k4-thieu-nghe-nghiep-theo-viec-lam | 5 | M9 Data Quality | write | basic | A3 | customer | Cá nhân thiếu nghề nghiệp thuộc tình trạng việc làm nào? | Xét cá nhân ở `core_person` có `occupation_code` rỗng (NULL). · Đếm số cá nhân đó theo tình trạng việc làm (`employment_status`). | core_person | so-sanh-bang-null |
 | aivb-k5-du-no-lech-lich-tra-no | 5 | M9 Data Quality | write | easy | E2 | after_sales | Dư nợ của khoản vay nào không khớp lịch trả nợ? | Gốc còn phải trả theo lịch của một khoản vay là tổng của `principal_due - principal_paid` trên các kỳ chưa huỷ (`schedule_status` khác `'CANCELLED'`) ở `core_loan_schedule`. · Giữ các khoản vay có dư nợ (`core_loan_contract.outstanding`) khác gốc còn phải trả theo lịch. | core_loan_contract, core_loan_schedule | cong-ca-ky-da-huy |
 | aivb-k6-ho-so-ngoai-hieu-luc-chinh-sach | 5 | M9 Data Quality | write | medium | B4 | sales | Bao nhiêu hồ sơ vay gắn chính sách chưa có hiệu lực? | Dùng toàn bộ hồ sơ vay. Phiên bản chính sách gắn kèm là `core_loan_application.policy_version_id`. · Phiên bản chính sách hiệu lực tại ngày nộp là phiên bản ở `ref_policy_version` có `effective_from` không muộn hơn … | core_loan_application, ref_policy_version | bien-khoang-hieu-luc, inner-join-mat-dong |
-| aivb-k7-ngay-tu-choi-bat-thuong | 5 | M9 Data Quality | debug | easy | E1 | after_sales | Ngày từ chối bất thường chỉ ra toàn ngày đông giao dịch | Xét lệnh thanh toán bị từ chối (`payment_status = 'REJECTED'`) có `transaction_date` trong năm 2026. · Đếm số lệnh bị từ chối theo kênh × ngày. Bình quân ngày của một kênh bằng tổng số lệnh bị từ chối của kênh chia cho … | core_payment_order | quen-loc-trang-thai |
+| aivb-k7-ngay-tu-choi-bat-thuong | 5 | M9 Data Quality | debug | easy | E1 | after_sales | Danh sách ngày từ chối bất thường của quý 1 bị trống | Xét lệnh thanh toán bị từ chối (`payment_status = 'REJECTED'`) có `transaction_date` trong quý 1/2026 (từ ngày 01/01 tới hết ngày 31/03/2026). · Đếm số lệnh bị từ chối theo kênh × ngày. Bình quân ngày của một kênh bằng … | core_payment_order | quen-loc-trang-thai |
 | aivb-k8-thoi-gian-xu-ly-kyc | 5 | M9 Data Quality | debug | hard | E1 | customer | Thời gian xử lý KYC có số âm | Thời gian xử lý của một vòng KYC là số giờ từ sự kiện nộp hồ sơ tới sự kiện quyết định liền sau của cùng khách hàng, cùng vòng, theo `event_sequence`. `so_gio_xu_ly` là số giờ tròn do `TIMESTAMPDIFF(HOUR, ...)` trả về. … | core_customer_kyc_event | thieu-partition-by, bien-nguong |
 | aivb-k9-ho-so-duyet-khong-co-khoan-vay | 5 | M9 Data Quality | debug | easy | E2 | sales | Hồ sơ duyệt chưa có khoản vay ra 0 dòng | Liệt kê hồ sơ vay được duyệt (`application_status = 'APPROVED'`) không có khoản vay nào ở `core_loan_contract`. · Truy vấn dưới đây ra 0 dòng. Sửa lại và giữ tên cột `application_id`, `application_date`, `product_id`, … | core_loan_application, core_loan_contract | dieu-kien-bang-phai-o-where |
 | aivb-p1-qr-thang-12-sargable | 5 | M10 Query Performance | optimize | medium | A2 | marketing | Đếm lệnh QR tuần cuối năm không quét cả bảng | Kết quả vẫn là một dòng gồm `so_lenh` và `tong_tien` (đồng) của lệnh kênh `'QR'`, trạng thái `'COMPLETED'`, `transaction_date` từ `'2026-12-25'` tới hết `'2026-12-31'`. | core_payment_order | ham-boc-cot, thieu-ngay-cuoi |
@@ -120,93 +120,93 @@ Phiên bản: v1 (2026-11-10) · trạng thái: review · nguồn dữ liệu: d
 | aivb-p8-lenh-tra-no-thang-12-ra-0 | 5 | M10 Query Performance | debug | basic | A2 | operations | Số lệnh trả nợ vay tháng 12 ra 0 | Truy vấn dưới đây cần đếm số lệnh trả nợ vay thành công có `transaction_date` trong tháng 12/2026 và cộng số tiền của các lệnh đó, nhưng ra 0. Sửa để ra đúng. · Giữ nguyên cột `so_lenh`, `tong_tien` (đồng). | core_payment_order | sai-gia-tri-ma |
 | aivb-p9-lai-du-thu-cho-vay-theo-thang | 5 | M10 Query Performance | debug | easy | A2 | finance | Lãi dự thu cho vay bị cộng cả lãi tiền gửi | Tính tổng lãi dự thu của các khoản vay theo từng tháng của năm 2026 (`accrual_date` trong năm 2026). · Chỉ tính hợp đồng là khoản vay (có trong `core_loan_contract`). | core_interest_accrual, core_loan_contract | tron-tien-gui-cho-vay |
 | aivb-c9-ra-soat-no-xau-2026 | 5 | Case | case | hard | – | after_sales | Cuối năm 2026 nợ xấu đang ở mức nào? | b1 Số ngày quá hạn của từng khoản vay; b2 Dư nợ theo nhóm nợ; b3 Tỷ lệ nợ xấu theo sản phẩm; b4 Tỷ lệ nợ xấu theo miền; b5 Kết luận | core_loan_contract, core_loan_schedule, core_contract, ref_product_version, ref_branch | b1: ky_qua_han_muon_nhat; b2: inner_join_mat_nhom_1; b3: ty_le_theo_so_khoan; b4: chia_tong_du_no_toan_hang |
-| aivb-c10-doi-soat-dong-tien-2026 | 5 | Case | case | hard | – | operations | Dòng tiền ròng năm 2026 có dùng được cho kế hoạch vốn không? | b1 Lệnh thành công không có bút toán; b2 Dòng tiền ròng theo tháng; b3 Dòng tiền ròng theo trạng thái lệnh; b4 Dòng tiền ròng theo chi nhánh; b5 Kết luận | core_payment_order, core_account_posting, core_account, core_contract, ref_branch | b1: chi_do_but_toan_ghi_no; b2: thieu_can_tren; b3: cong_tran_so_tien; b4: cong_tran_so_tien |
+| aivb-c10-doi-soat-dong-tien-2026 | 5 | Case | case | hard | – | operations | Dòng tiền ròng tháng 3/2026 có dùng được cho kế hoạch vốn không? | b1 Lệnh thành công không có bút toán; b2 Dòng tiền ròng theo ngày; b3 Dòng tiền ròng theo trạng thái lệnh; b4 Dòng tiền ròng theo chi nhánh; b5 Kết luận | core_payment_order, core_account_posting, core_account, core_contract, ref_branch | b1: chi_do_but_toan_ghi_no; b2: bo_sot_ngay_cuoi_thang; b3: cong_tran_so_tien; b4: cong_tran_so_tien |
 
-## Thống kê (đếm từ bảng trên)
+## Thống kê (sinh lại tự động từ cau-hoi.tex, 100 câu)
 
-**Hình thức:** write 55 · debug 29 · optimize 6 · case 10 = 100. **Cấp:** basic 18 · easy 37 · medium 30 · hard 15 (cập nhật 11/11 theo gói 5 v4, rồi cộng gói 1 v4: basic −4, easy −4, medium +4, hard +4, rồi gói 4 v4: basic +4, easy +5, medium −7, hard −2; gói khác đang sửa song song thì cộng tiếp chênh lệch của gói đó).
+### Module × cấp
+
+| Tiền tố | Cơ bản | Dễ | Trung bình | Khó |
+|---|---:|---:|---:|---:|
+| `a` | 2 | 3 | 2 | 2 |
+| `c` | 3 | 2 | 2 | 3 |
+| `f` | 2 | 3 | 2 | 2 |
+| `j` | 2 | 3 | 2 | 2 |
+| `k` | 2 | 3 | 2 | 2 |
+| `n` | 2 | 3 | 2 | 2 |
+| `p` | 2 | 3 | 2 | 2 |
+| `q` | 2 | 3 | 2 | 2 |
+| `r` | 2 | 3 | 2 | 2 |
+| `s` | 2 | 3 | 2 | 2 |
+| `t` | 2 | 3 | 2 | 2 |
 
 ### Hình thức × cấp
 
-| Hình thức | basic | easy | medium | hard | Cộng |
+| Hình thức | Cơ bản | Dễ | Trung bình | Khó | Cộng |
 |---|---:|---:|---:|---:|---:|
-| write | 10 | 19 | 20 | 6 | 55 |
-| debug | 4 | 15 | 6 | 4 | 29 |
-| optimize | 1 | 1 | 2 | 2 | 6 |
-| case | 3 | 2 | 2 | 3 | 10 |
-| **Cộng** | 18 | 37 | 30 | 15 | 100 |
+| Viết | 14 | 16 | 12 | 13 | 55 |
+| Sửa lỗi | 5 | 13 | 6 | 5 | 29 |
+| Tối ưu | 1 | 1 | 2 | 2 | 6 |
+| Case | 3 | 2 | 2 | 3 | 10 |
 
-### Theo module: cấp và hình thức
+### Hình thức × mảng
 
-| Module | basic | easy | medium | hard | write | debug | optimize | Cộng |
-|---|---:|---:|---:|---:|---:|---:|---:|---:|
-| M1 Retrieval | 2 | 3 | 2 | 2 | 6 | 3 | · | 9 |
-| M2 NULL & Expressions | 2 | 3 | 2 | 2 | 6 | 3 | · | 9 |
-| M3 String & Date | 2 | 3 | 2 | 2 | 6 | 3 | · | 9 |
-| M4 Aggregation | 2 | 3 | 2 | 2 | 6 | 3 | · | 9 |
-| M5 Joins | · | 3 | 6 | · | 6 | 3 | · | 9 |
-| M6 Subqueries | · | 2 | 7 | · | 6 | 3 | · | 9 |
-| M7 CTE & Set Operations | 2 | 3 | 2 | 2 | 6 | 3 | · | 9 |
-| M8 Window Functions | 2 | 3 | 2 | 2 | 6 | 3 | · | 9 |
-| M9 Data Quality | 2 | 3 | 2 | 2 | 6 | 3 | · | 9 |
-| M10 Query Performance | 2 | 3 | 2 | 2 | 1 | 2 | 6 | 9 |
-| Case | 3 | 2 | 2 | 3 | · | · | · | 10 |
+| Hình thức | Hậu mãi | Khách hàng | Tài chính | Marketing | Vận hành | Bán hàng |
+|---|---:|---:|---:|---:|---:|---:|
+| Viết | 8 | 9 | 11 | 7 | 10 | 10 |
+| Sửa lỗi | 4 | 8 | 5 | 1 | 4 | 7 |
+| Tối ưu | 1 | 0 | 1 | 2 | 1 | 1 |
+| Case | 4 | 0 | 1 | 1 | 1 | 3 |
 
 ### Theo gói
 
-| Gói | write | debug | optimize | case | basic | easy | medium | hard |
-|---|---:|---:|---:|---:|---:|---:|---:|---:|
-| 1 | 12 | 6 | · | 2 | 6 | 6 | 4 | 4 |
-| 2 | 12 | 6 | · | 2 | 5 | 7 | 4 | 4 |
-| 3 | 12 | 6 | · | 2 | · | 6 | 14 | · |
-| 4 | 12 | 6 | · | 2 | 4 | 6 | 5 | 5 |
-| 5 | 7 | 5 | 6 | 2 | 4 | 6 | 4 | 6 |
+| Gói | Cơ bản | Dễ | Trung bình | Khó | Cộng |
+|---|---:|---:|---:|---:|---:|
+| goi-1 | < | g | e | n | e | r | a | t | o | r |   | o | b | j | e | c | t |   | m | a | i | n | . | < | l | o | c | a | l | s | > | . | < | g | e | n | e | x | p | r | > |   | a | t |   | 0 | x | 0 | 0 | 0 | 0 | 0 | 2 | 7 | 9 | 7 | 2 | 2 | 9 | C | A | 9 | 0 | > | 20 |
+| goi-2 | < | g | e | n | e | r | a | t | o | r |   | o | b | j | e | c | t |   | m | a | i | n | . | < | l | o | c | a | l | s | > | . | < | g | e | n | e | x | p | r | > |   | a | t |   | 0 | x | 0 | 0 | 0 | 0 | 0 | 2 | 7 | 9 | 7 | 2 | 2 | 9 | C | A | 9 | 0 | > | 20 |
+| goi-3 | < | g | e | n | e | r | a | t | o | r |   | o | b | j | e | c | t |   | m | a | i | n | . | < | l | o | c | a | l | s | > | . | < | g | e | n | e | x | p | r | > |   | a | t |   | 0 | x | 0 | 0 | 0 | 0 | 0 | 2 | 7 | 9 | 7 | 2 | 2 | 9 | C | A | 9 | 0 | > | 20 |
+| goi-4 | < | g | e | n | e | r | a | t | o | r |   | o | b | j | e | c | t |   | m | a | i | n | . | < | l | o | c | a | l | s | > | . | < | g | e | n | e | x | p | r | > |   | a | t |   | 0 | x | 0 | 0 | 0 | 0 | 0 | 2 | 7 | 9 | 7 | 2 | 2 | 9 | C | A | 9 | 0 | > | 20 |
+| goi-5 | < | g | e | n | e | r | a | t | o | r |   | o | b | j | e | c | t |   | m | a | i | n | . | < | l | o | c | a | l | s | > | . | < | g | e | n | e | x | p | r | > |   | a | t |   | 0 | x | 0 | 0 | 0 | 0 | 0 | 2 | 7 | 9 | 7 | 2 | 2 | 9 | C | A | 9 | 0 | > | 20 |
 
 ### Phủ dạng × mảng (90 câu module; case không tính)
 
-| Dạng | customer | finance | sales | operations | marketing | after_sales | Cộng |
+| Dạng | sales | marketing | customer | operations | finance | after_sales | Cộng |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| A1 Tra cứu lọc | 6 | 3 | 5 | 4 | 1 | 2 | 21 |
-| A2 KPI | · | 3 | · | 2 | 2 | 2 | 9 |
-| A3 Phân rã | 3 | 2 | · | 2 | 1 | 1 | 9 |
-| A4 Bảng chéo | · | · | 1 | · | · | 1 | 2 |
-| B1 Xu hướng | · | 1 | 1 | 1 | 1 | 1 | 5 |
-| B2 So kỳ trước | · | · | 1 | · | 2 | · | 3 |
-| B3 Luỹ kế, trượt | · | 1 | · | 1 | · | · | 2 |
-| B4 Trạng thái tại thời điểm | 1 | · | 2 | 1 | · | · | 4 |
-| C1 Top N mỗi nhóm | · | 2 | 2 | · | · | · | 4 |
-| C2 Tỷ trọng | · | 1 | · | · | 1 | 1 | 3 |
-| C3 So với chuẩn | · | 2 | 1 | · | · | · | 3 |
-| C4 Phân khúc | 3 | 1 | 1 | · | 2 | 1 | 8 |
-| D1 Phễu | 1 | · | 1 | · | · | · | 2 |
-| D2 Cohort | 1 | · | · | · | · | · | 1 |
-| D3 Chuỗi liên tiếp | · | · | · | · | · | 1 | 1 |
-| E1 Bất thường | 2 | · | · | 2 | · | 3 | 7 |
-| E2 Đối soát | · | 2 | 2 | 1 | · | 1 | 6 |
-| E3 Cấu trúc cây | · | · | · | · | · | · | 0 |
-| **Cộng** | 17 | 18 | 17 | 14 | 10 | 14 | 90 |
+| A1 | 4 | 1 | 5 | 4 | 4 | 2 | 20 |
+| A2 | · | 2 | 1 | 2 | 3 | 1 | 9 |
+| A3 | · | 1 | 2 | 2 | 1 | 2 | 8 |
+| A4 | 2 | · | · | · | · | · | 2 |
+| B1 | 1 | 1 | · | 2 | 1 | 1 | 6 |
+| B2 | 1 | 2 | · | · | · | · | 3 |
+| B3 | · | · | · | 1 | 1 | · | 2 |
+| B4 | 2 | · | 1 | 1 | · | · | 4 |
+| C1 | 2 | · | · | · | 2 | · | 4 |
+| C2 | · | 1 | · | · | 1 | 1 | 3 |
+| C3 | 1 | · | · | · | 2 | · | 3 |
+| C4 | 1 | 2 | 4 | · | 1 | 1 | 9 |
+| D1 | 1 | · | 1 | · | · | · | 2 |
+| D2 | · | · | 1 | · | · | · | 1 |
+| D3 | · | · | · | · | · | 1 | 1 |
+| E1 | 1 | · | 2 | 1 | · | 3 | 7 |
+| E2 | 2 | · | · | 2 | 1 | 1 | 6 |
+| E3 | · | · | · | · | · | · | 0 |
+| **Cộng** | 18 | 10 | 17 | 15 | 17 | 13 | 90 |
 
-Dạng có câu: 17/18; chưa có: E3; chỉ 1 câu: D2 (aivb-f5, gói 4 v4 giữ Khó), D3.
+Dạng có câu: 17/18; chưa có: E3; chỉ 1 câu: D2, D3.
 
-Mảng trên cả 100 câu (gồm case): customer 17, finance 19, sales 20, operations 15, marketing 11, after_sales 18 (đã cộng gói 1 v4, gói 4 v4).
+Mảng trên cả 100 câu (gồm case): sales 21, marketing 11, customer 17, operations 16, finance 18, after_sales 17.
 
-### Kiểm khung phân bổ
-
-Lệch khung (module 9 câu: M1–M9 6 write + 3 debug, M10 ~6 optimize; cấp M1–3 basic/easy, M4–6 easy/medium, M7–10 medium/hard; case gói 1 → 5: basic+basic, basic+easy, easy+medium, medium+hard, hard+hard):
-
-- `aivb-p7-but-toan-tuan-cuoi-nam` (M10) cấp easy, ngoài khung medium / hard.
+### Ô trùng (dạng × mảng × cấp × hình thức)
 
 Ô dạng × mảng × cấp × hình thức trùng **trong cùng một gói**: không có.
 
-Ô trùng **giữa các gói** (8 ô sau gói 5 v4: p9, k7 hạ Dễ nên hết trùng với j9, t9; gói 4 v4: t2, t3, t6 rời ô, 9 câu mới của gói 4 không trùng ô câu nào; cho phép, ghi để tham khảo): 
-- A1 · operations · basic · write: `aivb-r1-chi-nhanh-mien-nam`, `aivb-s1-chi-nhanh-quan`
-- A1 · sales · easy · write: `aivb-s5-giai-ngan-ngay-cuoi-thang`, `aivb-j2-ho-so-duyet-va-so-tien` (r6 rời ô này ở gói 1 v4)
-- A1 · customer · basic · debug: `aivb-r7-khach-uu-tien-hoat-dong`, `aivb-s7-ma-dang-ky-kinh-doanh`
-- A1 · customer · basic · write: `aivb-n1-ca-nhan-thieu-nghe-nghiep`, `aivb-s2-ho-kinh-doanh-fnb`
-- A1 · customer · easy · debug: `aivb-s9-quyet-dinh-kyc-thang-12-2025`, `aivb-j7-chu-so-huu-tai-khoan-da-dong`
-- A3 · finance · medium · write: `aivb-j3-so-du-casa-theo-phan-khuc` (t6 rời ô này ở gói 4 v4, nay là `aivb-t6-ky-han-tien-gui-tu-200-ty`, Cơ bản)
-- C4 · customer · medium · write: `aivb-j4-ty-le-khach-co-ho-so-vay` (t3 rời ô này ở gói 4 v4, nay là `aivb-t3-nguoi-vay-theo-so-khoan-vay`, Dễ)
-- E2 · operations · medium · write: `aivb-k2-phan-bo-thu-no-khong-co-lenh` (t2 rời ô này ở gói 4 v4, nay là `aivb-t2-cho-vay-moi-va-thu-goc-quy-4`, B1 · finance · Dễ)
+Ô trùng **giữa các gói** (đếm lại từ khoá `\begin{cauhoi}` của 90 câu module ngày 11/11/2026 sau sửa theo KIEM-V4; cho phép, ghi để tham khảo; không cặp nào trùng cả chủ đề): 4 ô.
+- A1 · operations · basic · write: `aivb-r1-chi-nhanh-mien-nam` (gói 1), `aivb-s1-chi-nhanh-quan` (gói 2). Cùng liệt kê chi nhánh trên `ref_branch` nhưng khác điều kiện và kỹ năng (lọc `region` / `LIKE`).
+- A1 · customer · basic · write: `aivb-n1-ca-nhan-thieu-nghe-nghiep` (gói 1), `aivb-s2-ho-kinh-doanh-fnb` (gói 2).
+- A1 · customer · easy · debug: `aivb-s9-quyet-dinh-kyc-thang-12-2025` (gói 2), `aivb-j7-chu-so-huu-tai-khoan-da-dong` (gói 3).
+- A2 · operations · basic · debug: `aivb-a7-lenh-thanh-cong-2026` (gói 2), `aivb-p8-lenh-tra-no-thang-12-ra-0` (gói 5). Cùng bảng lệnh và dáng một dòng `COUNT` + `SUM(amount)`, nhưng khác chủ đề và khác lỗi (a7 thiếu lọc trạng thái trên lệnh cả năm; p8 gõ sai mã loại giao dịch tháng 12).
+
+Các ô ghi ở bản trước đã hết trùng: s5, s7 đổi ô ở gói 2 v4; j3, j4, k2 không còn cặp vì t6, t3, t2 rời ô ở gói 4 v4.
 
 ### Chênh lệch so với bản đồ bản 1 (phân bổ gốc)
 

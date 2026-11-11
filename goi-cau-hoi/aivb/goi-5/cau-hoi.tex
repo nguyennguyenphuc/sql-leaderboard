@@ -225,7 +225,7 @@
 \begin{erd}
   \erdbang{core_person}{0,0}{party_id:PK, employment_status*='STUDENT', occupation_code*=NULL, residence_province='HUE', income_band}
 \end{erd}
-\begin{nghiepvu}{Biết phần thiếu nghề nghiệp nằm ở nhóm chưa đi làm, đã nghỉ hưu hay ở nhóm đang đi làm, trước khi giao việc bổ sung hồ sơ.}
+\begin{nghiepvu}{Chọn nhóm khách cần ưu tiên bổ sung nghề nghiệp trước khi giao việc.}
   \khainiem{chu-the-va-khach-hang}
   \khainiem{kyc}
   \luuy{Ô nghề nghiệp bỏ trống được lưu là NULL, không phải chuỗi rỗng.}
@@ -252,7 +252,7 @@
   \erdbang{core_loan_schedule}{1,0}{schedule_id:PK, loan_id:FK, principal_due*, principal_paid*, schedule_status*}
   \erdnoi[kieu=1-n, tren={một khoản vay, nhiều kỳ trả nợ}]{core_loan_contract.loan_id}{core_loan_schedule.loan_id}
 \end{erd}
-\begin{nghiepvu}{Biết có thể lấy dư nợ trên hợp đồng làm số liệu cho báo cáo chất lượng tín dụng hay phải tính lại từ lịch trả nợ.}
+\begin{nghiepvu}{Quyết định dùng dư nợ trên hợp đồng hay tính lại từ lịch trả nợ cho báo cáo chất lượng tín dụng.}
   \khainiem{du-no}
   \khainiem{lich-tra-no}
   \khainiem{trang-thai-khoan-vay}
@@ -297,10 +297,10 @@
 \begin{cauhoi}[ma=aivb-k7-ngay-tu-choi-bat-thuong, dulieu=aivb, domain=after_sales,
   hinhthuc=debug, cap=easy, dang=E1, kynang={WHERE, AVG, so với chuẩn}, bay={quen-loc-trang-thai},
   tacgia={Agent gói 5}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.01]
-\tieude{Ngày từ chối bất thường chỉ ra toàn ngày đông giao dịch}
-\boicanh[Anh Quang · Trưởng phòng vận hành thanh toán]{Anh cần những ngày có nhiều lệnh bị từ chối bất thường ở từng kênh, mà danh sách em gửi chỉ toàn ngày đông giao dịch, không thấy ngày nào có sự cố.}
+\tieude{Danh sách ngày từ chối bất thường của quý 1 bị trống}
+\boicanh[Anh Quang · Trưởng phòng vận hành thanh toán]{Anh cần những ngày quý 1 năm nay có nhiều lệnh bị từ chối bất thường ở từng kênh. Danh sách em gửi không có ngày nào, mà bộ phận hỗ trợ có ghi nhận sự cố trong quý.}
 \begin{yeucau}
-  \item Xét lệnh thanh toán bị từ chối (\code{payment_status = 'REJECTED'}) có \code{transaction_date} trong năm 2026.
+  \item Xét lệnh thanh toán bị từ chối (\code{payment_status = 'REJECTED'}) có \code{transaction_date} trong quý 1/2026 (từ ngày 01/01 tới hết ngày 31/03/2026).
   \item Đếm số lệnh bị từ chối theo kênh × ngày. Bình quân ngày của một kênh bằng tổng số lệnh bị từ chối của kênh chia cho số ngày kênh đó có lệnh bị từ chối.
   \item Giữ các cặp kênh × ngày có số lệnh bị từ chối lớn hơn 3 lần bình quân ngày của chính kênh đó.
   \item Truy vấn dưới đây sai ở một chỗ. Sửa lại; giữ tên cột \code{channel_code}, \code{transaction_date}, \code{so_lenh_tu_choi}, \code{bq_ngay_kenh} (làm tròn 2 chữ số) và thứ tự sắp theo kênh, ngày.
@@ -317,7 +317,7 @@
 \end{nghiepvu}
 \goiy{Truy vấn đang đếm loại lệnh nào trong mỗi ngày?}
 \goiy{Thêm \code{payment_status = 'REJECTED'} vào điều kiện lọc của CTE đếm theo ngày.}
-\ghichuthietke{Dễ (v4 hạ từ Trung bình): bỏ lỗi thứ hai (bình quân chia 365 ngày) mà v2 thêm cho đủ cấp Trung bình; starter còn một lỗi logic một chỗ, thiếu lọc \code{'REJECTED'} (HD mục 6: sửa lỗi một chỗ là Dễ). 5 trục: 1 bảng cần dùng (ERD 2 bảng, 1 bảng nhiễu, chữ trên đường nối); 3 tầng nhưng đã có sẵn trong starter; đề định nghĩa rõ bình quân và ngưỡng; 1 lỗi, 1 bẫy (nhầm lệnh bị đảo với lệnh bị từ chối); 1 công thức (3 lần bình quân). Starter ra 2 ngày đông của kênh API. Wrong: lọc \code{payment_status <> 'COMPLETED'} gộp cả lệnh bị đảo. Mảng \code{after_sales} theo STYLE-aivb G (giao dịch bị từ chối).}
+\ghichuthietke{Dễ (v4 hạ từ Trung bình): bỏ lỗi thứ hai (bình quân chia 365 ngày) mà v2 thêm cho đủ cấp Trung bình; starter còn một lỗi logic một chỗ, thiếu lọc \code{'REJECTED'} (HD mục 6: sửa lỗi một chỗ là Dễ). 5 trục: 1 bảng cần dùng (ERD 2 bảng, 1 bảng nhiễu, chữ trên đường nối); 3 tầng nhưng đã có sẵn trong starter; đề định nghĩa rõ bình quân và ngưỡng; 1 lỗi, 1 bẫy (nhầm lệnh bị đảo với lệnh bị từ chối); 1 công thức (3 lần bình quân). v4 (11/11/2026) thu phạm vi từ cả năm 2026 về quý 1/2026: starter đếm mọi lệnh cả năm chạy 38--54 giây lúc máy bận. Nay starter ra 0 dòng (đếm mọi lệnh làm bình quân ngày của kênh cao, không ngày nào vượt 3 lần), lời giải ra 2 dòng (API 27/03, POS 12/02), số lệnh và bình quân ở hidden-1 khác public. Wrong: lọc \code{payment_status <> 'COMPLETED'} gộp cả lệnh bị đảo. Mảng \code{after_sales} theo STYLE-aivb G (giao dịch bị từ chối).}
 \end{cauhoi}
 
 % ================================================================ K8 · Khó · debug
@@ -705,8 +705,8 @@
 % ================================================================ C10 · Khó · case
 \begin{cauhoi}[ma=aivb-c10-doi-soat-dong-tien-2026, dulieu=aivb, domain=operations,
   hinhthuc=case, cap=hard, diem=50, tacgia={Agent gói 5}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.01]
-\tieude{Dòng tiền ròng năm 2026 có dùng được cho kế hoạch vốn không?}
-\boicanh[Anh Quang · Trưởng phòng vận hành thanh toán]{Ban điều hành hỏi số dòng tiền ròng năm 2026 của tài khoản thanh toán có đủ tin cậy để đưa vào kế hoạch vốn không. Em rà giúp anh từ lệnh tới bút toán.}
+\tieude{Dòng tiền ròng tháng 3/2026 có dùng được cho kế hoạch vốn không?}
+\boicanh[Anh Quang · Trưởng phòng vận hành thanh toán]{Ban điều hành muốn lấy dòng tiền ròng tháng 3/2026 của tài khoản thanh toán làm mốc cho kế hoạch vốn quý 2. Em rà giúp anh số này từ lệnh tới bút toán, xem có đủ tin cậy không.}
 \begin{erd}
   \erdbang{core_payment_order}{0,0}{payment_order_id:PK}
   \erdbang{core_account_posting}{1,0}{posting_id:PK, payment_order_id:FK, account_id:FK}
@@ -716,52 +716,53 @@
   \erdbang{core_account_party}{0,1}{account_party_id:PK, account_id:FK, party_id:FK}
   \erdkhoa{Bút toán nối lệnh theo \code{payment_order_id} và tài khoản theo \code{account_id}; tài khoản nối \code{core_contract} theo \code{contract_id}; hợp đồng nối \code{ref_branch} theo \code{home_branch_id}. \code{core_account_party} không cần (nối vào sẽ nhân dòng).}
 \end{erd}
-\begin{nghiepvu}{Quyết định có dùng dòng tiền ròng từ bút toán năm 2026 làm đầu vào cho kế hoạch vốn hay cần đối soát thêm.}
+\begin{nghiepvu}{Quyết định có dùng dòng tiền ròng từ bút toán tháng 3/2026 làm đầu vào cho kế hoạch vốn hay cần đối soát thêm.}
   \khainiem{ghi-no-ghi-co}
   \khainiem{giao-dich-bi-dao}
   \khainiem{ngay-tham-chieu}
   \khainiem{doi-soat-du-lieu}
-  \luuy{Bút toán chỉ ghi phía tài khoản trong ngân hàng, nên không đối soát tổng ghi Nợ với tổng ghi Có theo lệnh. Mọi bước chỉ xét năm 2026.}
+  \luuy{Bút toán chỉ ghi phía tài khoản trong ngân hàng, nên không đối soát tổng ghi Nợ với tổng ghi Có theo lệnh. Mọi bước chỉ xét tháng 3/2026, từ ngày 01/03 tới hết ngày 31/03/2026.}
 \end{nghiepvu}
 \begin{buoc}[ma=b1, diem=10, hinhthuc=write, bang={core_payment_order, core_account_posting}]{Lệnh thành công không có bút toán}
   \begin{yeucau}
-    \item Liệt kê lệnh thanh toán thành công (\code{'COMPLETED'}) có \code{transaction_date} trong năm 2026 mà không có bút toán nào.
+    \item Liệt kê lệnh thanh toán thành công (\code{'COMPLETED'}) có \code{transaction_date} trong tháng 3/2026 mà không có bút toán nào.
     \item Trả về \code{payment_order_id}, \code{transaction_date}, \code{transaction_type}, \code{channel_code}, \code{amount} (đồng); sắp theo \code{payment_order_id}.
   \end{yeucau}
   \goiy{Dùng \code{NOT EXISTS} sang bảng bút toán theo \code{payment_order_id}.}
 \end{buoc}
-\begin{buoc}[ma=b2, diem=10, hinhthuc=write, bang={core_account_posting}]{Dòng tiền ròng theo tháng}
+\begin{buoc}[ma=b2, diem=10, hinhthuc=write, bang={core_account_posting}]{Dòng tiền ròng theo ngày}
   \begin{yeucau}
-    \item Xét các bút toán có \code{transaction_date} trong năm 2026.
-    \item Trả về \code{thang} (số 1 tới 12), \code{tong_ghi_co}, \code{tong_ghi_no}, \code{dong_tien_rong} (đồng; dòng tiền ròng bằng tổng ghi Có trừ tổng ghi Nợ); sắp theo \code{thang}.
+    \item Xét các bút toán có \code{transaction_date} trong tháng 3/2026.
+    \item Trả về \code{ngay} (ngày giao dịch, chỉ các ngày có bút toán), \code{tong_ghi_co}, \code{tong_ghi_no}, \code{dong_tien_rong} (đồng; dòng tiền ròng bằng tổng ghi Có trừ tổng ghi Nợ); sắp theo \code{ngay}.
   \end{yeucau}
   \goiy{Cộng có điều kiện theo \code{debit_credit}; \code{amount} luôn dương.}
 \end{buoc}
 \begin{buoc}[ma=b3, diem=10, hinhthuc=write, bang={core_account_posting, core_payment_order}]{Dòng tiền ròng theo trạng thái lệnh}
   \begin{yeucau}
-    \item Xét bút toán năm 2026 như bước 2, tách theo trạng thái của lệnh sinh ra bút toán (\code{core_payment_order.payment_status}).
+    \item Xét bút toán tháng 3/2026 như bước 2, tách theo trạng thái của lệnh sinh ra bút toán (\code{core_payment_order.payment_status}).
     \item Trả về \code{payment_status}, \code{so_but_toan}, \code{dong_tien_rong} (đồng); sắp theo \code{payment_status}.
   \end{yeucau}
-  \goiy{Lệnh bị đảo và lệnh bị từ chối có bút toán không? Bút toán của chúng ghi về phía nào?}
+  \goiy{Lệnh bị đảo và lệnh bị từ chối có bút toán không? Bút toán của hai loại lệnh này ghi về phía nào?}
 \end{buoc}
 \begin{buoc}[ma=b4, diem=10, hinhthuc=write, bang={core_account_posting, core_account, core_contract, ref_branch}]{Dòng tiền ròng theo chi nhánh}
   \begin{yeucau}
-    \item Xét bút toán năm 2026. Chi nhánh lấy theo hợp đồng của tài khoản (\code{core_account.contract_id}, \code{core_contract.home_branch_id}).
+    \item Xét bút toán tháng 3/2026. Chi nhánh lấy theo hợp đồng của tài khoản (\code{core_account.contract_id}, \code{core_contract.home_branch_id}).
     \item Trả về \code{region}, \code{home_branch_id}, \code{dong_tien_rong_trieu} (triệu đồng, làm tròn 0 chữ số).
     \item Sắp \code{dong_tien_rong_trieu} giảm dần; bằng nhau thì \code{home_branch_id} tăng dần.
   \end{yeucau}
+  \goiy{Đi từ bút toán sang \code{core_account}, \code{core_contract}, rồi \code{ref_branch}; không nối \code{core_account_party}.}
 \end{buoc}
 \begin{buoc}[ma=b5, diem=10, hinhthuc=ketluan, bang={core_payment_order, core_account_posting}]{Kết luận}
   \begin{luachon}
-    \phuongan{Dòng tiền ròng dùng được ngay, vì lệnh thành công thiếu bút toán chỉ là vài lệnh xử lý rủi ro khoản vay và không ghi vào tài khoản thanh toán.}
-      {Bước 1 đúng là không đáng kể, nhưng bước 3 cho thấy bút toán của lệnh bị đảo và bị từ chối còn lớn hơn dòng tiền ròng cả năm.}
-    \phuongan*{Chưa dùng ngay được, vì bút toán của lệnh bị đảo và lệnh bị từ chối ghi một phía, cộng lại lớn hơn dòng tiền ròng cả năm và cần được loại ra trước.}
+    \phuongan{Dòng tiền ròng dùng được ngay, vì lệnh thành công thiếu bút toán chỉ có một lệnh xử lý rủi ro khoản vay, không ghi vào tài khoản thanh toán.}
+      {Bước 1 đúng là không đáng kể, nhưng bước 3 cho thấy bút toán của lệnh bị đảo và bị từ chối còn lớn hơn dòng tiền ròng cả tháng.}
+    \phuongan*{Chưa dùng ngay được, vì bút toán của lệnh bị đảo và lệnh bị từ chối ghi một phía, cộng lại lớn hơn dòng tiền ròng cả tháng và cần được loại ra trước.}
       {Đúng: bước 3 cho thấy hai nhóm lệnh này có dòng tiền ròng trái dấu nhau, chênh lệch còn lại lớn hơn tổng dòng tiền ròng của bước 2.}
     \phuongan{Chưa dùng ngay được, vì dòng tiền ròng của một số chi nhánh âm, chứng tỏ bút toán của các chi nhánh đó bị ghi thiếu phía ghi Có.}
       {Bước 4 chỉ cho thấy chênh lệch giữa các chi nhánh; dòng tiền ròng âm ở một chi nhánh chưa đủ chứng minh bút toán bị ghi thiếu.}
   \end{luachon}
 \end{buoc}
-\ghichuthietke{Case Khó: 6 bảng chỉ khoá, 1 bảng nhiễu gây nhân dòng, quan hệ mở bằng \code{erdkhoa}. v2 thay bước 3 (tài khoản không phát sinh) bằng dòng tiền ròng theo trạng thái lệnh, vì bút toán một phía của lệnh \code{'REVERSED'}, \code{'REJECTED'} lớn hơn dòng tiền ròng cả năm; kết luận viết lại theo số. v3 xác nhận phải loại bút toán của lệnh bị đảo, bị từ chối: theo Parameter Book, lệnh bị đảo sinh bút toán đối ứng (\code{POST.REVERSAL.1}, \code{MIRROR}) và lệnh bị từ chối hoàn lại phía ghi Nợ (\code{POST.REJECT.1}), nên ảnh hưởng ròng tới tài khoản bằng 0; dữ liệu chỉ giữ bút toán gốc nên phải loại. Bẫy: chỉ dò bút toán ghi Nợ (b1), thiếu cận trên năm (b2), cộng trần \code{amount} (b3, b4).}
+\ghichuthietke{Case Khó: 6 bảng chỉ khoá, 1 bảng nhiễu gây nhân dòng, quan hệ mở bằng \code{erdkhoa}. v2 thay bước 3 (tài khoản không phát sinh) bằng dòng tiền ròng theo trạng thái lệnh, vì bút toán một phía của lệnh \code{'REVERSED'}, \code{'REJECTED'} lớn hơn dòng tiền ròng cả năm; kết luận viết lại theo số. v3 xác nhận phải loại bút toán của lệnh bị đảo, bị từ chối: theo Parameter Book, lệnh bị đảo sinh bút toán đối ứng (\code{POST.REVERSAL.1}, \code{MIRROR}) và lệnh bị từ chối hoàn lại phía ghi Nợ (\code{POST.REJECT.1}), nên ảnh hưởng ròng tới tài khoản bằng 0; dữ liệu chỉ giữ bút toán gốc nên phải loại. v4 (11/11/2026) thu phạm vi từ cả năm 2026 về tháng 3/2026 vì lời giải b1, b3, b4 trên cả năm (khoảng 2,1 triệu bút toán) chạy 20--66 giây; b2 đổi từ theo tháng sang theo ngày (22 ngày có bút toán). Tháng 3 được chọn vì giữ nguyên câu chuyện: dòng tiền ròng cả tháng khoảng 0,81 tỷ đồng, bút toán của lệnh bị đảo (+1,82 tỷ) và bị từ chối (-0,80 tỷ) cộng lại khoảng 1,02 tỷ, lớn hơn; bỏ hai nhóm này thì dòng tiền ròng của lệnh thành công còn khoảng -0,21 tỷ, đổi dấu. Bước 1 ra 1 lệnh xử lý rủi ro khoản vay ở public; hidden-1 thêm một lệnh giải ngân 31/03/2026 không có bút toán (2 dòng). Bẫy: chỉ dò bút toán ghi Nợ (b1), bỏ sót ngày cuối tháng do cận trên viết \code{< '2026-03-31'} (b2), cộng trần \code{amount} (b3, b4).}
 \end{cauhoi}
 
 \end{document}

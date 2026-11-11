@@ -97,3 +97,13 @@ Kiểm:
 - Bộ kiểm đầy đủ cả gói (`--ra cong-cu/ket-qua/cap-do/aivb-goi-1`): **KIEM TRA: 0 loi**, 0 cảnh báo; 20 câu; mọi wrong rớt ≥ 1 biến thể; mọi câu kết quả public ≠ hidden-1; solution chậm nhất 5,2 giây (R5, không đổi).
 - Biên dịch `bash cong-cu/bien_dich.sh goi-cau-hoi/aivb/goi-1 <…>/cong-cu/ket-qua/cap-do/aivb-goi-1-bien-dich`: 50 trang, 0 lỗi LaTeX, 0 ký tự thiếu, 0 cảnh báo gói lệnh (28 overfull hbox, chỉ trình bày).
 - Thư mục gói vẫn đúng 4 file.
+
+## Sửa theo KIEM-V4 (11/11/2026)
+
+Căn cứ `ho-so/KIEM-V4-B.md`, `ho-so/KIEM-V4-C.md`. Gói 1 chỉ có một điểm "Cần sửa" (r3, giọng văn); không đổi SQL, không đổi cấp, không đổi mã.
+
+| Mã | Điểm B/C | Đã sửa gì | Kết quả kiểm |
+|---|---|---|---|
+| aivb-r3-kyc-khong-dat-con-quan-he-ha-noi | C: `\boicanh` "các khách không đạt nhận biết khách hàng (KYC)" thiếu danh từ | → "các khách không đạt kiểm tra nhận biết khách hàng (KYC)" | Chỉ sửa chữ. Bộ kiểm đầy đủ cả gói `cong-cu/ket-qua/sua-v4/aivb-goi-1`: KIEM TRA: 0 loi; biên dịch `cong-cu/ket-qua/sua-v4/aivb-goi-1/bien-dich`: 50 trang, 0 lỗi LaTeX |
+
+Ghi chú: r8, c2 và khái niệm `tien-gui-co-ky-han` của gói này là định nghĩa chuẩn mà aivb-t6 (gói 4) nay theo (`'ACTIVE'` là đang còn hiệu lực; `'RENEWED'` là hợp đồng cũ đã tái tục). Góp ý không chặn của B (r2 `\ghichuthietke` đếm số bảng; n6 câu mở lời nhắn gần giống q6; c1 gợi ý nấc cuối có hai biểu thức) chưa áp ở đợt này, để người soạn cân nhắc.

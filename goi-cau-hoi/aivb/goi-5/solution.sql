@@ -230,7 +230,7 @@ ORDER BY chinh_sach_gan, chinh_sach_hieu_luc;
 WITH theo_ngay AS (
   SELECT channel_code, transaction_date, COUNT(*) AS so_lenh_tu_choi
   FROM core_payment_order
-  WHERE transaction_date >= '2026-01-01' AND transaction_date < '2027-01-01'
+  WHERE transaction_date >= '2026-01-01' AND transaction_date < '2026-04-01'
   GROUP BY channel_code, transaction_date
 ),
 binh_quan AS (
@@ -249,7 +249,7 @@ WITH theo_ngay AS (
   SELECT channel_code, transaction_date, COUNT(*) AS so_lenh_tu_choi
   FROM core_payment_order
   WHERE payment_status = 'REJECTED'
-    AND transaction_date >= '2026-01-01' AND transaction_date < '2027-01-01'
+    AND transaction_date >= '2026-01-01' AND transaction_date < '2026-04-01'
   GROUP BY channel_code, transaction_date
 ),
 binh_quan AS (
@@ -268,7 +268,7 @@ WITH theo_ngay AS (
   SELECT channel_code, transaction_date, COUNT(*) AS so_lenh_tu_choi
   FROM core_payment_order
   WHERE payment_status <> 'COMPLETED'
-    AND transaction_date >= '2026-01-01' AND transaction_date < '2027-01-01'
+    AND transaction_date >= '2026-01-01' AND transaction_date < '2026-04-01'
   GROUP BY channel_code, transaction_date
 ),
 binh_quan AS (
@@ -870,38 +870,40 @@ ORDER BY ty_le_no_xau_pct DESC, b.region;
 SELECT o.payment_order_id, o.transaction_date, o.transaction_type, o.channel_code, o.amount
 FROM core_payment_order o
 WHERE o.payment_status = 'COMPLETED'
-  AND o.transaction_date >= '2026-01-01' AND o.transaction_date < '2027-01-01'
+  AND o.transaction_date >= '2026-03-01' AND o.transaction_date < '2026-04-01'
   AND NOT EXISTS (SELECT 1 FROM core_account_posting p WHERE p.payment_order_id = o.payment_order_id)
 ORDER BY o.payment_order_id;
 
 -- [aivb-c10-doi-soat-dong-tien-2026.b1] wrong: chi_do_but_toan_ghi_no
+-- Chỉ dò bút toán ghi Nợ: lệnh chỉ có bút toán ghi Có cũng bị coi là thiếu bút toán.
 SELECT o.payment_order_id, o.transaction_date, o.transaction_type, o.channel_code, o.amount
 FROM core_payment_order o
 WHERE o.payment_status = 'COMPLETED'
-  AND o.transaction_date >= '2026-01-01' AND o.transaction_date < '2027-01-01'
+  AND o.transaction_date >= '2026-03-01' AND o.transaction_date < '2026-04-01'
   AND NOT EXISTS (SELECT 1 FROM core_account_posting p
                    WHERE p.payment_order_id = o.payment_order_id AND p.debit_credit = 'DEBIT')
 ORDER BY o.payment_order_id;
 
 -- [aivb-c10-doi-soat-dong-tien-2026.b2] solution
-SELECT MONTH(transaction_date) AS thang,
+SELECT transaction_date AS ngay,
        SUM(CASE WHEN debit_credit = 'CREDIT' THEN amount ELSE 0 END) AS tong_ghi_co,
        SUM(CASE WHEN debit_credit = 'DEBIT' THEN amount ELSE 0 END) AS tong_ghi_no,
        SUM(CASE WHEN debit_credit = 'CREDIT' THEN amount ELSE -amount END) AS dong_tien_rong
 FROM core_account_posting
-WHERE transaction_date >= '2026-01-01' AND transaction_date < '2027-01-01'
-GROUP BY MONTH(transaction_date)
-ORDER BY thang;
+WHERE transaction_date >= '2026-03-01' AND transaction_date < '2026-04-01'
+GROUP BY transaction_date
+ORDER BY ngay;
 
--- [aivb-c10-doi-soat-dong-tien-2026.b2] wrong: thieu_can_tren
-SELECT MONTH(transaction_date) AS thang,
+-- [aivb-c10-doi-soat-dong-tien-2026.b2] wrong: bo_sot_ngay_cuoi_thang
+-- Bỏ sót ngày 31/3: cận trên viết thành trước ngày cuối tháng.
+SELECT transaction_date AS ngay,
        SUM(CASE WHEN debit_credit = 'CREDIT' THEN amount ELSE 0 END) AS tong_ghi_co,
        SUM(CASE WHEN debit_credit = 'DEBIT' THEN amount ELSE 0 END) AS tong_ghi_no,
        SUM(CASE WHEN debit_credit = 'CREDIT' THEN amount ELSE -amount END) AS dong_tien_rong
 FROM core_account_posting
-WHERE transaction_date >= '2026-01-01'
-GROUP BY MONTH(transaction_date)
-ORDER BY thang;
+WHERE transaction_date >= '2026-03-01' AND transaction_date < '2026-03-31'
+GROUP BY transaction_date
+ORDER BY ngay;
 
 -- [aivb-c10-doi-soat-dong-tien-2026.b3] solution
 SELECT o.payment_status,
@@ -909,7 +911,7 @@ SELECT o.payment_status,
        SUM(CASE WHEN p.debit_credit = 'CREDIT' THEN p.amount ELSE -p.amount END) AS dong_tien_rong
 FROM core_account_posting p
 JOIN core_payment_order o ON o.payment_order_id = p.payment_order_id
-WHERE p.transaction_date >= '2026-01-01' AND p.transaction_date < '2027-01-01'
+WHERE p.transaction_date >= '2026-03-01' AND p.transaction_date < '2026-04-01'
 GROUP BY o.payment_status
 ORDER BY o.payment_status;
 
@@ -919,7 +921,7 @@ SELECT o.payment_status,
        SUM(p.amount) AS dong_tien_rong
 FROM core_account_posting p
 JOIN core_payment_order o ON o.payment_order_id = p.payment_order_id
-WHERE p.transaction_date >= '2026-01-01' AND p.transaction_date < '2027-01-01'
+WHERE p.transaction_date >= '2026-03-01' AND p.transaction_date < '2026-04-01'
 GROUP BY o.payment_status
 ORDER BY o.payment_status;
 
@@ -930,7 +932,7 @@ FROM core_account_posting p
 JOIN core_account a ON a.account_id = p.account_id
 JOIN core_contract c ON c.contract_id = a.contract_id
 JOIN ref_branch b ON b.ref_branch_id = c.home_branch_id
-WHERE p.transaction_date >= '2026-01-01' AND p.transaction_date < '2027-01-01'
+WHERE p.transaction_date >= '2026-03-01' AND p.transaction_date < '2026-04-01'
 GROUP BY b.region, c.home_branch_id
 ORDER BY dong_tien_rong_trieu DESC, c.home_branch_id;
 
@@ -941,6 +943,6 @@ FROM core_account_posting p
 JOIN core_account a ON a.account_id = p.account_id
 JOIN core_contract c ON c.contract_id = a.contract_id
 JOIN ref_branch b ON b.ref_branch_id = c.home_branch_id
-WHERE p.transaction_date >= '2026-01-01' AND p.transaction_date < '2027-01-01'
+WHERE p.transaction_date >= '2026-03-01' AND p.transaction_date < '2026-04-01'
 GROUP BY b.region, c.home_branch_id
 ORDER BY dong_tien_rong_trieu DESC, c.home_branch_id;

@@ -68,7 +68,7 @@ GROUP BY DATE_FORMAT(transaction_date, '%Y-%m')
 ORDER BY thang;
 
 -- [aivb-s4-bien-dong-tai-khoan-2026] solution
-SELECT SUBSTRING_INDEX(product_version_id, '_', 2) AS dong_san_pham,
+SELECT SUBSTRING_INDEX(product_version_id, '_', 2) AS san_pham,
        SUM(CASE WHEN open_date <= '2025-12-31'
                  AND (close_date IS NULL OR close_date > '2025-12-31') THEN 1 ELSE 0 END) AS so_dau_ky,
        SUM(CASE WHEN open_date >= '2026-01-01' AND open_date <= '2026-12-31' THEN 1 ELSE 0 END) AS so_mo_moi,
@@ -80,11 +80,11 @@ SELECT SUBSTRING_INDEX(product_version_id, '_', 2) AS dong_san_pham,
                          AND (close_date IS NULL OR close_date >= '2026-01-01') THEN 1 ELSE 0 END), 2) AS ty_le_dong_pct
 FROM core_account
 GROUP BY SUBSTRING_INDEX(product_version_id, '_', 2)
-ORDER BY dong_san_pham;
+ORDER BY san_pham;
 
 -- [aivb-s4-bien-dong-tai-khoan-2026] wrong: bo_sot_close_date_null
 -- close_date > '2025-12-31' là NULL với tài khoản chưa đóng: đầu kỳ, cuối kỳ chỉ còn tài khoản đã đóng.
-SELECT SUBSTRING_INDEX(product_version_id, '_', 2) AS dong_san_pham,
+SELECT SUBSTRING_INDEX(product_version_id, '_', 2) AS san_pham,
        SUM(CASE WHEN open_date <= '2025-12-31' AND close_date > '2025-12-31' THEN 1 ELSE 0 END) AS so_dau_ky,
        SUM(CASE WHEN open_date >= '2026-01-01' AND open_date <= '2026-12-31' THEN 1 ELSE 0 END) AS so_mo_moi,
        SUM(CASE WHEN close_date >= '2026-01-01' AND close_date <= '2026-12-31' THEN 1 ELSE 0 END) AS so_dong,
@@ -93,11 +93,11 @@ SELECT SUBSTRING_INDEX(product_version_id, '_', 2) AS dong_san_pham,
              / SUM(CASE WHEN open_date <= '2026-12-31' AND close_date >= '2026-01-01' THEN 1 ELSE 0 END), 2) AS ty_le_dong_pct
 FROM core_account
 GROUP BY SUBSTRING_INDEX(product_version_id, '_', 2)
-ORDER BY dong_san_pham;
+ORDER BY san_pham;
 
 -- [aivb-s4-bien-dong-tai-khoan-2026] wrong: cuoi_ky_theo_trang_thai
 -- Trạng thái 'ACTIVE' là trạng thái tại ngày chốt dữ liệu và bỏ mất tài khoản không hoạt động vẫn đang mở.
-SELECT SUBSTRING_INDEX(product_version_id, '_', 2) AS dong_san_pham,
+SELECT SUBSTRING_INDEX(product_version_id, '_', 2) AS san_pham,
        SUM(CASE WHEN open_date <= '2025-12-31'
                  AND (close_date IS NULL OR close_date > '2025-12-31') THEN 1 ELSE 0 END) AS so_dau_ky,
        SUM(CASE WHEN open_date >= '2026-01-01' AND open_date <= '2026-12-31' THEN 1 ELSE 0 END) AS so_mo_moi,
@@ -108,11 +108,11 @@ SELECT SUBSTRING_INDEX(product_version_id, '_', 2) AS dong_san_pham,
                          AND (close_date IS NULL OR close_date >= '2026-01-01') THEN 1 ELSE 0 END), 2) AS ty_le_dong_pct
 FROM core_account
 GROUP BY SUBSTRING_INDEX(product_version_id, '_', 2)
-ORDER BY dong_san_pham;
+ORDER BY san_pham;
 
 -- [aivb-s4-bien-dong-tai-khoan-2026] wrong: cong_dieu_kien_ra_null
 -- SUM của phép so sánh ra NULL khi mọi dòng của nhóm có close_date trống: CASA_BIZ ghi NULL thay vì 0.
-SELECT SUBSTRING_INDEX(product_version_id, '_', 2) AS dong_san_pham,
+SELECT SUBSTRING_INDEX(product_version_id, '_', 2) AS san_pham,
        SUM(open_date <= '2025-12-31' AND (close_date IS NULL OR close_date > '2025-12-31')) AS so_dau_ky,
        SUM(open_date >= '2026-01-01' AND open_date <= '2026-12-31') AS so_mo_moi,
        SUM(close_date >= '2026-01-01' AND close_date <= '2026-12-31') AS so_dong,
@@ -121,11 +121,11 @@ SELECT SUBSTRING_INDEX(product_version_id, '_', 2) AS dong_san_pham,
              / SUM(open_date <= '2026-12-31' AND (close_date IS NULL OR close_date >= '2026-01-01')), 2) AS ty_le_dong_pct
 FROM core_account
 GROUP BY SUBSTRING_INDEX(product_version_id, '_', 2)
-ORDER BY dong_san_pham;
+ORDER BY san_pham;
 
 -- [aivb-s4-bien-dong-tai-khoan-2026] wrong: giu_ma_phien_ban
--- Gom theo nguyên mã phiên bản: cột dòng sản phẩm ra 'CASA_IND_V1' thay vì 'CASA_IND'.
-SELECT product_version_id AS dong_san_pham,
+-- Gom theo nguyên mã phiên bản: cột sản phẩm ra 'CASA_IND_V1' thay vì 'CASA_IND'.
+SELECT product_version_id AS san_pham,
        SUM(CASE WHEN open_date <= '2025-12-31'
                  AND (close_date IS NULL OR close_date > '2025-12-31') THEN 1 ELSE 0 END) AS so_dau_ky,
        SUM(CASE WHEN open_date >= '2026-01-01' AND open_date <= '2026-12-31' THEN 1 ELSE 0 END) AS so_mo_moi,
@@ -137,7 +137,7 @@ SELECT product_version_id AS dong_san_pham,
                          AND (close_date IS NULL OR close_date >= '2026-01-01') THEN 1 ELSE 0 END), 2) AS ty_le_dong_pct
 FROM core_account
 GROUP BY product_version_id
-ORDER BY dong_san_pham;
+ORDER BY san_pham;
 
 -- [aivb-s5-giai-ngan-don-cuoi-thang] solution
 SELECT DATE_FORMAT(disbursement_date, '%Y-%m') AS thang,
@@ -200,65 +200,100 @@ HAVING SUM(CASE WHEN DATEDIFF(LAST_DAY(disbursement_date), disbursement_date) < 
 ORDER BY ty_trong_pct DESC, thang;
 
 -- [aivb-s6-ngay-gia-tri-sang-thang-sau] solution
-SELECT DATE_FORMAT(transaction_date, '%Y-%m') AS thang,
-       COUNT(*) AS so_lenh,
-       SUM(CASE WHEN value_date > LAST_DAY(transaction_date) THEN 1 ELSE 0 END) AS so_lenh_sang_thang_sau,
-       ROUND(SUM(CASE WHEN value_date > LAST_DAY(transaction_date) THEN amount ELSE 0 END) / 1000000, 2) AS gia_tri_sang_thang_sau_trieu,
-       ROUND(100 * SUM(CASE WHEN value_date > LAST_DAY(transaction_date) THEN amount ELSE 0 END) / SUM(amount), 2) AS ty_le_gia_tri_pct
-FROM core_payment_order
-WHERE payment_status = 'COMPLETED'
-  AND transaction_date >= '2026-01-01' AND transaction_date < '2027-01-01'
-GROUP BY DATE_FORMAT(transaction_date, '%Y-%m')
+SELECT CONCAT(nam, '-', LPAD(thang_so, 2, '0')) AS thang,
+       so_lenh,
+       so_lenh_sang_thang_sau,
+       ROUND(gia_tri_sang_thang_sau / 1000000, 2) AS gia_tri_sang_thang_sau_trieu,
+       ROUND(100 * gia_tri_sang_thang_sau / tong_gia_tri, 2) AS ty_le_gia_tri_pct
+FROM (
+  SELECT YEAR(transaction_date) AS nam, MONTH(transaction_date) AS thang_so,
+         COUNT(*) AS so_lenh,
+         SUM(CASE WHEN value_date > LAST_DAY(transaction_date) THEN 1 ELSE 0 END) AS so_lenh_sang_thang_sau,
+         SUM(CASE WHEN value_date > LAST_DAY(transaction_date) THEN amount ELSE 0 END) AS gia_tri_sang_thang_sau,
+         SUM(amount) AS tong_gia_tri
+  FROM core_payment_order
+  WHERE payment_status = 'COMPLETED'
+    AND transaction_date >= '2026-01-01' AND transaction_date < '2027-01-01'
+  GROUP BY YEAR(transaction_date), MONTH(transaction_date)
+) AS theo_thang
 ORDER BY thang;
 
 -- [aivb-s6-ngay-gia-tri-sang-thang-sau] wrong: so_sanh_so_thang
 -- So MONTH() bỏ mất lệnh cuối tháng 12 có ngày giá trị tháng 1 năm sau (12 > 1 là sai).
-SELECT DATE_FORMAT(transaction_date, '%Y-%m') AS thang,
-       COUNT(*) AS so_lenh,
-       SUM(CASE WHEN MONTH(value_date) > MONTH(transaction_date) THEN 1 ELSE 0 END) AS so_lenh_sang_thang_sau,
-       ROUND(SUM(CASE WHEN MONTH(value_date) > MONTH(transaction_date) THEN amount ELSE 0 END) / 1000000, 2) AS gia_tri_sang_thang_sau_trieu,
-       ROUND(100 * SUM(CASE WHEN MONTH(value_date) > MONTH(transaction_date) THEN amount ELSE 0 END) / SUM(amount), 2) AS ty_le_gia_tri_pct
-FROM core_payment_order
-WHERE payment_status = 'COMPLETED'
-  AND transaction_date >= '2026-01-01' AND transaction_date < '2027-01-01'
-GROUP BY DATE_FORMAT(transaction_date, '%Y-%m')
+SELECT CONCAT(nam, '-', LPAD(thang_so, 2, '0')) AS thang,
+       so_lenh,
+       so_lenh_sang_thang_sau,
+       ROUND(gia_tri_sang_thang_sau / 1000000, 2) AS gia_tri_sang_thang_sau_trieu,
+       ROUND(100 * gia_tri_sang_thang_sau / tong_gia_tri, 2) AS ty_le_gia_tri_pct
+FROM (
+  SELECT YEAR(transaction_date) AS nam, MONTH(transaction_date) AS thang_so,
+         COUNT(*) AS so_lenh,
+         SUM(CASE WHEN MONTH(value_date) > MONTH(transaction_date) THEN 1 ELSE 0 END) AS so_lenh_sang_thang_sau,
+         SUM(CASE WHEN MONTH(value_date) > MONTH(transaction_date) THEN amount ELSE 0 END) AS gia_tri_sang_thang_sau,
+         SUM(amount) AS tong_gia_tri
+  FROM core_payment_order
+  WHERE payment_status = 'COMPLETED'
+    AND transaction_date >= '2026-01-01' AND transaction_date < '2027-01-01'
+  GROUP BY YEAR(transaction_date), MONTH(transaction_date)
+) AS theo_thang
 ORDER BY thang;
 
 -- [aivb-s6-ngay-gia-tri-sang-thang-sau] wrong: moi_lenh_lech_ngay
 -- Đếm mọi lệnh có ngày giá trị sau ngày giao dịch, kể cả lệnh vẫn trong cùng tháng.
-SELECT DATE_FORMAT(transaction_date, '%Y-%m') AS thang,
-       COUNT(*) AS so_lenh,
-       SUM(CASE WHEN value_date > transaction_date THEN 1 ELSE 0 END) AS so_lenh_sang_thang_sau,
-       ROUND(SUM(CASE WHEN value_date > transaction_date THEN amount ELSE 0 END) / 1000000, 2) AS gia_tri_sang_thang_sau_trieu,
-       ROUND(100 * SUM(CASE WHEN value_date > transaction_date THEN amount ELSE 0 END) / SUM(amount), 2) AS ty_le_gia_tri_pct
-FROM core_payment_order
-WHERE payment_status = 'COMPLETED'
-  AND transaction_date >= '2026-01-01' AND transaction_date < '2027-01-01'
-GROUP BY DATE_FORMAT(transaction_date, '%Y-%m')
+SELECT CONCAT(nam, '-', LPAD(thang_so, 2, '0')) AS thang,
+       so_lenh,
+       so_lenh_sang_thang_sau,
+       ROUND(gia_tri_sang_thang_sau / 1000000, 2) AS gia_tri_sang_thang_sau_trieu,
+       ROUND(100 * gia_tri_sang_thang_sau / tong_gia_tri, 2) AS ty_le_gia_tri_pct
+FROM (
+  SELECT YEAR(transaction_date) AS nam, MONTH(transaction_date) AS thang_so,
+         COUNT(*) AS so_lenh,
+         SUM(CASE WHEN value_date > transaction_date THEN 1 ELSE 0 END) AS so_lenh_sang_thang_sau,
+         SUM(CASE WHEN value_date > transaction_date THEN amount ELSE 0 END) AS gia_tri_sang_thang_sau,
+         SUM(amount) AS tong_gia_tri
+  FROM core_payment_order
+  WHERE payment_status = 'COMPLETED'
+    AND transaction_date >= '2026-01-01' AND transaction_date < '2027-01-01'
+  GROUP BY YEAR(transaction_date), MONTH(transaction_date)
+) AS theo_thang
 ORDER BY thang;
 
 -- [aivb-s6-ngay-gia-tri-sang-thang-sau] wrong: quen_can_tren
 -- Thiếu cận trên: trên hidden-1 có thêm nhóm 2027-01.
-SELECT DATE_FORMAT(transaction_date, '%Y-%m') AS thang,
-       COUNT(*) AS so_lenh,
-       SUM(CASE WHEN value_date > LAST_DAY(transaction_date) THEN 1 ELSE 0 END) AS so_lenh_sang_thang_sau,
-       ROUND(SUM(CASE WHEN value_date > LAST_DAY(transaction_date) THEN amount ELSE 0 END) / 1000000, 2) AS gia_tri_sang_thang_sau_trieu,
-       ROUND(100 * SUM(CASE WHEN value_date > LAST_DAY(transaction_date) THEN amount ELSE 0 END) / SUM(amount), 2) AS ty_le_gia_tri_pct
-FROM core_payment_order
-WHERE payment_status = 'COMPLETED'
-  AND transaction_date >= '2026-01-01'
-GROUP BY DATE_FORMAT(transaction_date, '%Y-%m')
+SELECT CONCAT(nam, '-', LPAD(thang_so, 2, '0')) AS thang,
+       so_lenh,
+       so_lenh_sang_thang_sau,
+       ROUND(gia_tri_sang_thang_sau / 1000000, 2) AS gia_tri_sang_thang_sau_trieu,
+       ROUND(100 * gia_tri_sang_thang_sau / tong_gia_tri, 2) AS ty_le_gia_tri_pct
+FROM (
+  SELECT YEAR(transaction_date) AS nam, MONTH(transaction_date) AS thang_so,
+         COUNT(*) AS so_lenh,
+         SUM(CASE WHEN value_date > LAST_DAY(transaction_date) THEN 1 ELSE 0 END) AS so_lenh_sang_thang_sau,
+         SUM(CASE WHEN value_date > LAST_DAY(transaction_date) THEN amount ELSE 0 END) AS gia_tri_sang_thang_sau,
+         SUM(amount) AS tong_gia_tri
+  FROM core_payment_order
+  WHERE payment_status = 'COMPLETED'
+    AND transaction_date >= '2026-01-01'
+  GROUP BY YEAR(transaction_date), MONTH(transaction_date)
+) AS theo_thang
 ORDER BY thang;
 
 -- [aivb-s6-ngay-gia-tri-sang-thang-sau] wrong: quen_loc_thanh_cong
-SELECT DATE_FORMAT(transaction_date, '%Y-%m') AS thang,
-       COUNT(*) AS so_lenh,
-       SUM(CASE WHEN value_date > LAST_DAY(transaction_date) THEN 1 ELSE 0 END) AS so_lenh_sang_thang_sau,
-       ROUND(SUM(CASE WHEN value_date > LAST_DAY(transaction_date) THEN amount ELSE 0 END) / 1000000, 2) AS gia_tri_sang_thang_sau_trieu,
-       ROUND(100 * SUM(CASE WHEN value_date > LAST_DAY(transaction_date) THEN amount ELSE 0 END) / SUM(amount), 2) AS ty_le_gia_tri_pct
-FROM core_payment_order
-WHERE transaction_date >= '2026-01-01' AND transaction_date < '2027-01-01'
-GROUP BY DATE_FORMAT(transaction_date, '%Y-%m')
+SELECT CONCAT(nam, '-', LPAD(thang_so, 2, '0')) AS thang,
+       so_lenh,
+       so_lenh_sang_thang_sau,
+       ROUND(gia_tri_sang_thang_sau / 1000000, 2) AS gia_tri_sang_thang_sau_trieu,
+       ROUND(100 * gia_tri_sang_thang_sau / tong_gia_tri, 2) AS ty_le_gia_tri_pct
+FROM (
+  SELECT YEAR(transaction_date) AS nam, MONTH(transaction_date) AS thang_so,
+         COUNT(*) AS so_lenh,
+         SUM(CASE WHEN value_date > LAST_DAY(transaction_date) THEN 1 ELSE 0 END) AS so_lenh_sang_thang_sau,
+         SUM(CASE WHEN value_date > LAST_DAY(transaction_date) THEN amount ELSE 0 END) AS gia_tri_sang_thang_sau,
+         SUM(amount) AS tong_gia_tri
+  FROM core_payment_order
+  WHERE transaction_date >= '2026-01-01' AND transaction_date < '2027-01-01'
+  GROUP BY YEAR(transaction_date), MONTH(transaction_date)
+) AS theo_thang
 ORDER BY thang;
 
 -- [aivb-s7-tham-nien-khach-hang] starter
