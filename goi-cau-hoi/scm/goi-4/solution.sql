@@ -8,13 +8,13 @@ WITH ton AS (
   SELECT it.family, SUM(i.on_hand_end) AS ton_cuoi_ky
   FROM inventory_snapshots i
   JOIN items it ON it.item_nbr = i.item_nbr
-  WHERE i.ym = '2017-07'
+  WHERE i.store_nbr = 44 AND i.ym = '2017-07'
   GROUP BY it.family
 ), ban AS (
   SELECT it.family, SUM(s.unit_sales) AS luong_ban
   FROM sales s
   JOIN items it ON it.item_nbr = s.item_nbr
-  WHERE s.`date` >= '2017-07-01' AND s.`date` < '2017-08-01'
+  WHERE s.store_nbr = 44 AND s.`date` >= '2017-07-01' AND s.`date` < '2017-08-01'
   GROUP BY it.family
 )
 SELECT ton.family,
@@ -32,7 +32,7 @@ WITH ton AS (
   SELECT it.family, SUM(i.on_hand_end) AS ton_cuoi_ky
   FROM inventory_snapshots i
   JOIN items it ON it.item_nbr = i.item_nbr
-  WHERE i.ym = '2017-07'
+  WHERE i.store_nbr = 44 AND i.ym = '2017-07'
   GROUP BY it.family
 )
 SELECT ton.family,
@@ -42,7 +42,7 @@ SELECT ton.family,
 FROM ton
 JOIN items it ON it.family = ton.family
 JOIN sales s ON s.item_nbr = it.item_nbr
-WHERE s.`date` >= '2017-07-01' AND s.`date` < '2017-08-01'
+WHERE s.store_nbr = 44 AND s.`date` >= '2017-07-01' AND s.`date` < '2017-08-01'
 GROUP BY ton.family
 HAVING SUM(s.unit_sales) > 0
 ORDER BY SUM(ton.ton_cuoi_ky) / SUM(s.unit_sales) DESC, ton.family;
@@ -53,13 +53,13 @@ WITH ton AS (
   SELECT it.family, SUM(i.on_hand_end) AS ton_cuoi_ky
   FROM inventory_snapshots i
   JOIN items it ON it.item_nbr = i.item_nbr
-  WHERE i.ym = '2017-07'
+  WHERE i.store_nbr = 44 AND i.ym = '2017-07'
   GROUP BY it.family
 ), ban AS (
   SELECT it.family, SUM(s.unit_sales) AS luong_ban
   FROM sales s
   JOIN items it ON it.item_nbr = s.item_nbr
-  WHERE s.`date` >= '2017-07-01'
+  WHERE s.store_nbr = 44 AND s.`date` >= '2017-07-01'
   GROUP BY it.family
 )
 SELECT ton.family,

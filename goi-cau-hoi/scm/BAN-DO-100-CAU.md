@@ -35,7 +35,7 @@ Cột “Đề một câu”: gói 1 do A viết; gói 2–5 lấy câu yêu c�
 | `scm-n8-dung-han-thai-binh-tron` | 1 | M2 | Sửa lỗi | Dễ | A2 | operations | Tỷ lệ giao đúng hạn ở Thái Bình ra số tròn | Sửa truy vấn dưới đây để tính đúng tỷ lệ giao đúng hạn của các đơn có kho đích `HUB_THAIBINH`, đặt trong tháng 7/2017. · Giữ nguyên các cột `so_don`, `so_dung_han`, `ty_le_dung_han_pct` (phần trăm, làm tròn 2 chữ số). | orders | lam-tron-giua-chung, don-huy-trong-mau-so |
 | `scm-n9-gio-tre-nam-dinh-am` | 1 | M2 | Sửa lỗi | Trung bình | C3 | customer | Giờ trễ của đơn tới Nam Định ra số âm | Sửa hai lỗi trong truy vấn dưới đây. Kết quả cần liệt kê các đơn tới Nam Định đặt trong tháng 7/2017, đã giao tới khách nhưng trễ so với cam kết. · Tính `so_gio_tre` bằng số giờ giao muộn hơn cam kết (số dương, làm … | orders | dao-phep-tru, don-huy |
 | `scm-c1-tu-ap-voucher-huy-don` | 1 | case | Case | Cơ bản | – | marketing | Tự động áp mã có làm khách huỷ đơn ít hơn? | b1 Tỷ lệ huỷ của hai nhóm; b2 Kết luận | orders | b1: gom_theo_co_dung_voucher, thieu_can_tren |
-| `scm-c2-thang-ban-nhieu-nhat-2017` | 1 | case | Case | Cơ bản | – | sales | Tháng nào năm 2017 bán được nhiều hàng nhất? | b1 Lượng bán toàn chuỗi theo kỳ; b2 Kết luận | inventory_snapshots | b1: tru_thieu_hut, cong_ton_cuoi_ky |
+| `scm-c2-thang-ban-nhieu-nhat-2017` | 1 | case | Case | Cơ bản | – | sales | Tháng nào năm 2017 cửa hàng 43 bán được nhiều hàng nhất? | b1 Lượng bán của cửa hàng 43 theo kỳ; b2 Kết luận | inventory_snapshots | b1: tru_thieu_hut, cong_ton_cuoi_ky |
 
 ## Gói 2 · M3 String & Date + M4 Aggregation + 2 case
 
@@ -48,10 +48,10 @@ Cột “Đề một câu”: gói 1 do A viết; gói 2–5 lấy câu yêu c�
 | `scm-s5-ban-theo-thu-cua-hang-44` | 2 | M3 | Viết | Dễ | B1 | sales | Cửa hàng 44 bán BEVERAGES nhiều nhất vào thứ nào? | Xét các dòng bán của cửa hàng 44, ngành hàng `'BEVERAGES'`, từ ngày 1/7/2017 tới hết ngày 31/7/2017. · Tính tổng lượng bán của từng thứ trong tuần cho cả tháng (không chia cho số ngày), theo tab Nghiệp vụ. | sales, items | quen-can-tren |
 | `scm-s6-chuyen-giao-tre-quy-2` | 2 | M3 | Viết | Dễ | A1 | operations | Chuyến giao nào trễ hạn trong quý 2/2017? | Xét các chuyến giao có `on_time` bằng 0 và ngày đầu tuần giao từ `'2017-04-01'` tới hết `'2017-06-30'`. · Ngày đầu tuần giao `tuan_bat_dau` là phần trước dấu `/` của cột `week`, giữ dạng chuỗi `'YYYY-MM-DD'`. | shipments, stores | lay-sai-phan-chuoi |
 | `scm-s7-gia-tri-nhan-sai-thu-tu` | 2 | M3 | Sửa lỗi | Dễ | B1 | finance | Báo cáo giá trị hàng nhận xếp sai thứ tự tháng | Truy vấn dưới đây tính giá trị hàng nhận theo giá vốn cho từng tháng nhận hàng năm 2016, nhưng các tháng xếp sai thứ tự. · Sửa để `thang` có dạng `'2016-01'` và các dòng xếp đúng thứ tự thời gian. | purchase_orders, item_costs | sap-ten-thang |
-| `scm-s8-von-ton-cuoi-ky-2017` | 2 | M3 | Viết | Trung bình | B1 | finance | Vốn tồn cuối mỗi kỳ năm 2017 là bao nhiêu? | Xét các kỳ từ 2017-01 trở đi, chỉ giữ tháng đủ theo tab Nghiệp vụ. · Tính vốn tồn kho cuối kỳ của toàn chuỗi cho từng kỳ, bằng tổng cột `inventory_value` có sẵn (không tính lại từ `on_hand_end` và giá vốn). | inventory_snapshots | thang-chua-du, quen-can-tren |
+| `scm-s8-von-ton-cuoi-ky-2017` | 2 | M3 | Viết | Trung bình | B1 | finance | Cửa hàng 1 tồn bao nhiêu vốn cuối mỗi kỳ năm 2017? | Xét các kỳ từ 2017-01 trở đi, chỉ giữ tháng đủ theo tab Nghiệp vụ. · Tính vốn tồn kho cuối kỳ của cửa hàng 1 cho từng kỳ, bằng tổng cột `inventory_value` có sẵn (không tính lại từ `on_hand_end` và giá vốn). | inventory_snapshots | thang-chua-du, quen-can-tren |
 | `scm-s9-muc-tang-ngay-cao-diem-2016` | 2 | M3 | Sửa lỗi | Khó | C3 | marketing | Mức tăng đơn ngày cao điểm 2016 bị tính thấp | Xét các ngày trong năm 2016; so mức tăng số đơn thực tế của ngày cao điểm (so với ngày nền) với mức tăng kế hoạch, theo quy mô sự kiện. · Truy vấn dưới đây có hai lỗi chồng nhau ở tập ngày nền. Sửa cả hai; giữ nguyên các cột `tier`, `so_ngay`, … | orders, event_calendar | cong-tru-so-vao-ngay, bo-su-kien-ngoai-nam |
 | `scm-a1-chuyen-giao-theo-dc-2016` | 2 | M4 | Viết | Cơ bản | A3 | operations | Mỗi DC chạy bao nhiêu chuyến giao năm 2016? | Xét các chuyến giao có `week` bắt đầu bằng `'2016'`. · Đếm cho từng DC (`warehouse_id`) số chuyến và số chuyến đúng hạn (`on_time` bằng 1). | shipments | – |
-| `scm-a2-dai-chi-so-kho-dich-2017` | 2 | M4 | Sửa lỗi | Khó | A2 | operations | Dải chỉ số của kho đích lệch số đội giao hàng báo | Dải chỉ số của mỗi kho đích gồm số đơn tạo, tỷ lệ huỷ, GMV, lead time bình quân và tỷ lệ giao đúng hạn, đơn đặt từ 1/7/2017 tới hết tháng 8/2017. · Truy vấn dưới đây có ba lỗi chồng nhau. Sửa cả ba; giữ nguyên các cột … | orders | hai-tap-don, else-0-trong-avg, quen-can-tren |
+| `scm-a2-dai-chi-so-kho-dich-2017` | 2 | M4 | Sửa lỗi | Khó | A2 | operations | Bảng chỉ số kho đích lệch số đội giao hàng báo | Bảng chỉ số của mỗi kho đích gồm số đơn tạo, tỷ lệ huỷ, GMV, lead time bình quân và tỷ lệ giao đúng hạn, đơn đặt từ 1/7/2017 tới hết tháng 8/2017. · Truy vấn dưới đây có ba lỗi chồng nhau. Sửa cả ba; giữ nguyên các cột … | orders | hai-tap-don, else-0-trong-avg, quen-can-tren |
 | `scm-a3-voucher-theo-loai-kho` | 2 | M4 | Viết | Dễ | C2 | marketing | Khách tự áp mã ở kho chính hay kho vệ tinh nhiều hơn? | Xét các đơn có `order_date` trong tháng 7/2017 thuộc nhóm thử nghiệm `checkout_group = 'manual'`. · Tính cho kho chính và kho vệ tinh (cột `role` của kho đích) số đơn, số đơn có voucher và tỷ lệ đơn dùng voucher, theo tab Nghiệp vụ. | orders, sorting_hubs | mau-so-sai, quen-can-tren |
 | `scm-a4-cua-hang-vang-khach-2016` | 2 | M4 | Viết | Dễ | C3 | customer | Cửa hàng nào vắng khách năm 2016? | Xét các ngày trong năm 2016. · Tính lượt giao dịch bình quân mỗi ngày của từng cửa hàng, trên các ngày có số liệu giao dịch; chỉ giữ cửa hàng có mức bình quân dưới 1.000. | transactions, stores | where-thay-having |
 | `scm-a5-so-ma-ban-cua-hang-44` | 2 | M4 | Sửa lỗi | Dễ | A3 | sales | Số mã hàng có bán ở cửa hàng 44 vượt cả danh mục | Truy vấn dưới đây cần đếm số mã hàng (SKU) khác nhau có dòng bán ở cửa hàng 44 trong tháng 7/2017, theo ngành hàng. · Sửa lại cho đúng; giữ nguyên cột `family`, `so_ma` và thứ tự sắp. | sales, items | dem-dong-thay-vi-ma |
@@ -66,23 +66,23 @@ Cột “Đề một câu”: gói 1 do A viết; gói 2–5 lấy câu yêu c�
 
 | Mã | Gói | Module | Hình thức | Cấp | Dạng | Mảng | Tiêu đề | Đề một câu | Bảng dùng | Bẫy chính |
 |---|---|---|---|---|---|---|---|---|---|---|
-| `scm-j1-ban-theo-loai-cua-hang` | 3 | M5 | Viết | Dễ | A3 | sales | Loại cửa hàng nào bán nhiều nhất tháng 7/2017? | Xét các dòng bán từ ngày 1/7/2017 tới hết ngày 31/7/2017. · Tính số cửa hàng có bán và tổng lượng bán của từng loại cửa hàng (`stores.type`), kể cả dòng trả hàng. | sales, stores | quen-can-tren |
+| `scm-j1-ban-theo-loai-cua-hang` | 3 | M5 | Viết | Dễ | A3 | sales | Loại cửa hàng nào bán nhiều nhất ba ngày cuối tháng 7/2017? | Xét các dòng bán từ ngày 29/7/2017 tới hết ngày 31/7/2017. · Tính số cửa hàng có bán và tổng lượng bán của từng loại cửa hàng (`stores.type`), kể cả dòng trả hàng. | sales, stores | quen-can-tren |
 | `scm-j2-ma-chua-tung-dat-mua` | 3 | M5 | Viết | Dễ | E1 | operations | Mã hàng nào chưa từng có đơn mua? | Xét mọi mã hàng trong `items` và mọi đơn mua (PO) trong `purchase_orders`, không giới hạn thời gian. · Đếm cho từng ngành hàng số mã hàng không có đơn mua nào. | items, purchase_orders | inner-join-mat-dong |
 | `scm-j3-giao-dich-loai-a-ngay-15-7` | 3 | M5 | Viết | Cơ bản | A2 | customer | Ngày 15/7/2017 cửa hàng loại A có bao nhiêu lượt giao dịch? | Xét các cửa hàng có `type = 'A'` và ngày `'2017-07-15'`. · Đếm số cửa hàng có số liệu giao dịch trong ngày đó và cộng lượt giao dịch của các cửa hàng này. | transactions, stores | quen-loc-loai |
 | `scm-j4-ncc-co-lo-truot-theo-dc` | 3 | M5 | Sửa lỗi | Dễ | A3 | after_sales | Số nhà cung cấp có lô trượt lên tới hàng nghìn | Xét các đơn mua đặt trong năm 2016 có kết quả kiểm định là lô trượt. · Sửa truy vấn khởi đầu để đếm đúng số nhà cung cấp (NCC) có ít nhất một lô trượt, theo từng trung tâm phân phối (DC) nhận hàng. | purchase_orders, suppliers | dem-dong-thay-vi-ncc |
 | `scm-j5-lead-time-theo-tuyen-kho` | 3 | M5 | Viết | Trung bình | A3 | operations | Tuyến kho nào có lead time dài nhất tháng 7/2017? | Xét các đơn tạo từ ngày 1/7/2017 tới hết ngày 31/7/2017, không tính đơn huỷ. · Tính số đơn và lead time bình quân (giờ, từ lúc tạo đơn tới lúc giao thành công) của từng cặp kho xuất – kho đích. | orders, sorting_hubs | don-huy, noi-mot-lan |
-| `scm-j6-doanh-thu-m2-theo-loai-cua-hang` | 3 | M5 | Viết | Khó | A3 | sales | Loại cửa hàng nào tạo doanh thu trên m² cao nhất tháng 7/2017? | Xét lượng bán tháng 7/2017 của mọi cửa hàng có bán trong tháng, kể cả dòng trả hàng. · Tính doanh thu trên m² của từng loại cửa hàng theo tab Nghiệp vụ, và mức chênh so với doanh thu trên m² của cả chuỗi. | sales, item_costs, stores, store_attributes | fan-out, trung-binh-ty-le, quen-can-tren |
+| `scm-j6-doanh-thu-m2-theo-loai-cua-hang` | 3 | M5 | Viết | Khó | A3 | sales | Loại cửa hàng nào tạo doanh thu trên m² cao nhất? | Xét lượng bán từ ngày 29/7/2017 tới hết ngày 31/7/2017 của mọi cửa hàng có bán trong kỳ, kể cả dòng trả hàng. · Tính doanh thu trên m² của từng loại cửa hàng theo tab Nghiệp vụ, và mức chênh so với doanh thu trên m² của cả chuỗi. | sales, item_costs, stores, store_attributes | fan-out, trung-binh-ty-le, quen-can-tren |
 | `scm-j7-hang-loi-theo-dc-gap-doi` | 3 | M5 | Sửa lỗi | Trung bình | E2 | after_sales | Hàng lỗi theo DC cộng lại bị gấp đôi | Xét các đơn mua đặt trong năm 2016 và đã về kho. · Sửa truy vấn khởi đầu để mỗi đơn mua chỉ tính một lần, vào đúng DC của nhà cung cấp giao đơn đó. | purchase_orders, suppliers | fan-out, noi-sai-cot |
-| `scm-j8-giao-dich-ngay-le-dia-phuong` | 3 | M5 | Viết | Khó | C3 | marketing | Ngày lễ địa phương năm 2016 làm lượt giao dịch thay đổi thế nào? | Xét lượt giao dịch của các cửa hàng trong năm 2016. · Tính lượt giao dịch bình quân một cửa hàng trong một ngày của từng thành phố, tách ngày lễ địa phương và các ngày còn lại của năm, rồi tính mức tăng theo tab Nghiệp vụ. | transactions, stores, holidays | noi-chi-theo-ngay, le-bi-doi, dong-le-trung |
+| `scm-j8-giao-dich-ngay-le-dia-phuong` | 3 | M5 | Viết | Khó | C3 | marketing | Ngày lễ địa phương 2016 làm lượt giao dịch đổi ra sao? | Xét lượt giao dịch của các cửa hàng trong năm 2016. · Tính lượt giao dịch bình quân một cửa hàng trong một ngày của từng thành phố, tách ngày lễ địa phương và các ngày còn lại của năm, rồi tính mức tăng theo tab Nghiệp vụ. | transactions, stores, holidays | noi-chi-theo-ngay, le-bi-doi, dong-le-trung |
 | `scm-j9-don-mua-thang-7-moi-ncc` | 3 | M5 | Sửa lỗi | Cơ bản | A3 | operations | Bảng đơn mua tháng 7/2017 thiếu nhà cung cấp | Xét các đơn mua đặt từ ngày 1/7/2017 tới hết ngày 31/7/2017. · Sửa truy vấn khởi đầu để mọi nhà cung cấp trong `suppliers` đều có một dòng; nhà cung cấp không có đơn nào có `so_don` bằng 0. | suppliers, purchase_orders | inner-join-mat-dong |
 | `scm-q1-ncc-lead-time-tren-binh-quan` | 3 | M6 | Viết | Dễ | C3 | operations | Nhà cung cấp nào giao chậm hơn bình quân 2016? | Xét các đơn mua đặt trong năm 2016 và đã về kho. · Tính lead time (thời gian từ khi đặt hàng tới khi nhận hàng) thực tế bình quân, tính bằng ngày, của từng nhà cung cấp và của toàn bộ các đơn đó, theo tab Nghiệp vụ. | purchase_orders | pham-vi-truy-van-con |
 | `scm-q2-ncc-co-lo-truot-thang-7` | 3 | M6 | Viết | Dễ | A1 | after_sales | Nhà cung cấp nào có đơn tháng 7/2017 bị trượt? | Xét các đơn mua có ngày đặt (`po_date`) từ 1/7/2017 tới hết 31/7/2017. · Liệt kê nhà cung cấp có ít nhất một lô trượt (`inspection_result = 'Fail'`) trong các đơn đó, mỗi nhà cung cấp một dòng. | suppliers, purchase_orders | join-lap-dong, quen-can-tren |
 | `scm-q3-hang-tuoi-song-cua-hang-44` | 3 | M6 | Viết | Cơ bản | A2 | sales | Ngày 1/7/2017 cửa hàng 44 bán được bao nhiêu hàng tươi sống? | Xét các dòng bán của cửa hàng 44 (`store_nbr = 44`) ngày `'2017-07-01'`, chỉ lấy mã hàng tươi sống (`perishable = 1` trong `items`). · Tính tổng lượng bán, kể cả dòng trả hàng. | sales, items | nham-hang-kho |
-| `scm-q4-cua-hang-tren-binh-quan-loai` | 3 | M6 | Viết | Trung bình | C3 | sales | Cửa hàng nào bán vượt bình quân cùng loại? | Xét các dòng bán trong tháng 7/2017. · Tính tổng lượng bán của từng cửa hàng và lượng bán bình quân một cửa hàng của từng loại cửa hàng. | sales, stores | chuan-sai-nhom, binh-quan-sai-muc |
-| `scm-q5-don-da-ve-gan-nhat-moi-ncc` | 3 | M6 | Viết | Khó | B4 | operations | Đơn đã về gần nhất của mỗi nhà cung cấp có trễ hẹn không? | Xét mọi đơn mua đã về kho, không giới hạn thời gian. · Tìm cho từng nhà cung cấp đúng một đơn đã về gần nhất theo ngày đặt; nhiều đơn cùng ngày đặt thì lấy đơn có `po_id` lớn nhất. | suppliers, warehouses, purchase_orders | don-chua-ve, trung-ngay, max-tung-cot |
+| `scm-q4-cua-hang-tren-binh-quan-loai` | 3 | M6 | Viết | Trung bình | C3 | sales | Cửa hàng nào bán vượt bình quân cùng loại? | Xét các dòng bán từ ngày 29/7/2017 tới hết ngày 31/7/2017. · Tính tổng lượng bán của từng cửa hàng và lượng bán bình quân một cửa hàng của từng loại cửa hàng. | sales, stores | chuan-sai-nhom, binh-quan-sai-muc |
+| `scm-q5-don-da-ve-gan-nhat-moi-ncc` | 3 | M6 | Viết | Khó | B4 | operations | Đơn về gần nhất của mỗi nhà cung cấp có trễ hẹn không? | Xét mọi đơn mua đã về kho, không giới hạn thời gian. · Tìm cho từng nhà cung cấp đúng một đơn đã về gần nhất theo ngày đặt; nhiều đơn cùng ngày đặt thì lấy đơn có `po_id` lớn nhất. | suppliers, warehouses, purchase_orders | don-chua-ve, trung-ngay, max-tung-cot |
 | `scm-q6-ty-trong-von-ton-cua-hang-45` | 3 | M6 | Viết | Cơ bản | C2 | finance | Cửa hàng 45 giữ bao nhiêu phần vốn tồn kỳ 2017-07? | Xét các dòng tồn kho của kỳ `ym = '2017-07'`. · Tính vốn tồn của cửa hàng 45 (`store_nbr = 45`) và tỷ trọng vốn tồn đó trên tổng vốn tồn của cả chuỗi trong cùng kỳ. | inventory_snapshots | mau-so-sai-ky |
 | `scm-q7-ma-khong-ban-duoc-ra-0` | 3 | M6 | Sửa lỗi | Dễ | E1 | sales | Số mã hàng không bán được tháng 7/2017 ra 0 | Xét mọi mã hàng trong `items` và các dòng bán trong tháng 7/2017. · Sửa truy vấn khởi đầu để đếm đúng số mã hàng không có dòng bán nào trong tháng ở bất kỳ cửa hàng nào. | items, sales | tuong-quan-sai-bi-danh |
-| `scm-q8-ncc-loi-cao-hon-nganh` | 3 | M6 | Sửa lỗi | Khó | C3 | after_sales | Danh sách NCC lỗi cao thiếu ngành hàng ít lỗi | Xét các đơn mua đặt trong năm 2016 và đã về kho. · Truy vấn khởi đầu có hai lỗi chồng nhau. Sửa cả hai để giữ lại nhà cung cấp có tỷ lệ hàng lỗi lớn hơn tỷ lệ hàng lỗi của chính ngành hàng mình; cả hai tỷ lệ tính theo tab Nghiệp vụ, trên … | purchase_orders, suppliers | thieu-tuong-quan, trung-binh-ty-le |
+| `scm-q8-ncc-loi-cao-hon-nganh` | 3 | M6 | Sửa lỗi | Khó | C3 | after_sales | Danh sách nhà cung cấp lỗi cao thiếu ngành hàng ít lỗi | Xét các đơn mua đặt trong năm 2016 và đã về kho. · Truy vấn khởi đầu có hai lỗi chồng nhau. Sửa cả hai để giữ lại nhà cung cấp có tỷ lệ hàng lỗi lớn hơn tỷ lệ hàng lỗi của chính ngành hàng mình; cả hai tỷ lệ tính theo tab Nghiệp vụ, trên … | purchase_orders, suppliers | thieu-tuong-quan, trung-binh-ty-le |
 | `scm-q9-diem-giao-theo-nhom-gia-tri` | 3 | M6 | Sửa lỗi | Trung bình | C4 | customer | Hai nhóm điểm giao cộng lại vượt tổng số điểm | Xét các đơn tạo trong tháng 7/2017, không tính đơn huỷ. · Xếp mỗi điểm giao vào đúng một nhóm theo giá trị đơn bình quân của điểm đó: `'cao'` khi từ 24 USD trở lên, `'thap'` khi dưới 24 USD. | orders | phan-nhom-sai-muc |
 | `scm-c5-dc-nhan-hang-tre` | 3 | case | Case | Dễ | – | operations | Vì sao DC TP.HCM nhận hàng trễ nhiều? | b1 Tỷ lệ giao đúng hạn theo DC năm 2016; b2 Nhà cung cấp của DC TP.HCM; b3 Kết luận | purchase_orders, suppliers | b1: dem_tre_thay_vi_dung_han; b2: quen_loc_nam |
 | `scm-c6-cao-diem-giao-tre` | 3 | case | Case | Trung bình | – | marketing | Đơn ngày cao điểm năm 2016 chậm ở chặng nào? | b1 Đơn bình quân và tỷ lệ đúng hạn theo loại ngày; b2 Chặng nào chậm thêm vào ngày cao điểm?; b3 Kho nào phân loại chậm nhất vào ngày cao điểm?; b4 Kết luận | orders, event_calendar, sorting_hubs | b1: inner_join_mat_ngay_thuong; b2: noi_kho_xuat; b3: theo_kho_xuat |
@@ -91,7 +91,7 @@ Cột “Đề một câu”: gói 1 do A viết; gói 2–5 lấy câu yêu c�
 
 | Mã | Gói | Module | Hình thức | Cấp | Dạng | Mảng | Tiêu đề | Đề một câu | Bảng dùng | Bẫy chính |
 |---|---|---|---|---|---|---|---|---|---|---|
-| `scm-t1-ton-tren-ban-nganh-hang` | 4 | M7 | Viết | Trung bình | A3 | sales | Ngành hàng nào tồn nhiều so với lượng bán tháng 7/2017? | Tính tồn cuối kỳ 2017-07 của từng ngành hàng (tổng `on_hand_end`) và lượng bán tháng 7/2017 (tổng `unit_sales`, từ ngày 1 tới hết ngày 31). · Tính tỷ số tồn trên bán theo tab Nghiệp vụ; chỉ giữ ngành hàng có lượng bán … | inventory_snapshots, items, sales | fan-out, quen-can-tren |
+| `scm-t1-ton-tren-ban-nganh-hang` | 4 | M7 | Viết | Trung bình | A3 | sales | Ngành hàng nào ở cửa hàng 44 tồn nhiều so với lượng bán? | Chỉ xét cửa hàng 44. Tính tồn cuối kỳ 2017-07 của từng ngành hàng (tổng `on_hand_end`) và lượng bán tháng 7/2017 (tổng `unit_sales`, từ ngày 1 tới hết ngày 31). · Tính tỷ số tồn trên bán theo tab Nghiệp vụ; chỉ giữ ngành hàng có lượng bán … | inventory_snapshots, items, sales | fan-out, quen-can-tren |
 | `scm-t2-chuyen-giao-cua-hang-18` | 4 | M7 | Viết | Khó | B1 | operations | Tháng nào năm 2016 cửa hàng 18 không nhận hàng? | Xét các chuyến giao tới cửa hàng 18 có tuần bắt đầu trong năm 2016; tháng của chuyến theo tab Nghiệp vụ. · Trả về đủ 12 dòng: `thang` (chuỗi `'2016-01'` tới `'2016-12'`), `so_chuyen`, `luong_giao` (tổng số lượng giao, … | shipments | thang-trong-bien-mat |
 | `scm-t3-ma-hang-can-ra-soat` | 4 | M7 | Viết | Dễ | A3 | after_sales | Ngành hàng nào có nhiều mã cần rà soát nhất? | Xét các đơn mua có `po_date` từ `'2017-01-01'` tới trước `'2017-07-01'`. · Lấy tập mã hàng có lô trượt (`inspection_result = 'Fail'`) và tập mã hàng có đơn về trễ, rồi hợp hai tập; mỗi mã chỉ tính một lần. | items, purchase_orders | union-all-dem-trung |
 | `scm-t4-nhap-xuat-ton-cua-hang-3` | 4 | M7 | Sửa lỗi | Cơ bản | A2 | operations | Lượng nhập tháng 7 của cửa hàng 3 bằng đúng lượng bán | Truy vấn dưới đây lập báo cáo nhập xuất tồn kỳ 2017-07 của cửa hàng 3, mỗi chỉ tiêu một dòng: tồn đầu kỳ, nhập trong kỳ, lượng bán trong kỳ, tồn cuối kỳ. Dòng nhập trong kỳ đang ra bằng dòng lượng bán. · Sửa để dòng nhập trong kỳ lấy đúng lượng nhập. | inventory_snapshots | sai-cot-cong |
@@ -131,98 +131,94 @@ Cột “Đề một câu”: gói 1 do A viết; gói 2–5 lấy câu yêu c�
 | `scm-p4-von-ton-hang-khong-ban` | 5 | M10 | Tối ưu | Cơ bản | A2 | finance | Vốn tồn của mã hàng không bán được chỉ với một lần quét | Giữ nguyên kết quả: một dòng cho kỳ `'2017-07'`, ba cột `von_ton` (tổng vốn tồn), `von_ton_khong_ban` (vốn tồn của các dòng có `sold = 0`), `so_dong_khong_ban` (số dòng có `sold = 0`); … | inventory_snapshots | quet-lai-bang |
 | `scm-p5-giao-dich-theo-loai-cua-hang` | 5 | M10 | Tối ưu | Dễ | A3 | customer | Lượt giao dịch theo loại cửa hàng chỉ với một lần quét | Giữ nguyên kết quả: các ngày năm 2016, mỗi loại cửa hàng (`type` từ `'A'` tới `'E'`) một dòng, gồm `type`, `so_cua_hang` (số cửa hàng có giao dịch), `gd_tb` … · Sắp theo `type`. | transactions, stores | union-all-lap |
 | `scm-p6-don-truot-7-ngay` | 5 | M10 | Tối ưu | Khó | B3 | operations | Đơn cần xử lý 7 ngày gần nhất chỉ với một lần quét | Giữ nguyên kết quả: mỗi kho, mỗi ngày năm 2016 một dòng, gồm `hub_id`, `ngay`, `don_can_xu_ly`, `don_7_ngay` (tổng đơn cần xử lý của ngày đó và sáu ngày liền trước, kể cả ngày cuối năm 2015). · Sắp theo `hub_id`, rồi … | warehouse_daily_ops | tu-noi-bang, loc-truoc-cua-so |
-| `scm-p7-ty-le-dung-han-sau-khi-gop` | 5 | M10 | Sửa lỗi | Dễ | A2 | operations | Tỷ lệ giao đúng hạn theo miền lệch báo cáo cũ | Truy vấn dưới đây tính cho từng miền, đơn đặt trong tháng 7/2017: `so_don` (mọi đơn), `ty_le_huy_pct`, `ty_le_dung_han_pct` (theo tab Nghiệp vụ). Riêng cột cuối lệch báo cáo cũ; sửa cột này. · Giữ nguyên tên cột, làm … | orders | gop-sai-mau-so |
-| `scm-p8-voucher-dem-hai-lan` | 5 | M10 | Sửa lỗi | Trung bình | A3 | marketing | Đơn có voucher bị đếm hai lần sau khi sửa báo cáo | Truy vấn dưới đây lấy các đơn đặt trong tháng 7/2017 giao tới kho `'HUB_HUE'` hoặc có khách tự áp mã (`voucher_manually_applied = 1`), rồi đếm theo kho đích, nhưng ra sai. Sửa lại nhưng vẫn giữ cách tách hai … | orders | union-all-dem-trung |
+| `scm-p7-don-moi-diem-giao-sau-khi-gop` | 5 | M10 | Sửa lỗi | Dễ | A2 | customer | Số điểm giao theo miền bằng đúng số đơn | Truy vấn dưới đây tính cho từng miền (`region`), trên các đơn đặt trong tháng 7/2017: `so_don` (mọi đơn), `so_diem_giao` (số điểm giao khác nhau đã nhận đơn), `don_moi_diem` (số đơn bình quân mỗi điểm giao, làm tròn 2 chữ số). Hai cột sau ra sai; sửa lại. · Giữ nguyên tên … | orders | dem-dong-thay-gia-tri-khac-nhau |
+| `scm-p8-voucher-dem-hai-lan` | 5 | M10 | Sửa lỗi | Trung bình | A3 | marketing | Số đơn kho Huế tăng sau khi sửa báo cáo | Truy vấn dưới đây lấy các đơn đặt trong tháng 7/2017 giao tới kho `'HUB_HUE'` hoặc có khách tự áp mã (`voucher_manually_applied = 1`), rồi đếm theo kho đích, nhưng ra sai. Sửa lại nhưng vẫn giữ cách tách hai … | orders | union-all-dem-trung |
 | `scm-p9-bao-cao-kho-thang-7` | 5 | M10 | Viết | Khó | A3 | operations | Từng kho vận hành ra sao trong tháng 7/2017? | Tính cho từng kho trong danh sách kho, tháng 7/2017: số đơn có kho đích là kho đó (kể cả đơn huỷ), tỷ lệ huỷ, lead time trung bình của đơn không huỷ, số ngày quá tải theo tab Nghiệp vụ. · Trả về `hub_id`, `role`, … | sorting_hubs, orders, warehouse_daily_ops | fan-out, lead-time-gom-don-huy |
 | `scm-c9-kho-ha-noi-qua-tai` | 5 | case | Case | Khó | – | operations | Vì sao kho Hà Nội quá tải năm 2016? | b1 Kho nào quá tải nhiều nhất năm 2016?; b2 Quá tải có tập trung ở ngày cao điểm?; b3 Ngày quá tải khác ngày không quá tải ở đơn hay ở người?; b4 Số nhân sự của hai nguồn có khớp nhau?; b5 Kết luận | warehouse_daily_ops, event_calendar, staffing_plan | b1: nguong_0_9; b2: inner_join_chi_con_ngay_cao_diem; b3: quen_loc_kho; b4: noi_thieu_ngay |
 | `scm-c10-do-dung-hoc-tap-thieu-hut` | 5 | case | Case | Khó | – | sales | Vì sao đồ dùng học tập thiếu hụt tháng 7/2017? | b1 Ngành hàng nào có fill rate (tỷ lệ lấp đầy) thấp nhất kỳ 2017-07?; b2 Nhà cung cấp có giao trễ, giao thiếu không?; b3 Lượng nhập có theo kịp lượng bán không?; b4 Lượng đặt mỗi tháng gần với lượng bán của tháng nào?; … | inventory_snapshots, items, purchase_orders | b1: trung_binh_ty_le_tung_dong; b2: tinh_ca_don_chua_ve; b3: lay_ca_ky_chua_du; b4: noi_truoc_khi_gom |
 
-## Thống kê (đếm từ bảng trên)
+## Thống kê (sinh lại tự động từ cau-hoi.tex, 100 câu)
 
-**Hình thức:** write 55 · debug 29 · optimize 6 · case 10 = 100. **Cấp:** basic 15 · easy 33 · medium 36 · hard 16.
+### Module × cấp
+
+| Tiền tố | Cơ bản | Dễ | Trung bình | Khó |
+|---|---:|---:|---:|---:|
+| `a` | 2 | 3 | 2 | 2 |
+| `c` | 3 | 2 | 2 | 3 |
+| `f` | 2 | 3 | 2 | 2 |
+| `j` | 2 | 3 | 2 | 2 |
+| `k` | 2 | 3 | 2 | 2 |
+| `n` | 2 | 3 | 2 | 2 |
+| `p` | 2 | 3 | 2 | 2 |
+| `q` | 2 | 3 | 2 | 2 |
+| `r` | 2 | 3 | 2 | 2 |
+| `s` | 2 | 3 | 2 | 2 |
+| `t` | 2 | 3 | 2 | 2 |
 
 ### Hình thức × cấp
 
-| Hình thức | basic | easy | medium | hard | Cộng |
+| Hình thức | Cơ bản | Dễ | Trung bình | Khó | Cộng |
 |---|---:|---:|---:|---:|---:|
-| write | 8 | 19 | 20 | 8 | 55 |
-| debug | 3 | 11 | 12 | 3 | 29 |
-| optimize | 1 | 1 | 2 | 2 | 6 |
-| case | 3 | 2 | 2 | 3 | 10 |
-| **Cộng** | 15 | 33 | 36 | 16 | 100 |
+| Viết | 12 | 18 | 13 | 12 | 55 |
+| Sửa lỗi | 6 | 10 | 6 | 7 | 29 |
+| Tối ưu | 2 | 2 | 1 | 1 | 6 |
+| Case | 3 | 2 | 2 | 3 | 10 |
 
-### Theo module: cấp và hình thức
+### Hình thức × mảng
 
-| Module | basic | easy | medium | hard | write | debug | optimize | Cộng |
-|---|---:|---:|---:|---:|---:|---:|---:|---:|
-| M1 Retrieval | 5 | 4 | · | · | 6 | 3 | · | 9 |
-| M2 NULL & Expressions | 2 | 5 | 2 | · | 6 | 3 | · | 9 |
-| M3 String & Date | 4 | 4 | 1 | · | 6 | 3 | · | 9 |
-| M4 Aggregation | · | 6 | 3 | · | 6 | 3 | · | 9 |
-| M5 Joins | 2 | 3 | 2 | 2 | 6 | 3 | · | 9 |
-| M6 Subqueries | 2 | 3 | 2 | 2 | 6 | 3 | · | 9 |
-| M7 CTE & Set Operations | 2 | 3 | 2 | 2 | 6 | 3 | · | 9 |
-| M8 Window Functions | 2 | 3 | 2 | 2 | 6 | 3 | · | 9 |
-| M9 Data Quality | 2 | 3 | 2 | 2 | 6 | 3 | · | 9 |
-| M10 Query Performance | 2 | 3 | 2 | 2 | 1 | 2 | 6 | 9 |
-| Case | 3 | 2 | 2 | 3 | · | · | · | 10 |
+| Hình thức | Hậu mãi | Khách hàng | Tài chính | Marketing | Vận hành | Bán hàng |
+|---|---:|---:|---:|---:|---:|---:|
+| Viết | 3 | 6 | 6 | 8 | 19 | 13 |
+| Sửa lỗi | 6 | 6 | 3 | 2 | 9 | 3 |
+| Tối ưu | 2 | 1 | 1 | 0 | 2 | 0 |
+| Case | 0 | 0 | 0 | 4 | 4 | 2 |
 
 ### Theo gói
 
-| Gói | write | debug | optimize | case | basic | easy | medium | hard |
-|---|---:|---:|---:|---:|---:|---:|---:|---:|
-| 1 | 12 | 6 | · | 2 | 9 | 9 | 2 | · |
-| 2 | 12 | 6 | · | 2 | 5 | 11 | 4 | · |
-| 3 | 12 | 6 | · | 2 | 4 | 7 | 5 | 4 |
-| 4 | 12 | 6 | · | 2 | 4 | 6 | 5 | 5 |
-| 5 | 7 | 5 | 6 | 2 | 4 | 6 | 4 | 6 |
+| Gói | Cơ bản | Dễ | Trung bình | Khó | Cộng |
+|---|---:|---:|---:|---:|---:|
+| goi-1 | < | g | e | n | e | r | a | t | o | r |   | o | b | j | e | c | t |   | m | a | i | n | . | < | l | o | c | a | l | s | > | . | < | g | e | n | e | x | p | r | > |   | a | t |   | 0 | x | 0 | 0 | 0 | 0 | 0 | 1 | 7 | 1 | D | 4 | 5 | 0 | C | A | 9 | 0 | > | 20 |
+| goi-2 | < | g | e | n | e | r | a | t | o | r |   | o | b | j | e | c | t |   | m | a | i | n | . | < | l | o | c | a | l | s | > | . | < | g | e | n | e | x | p | r | > |   | a | t |   | 0 | x | 0 | 0 | 0 | 0 | 0 | 1 | 7 | 1 | D | 4 | 5 | 0 | C | A | 9 | 0 | > | 20 |
+| goi-3 | < | g | e | n | e | r | a | t | o | r |   | o | b | j | e | c | t |   | m | a | i | n | . | < | l | o | c | a | l | s | > | . | < | g | e | n | e | x | p | r | > |   | a | t |   | 0 | x | 0 | 0 | 0 | 0 | 0 | 1 | 7 | 1 | D | 4 | 5 | 0 | C | A | 9 | 0 | > | 20 |
+| goi-4 | < | g | e | n | e | r | a | t | o | r |   | o | b | j | e | c | t |   | m | a | i | n | . | < | l | o | c | a | l | s | > | . | < | g | e | n | e | x | p | r | > |   | a | t |   | 0 | x | 0 | 0 | 0 | 0 | 0 | 1 | 7 | 1 | D | 4 | 5 | 0 | C | A | 9 | 0 | > | 20 |
+| goi-5 | < | g | e | n | e | r | a | t | o | r |   | o | b | j | e | c | t |   | m | a | i | n | . | < | l | o | c | a | l | s | > | . | < | g | e | n | e | x | p | r | > |   | a | t |   | 0 | x | 0 | 0 | 0 | 0 | 0 | 1 | 7 | 1 | D | 4 | 5 | 0 | C | A | 9 | 0 | > | 20 |
 
 ### Phủ dạng × mảng (90 câu module; case không tính)
 
 | Dạng | sales | marketing | customer | operations | finance | after_sales | Cộng |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| A1 Tra cứu lọc | 2 | 2 | 1 | 2 | · | 2 | 9 |
-| A2 KPI | 1 | 1 | 2 | 3 | 2 | 5 | 14 |
-| A3 Phân rã | 3 | 1 | · | 5 | 2 | 2 | 13 |
-| A4 Bảng chéo | · | 1 | 1 | · | · | · | 2 |
-| B1 Xu hướng | 1 | · | · | 1 | 2 | 1 | 5 |
-| B2 So kỳ trước | · | · | 1 | 1 | · | 1 | 3 |
-| B3 Luỹ kế, trượt | 1 | 1 | 1 | 2 | · | · | 5 |
-| B4 Trạng thái tại thời điểm | · | · | · | 2 | 1 | · | 3 |
-| C1 Top N mỗi nhóm | 2 | · | 1 | · | · | · | 3 |
-| C2 Tỷ trọng | · | 1 | · | · | 3 | · | 4 |
-| C3 So với chuẩn | 1 | 1 | 3 | 4 | · | 1 | 10 |
-| C4 Phân khúc | · | · | 1 | 1 | 1 | · | 3 |
-| D1 Phễu | · | · | · | · | · | · | 0 |
-| D2 Cohort | · | · | · | · | · | · | 0 |
-| D3 Chuỗi liên tiếp | · | · | · | 1 | · | · | 1 |
-| E1 Bất thường | 1 | 1 | 2 | 1 | · | 2 | 7 |
-| E2 Đối soát | 2 | · | · | 4 | 1 | 1 | 8 |
-| E3 Cấu trúc cây | · | · | · | · | · | · | 0 |
-| **Cộng** | 14 | 9 | 13 | 27 | 12 | 15 | 90 |
+| A1 | 2 | 2 | · | 2 | · | 1 | 7 |
+| A2 | 1 | 1 | 2 | 5 | 3 | 2 | 14 |
+| A3 | 4 | 1 | 2 | 4 | 2 | 2 | 15 |
+| A4 | · | · | 1 | · | · | · | 1 |
+| B1 | 1 | · | · | 1 | 2 | 2 | 6 |
+| B2 | · | 1 | 1 | 1 | · | 1 | 4 |
+| B3 | 1 | · | · | 2 | · | · | 3 |
+| B4 | · | · | · | 2 | 1 | · | 3 |
+| C1 | 2 | · | 1 | 1 | · | · | 4 |
+| C2 | · | 1 | · | · | 1 | · | 2 |
+| C3 | 1 | 3 | 3 | 3 | · | 2 | 12 |
+| C4 | · | · | 1 | 2 | · | · | 3 |
+| D1 | · | · | · | 1 | · | · | 1 |
+| D2 | · | · | · | · | · | · | 0 |
+| D3 | · | · | · | 1 | · | · | 1 |
+| E1 | 2 | 1 | 2 | 1 | · | · | 6 |
+| E2 | 2 | · | · | 4 | 1 | 1 | 8 |
+| E3 | · | · | · | · | · | · | 0 |
+| **Cộng** | 16 | 10 | 13 | 30 | 10 | 11 | 90 |
 
-Dạng có câu: 15/18; chưa có: D1, D2, E3; chỉ 1 câu: D3.
+Dạng có câu: 16/18; chưa có: D2, E3; chỉ 1 câu: A4, D1, D3.
 
-Mảng trên cả 100 câu (gồm case): sales 16, marketing 13, customer 13, operations 31, finance 12, after_sales 15.
+Mảng trên cả 100 câu (gồm case): sales 18, marketing 14, customer 13, operations 34, finance 10, after_sales 11.
 
-### Kiểm khung phân bổ
-
-Lệch khung (module 9 câu: M1–M9 6 write + 3 debug, M10 ~6 optimize; cấp M1–3 basic/easy, M4–6 easy/medium, M7–10 medium/hard; case gói 1 → 5: basic+basic, basic+easy, easy+medium, medium+hard, hard+hard):
-
-- `scm-n5-gio-chua-gan-don-hue` (M2) cấp medium, ngoài khung basic / easy.
-- `scm-n9-gio-tre-nam-dinh-am` (M2) cấp medium, ngoài khung basic / easy.
-- `scm-s8-von-ton-cuoi-ky-2017` (M3) cấp medium, ngoài khung basic / easy.
-- `scm-k1-ban-khong-co-ton-kho` (M9) cấp easy, ngoài khung medium / hard.
-- `scm-p1-po-theo-kiem-dinh` (M10) cấp basic, ngoài khung medium / hard.
-- `scm-p2-don-kho-ve-tinh-theo-nam` (M10) cấp easy, ngoài khung medium / hard.
-- `scm-k3-co-dung-han-mau-thuan` (M9) cấp easy, ngoài khung medium / hard (hạ ở v3 theo QUYET-DINH-CHUNG 2.3).
-- `scm-p7-ty-le-dung-han-sau-khi-gop` (M10) cấp easy, ngoài khung medium / hard (hạ ở v3 theo QUYET-DINH-CHUNG 2.3).
+### Ô trùng (dạng × mảng × cấp × hình thức)
 
 Ô dạng × mảng × cấp × hình thức trùng **trong cùng một gói**: không có.
 
-Ô trùng **giữa các gói** (2 ô; ô A3 · operations · easy · debug gỡ ở v4 khi hạ `scm-j9` xuống Cơ bản; ô A3 · finance · medium · write đã gỡ ở v3 khi viết lại scm-j6; cho phép, ghi để tham khảo): 
-- A2 · after_sales · basic · debug: `scm-r7-lo-truot-rau-cu-ra-0`, `scm-s3-lo-truot-thang-3-ra-0`
-- A3 · after_sales · easy · debug: `scm-a2-ty-le-lo-truot-100`, `scm-j4-ncc-co-lo-truot-theo-dc`
+Ô trùng **giữa các gói** (cập nhật sau sửa KIEM-V4, 11/11/2026, quét khoá của 100 câu; cho phép, ghi để tham khảo vì khác gói và khác chủ đề; trùng cả chủ đề thì phải gỡ): 2 ô.
+- A2 · operations · hard · debug: `scm-r8-don-mua-do-uong-cho-hang-thang-8` (gói 1, số đơn mua chờ hàng của nhà cung cấp đồ uống) · `scm-a2-dai-chi-so-kho-dich-2017` (gói 2, bảng chỉ số giao hàng theo kho đích). Khác bảng, khác chỉ số: giữ.
+- C3 · marketing · hard · write: `scm-n6-voucher-den-bu-don-tre-bac-giang` (gói 1, voucher đền bù đơn giao trễ) · `scm-j8-giao-dich-ngay-le-dia-phuong` (gói 3, lượt giao dịch ngày lễ địa phương). Khác chủ đề: giữ.
+- Đã gỡ ở V4: ô A2 · operations · easy · debug (`scm-n8-dung-han-thai-binh-tron` · `scm-p7-ty-le-dung-han-sau-khi-gop`, trùng cả chủ đề tỷ lệ giao đúng hạn): `scm-p7` đổi sang `scm-p7-don-moi-diem-giao-sau-khi-gop` (A2 · customer · easy · debug, ô chưa có câu nào). Hai cặp cũ (`scm-r7`/`scm-s3-lo-truot-thang-3-ra-0`, `scm-a2-ty-le-lo-truot-100`/`scm-j4`) không còn vì các câu đó đã đổi ở v3, v4.
 
 ### Chênh lệch so với bản đồ bản 1 (phân bổ gốc)
 

@@ -107,18 +107,18 @@
   {Tỷ lệ giao đúng hạn là phần đơn được giao không muộn hơn mức cam kết.}
   {số đơn có on\_time = 1 / số đơn không huỷ}
   {\code{orders.on_time} bằng 1 khi \code{lead_time_total_h} không vượt \code{promised_h}. Đơn huỷ (\code{is_cancelled}) vẫn có giá trị ở các cột thời gian, nên phải loại trước khi tính.}
-\khaibaokhainiem{lead-time-don}{Lead time của đơn}
-  {Lead time của đơn là thời gian từ lúc tạo đơn tới lúc giao thành công.}
+\khaibaokhainiem{lead-time-don}{Lead time của đơn và bốn thành phần}
+  {Lead time của đơn là thời gian từ lúc tạo đơn tới lúc giao thành công. Bốn thành phần là t1 (tạo đơn tới lấy hàng), t2 (lấy hàng tới xuất kho), middle mile (t3a di chuyển cộng t3b phân loại) và t4 (kho tới giao thành công).}
   {lead time = delivered\_at - created\_at (giờ)}
-  {\code{orders.lead_time_total_h} (giờ, có phần lẻ); \code{created_at} và \code{delivered_at} là mốc thời gian tới phần triệu giây.}
+  {\code{orders.lead_time_total_h} (giờ, có phần lẻ); \code{created_at}, \code{delivered_at} là mốc thời gian tới phần triệu giây; năm cột chặng \code{t1_tao_don_pick_h}, \code{t2_pick_xuat_h}, \code{t3a_di_chuyen_h}, \code{t3b_sorting_h}, \code{t4_kho_giao_h}. Kho xuất ở \code{origin_hub_id}, kho đích ở \code{dest_hub_id}, cùng nối \code{sorting_hubs}.}
 \khaibaokhainiem{ty-le-huy}{Tỷ lệ huỷ}
   {Tỷ lệ huỷ là phần đơn bị huỷ trong tổng số đơn được tạo.}
   {số đơn huỷ / tổng số đơn tạo}
   {\code{orders.is_cancelled} bằng 1 là đơn huỷ, 0 là đơn không huỷ.}
-\khaibaokhainiem{ngay-cao-diem}{Ngày cao điểm và ngày thường}
-  {Ngày cao điểm là ngày khuyến mãi hoặc ngày lễ trong lịch sự kiện, khi lượng đơn tăng mạnh. Ngày thường là ngày không có trong lịch sự kiện.}
+\khaibaokhainiem{ngay-cao-diem}{Ngày cao điểm, ngày nền và ngày thường}
+  {Ngày cao điểm là ngày khuyến mãi hoặc ngày lễ trong lịch sự kiện, khi lượng đơn tăng mạnh. Ngày thường là ngày không có trong lịch sự kiện. Ngày nền là ngày nằm ngoài cửa sổ hai ngày trước và sau mỗi ngày cao điểm.}
   {}
-  {\code{event_calendar}: mỗi dòng là một ngày sự kiện; \code{tier} là quy mô (\code{'nho'}, \code{'vua'}, \code{'lon'}, \code{'le'}).}
+  {\code{event_calendar}: mỗi dòng là một ngày sự kiện; \code{tier} là quy mô (\code{'nho'}, \code{'vua'}, \code{'lon'}, \code{'le'}); \code{demand_multiplier} là hệ số nhu cầu.}
 \khaibaokhainiem{ty-le-tai}{Tỷ lệ tải (workload ratio)}
   {Tỷ lệ tải là khối lượng việc cần xử lý trong ngày chia cho năng lực xử lý của kho. Tỷ lệ lớn hơn 1 là quá tải.}
   {đơn cần xử lý / năng lực ngày}
@@ -560,45 +560,44 @@ Khung xanh nét đứt (\emph{Thiết kế ERD}) là ghi chú cho người duy�
 \end{cauhoi}
 
 % ================================================================ P7 · debug · Trung bình
-\begin{cauhoi}[ma=scm-p7-ty-le-dung-han-sau-khi-gop, dulieu=scm, domain=operations,
-  hinhthuc=debug, cap=easy, dang=A2, kynang={đếm có điều kiện, AVG CASE}, bay={gop-sai-mau-so},
+\begin{cauhoi}[ma=scm-p7-don-moi-diem-giao-sau-khi-gop, dulieu=scm, domain=customer,
+  hinhthuc=debug, cap=easy, dang=A2, kynang={COUNT DISTINCT, GROUP BY}, bay={dem-dong-thay-gia-tri-khac-nhau},
   tacgia={Gói 5}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.01]
-\tieude{Tỷ lệ giao đúng hạn theo miền lệch báo cáo cũ}
-\boicanh[Anh Tuấn · Data engineer]{Anh gộp ba báo cáo số đơn, tỷ lệ huỷ và tỷ lệ giao đúng hạn theo miền làm một cho nhanh. Số đơn và tỷ lệ huỷ vẫn khớp, riêng tỷ lệ giao đúng hạn lại khác báo cáo cũ. Em tìm xem lệch ở đâu nhé.}
+\tieude{Số điểm giao theo miền bằng đúng số đơn}
+\boicanh[Bạn Linh · Thực tập sinh]{Em gộp ba báo cáo theo miền của tháng 7 làm một cho nhanh. Số đơn vẫn khớp báo cáo cũ, nhưng số điểm giao miền nào cũng bằng số đơn. Anh chị xem giúp em sai ở đâu.}
 \begin{yeucau}
-  \item Truy vấn dưới đây tính cho từng miền, đơn đặt trong tháng 7/2017: \code{so_don} (mọi đơn), \code{ty_le_huy_pct}, \code{ty_le_dung_han_pct} (theo tab Nghiệp vụ). Riêng cột cuối lệch báo cáo cũ; sửa cột này.
-  \item Giữ nguyên tên cột, làm tròn 2 chữ số, sắp theo \code{region}.
+  \item Truy vấn dưới đây tính cho từng miền (\code{region}), trên các đơn đặt trong tháng 7/2017: \code{so_don} (mọi đơn), \code{so_diem_giao} (số điểm giao khác nhau đã nhận đơn), \code{don_moi_diem} (số đơn bình quân mỗi điểm giao, làm tròn 2 chữ số). Hai cột sau ra sai; sửa lại.
+  \item Giữ nguyên tên và thứ tự cột; sắp theo \code{region}.
 \end{yeucau}
 \begin{erd}
-  \erdbang{orders}{0,0}{order_id:PK, order_date*, region*, dest_hub_id:FK, on_time*, is_cancelled*}
-  \erdbang{sorting_hubs}{1,0}{hub_id:PK, role}
-  \erdnoi[kieu=n-1, tren={nối theo \code{dest_hub_id}}]{orders.dest_hub_id}{sorting_hubs.hub_id}
+  \erdbang{orders}{0,0}{order_id:PK, order_date*, region*, dest_point_id:FK*}
+  \erdbang{delivery_points}{1,0}{point_id:PK, city}
+  \erdnoi[kieu=n-1, tren={\code{orders.dest_point_id = delivery_points.point_id}}, duoi={nhiều đơn, một điểm giao}]{orders.dest_point_id}{delivery_points.point_id}
 \end{erd}
-\begin{nghiepvu}{Thống nhất cách tính tỷ lệ giao đúng hạn trên báo cáo miền sau khi gộp ba báo cáo.}
-  \khainiem{giao-dung-han-don}
-  \khainiem{ty-le-huy}
-  \luuy{Mỗi chỉ số có mẫu số riêng: tỷ lệ huỷ tính trên mọi đơn, tỷ lệ giao đúng hạn chỉ tính trên đơn không huỷ.}
+\begin{nghiepvu}{Ước khối lượng hàng trên mỗi điểm giao của từng miền để sắp lịch xe giao hàng.}
+  \luuy{Điểm giao là nơi khách nhận hàng, ghi ở cột \code{dest_point_id} của đơn. Một điểm giao nhận nhiều đơn trong tháng.}
 \end{nghiepvu}
-\goiy{Đơn huỷ có giá trị ở cột \code{on_time} không? Đơn huỷ có thuộc mẫu số của tỷ lệ giao đúng hạn không?}
-\goiy{\code{AVG(CASE WHEN … THEN on_time END)}: dòng không thoả điều kiện cho NULL nên không vào mẫu số.}
-\ghichuthietke{Dễ (hạ từ Trung bình theo QUYET-DINH-CHUNG 2.3: sửa một biểu thức trên 1 bảng): 2 bảng, chữ trên đường nối, chỉ \code{orders} cần dùng. Starter lấy trung bình \code{on_time} trên cả đơn huỷ. Wrong loại đơn huỷ ở WHERE (sai số đơn, tỷ lệ huỷ); wrong \code{ELSE 0} giữ đơn huỷ trong mẫu số.}
+\goiy{Mọi đơn đều có điểm giao. Đếm số giá trị không trống của cột điểm giao thì ra số đơn hay số điểm giao?}
+\goiy{\code{COUNT(DISTINCT dest_point_id)}.}
+\ghichuthietke{Dễ (V4, 11/11: đổi chủ đề và mã từ \code{scm-p7-ty-le-dung-han-sau-khi-gop}, vì câu cũ trùng ô A2 · operations · Dễ · Sửa lỗi và trùng chủ đề tỷ lệ giao đúng hạn với \code{scm-n8}, lại lặp lỗi đơn huỷ trong mẫu số của \code{scm-a2}). Ô mới A2 · customer · Dễ · Sửa lỗi, cả bộ chưa có câu nào. Giữ khung Module 10 (gộp ba báo cáo thành một lần đọc bảng) và cấp Dễ: một lỗi dễ thấy, \code{COUNT(dest_point_id)} thay cho \code{COUNT(DISTINCT dest_point_id)} (ví dụ Sửa lỗi Dễ của HD mục 6), lặp ở hai cột. ERD 2 bảng, chữ trên đường nối, \code{delivery_points} là bảng nhiễu. Wrong: chỉ sửa cột số điểm giao, cột bình quân vẫn chia cho số dòng; đếm mọi điểm giao trong danh mục thay cho điểm có đơn của miền. Cả hai rớt ở public.}
 \end{cauhoi}
 
 % ================================================================ P8 · debug · Trung bình
 \begin{cauhoi}[ma=scm-p8-voucher-dem-hai-lan, dulieu=scm, domain=marketing,
   hinhthuc=debug, cap=medium, dang=A3, kynang={UNION, UNION ALL, tách điều kiện OR}, bay={union-all-dem-trung},
   tacgia={Gói 5}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.01]
-\tieude{Đơn có voucher bị đếm hai lần sau khi sửa báo cáo}
+\tieude{Số đơn kho Huế tăng sau khi sửa báo cáo}
 \boicanh[Anh Tuấn · Data engineer]{Tuần trước anh sửa báo cáo đơn cần rà soát tháng 7 cho chạy nhanh hơn. Từ hôm đó số đơn của kho Huế cao hơn báo cáo cũ, em sửa giúp anh.}
 \begin{yeucau}
   \item Truy vấn dưới đây lấy các đơn đặt trong tháng 7/2017 giao tới kho \code{'HUB_HUE'} hoặc có khách tự áp mã (\code{voucher_manually_applied = 1}), rồi đếm theo kho đích, nhưng ra sai. Sửa lại nhưng vẫn giữ cách tách hai nhánh.
   \item Giữ nguyên các cột \code{dest_hub_id}, \code{so_don}, \code{gia_tri_tb} (USD, làm tròn 2 chữ số); sắp \code{so_don} giảm dần, rồi \code{dest_hub_id}.
 \end{yeucau}
 \begin{erd}
-  \erdbang{orders}{0,0}{order_id:PK, order_date*, dest_hub_id:FK, voucher_manually_applied*, order_value_usd*}
+  \erdbang{orders}{0,0}{order_id:PK, order_date*, dest_hub_id:FK, dest_point_id:FK, voucher_manually_applied*, order_value_usd*}
   \erdbang{sorting_hubs}{1,0}{hub_id:PK, city}
   \erdbang{delivery_points}{1,1}{point_id:PK, city}
   \erdnoi[kieu=n-1]{orders.dest_hub_id}{sorting_hubs.hub_id}
+  \erdnoi[kieu=n-1]{orders.dest_point_id}{delivery_points.point_id}
 \end{erd}
 \begin{nghiepvu}{Lập danh sách đơn cần rà soát: mọi đơn của kho Huế (đang kiểm tra) và mọi đơn khách tự áp mã ở các kho.}
   \khainiem{voucher}
@@ -607,7 +606,7 @@ Khung xanh nét đứt (\emph{Thiết kế ERD}) là ghi chú cho người duy�
 \end{nghiepvu}
 \goiy{Đơn của kho Huế có khách tự áp mã nằm ở nhánh nào?}
 \goiy{\code{UNION} bỏ dòng trùng, \code{UNION ALL} giữ cả hai bản. Dòng trùng chỉ được nhận ra đúng khi mỗi nhánh có mã đơn.}
-\ghichuthietke{Trung bình: 3 bảng, chỉ \code{orders} cần dùng. Bài Module 10: tách OR thành hai nhánh để dùng chỉ mục là cách tối ưu hay gặp; \code{UNION ALL} đếm hai lần đơn thoả cả hai điều kiện. Wrong \code{UNION} bỏ \code{order_id} gộp nhầm đơn khác nhau cùng giá trị; wrong đổi ``hoặc'' thành ``và''.}
+\ghichuthietke{Trung bình: 3 bảng, chỉ \code{orders} cần dùng. Bài Module 10: tách OR thành hai nhánh để dùng chỉ mục là cách tối ưu hay gặp; \code{UNION ALL} đếm hai lần đơn thoả cả hai điều kiện. Wrong \code{UNION} bỏ \code{order_id} gộp nhầm đơn khác nhau cùng giá trị; wrong đổi ``hoặc'' thành ``và''. Sửa V4 (11/11): tiêu đề chỉ nêu triệu chứng (số đơn kho Huế tăng), không nêu sẵn chẩn đoán đếm hai lần; ERD thêm đường nối \code{orders.dest_point_id} tới \code{delivery_points} để bảng nhiễu có đường nối đúng (QUYET-DINH-CHUNG 1.3). ERD Trung bình cần 3 bảng (CHOT mục 3) mà lời giải chỉ dùng \code{orders}, nên giữ hai bảng nhiễu.}
 \end{cauhoi}
 
 % ================================================================ P9 · write · Khó

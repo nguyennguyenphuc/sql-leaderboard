@@ -68,13 +68,13 @@
 \khaibaokhainiem{lead-time-don}{Lead time của đơn và bốn thành phần}
   {Lead time của đơn là thời gian từ lúc tạo đơn tới lúc giao thành công. Bốn thành phần là t1 (tạo đơn tới lấy hàng), t2 (lấy hàng tới xuất kho), middle mile (t3a di chuyển cộng t3b phân loại) và t4 (kho tới giao thành công).}
   {lead time = delivered\_at - created\_at (giờ)}
-  {\code{orders.lead_time_total_h}; năm cột chặng \code{t1_tao_don_pick_h}, \code{t2_pick_xuat_h}, \code{t3a_di_chuyen_h}, \code{t3b_sorting_h}, \code{t4_kho_giao_h}. Kho xuất ở \code{origin_hub_id}, kho đích ở \code{dest_hub_id}, cùng nối \code{sorting_hubs}.}
+  {\code{orders.lead_time_total_h} (giờ, có phần lẻ); \code{created_at}, \code{delivered_at} là mốc thời gian tới phần triệu giây; năm cột chặng \code{t1_tao_don_pick_h}, \code{t2_pick_xuat_h}, \code{t3a_di_chuyen_h}, \code{t3b_sorting_h}, \code{t4_kho_giao_h}. Kho xuất ở \code{origin_hub_id}, kho đích ở \code{dest_hub_id}, cùng nối \code{sorting_hubs}.}
 \khaibaokhainiem{giao-dung-han-don}{Tỷ lệ giao đúng hạn của đơn chặng cuối}
   {Tỷ lệ giao đúng hạn là phần đơn được giao không muộn hơn mức cam kết.}
   {số đơn có on\_time = 1 / số đơn không huỷ}
   {\code{orders.on_time} bằng 1 khi \code{lead_time_total_h} không vượt \code{promised_h}. Đơn huỷ (\code{is_cancelled = 1}) vẫn có giá trị ở các cột thời gian, nên phải loại trước khi tính.}
-\khaibaokhainiem{ngay-cao-diem}{Ngày cao điểm và ngày thường}
-  {Ngày cao điểm là ngày khuyến mãi hoặc ngày lễ trong lịch sự kiện, khi lượng đơn tăng mạnh. Ngày thường là ngày không có trong lịch sự kiện.}
+\khaibaokhainiem{ngay-cao-diem}{Ngày cao điểm, ngày nền và ngày thường}
+  {Ngày cao điểm là ngày khuyến mãi hoặc ngày lễ trong lịch sự kiện, khi lượng đơn tăng mạnh. Ngày thường là ngày không có trong lịch sự kiện. Ngày nền là ngày nằm ngoài cửa sổ hai ngày trước và sau mỗi ngày cao điểm.}
   {}
   {\code{event_calendar}: mỗi dòng là một ngày sự kiện; \code{tier} là quy mô (\code{'nho'}, \code{'vua'}, \code{'lon'}, \code{'le'}); \code{demand_multiplier} là hệ số nhu cầu.}
 
@@ -91,10 +91,10 @@
 \begin{cauhoi}[ma=scm-j1-ban-theo-loai-cua-hang, dulieu=scm, domain=sales,
   hinhthuc=write, cap=easy, dang=A3, kynang={INNER JOIN, GROUP BY, COUNT DISTINCT}, bay={quen-can-tren},
   tacgia={Agent gói 3}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
-\tieude{Loại cửa hàng nào bán nhiều nhất tháng 7/2017?}
-\boicanh[Chị Thảo · Quản lý vùng]{Tuần sau chị họp phân bổ hàng cho quý 3. Em tổng hợp giúp chị lượng bán tháng 7 theo từng loại cửa hàng.}
+\tieude{Loại cửa hàng nào bán nhiều nhất ba ngày cuối tháng 7/2017?}
+\boicanh[Chị Thảo · Quản lý vùng]{Tuần sau chị họp phân bổ hàng cho quý 3. Em tổng hợp giúp chị lượng bán ba ngày cuối tháng 7 theo từng loại cửa hàng.}
 \begin{yeucau}
-  \item Xét các dòng bán từ ngày 1/7/2017 tới hết ngày 31/7/2017.
+  \item Xét các dòng bán từ ngày 29/7/2017 tới hết ngày 31/7/2017.
   \item Tính số cửa hàng có bán và tổng lượng bán của từng loại cửa hàng (\code{stores.type}), kể cả dòng trả hàng.
   \item Trả về \code{loai_cua_hang}, \code{so_cua_hang}, \code{tong_ban} (đơn vị, làm tròn 0 chữ số).
   \item Sắp \code{tong_ban} giảm dần; bằng nhau thì \code{loai_cua_hang} theo thứ tự chữ cái.
@@ -106,11 +106,11 @@
 \end{erd}
 \begin{nghiepvu}{Phân bổ hàng quý 3 giữa các loại cửa hàng.}
   \khainiem{luong-ban-va-nhu-cau}
-  \luuy{Một cửa hàng có hàng nghìn dòng bán trong tháng. Mỗi cửa hàng chỉ được đếm một lần dù có nhiều dòng bán.}
+  \luuy{Một cửa hàng có hàng nghìn dòng bán trong ba ngày. Mỗi cửa hàng chỉ được đếm một lần dù có nhiều dòng bán.}
 \end{nghiepvu}
 \goiy{Loại cửa hàng không có trong bảng bán hàng. Bảng nào giữ cột này, và nối với bảng bán hàng theo cột nào?}
 \goiy{Đếm cửa hàng bằng \code{COUNT(DISTINCT ...)}; lọc ngày có cả cận dưới và cận trên.}
-\ghichuthietke{Dễ: 2 bảng, chữ trên đường nối. Hai bẫy: đếm dòng thay cho cửa hàng (rớt ở public), thiếu cận trên (rớt ở hidden-1 vì có dòng ngày 2017-08-01).}
+\ghichuthietke{Dễ: 2 bảng, chữ trên đường nối. Hai bẫy: đếm dòng thay cho cửa hàng (rớt ở public), thiếu cận trên (rớt ở hidden-1 vì có dòng ngày 2017-08-01). Sửa V4 (11/11): thu kỳ từ cả tháng 7/2017 (cả bảng \code{sales}, 3,3 triệu dòng; MySQL đi từ \code{stores} rồi tra chỉ mục cửa hàng, 11--36 giây) về 29--31/7/2017 (khoảng 320 nghìn dòng, dùng chỉ mục ngày, 1,2--1,4 giây). Kỳ vẫn kết thúc ngày 31/7 nên bẫy thiếu cận trên vẫn chỉ lộ ở hidden-1.}
 \end{cauhoi}
 
 % ================================================================ J2 · write · Dễ
@@ -222,10 +222,10 @@
 \begin{cauhoi}[ma=scm-j6-doanh-thu-m2-theo-loai-cua-hang, dulieu=scm, domain=sales,
   hinhthuc=write, cap=hard, dang=A3, kynang={nối bốn bảng, gom trước khi nối, CTE}, bay={fan-out, trung-binh-ty-le, quen-can-tren},
   tacgia={Agent gói 3}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.01]
-\tieude{Loại cửa hàng nào tạo doanh thu trên m² cao nhất tháng 7/2017?}
-\boicanh[Chị Hương · Quản lý vùng]{Năm sau công ty định mở thêm cửa hàng nhưng chưa chốt mở loại nào. Em so giúp chị tháng 7 vừa rồi mỗi loại cửa hàng tạo ra bao nhiêu doanh thu trên một mét vuông mặt bằng.}
+\tieude{Loại cửa hàng nào tạo doanh thu trên m² cao nhất?}
+\boicanh[Chị Hương · Quản lý vùng]{Năm sau công ty định mở thêm cửa hàng nhưng chưa chốt mở loại nào. Em lấy số ba ngày cuối tháng 7 vừa rồi, so giúp chị mỗi loại cửa hàng tạo ra bao nhiêu doanh thu trên một mét vuông mặt bằng.}
 \begin{yeucau}
-  \item Xét lượng bán tháng 7/2017 của mọi cửa hàng có bán trong tháng, kể cả dòng trả hàng.
+  \item Xét lượng bán từ ngày 29/7/2017 tới hết ngày 31/7/2017 của mọi cửa hàng có bán trong kỳ, kể cả dòng trả hàng.
   \item Tính doanh thu trên m² của từng loại cửa hàng theo tab Nghiệp vụ, và mức chênh so với doanh thu trên m² của cả chuỗi.
   \item Trả về \code{loai_cua_hang}, \code{so_cua_hang}, \code{doanh_thu} (làm tròn 0 chữ số), \code{doanh_thu_m2} (làm tròn 2 chữ số), \code{chenh_lech_pct} (phần trăm, làm tròn 2 chữ số, âm khi thấp hơn cả chuỗi). Chỉ làm tròn ở cột kết quả.
   \item Sắp \code{doanh_thu_m2} giảm dần; bằng nhau thì \code{loai_cua_hang} theo thứ tự chữ cái.
@@ -246,7 +246,7 @@
 \end{nghiepvu}
 \goiy{Gom doanh thu theo từng cửa hàng trước (CTE hoặc bảng dẫn xuất), rồi mới ghép diện tích và gom theo loại cửa hàng.}
 \goiy{\code{SUM(dt.doanh_thu) / SUM(a.area_m2)}, với \code{dt} là bảng doanh thu đã gom theo cửa hàng.}
-\ghichuthietke{Khó (v4, nâng từ Trung bình; viết lại từ câu GMROI theo loại cửa hàng, vì GMROI tính trọn trên bảng tồn kho nên không có chỗ cho bẫy nối hai nguồn khác mức chi tiết). ERD 6 bảng chỉ khoá, 2 bảng nhiễu, không vẽ đường nối, cách nối ở \code{erdkhoa}. 5 trục: 4 bảng; 4 tầng (doanh thu theo cửa hàng, ghép diện tích, gom theo loại, so với cả chuỗi); đề chỉ nói bằng ngôn ngữ kinh doanh, chỉ số ở tab Nghiệp vụ; 3 bẫy là cộng diện tích trên từng dòng bán (fan-out, rớt ở public), trung bình tỷ số của từng cửa hàng (rớt ở public) và thiếu cận trên (chỉ lộ ở hidden-1, dòng bán ngày 2017-08-01 của cửa hàng 44); chỉ số hai thành phần cộng mức chênh so với chuẩn. Ba wrong ứng với ba bẫy.}
+\ghichuthietke{Khó (v4, nâng từ Trung bình; viết lại từ câu GMROI theo loại cửa hàng, vì GMROI tính trọn trên bảng tồn kho nên không có chỗ cho bẫy nối hai nguồn khác mức chi tiết). ERD 6 bảng chỉ khoá, 2 bảng nhiễu, không vẽ đường nối, cách nối ở \code{erdkhoa}. 5 trục: 4 bảng; 4 tầng (doanh thu theo cửa hàng, ghép diện tích, gom theo loại, so với cả chuỗi); đề chỉ nói bằng ngôn ngữ kinh doanh, chỉ số ở tab Nghiệp vụ; 3 bẫy là cộng diện tích trên từng dòng bán (fan-out, rớt ở public), trung bình tỷ số của từng cửa hàng (rớt ở public) và thiếu cận trên (chỉ lộ ở hidden-1, dòng bán ngày 2017-08-01 của cửa hàng 44); chỉ số hai thành phần cộng mức chênh so với chuẩn. Ba wrong ứng với ba bẫy. Sửa V4 (11/11): thu kỳ từ cả tháng 7/2017 (cả bảng \code{sales}, 3,3 triệu dòng, 12--34 giây) về 29--31/7/2017 (khoảng 320 nghìn dòng, MySQL dùng chỉ mục ngày, 1,5--1,9 giây). Không dùng gợi ý chỉ mục: bài học viên viết tự nhiên cũng nhanh như lời giải. Thứ tự năm loại và ba bẫy giữ nguyên trên cả hai biến thể.}
 \end{cauhoi}
 
 % ================================================================ J7 · debug · Trung bình
@@ -281,7 +281,7 @@
 \begin{cauhoi}[ma=scm-j8-giao-dich-ngay-le-dia-phuong, dulieu=scm, domain=marketing,
   hinhthuc=write, cap=hard, dang=C3, kynang={nối hai điều kiện không qua khoá, LEFT JOIN, AVG CASE WHEN}, bay={noi-chi-theo-ngay, le-bi-doi, dong-le-trung},
   tacgia={Agent gói 3}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.01]
-\tieude{Ngày lễ địa phương năm 2016 làm lượt giao dịch thay đổi thế nào?}
+\tieude{Ngày lễ địa phương 2016 làm lượt giao dịch đổi ra sao?}
 \boicanh[Chị Ngân · Trưởng ngành hàng]{Năm nay chị định chạy khuyến mãi vào ngày lễ riêng của từng thành phố. Em xem giúp chị năm 2016 ngày lễ đó làm lượt giao dịch ở mỗi thành phố tăng hay giảm bao nhiêu.}
 \begin{yeucau}
   \item Xét lượt giao dịch của các cửa hàng trong năm 2016.
@@ -416,9 +416,9 @@
   hinhthuc=write, cap=medium, dang=C3, kynang={bảng dẫn xuất, gom hai tầng}, bay={chuan-sai-nhom, binh-quan-sai-muc},
   tacgia={Agent gói 3}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=1]
 \tieude{Cửa hàng nào bán vượt bình quân cùng loại?}
-\boicanh[Anh Khoa · Quản lý vùng]{Các loại cửa hàng có quy mô rất khác nhau, nên so chung cả chuỗi không công bằng. Em lập giúp anh danh sách cửa hàng tháng 7 bán nhiều hơn mức bình quân của loại mình.}
+\boicanh[Anh Khoa · Quản lý vùng]{Các loại cửa hàng có quy mô rất khác nhau, nên so chung cả chuỗi không công bằng. Em lấy số ba ngày cuối tháng 7, lập giúp anh danh sách cửa hàng bán nhiều hơn mức bình quân của loại mình.}
 \begin{yeucau}
-  \item Xét các dòng bán trong tháng 7/2017.
+  \item Xét các dòng bán từ ngày 29/7/2017 tới hết ngày 31/7/2017.
   \item Tính tổng lượng bán của từng cửa hàng và lượng bán bình quân một cửa hàng của từng loại cửa hàng.
   \item Liệt kê cửa hàng có tổng lượng bán lớn hơn mức bình quân của loại mình.
   \item Trả về \code{store_nbr}, \code{loai_cua_hang}, \code{tong_ban}, \code{tb_loai} (đơn vị, làm tròn 0 chữ số).
@@ -436,14 +436,14 @@
 \end{nghiepvu}
 \goiy{Cần hai tầng: tầng trong ra tổng của từng cửa hàng, tầng ngoài so tổng đó với bình quân của loại.}
 \goiy{Đặt truy vấn tổng theo cửa hàng làm bảng dẫn xuất trong \code{FROM}; tính bình quân theo \code{type} trên bảng dẫn xuất đó rồi nối lại theo \code{type}.}
-\ghichuthietke{Trung bình: 3 bảng chỉ ký hiệu, \code{store_attributes} là bảng nhiễu. Wrong: so với bình quân cả chuỗi; bình quân theo dòng bán. \code{saiso=1} vì giá trị làm tròn 0 chữ số.}
+\ghichuthietke{Trung bình: 3 bảng chỉ ký hiệu, \code{store_attributes} là bảng nhiễu. Wrong: so với bình quân cả chuỗi; bình quân theo dòng bán. \code{saiso=1} vì giá trị làm tròn 0 chữ số. Sửa V4 (11/11): thu kỳ từ cả tháng 7/2017 (cả bảng \code{sales}, đọc hai lần, 46--158 giây) về 29--31/7/2017 (MySQL dùng chỉ mục ngày, 3--3,5 giây); hai wrong vẫn rớt ở public.}
 \end{cauhoi}
 
 % ================================================================ Q5 · write · Khó
 \begin{cauhoi}[ma=scm-q5-don-da-ve-gan-nhat-moi-ncc, dulieu=scm, domain=operations,
   hinhthuc=write, cap=hard, dang=B4, kynang={truy vấn con tương quan, LIMIT 1, nối ba bảng}, bay={don-chua-ve, trung-ngay, max-tung-cot},
   tacgia={Agent gói 3}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
-\tieude{Đơn đã về gần nhất của mỗi nhà cung cấp có trễ hẹn không?}
+\tieude{Đơn về gần nhất của mỗi nhà cung cấp có trễ hẹn không?}
 \boicanh[Anh Long · Nhân viên mua hàng]{Tuần sau anh gặp lần lượt các nhà cung cấp. Em lấy giúp anh đơn mua đã về gần nhất của từng nhà cung cấp, đơn đó về sớm hay trễ so với ngày hẹn và có đạt kiểm định không.}
 \begin{yeucau}
   \item Xét mọi đơn mua đã về kho, không giới hạn thời gian.
@@ -521,7 +521,7 @@
 \begin{cauhoi}[ma=scm-q8-ncc-loi-cao-hon-nganh, dulieu=scm, domain=after_sales,
   hinhthuc=debug, cap=hard, dang=C3, kynang={truy vấn con tương quan, HAVING, tỷ lệ của tổng}, bay={thieu-tuong-quan, trung-binh-ty-le},
   tacgia={Agent gói 3}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.01]
-\tieude{Danh sách NCC lỗi cao thiếu ngành hàng ít lỗi}
+\tieude{Danh sách nhà cung cấp lỗi cao thiếu ngành hàng ít lỗi}
 \boicanh[Anh Dũng · Giám đốc chuỗi cung ứng]{Anh cần danh sách nhà cung cấp lỗi nhiều hơn mức của ngành hàng mình năm 2016. Bảng em gửi không có nhà cung cấp nào của ngành hàng ít lỗi, còn tỷ lệ hàng lỗi ghi trong bảng lại lệch với sổ theo dõi của phòng mua hàng.}
 \begin{yeucau}
   \item Xét các đơn mua đặt trong năm 2016 và đã về kho.

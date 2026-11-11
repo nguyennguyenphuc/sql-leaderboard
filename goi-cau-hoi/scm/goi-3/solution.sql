@@ -9,7 +9,7 @@ SELECT st.type AS loai_cua_hang,
        ROUND(SUM(s.unit_sales), 0) AS tong_ban
 FROM sales s
 JOIN stores st ON st.store_nbr = s.store_nbr
-WHERE s.`date` >= '2017-07-01' AND s.`date` < '2017-08-01'
+WHERE s.`date` >= '2017-07-29' AND s.`date` < '2017-08-01'
 GROUP BY st.type
 ORDER BY tong_ban DESC, loai_cua_hang;
 
@@ -20,7 +20,7 @@ SELECT st.type AS loai_cua_hang,
        ROUND(SUM(s.unit_sales), 0) AS tong_ban
 FROM sales s
 JOIN stores st ON st.store_nbr = s.store_nbr
-WHERE s.`date` >= '2017-07-01'
+WHERE s.`date` >= '2017-07-29'
 GROUP BY st.type
 ORDER BY tong_ban DESC, loai_cua_hang;
 
@@ -30,7 +30,7 @@ SELECT st.type AS loai_cua_hang,
        ROUND(SUM(s.unit_sales), 0) AS tong_ban
 FROM sales s
 JOIN stores st ON st.store_nbr = s.store_nbr
-WHERE s.`date` >= '2017-07-01' AND s.`date` < '2017-08-01'
+WHERE s.`date` >= '2017-07-29' AND s.`date` < '2017-08-01'
 GROUP BY st.type
 ORDER BY tong_ban DESC, loai_cua_hang;
 
@@ -156,7 +156,7 @@ WITH dt AS (
   SELECT s.store_nbr, SUM(s.unit_sales * c.unit_price) AS doanh_thu
   FROM sales s
   JOIN item_costs c ON c.item_nbr = s.item_nbr
-  WHERE s.`date` >= '2017-07-01' AND s.`date` < '2017-08-01'
+  WHERE s.`date` >= '2017-07-29' AND s.`date` < '2017-08-01'
   GROUP BY s.store_nbr
 ),
 loai AS (
@@ -187,7 +187,7 @@ WITH loai AS (
   JOIN item_costs c ON c.item_nbr = s.item_nbr
   JOIN stores st ON st.store_nbr = s.store_nbr
   JOIN store_attributes a ON a.store_nbr = s.store_nbr
-  WHERE s.`date` >= '2017-07-01' AND s.`date` < '2017-08-01'
+  WHERE s.`date` >= '2017-07-29' AND s.`date` < '2017-08-01'
   GROUP BY st.type
 ),
 chuoi AS (
@@ -207,7 +207,7 @@ WITH dt AS (
   SELECT s.store_nbr, SUM(s.unit_sales * c.unit_price) AS doanh_thu
   FROM sales s
   JOIN item_costs c ON c.item_nbr = s.item_nbr
-  WHERE s.`date` >= '2017-07-01' AND s.`date` < '2017-08-01'
+  WHERE s.`date` >= '2017-07-29' AND s.`date` < '2017-08-01'
   GROUP BY s.store_nbr
 ),
 ch AS (
@@ -234,7 +234,7 @@ WITH dt AS (
   SELECT s.store_nbr, SUM(s.unit_sales * c.unit_price) AS doanh_thu
   FROM sales s
   JOIN item_costs c ON c.item_nbr = s.item_nbr
-  WHERE s.`date` >= '2017-07-01'
+  WHERE s.`date` >= '2017-07-29'
   GROUP BY s.store_nbr
 ),
 loai AS (
@@ -537,13 +537,13 @@ SELECT t.store_nbr, t.type AS loai_cua_hang,
 FROM (SELECT s.store_nbr, st.type, SUM(s.unit_sales) AS tong_ban
       FROM sales s
       JOIN stores st ON st.store_nbr = s.store_nbr
-      WHERE s.`date` >= '2017-07-01' AND s.`date` < '2017-08-01'
+      WHERE s.`date` >= '2017-07-29' AND s.`date` < '2017-08-01'
       GROUP BY s.store_nbr, st.type) t
 JOIN (SELECT x.type, AVG(x.tong_ban) AS tb_loai
       FROM (SELECT s.store_nbr, st.type, SUM(s.unit_sales) AS tong_ban
             FROM sales s
             JOIN stores st ON st.store_nbr = s.store_nbr
-            WHERE s.`date` >= '2017-07-01' AND s.`date` < '2017-08-01'
+            WHERE s.`date` >= '2017-07-29' AND s.`date` < '2017-08-01'
             GROUP BY s.store_nbr, st.type) x
       GROUP BY x.type) b ON b.type = t.type
 WHERE t.tong_ban > b.tb_loai
@@ -556,12 +556,12 @@ SELECT t.store_nbr, t.type AS loai_cua_hang,
 FROM (SELECT s.store_nbr, st.type, SUM(s.unit_sales) AS tong_ban
       FROM sales s
       JOIN stores st ON st.store_nbr = s.store_nbr
-      WHERE s.`date` >= '2017-07-01' AND s.`date` < '2017-08-01'
+      WHERE s.`date` >= '2017-07-29' AND s.`date` < '2017-08-01'
       GROUP BY s.store_nbr, st.type) t
 JOIN (SELECT AVG(x.tong_ban) AS tb_loai
       FROM (SELECT s.store_nbr, SUM(s.unit_sales) AS tong_ban
             FROM sales s
-            WHERE s.`date` >= '2017-07-01' AND s.`date` < '2017-08-01'
+            WHERE s.`date` >= '2017-07-29' AND s.`date` < '2017-08-01'
             GROUP BY s.store_nbr) x) b
 WHERE t.tong_ban > b.tb_loai
 ORDER BY loai_cua_hang, tong_ban DESC, t.store_nbr;
@@ -574,12 +574,12 @@ SELECT t.store_nbr, t.type AS loai_cua_hang,
 FROM (SELECT s.store_nbr, st.type, SUM(s.unit_sales) AS tong_ban
       FROM sales s
       JOIN stores st ON st.store_nbr = s.store_nbr
-      WHERE s.`date` >= '2017-07-01' AND s.`date` < '2017-08-01'
+      WHERE s.`date` >= '2017-07-29' AND s.`date` < '2017-08-01'
       GROUP BY s.store_nbr, st.type) t
 JOIN (SELECT st.type, AVG(s.unit_sales) AS tb_loai
       FROM sales s
       JOIN stores st ON st.store_nbr = s.store_nbr
-      WHERE s.`date` >= '2017-07-01' AND s.`date` < '2017-08-01'
+      WHERE s.`date` >= '2017-07-29' AND s.`date` < '2017-08-01'
       GROUP BY st.type) b ON b.type = t.type
 WHERE t.tong_ban > b.tb_loai
 ORDER BY loai_cua_hang, tong_ban DESC, t.store_nbr;

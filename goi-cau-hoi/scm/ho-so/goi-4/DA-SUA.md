@@ -85,3 +85,23 @@ Mọi câu đổi: public ≠ hidden-1 (dùng biến thể có sẵn: bỏ ~10% 
 Trùng ô: trong gói không có. So với `BAN-DO-100-CAU.md` lúc sửa: 10 ô mới đều chưa có câu nào khác của bộ (t3 đổi A1 → A3 để tránh trùng `scm-q2`). Các gói khác đang sửa song song nên cần dò lại khi gộp bản đồ; ô dễ đụng nhất: A2 · operations · Cơ bản · Sửa lỗi (t4), C1 · operations · Cơ bản · Viết (f5), C4 · operations · Cơ bản · Viết (t7).
 
 Kiểm lại (11/11, sau mọi sửa v4; gói vẫn đúng 4 file): bộ kiểm đầy đủ trên `scm`, `scm_hidden_1` (`cong-cu/ket-qua/cap-do/scm-goi-4/bao-cao-import.json`, chạy xong 02:30, sau lần sửa cuối 02:02) → **KIEM TRA: 0 loi**, 0 cảnh báo; mọi wrong mới rớt ở public và hidden-1 (riêng `scm-f3` quen_can_tren chỉ rớt ở hidden-1, như thiết kế). Solution của 10 câu đổi cho kết quả public khác hidden-1 (so md5 kết quả). Biên dịch `bash cong-cu/bien_dich.sh goi-cau-hoi/scm/goi-4 …/cong-cu/ket-qua/cap-do/scm-goi-4-pdf` → PDF 51 trang, 0 lỗi LaTeX, 0 ký tự thiếu, 0 cảnh báo gói lệnh (40 Overfull hbox, chỉ là trình bày).
+
+## Sửa theo KIEM-V4 (11/11/2026)
+
+Đầu vào: `../KIEM-V4-B.md`, `../KIEM-V4-C.md`. Quy tắc trùng ô theo đính chính 11/11: cấm trùng trong cùng gói; khác gói được phép, trừ khi trùng cả chủ đề. Không đổi cấp câu nào; không sửa database, biến thể ẩn.
+
+**Cách chữa câu chậm.** Không dùng `IGNORE INDEX` hay gợi ý chỉ mục như B đề xuất: học viên viết tự nhiên sẽ không có gợi ý nên vẫn chậm. Thay vào đó thu phạm vi dữ liệu để MySQL tự chọn kế hoạch nhanh: lọc một cửa hàng (dùng khoá chính `inventory_snapshots` hoặc chỉ mục cửa hàng của `sales`), hoặc thu kỳ đủ ngắn để dùng chỉ mục ngày (`sales` ≤ 3 ngày, `orders` ≤ 1 quý; với kỳ dài hơn, MySQL ước lượng sai và quét theo chỉ mục cột gom). Đo bằng `docker exec … mysql` (gồm cả khởi động client), 3 lần mỗi biến thể, lúc 2 bộ kiểm khác đang chạy song song; "tự nhiên" là bài viết lại không nhìn solution (`BETWEEN`, `USING`, `AVG() OVER`…), kết quả khớp solution.
+
+Khái niệm dùng chung đồng bộ ở cả 5 gói (và `style/STYLE-scm.md`): `ngay-cao-diem` → "Ngày cao điểm, ngày nền và ngày thường" (định nghĩa cả ba loại ngày, "mỗi dòng là một ngày sự kiện"); `lead-time-don` → bản bốn thành phần, ô dữ liệu gộp ghi chú của gói 3 (kho xuất, kho đích) và gói 5 (giờ có phần lẻ, mốc thời gian).
+
+| Mã | Điểm B/C | Đã sửa gì | Kết quả kiểm, thời gian đo |
+|---|---|---|---|
+| `scm-t5-nhap-xuat-dc` | C: ERD 6 bảng, 3 bảng nhiễu (Khó cho 1–2) | Bỏ `\erdbang{items}` và chữ `items` trong `\erdkhoa`; ghi chú "5 bảng chỉ khoá, 2 bảng nhiễu" và thêm 5 trục. SQL không đổi | Chỉ sửa chữ; bộ kiểm đầy đủ trên `scm`, `scm_hidden_1` (`cong-cu/ket-qua/sua-v4/scm-goi-4/`) → KIEM TRA: 0 loi, 0 cảnh báo |
+| `scm-t1-ton-tren-ban-nganh-hang` | Ngoài B/C: bộ kiểm V4 của B đo 21,1 / 16,7 giây, đo lại 14,6 (gom cả bảng `sales`) | Thu phạm vi từ toàn chuỗi về cửa hàng 44 (giữ trọn tháng 7 để tỷ số tồn trên bán giữ nghĩa; dòng bán 2017-08-01 của hidden-1 thuộc cửa hàng 44 và mã BEVERAGES nên wrong thiếu cận trên vẫn chỉ rớt hidden-1; hidden-1 có ba cặp ngành bằng nhau sau làm tròn nên giữ sắp theo tỷ số chưa làm tròn). Sửa tiêu đề "Ngành hàng nào ở cửa hàng 44 tồn nhiều so với lượng bán?", bối cảnh, yêu cầu 1, ghi chú; solution và 2 wrong thêm `store_nbr = 44` | Sau: solution 1,1–1,3 / 0,9–1,1 giây. Wrong nối thẳng rớt public; thiếu cận trên rớt hidden-1. bộ kiểm đầy đủ trên `scm`, `scm_hidden_1` (`cong-cu/ket-qua/sua-v4/scm-goi-4/`) → KIEM TRA: 0 loi, 0 cảnh báo |
+| `scm-t7-ma-thieu-hut-nhieu-ky` | C (ghi chú): giá trị mẫu ERD tự đặt | `sold=153, thieu_hut*=9.87` (dòng thật cửa hàng 44, kỳ 2017-03) | Chỉ sửa chữ |
+| `scm-f5-xep-hang-ngay-tai-kho` | C (ghi chú): giá trị mẫu ERD tự đặt | `orders_to_process=1004, headcount=14, workload_ratio*=0.554` (dòng thật DC_HANOI 2016-12-20) | Chỉ sửa chữ |
+| Khái niệm `ngay-cao-diem`, `lead-time-don` | C (s9, lỗi lặp nhiều gói) | Đồng bộ bản dùng chung; f4, c8 dùng "ngày nền", khớp định nghĩa mới | Phân tích tĩnh 0 lỗi |
+
+Không áp: B đề xuất (không bắt buộc) `IGNORE INDEX (idx_inv_ym)` cho c7 b1, b3: không dùng gợi ý chỉ mục; c7 đo 5,4–5,9 giây (máy vừa), dưới 10, nhưng tới 24,6 khi máy bận. Thu phạm vi c7 phải viết lại kết luận theo số mới (BEVERAGES, tỷ lệ nhập trên bán tháng 3 và 7) nên để vòng sau. C tuỳ chọn đổi yêu cầu 2 của t5 cho mơ hồ hơn: không áp (đã ghi điểm yếu trục mơ hồ vào ghi chú).
+
+- Kiểm cả gói sau sửa: bộ kiểm đầy đủ trên `scm`, `scm_hidden_1` (`cong-cu/ket-qua/sua-v4/scm-goi-4/`) → KIEM TRA: 0 loi, 0 cảnh báo; phân tích tĩnh (`scm-goi-4-tinh`) 0 lỗi; biên dịch `cong-cu/bien_dich.sh` (`cong-cu/ket-qua/sua-v4/scm-goi-4/bien-dich/`) → 0 lỗi LaTeX, 0 ký tự thiếu, 0 cảnh báo aio-sql-cauhoi. Thư mục gói vẫn đúng 4 file. Module vẫn 2 Cơ bản · 3 Dễ · 2 Trung bình · 2 Khó; 0 ô trùng trong cùng gói.

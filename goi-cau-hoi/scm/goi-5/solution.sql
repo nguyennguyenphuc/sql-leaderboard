@@ -680,44 +680,43 @@ FROM warehouse_daily_ops
 WHERE `date` >= '2016-01-01' AND `date` < '2017-01-01'
 ORDER BY hub_id, ngay;
 
--- [scm-p7-ty-le-dung-han-sau-khi-gop] starter
+-- [scm-p7-don-moi-diem-giao-sau-khi-gop] starter
 SELECT region,
-       COUNT(*)                                       AS so_don,
-       ROUND(100 * SUM(is_cancelled) / COUNT(*), 2)   AS ty_le_huy_pct,
-       ROUND(100 * AVG(on_time), 2)                   AS ty_le_dung_han_pct
+       COUNT(*)                                AS so_don,
+       COUNT(dest_point_id)                    AS so_diem_giao,
+       ROUND(COUNT(*) / COUNT(dest_point_id), 2) AS don_moi_diem
 FROM orders
 WHERE order_date >= '2017-07-01' AND order_date < '2017-08-01'
 GROUP BY region
 ORDER BY region;
 
--- [scm-p7-ty-le-dung-han-sau-khi-gop] solution
+-- [scm-p7-don-moi-diem-giao-sau-khi-gop] solution
 SELECT region,
-       COUNT(*)                                       AS so_don,
-       ROUND(100 * SUM(is_cancelled) / COUNT(*), 2)   AS ty_le_huy_pct,
-       ROUND(100 * AVG(CASE WHEN is_cancelled = 0 THEN on_time END), 2) AS ty_le_dung_han_pct
+       COUNT(*)                                         AS so_don,
+       COUNT(DISTINCT dest_point_id)                    AS so_diem_giao,
+       ROUND(COUNT(*) / COUNT(DISTINCT dest_point_id), 2) AS don_moi_diem
 FROM orders
 WHERE order_date >= '2017-07-01' AND order_date < '2017-08-01'
 GROUP BY region
 ORDER BY region;
 
--- [scm-p7-ty-le-dung-han-sau-khi-gop] wrong: loc_huy_cho_ca_truy_van
--- Loại đơn huỷ ở WHERE: tỷ lệ đúng hạn đúng nhưng số đơn và tỷ lệ huỷ sai.
+-- [scm-p7-don-moi-diem-giao-sau-khi-gop] wrong: chi_sua_cot_so_diem
+-- Sửa cột số điểm giao nhưng cột bình quân vẫn chia cho số dòng: miền nào cũng ra 1,00.
 SELECT region,
-       COUNT(*)                                       AS so_don,
-       ROUND(100 * SUM(is_cancelled) / COUNT(*), 2)   AS ty_le_huy_pct,
-       ROUND(100 * AVG(on_time), 2)                   AS ty_le_dung_han_pct
+       COUNT(*)                                AS so_don,
+       COUNT(DISTINCT dest_point_id)           AS so_diem_giao,
+       ROUND(COUNT(*) / COUNT(dest_point_id), 2) AS don_moi_diem
 FROM orders
 WHERE order_date >= '2017-07-01' AND order_date < '2017-08-01'
-  AND is_cancelled = 0
 GROUP BY region
 ORDER BY region;
 
--- [scm-p7-ty-le-dung-han-sau-khi-gop] wrong: case_else_0
--- CASE trả 0 cho đơn huỷ: đơn huỷ vẫn nằm trong mẫu số của trung bình.
+-- [scm-p7-don-moi-diem-giao-sau-khi-gop] wrong: dem_ca_danh_muc_diem_giao
+-- Lấy số điểm giao của cả danh mục cho mọi miền, không phải số điểm có đơn của miền.
 SELECT region,
-       COUNT(*)                                       AS so_don,
-       ROUND(100 * SUM(is_cancelled) / COUNT(*), 2)   AS ty_le_huy_pct,
-       ROUND(100 * AVG(CASE WHEN is_cancelled = 0 THEN on_time ELSE 0 END), 2) AS ty_le_dung_han_pct
+       COUNT(*) AS so_don,
+       (SELECT COUNT(*) FROM delivery_points) AS so_diem_giao,
+       ROUND(COUNT(*) / (SELECT COUNT(*) FROM delivery_points), 2) AS don_moi_diem
 FROM orders
 WHERE order_date >= '2017-07-01' AND order_date < '2017-08-01'
 GROUP BY region

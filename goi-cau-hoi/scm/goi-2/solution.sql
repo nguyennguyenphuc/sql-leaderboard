@@ -284,16 +284,16 @@ ORDER BY MIN(po.received_date);
 SELECT ym, LAST_DAY(STR_TO_DATE(CONCAT(ym, '-01'), '%Y-%m-%d')) AS ngay_chot,
        ROUND(SUM(inventory_value), 0) AS von_ton
 FROM inventory_snapshots
-WHERE ym >= '2017-01' AND ym <= '2017-07'
+WHERE store_nbr = 1 AND ym >= '2017-01' AND ym <= '2017-07'
 GROUP BY ym
 ORDER BY ym;
 
 -- [scm-s8-von-ton-cuoi-ky-2017] wrong: chi_bo_ky_2017_08
--- Rớt ở hidden-1: biến thể có thêm kỳ 2017-09.
+-- Rớt ở hidden-1: biến thể có thêm kỳ 2017-09 ở cửa hàng 1.
 SELECT ym, LAST_DAY(STR_TO_DATE(CONCAT(ym, '-01'), '%Y-%m-%d')) AS ngay_chot,
        ROUND(SUM(inventory_value), 0) AS von_ton
 FROM inventory_snapshots
-WHERE ym >= '2017-01' AND ym <> '2017-08'
+WHERE store_nbr = 1 AND ym >= '2017-01' AND ym <> '2017-08'
 GROUP BY ym
 ORDER BY ym;
 
@@ -301,7 +301,7 @@ ORDER BY ym;
 SELECT ym, LAST_DAY(STR_TO_DATE(CONCAT(ym, '-01'), '%Y-%m-%d')) AS ngay_chot,
        ROUND(SUM(inventory_value), 0) AS von_ton
 FROM inventory_snapshots
-WHERE ym >= '2017-01' AND ym <= '2017-08'
+WHERE store_nbr = 1 AND ym >= '2017-01' AND ym <= '2017-08'
 GROUP BY ym
 ORDER BY ym;
 
@@ -880,7 +880,7 @@ SELECT dest_hub_id, COUNT(*) AS so_don,
        COUNT(CASE WHEN on_time = 0 THEN 1 END) AS so_don_tre,
        ROUND(100 * COUNT(CASE WHEN on_time = 0 THEN 1 END) / COUNT(*), 2) AS ty_le_tre_pct
 FROM orders
-WHERE order_date >= '2016-01-01' AND order_date < '2017-01-01'
+WHERE order_date >= '2016-01-01' AND order_date < '2016-04-01'
   AND is_cancelled = 0
 GROUP BY dest_hub_id
 ORDER BY ty_le_tre_pct DESC, dest_hub_id;
@@ -890,7 +890,7 @@ SELECT dest_hub_id, COUNT(*) AS so_don,
        COUNT(CASE WHEN on_time = 0 THEN 1 END) AS so_don_tre,
        ROUND(100 * COUNT(CASE WHEN on_time = 0 THEN 1 END) / COUNT(*), 2) AS ty_le_tre_pct
 FROM orders
-WHERE order_date >= '2016-01-01' AND order_date < '2017-01-01'
+WHERE order_date >= '2016-01-01' AND order_date < '2016-04-01'
   AND is_cancelled = 0
 GROUP BY dest_hub_id
 ORDER BY so_don_tre DESC, dest_hub_id;

@@ -696,6 +696,7 @@ ORDER BY ty_le_huy_pct DESC;
 -- [scm-c2-thang-ban-nhieu-nhat-2017.b1] solution
 SELECT ym AS ky, SUM(sold) AS luong_ban
 FROM inventory_snapshots
+WHERE store_nbr = 43
 GROUP BY ym
 ORDER BY ym;
 
@@ -703,6 +704,7 @@ ORDER BY ym;
 -- Rớt ở public: lượng bán trong kỳ là sold, không trừ thieu_hut.
 SELECT ym AS ky, SUM(sold - thieu_hut) AS luong_ban
 FROM inventory_snapshots
+WHERE store_nbr = 43
 GROUP BY ym
 ORDER BY ym;
 
@@ -710,6 +712,7 @@ ORDER BY ym;
 -- Rớt ở public: nhầm tồn cuối kỳ với lượng bán.
 SELECT ym AS ky, SUM(on_hand_end) AS luong_ban
 FROM inventory_snapshots
+WHERE store_nbr = 43
 GROUP BY ym
 ORDER BY ym;
 
