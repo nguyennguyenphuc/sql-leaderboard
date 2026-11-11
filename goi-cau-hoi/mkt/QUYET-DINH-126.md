@@ -3,7 +3,7 @@
 Ngày 10/11/2026. Nguồn danh sách: `BAO-CAO-TONG-HOP.md` mục 3 (21 điểm của mkt) và các mục chung 3.5 có nhắc mkt (áp theo
 `QUYET-DINH-CHUNG.md`, gọi tắt QĐC). Chi tiết từng điểm (căn cứ, đã sửa gì) ở mục "Quyết định v3 (10/11)" trong `ho-so/goi-<k>/DA-SUA.md` của từng gói.
 
-Nguồn domain: BG = `lesson1_marketing_analytics_foundations.md` trong `H:\My Drive\09._PC\Giang-day\Soan bai\Project DA\Project 01 Marketing Analytics Foundations & Data Pipeline\`
+Nguồn domain: BG = `lesson1_marketing_analytics_foundations.md` trong `Project DA\Project 01 Marketing Analytics Foundations & Data Pipeline\`
 (mục II.A.2 kênh, II.C.1 CTR, III.B từ điển dữ liệu, IV.B.7 ngày không hợp lệ, IV.D KPI theo thương hiệu, loại chiến dịch). Thư mục `Review Marketing\`, `Rewrite Marketing\` không có trong thư mục dự án.
 Số liệu kiểm trực tiếp trên MySQL `mkt`, `mkt_hidden_1` ngày 10/11.
 

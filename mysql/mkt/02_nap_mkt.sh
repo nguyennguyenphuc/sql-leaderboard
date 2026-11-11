@@ -4,7 +4,7 @@
 #
 #   bash mysql/mkt/02_nap_mkt.sh
 #
-# CSV chép nguyên từ thư mục dataset của Project 01 Marketing (ổ H:, chỉ đọc đúng file):
+# CSV chép nguyên từ thư mục dataset của Project 01 Marketing (thư mục Project DA, chỉ đọc đúng file):
 #   {nykaa,purplle,tira}_campaign_data.csv (có nhiễu), *_original.csv (sạch), noise_log.csv.
 # Mật khẩu root lấy từ biến môi trường trong container, không đi qua dòng lệnh của máy.
 set -euo pipefail

@@ -48,7 +48,7 @@ Ngoài ra: mọi `\ghichuthietke` có câu "… ở hidden-1 giống public" đ�
 
 ## Quyết định v3 (10/11)
 
-Thay cho mục "Chờ giảng viên" ở trên (giữ lại làm lịch sử). Nguồn domain ở `H:\My Drive\09._PC\Giang-day\Soan bai\Project DA\Finance\`: `05_eDA_parameter_book_mini_core_banking_v5.1.5.xlsx` (gọi tắt PB), `Bang_phan_loai_datamart_va_data_dictionary_AIVBank_v5.1.6.3.xlsx` (gọi tắt DD); quy ước chung ở `QUYET-DINH-CHUNG.md`. Bảng tổng của bộ: `../QUYET-DINH-126.md`.
+Thay cho mục "Chờ giảng viên" ở trên (giữ lại làm lịch sử). Nguồn domain ở `Project DA\Finance\`: `05_eDA_parameter_book_mini_core_banking_v5.1.5.xlsx` (gọi tắt PB), `Bang_phan_loai_datamart_va_data_dictionary_AIVBank_v5.1.6.3.xlsx` (gọi tắt DD); quy ước chung ở `QUYET-DINH-CHUNG.md`. Bảng tổng của bộ: `../QUYET-DINH-126.md`.
 
 | mã | điểm | quyết định | căn cứ | đã sửa gì |
 |---|---|---|---|---|

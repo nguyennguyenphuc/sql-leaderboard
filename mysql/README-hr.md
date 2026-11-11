@@ -1,7 +1,7 @@
 # MySQL cho SQL Leaderboard · bộ dữ liệu HR Analytics (`hr`)
 
 Dựng ngày 10/11/2026 trên container dùng chung `sqllb-mysql` (MySQL 8.0, mạng `sqllb`; xem `README.md` cho container,
-mật khẩu, user chấm). Nguồn: dự án **Project 02 HR Analytics** (`H:\My Drive\09._PC\Giang-day\Soan bai\Project DA\Project 02 HR Analytics`),
+mật khẩu, user chấm). Nguồn: dự án **Project 02 HR Analytics** (`Project DA\Project 02 HR Analytics`),
 5 file `data\generated\*.csv` (Revision 3, sinh ngày 2026-06-21; mô tả cột: `data\data_dictionary.md`; lịch sử sửa:
 `data\CHANGELOG_data_fixes.md`). Dữ liệu **tổng hợp** (synthetic) mô phỏng "SEA Digital Operations Group": ~3.000 nhân viên,
 6 nước Đông Nam Á, 24 ảnh chụp tháng.
@@ -15,7 +15,7 @@ mật khẩu, user chấm). Nguồn: dự án **Project 02 HR Analytics** (`H:\M
 | CSV trung gian | `mysql/hr/du-lieu/` (~14,8 MB, **không** đưa vào gói) |
 
 ```bash
-bash mysql/hr/02_nap_hr.sh             # chép 5 CSV từ ổ H: + tạo bảng + nạp + so số dòng  (~10 giây)
+bash mysql/hr/02_nap_hr.sh             # chép 5 CSV từ thư mục Project DA (đặt SQLLB_PROJECT_DA) + tạo bảng + nạp + so số dòng  (~10 giây)
 bash mysql/hr/02_nap_hr.sh --chi-nap   # dùng CSV đã có trong mysql/hr/du-lieu/
 docker exec -i sqllb-mysql sh -c 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql -uroot' < mysql/hr/03_bien_the_an_hr.sql
 docker exec -i sqllb-mysql sh -c 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql -uroot' < mysql/hr/04_bo_sung_bien_the_hr.sql   # sau 03; chạy lặp lại được

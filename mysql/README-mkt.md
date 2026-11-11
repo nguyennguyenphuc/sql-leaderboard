@@ -2,7 +2,7 @@
 
 Dựng ngày 10/11/2026 trên container dùng chung `sqllb-mysql` (xem `README.md`: mạng, cổng, mật khẩu, user `sql_runner`).
 Nguồn: **Multi-Brand Marketing Campaign Performance Dataset** (Kaggle, sshriya08, CC BY 4.0, dữ liệu tổng hợp), bộ dữ liệu
-của Project 01 Marketing Analytics (`H:\My Drive\09._PC\Giang-day\Soan bai\Project DA\Project 01 Marketing Analytics Foundations & Data Pipeline\dataset\`,
+của Project 01 Marketing Analytics (`Project DA\Project 01 Marketing Analytics Foundations & Data Pipeline\dataset\`,
 mô tả ở `lesson1_marketing_analytics_foundations.md` mục II–III và `Plan.md`). Chiến dịch marketing số của ba thương hiệu
 mỹ phẩm Ấn Độ **Nykaa, Purplle, Tira Beauty**, mỗi thương hiệu 55.555 chiến dịch.
 

@@ -1,6 +1,6 @@
 {
   "goi": "goi-cau-hoi/mkt/goi-2",
-  "thoi_gian": "2026-11-10T14:51:21",
+  "thoi_gian": "2026-11-11T02:18:47",
   "may_chu": "sqllb-mysql:3306 (user sql_runner)",
   "chi_phan_tich": false,
   "khai_bao": {
@@ -34,27 +34,20 @@
       "ty-le-khtn"
     ]
   },
-  "so_khoi_sql": 70,
+  "so_khoi_sql": 80,
   "loi_goi": [],
-  "canh_bao_goi": [
-    {
-      "ma_loi": "GOI_FILE_LA",
-      "thong_diep": "thư mục gói có file ngoài 4 file chuẩn (không đưa vào zip): BANG-PHAN-CONG.md, DA-SUA.md, REVIEW-B.md, REVIEW-C.md",
-      "file": "goi-cau-hoi/mkt/goi-2",
-      "dong": null
-    }
-  ],
+  "canh_bao_goi": [],
   "cau": [
     {
-      "ma": "mkt-s1-social-nykaa-theo-thang",
+      "ma": "mkt-s1-social-nykaa-chay-sang-thang-sau",
       "dong": 117,
-      "tieu_de": "Mỗi tháng Nykaa mở bao nhiêu chiến dịch mạng xã hội?",
+      "tieu_de": "Bao nhiêu chiến dịch mạng xã hội Nykaa chạy sang tháng sau?",
       "hinhthuc": "write",
-      "cap": "basic",
+      "cap": "medium",
       "dang": "B1",
       "domain": "marketing",
       "dulieu": "mkt",
-      "diem": 10,
+      "diem": 30,
       "trangthai": "review",
       "bo_qua": false,
       "cham": {
@@ -70,13 +63,14 @@
       },
       "buoc": [],
       "khoi_sql": {
-        "mkt-s1-social-nykaa-theo-thang": {
+        "mkt-s1-social-nykaa-chay-sang-thang-sau": {
           "solution": [
             "solution"
           ],
           "wrong": [
-            "thieu_can_tren",
-            "ten_thang_chu"
+            "quen_tru_1",
+            "so_so_thang_bo_nam",
+            "giu_thang_chua_du"
           ]
         }
       },
@@ -91,17 +85,22 @@
         {
           "phep": "solution_chay_moi_bien_the",
           "ket_qua": "dat",
-          "chi_tiet": "[mkt-s1-social-nykaa-theo-thang]: public, hidden-1; chạy 2 lần cùng kết quả"
+          "chi_tiet": "[mkt-s1-social-nykaa-chay-sang-thang-sau]: public, hidden-1; chạy 2 lần cùng kết quả"
         },
         {
           "phep": "wrong_rot",
           "ket_qua": "dat",
-          "chi_tiet": "thieu_can_tren: rớt ở hidden-1"
+          "chi_tiet": "quen_tru_1: rớt ở public, hidden-1"
         },
         {
           "phep": "wrong_rot",
           "ket_qua": "dat",
-          "chi_tiet": "ten_thang_chu: rớt ở public, hidden-1"
+          "chi_tiet": "so_so_thang_bo_nam: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "giu_thang_chua_du: rớt ở public, hidden-1"
         },
         {
           "phep": "nghiepvu_khong_lo_so",
@@ -110,64 +109,88 @@
         }
       ],
       "solution": {
-        "mkt-s1-social-nykaa-theo-thang": {
+        "mkt-s1-social-nykaa-chay-sang-thang-sau": {
           "public": {
-            "so_dong": 12,
+            "so_dong": 11,
             "cot": [
               "thang",
-              "so_chien_dich"
+              "so_chien_dich",
+              "so_sang_thang_sau",
+              "ty_le_sang_thang_sau"
             ],
-            "giay": 0.15,
+            "giay": 0.235,
             "dong_dau": [
               [
                 "2024-07",
-                987
+                987,
+                524,
+                53.09
               ],
               [
                 "2024-08",
-                990
+                990,
+                534,
+                53.94
               ],
               [
                 "2024-09",
-                912
+                912,
+                501,
+                54.93
               ],
               [
                 "2024-10",
-                1025
+                1025,
+                554,
+                54.05
               ],
               [
                 "2024-11",
-                986
+                986,
+                580,
+                58.82
               ]
             ]
           },
           "hidden-1": {
-            "so_dong": 12,
+            "so_dong": 11,
             "cot": [
               "thang",
-              "so_chien_dich"
+              "so_chien_dich",
+              "so_sang_thang_sau",
+              "ty_le_sang_thang_sau"
             ],
-            "giay": 0.111,
+            "giay": 0.226,
             "dong_dau": [
               [
                 "2024-07",
-                892
+                892,
+                482,
+                54.04
               ],
               [
                 "2024-08",
-                909
+                909,
+                491,
+                54.02
               ],
               [
                 "2024-09",
-                815
+                815,
+                447,
+                54.85
               ],
               [
                 "2024-10",
-                927
+                927,
+                504,
+                54.37
               ],
               [
                 "2024-11",
-                881
+                881,
+                523,
+                59.36
               ]
             ]
           }
@@ -175,20 +198,32 @@
       },
       "starter": {},
       "wrong": {
-        "thieu_can_tren": {
+        "quen_tru_1": {
           "bien_the": {
-            "public": "qua",
-            "hidden-1": "rot (khác số dòng (13 so với 12))"
+            "public": "rot (khác giá trị ở dòng 1, cột 3)",
+            "hidden-1": "rot (khác giá trị ở dòng 1, cột 3)"
           },
           "rot_o": [
+            "public",
             "hidden-1"
           ],
           "vi_pham_rang_buoc": []
         },
-        "ten_thang_chu": {
+        "so_so_thang_bo_nam": {
           "bien_the": {
-            "public": "rot (khác giá trị ở dòng 1, cột 1)",
-            "hidden-1": "rot (khác giá trị ở dòng 1, cột 1)"
+            "public": "rot (khác giá trị ở dòng 6, cột 3)",
+            "hidden-1": "rot (khác giá trị ở dòng 6, cột 3)"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        },
+        "giu_thang_chua_du": {
+          "bien_the": {
+            "public": "rot (khác số dòng (12 so với 11))",
+            "hidden-1": "rot (khác số dòng (12 so với 11))"
           },
           "rot_o": [
             "public",
@@ -206,7 +241,7 @@
     },
     {
       "ma": "mkt-s2-ket-thuc-ngay-14-2",
-      "dong": 142,
+      "dong": 147,
       "tieu_de": "Chiến dịch nào của Tira Beauty kết thúc ngày 14/2/2025?",
       "hinhthuc": "write",
       "cap": "basic",
@@ -278,7 +313,7 @@
               "duration_days",
               "ngay_cuoi"
             ],
-            "giay": 0.057,
+            "giay": 0.237,
             "dong_dau": [
               [
                 "TI-CMP-31097",
@@ -320,7 +355,7 @@
               "duration_days",
               "ngay_cuoi"
             ],
-            "giay": 0.11,
+            "giay": 0.207,
             "dong_dau": [
               [
                 "TI-CMP-38705",
@@ -383,15 +418,15 @@
       }
     },
     {
-      "ma": "mkt-s3-bat-dau-cuoi-tuan",
-      "dong": 169,
-      "tieu_de": "Mỗi loại chiến dịch có bao nhiêu phần trăm bắt đầu vào cuối tuần?",
+      "ma": "mkt-s3-tong-ket-cho-qua-cuoi-tuan",
+      "dong": 174,
+      "tieu_de": "Bao nhiêu chiến dịch phải chờ qua cuối tuần mới được tổng kết?",
       "hinhthuc": "write",
-      "cap": "easy",
+      "cap": "hard",
       "dang": "A3",
       "domain": "operations",
       "dulieu": "mkt",
-      "diem": 20,
+      "diem": 50,
       "trangthai": "review",
       "bo_qua": false,
       "cham": {
@@ -407,12 +442,14 @@
       },
       "buoc": [],
       "khoi_sql": {
-        "mkt-s3-bat-dau-cuoi-tuan": {
+        "mkt-s3-tong-ket-cho-qua-cuoi-tuan": {
           "solution": [
             "solution"
           ],
           "wrong": [
+            "xet_thu_cua_ngay_cuoi",
             "dayofweek_6_7",
+            "dem_ngay_cho_nguoc",
             "thieu_can_tren"
           ]
         }
@@ -428,12 +465,22 @@
         {
           "phep": "solution_chay_moi_bien_the",
           "ket_qua": "dat",
-          "chi_tiet": "[mkt-s3-bat-dau-cuoi-tuan]: public, hidden-1; chạy 2 lần cùng kết quả"
+          "chi_tiet": "[mkt-s3-tong-ket-cho-qua-cuoi-tuan]: public, hidden-1; chạy 2 lần cùng kết quả"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "xet_thu_cua_ngay_cuoi: rớt ở public, hidden-1"
         },
         {
           "phep": "wrong_rot",
           "ket_qua": "dat",
           "chi_tiet": "dayofweek_6_7: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "dem_ngay_cho_nguoc: rớt ở public, hidden-1"
         },
         {
           "phep": "wrong_rot",
@@ -447,46 +494,52 @@
         }
       ],
       "solution": {
-        "mkt-s3-bat-dau-cuoi-tuan": {
+        "mkt-s3-tong-ket-cho-qua-cuoi-tuan": {
           "public": {
             "so_dong": 5,
             "cot": [
               "type_id",
               "so_chien_dich",
-              "so_cuoi_tuan",
-              "ty_le_cuoi_tuan_pct"
+              "so_phai_cho",
+              "ty_le_phai_cho",
+              "tong_ngay_cho"
             ],
-            "giay": 0.685,
+            "giay": 1.373,
             "dong_dau": [
               [
                 1,
                 33493,
-                9561,
-                28.55
+                9722,
+                29.03,
+                14599
               ],
               [
                 2,
                 33503,
-                9599,
-                28.65
+                9822,
+                29.32,
+                14729
               ],
               [
                 3,
                 33283,
-                9419,
-                28.3
+                9665,
+                29.04,
+                14471
               ],
               [
                 4,
                 33207,
-                9411,
-                28.34
+                9517,
+                28.66,
+                14242
               ],
               [
                 5,
                 33179,
-                9391,
-                28.3
+                9572,
+                28.85,
+                14317
               ]
             ]
           },
@@ -495,40 +548,46 @@
             "cot": [
               "type_id",
               "so_chien_dich",
-              "so_cuoi_tuan",
-              "ty_le_cuoi_tuan_pct"
+              "so_phai_cho",
+              "ty_le_phai_cho",
+              "tong_ngay_cho"
             ],
-            "giay": 0.561,
+            "giay": 1.202,
             "dong_dau": [
               [
                 1,
                 30131,
-                8640,
-                28.67
+                8747,
+                29.03,
+                13131
               ],
               [
                 2,
                 30075,
-                8591,
-                28.57
+                8771,
+                29.16,
+                13148
               ],
               [
                 3,
                 30014,
-                8477,
-                28.24
+                8670,
+                28.89,
+                12991
               ],
               [
                 4,
                 29876,
-                8493,
-                28.43
+                8543,
+                28.59,
+                12775
               ],
               [
                 5,
                 29904,
-                8462,
-                28.3
+                8616,
+                28.81,
+                12891
               ]
             ]
           }
@@ -536,10 +595,32 @@
       },
       "starter": {},
       "wrong": {
+        "xet_thu_cua_ngay_cuoi": {
+          "bien_the": {
+            "public": "rot (khác giá trị ở dòng 1, cột 3)",
+            "hidden-1": "rot (khác giá trị ở dòng 1, cột 3)"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        },
         "dayofweek_6_7": {
           "bien_the": {
             "public": "rot (khác giá trị ở dòng 1, cột 3)",
             "hidden-1": "rot (khác giá trị ở dòng 1, cột 3)"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        },
+        "dem_ngay_cho_nguoc": {
+          "bien_the": {
+            "public": "rot (khác giá trị ở dòng 1, cột 5)",
+            "hidden-1": "rot (khác giá trị ở dòng 1, cột 5)"
           },
           "rot_o": [
             "public",
@@ -567,7 +648,7 @@
     },
     {
       "ma": "mkt-s4-ba-kenh-youtube-dau",
-      "dong": 196,
+      "dong": 205,
       "tieu_de": "Bao nhiêu chiến dịch ba kênh ghi YouTube đầu tiên?",
       "hinhthuc": "write",
       "cap": "easy",
@@ -637,7 +718,7 @@
               "brand_id",
               "so_chien_dich"
             ],
-            "giay": 0.263,
+            "giay": 0.486,
             "dong_dau": [
               [
                 1,
@@ -659,7 +740,7 @@
               "brand_id",
               "so_chien_dich"
             ],
-            "giay": 0.239,
+            "giay": 0.518,
             "dong_dau": [
               [
                 1,
@@ -711,8 +792,8 @@
     },
     {
       "ma": "mkt-s5-ngay-tho-khong-doc-duoc",
-      "dong": 223,
-      "tieu_de": "Mỗi file thô có bao nhiêu dòng mang ngày bắt đầu không hợp lệ?",
+      "dong": 232,
+      "tieu_de": "Mỗi file thô có mấy dòng mang ngày bắt đầu không hợp lệ?",
       "hinhthuc": "write",
       "cap": "easy",
       "dang": "E1",
@@ -781,7 +862,7 @@
               "brand_id",
               "so_dong_ngay_loi"
             ],
-            "giay": 0.286,
+            "giay": 0.772,
             "dong_dau": [
               [
                 1,
@@ -803,7 +884,7 @@
               "brand_id",
               "so_dong_ngay_loi"
             ],
-            "giay": 0.253,
+            "giay": 0.59,
             "dong_dau": [
               [
                 1,
@@ -855,7 +936,7 @@
     },
     {
       "ma": "mkt-s6-so-duoi-ma-lon-nhat",
-      "dong": 251,
+      "dong": 260,
       "tieu_de": "Chiến dịch mở ngày 24/6/2025 mang mã số bao nhiêu?",
       "hinhthuc": "write",
       "cap": "easy",
@@ -957,7 +1038,7 @@
               "so_nho_nhat",
               "so_lon_nhat"
             ],
-            "giay": 0.0,
+            "giay": 0.001,
             "dong_dau": [
               [
                 1,
@@ -1015,7 +1096,7 @@
     },
     {
       "ma": "mkt-s7-dem-loai-ra-20-nhom",
-      "dong": 277,
+      "dong": 286,
       "tieu_de": "Đếm dữ liệu thô theo loại chiến dịch ra 20 nhóm",
       "hinhthuc": "debug",
       "cap": "basic",
@@ -1087,7 +1168,7 @@
               "loai_chien_dich",
               "so_dong"
             ],
-            "giay": 0.107,
+            "giay": 0.21,
             "dong_dau": [
               [
                 "Email",
@@ -1117,7 +1198,7 @@
               "loai_chien_dich",
               "so_dong"
             ],
-            "giay": 0.085,
+            "giay": 0.169,
             "dong_dau": [
               [
                 "Email",
@@ -1168,15 +1249,15 @@
       }
     },
     {
-      "ma": "mkt-s8-thang-sap-sai-thu-tu",
-      "dong": 300,
-      "tieu_de": "Doanh thu theo tháng sắp sai thứ tự",
+      "ma": "mkt-s8-tuan-dau-nam-bi-tach-doi",
+      "dong": 309,
+      "tieu_de": "Số chiến dịch theo tuần bị tách đôi ở tuần đầu năm",
       "hinhthuc": "debug",
-      "cap": "easy",
+      "cap": "medium",
       "dang": "B1",
-      "domain": "sales",
+      "domain": "marketing",
       "dulieu": "mkt",
-      "diem": 20,
+      "diem": 30,
       "trangthai": "review",
       "bo_qua": false,
       "cham": {
@@ -1192,7 +1273,7 @@
       },
       "buoc": [],
       "khoi_sql": {
-        "mkt-s8-thang-sap-sai-thu-tu": {
+        "mkt-s8-tuan-dau-nam-bi-tach-doi": {
           "solution": [
             "solution"
           ],
@@ -1200,8 +1281,8 @@
             "starter"
           ],
           "wrong": [
-            "ten_thang_chu",
-            "giu_nhan_thang_nam"
+            "yearweek_mac_dinh",
+            "lui_theo_dayofweek"
           ]
         }
       },
@@ -1216,22 +1297,22 @@
         {
           "phep": "solution_chay_moi_bien_the",
           "ket_qua": "dat",
-          "chi_tiet": "[mkt-s8-thang-sap-sai-thu-tu]: public, hidden-1; chạy 2 lần cùng kết quả"
+          "chi_tiet": "[mkt-s8-tuan-dau-nam-bi-tach-doi]: public, hidden-1; chạy 2 lần cùng kết quả"
         },
         {
           "phep": "starter_debug_sai",
           "ket_qua": "dat",
-          "chi_tiet": "public: khác giá trị ở dòng 1, cột 1, hidden-1: khác giá trị ở dòng 1, cột 1"
+          "chi_tiet": "public: khác số dòng (10 so với 9), hidden-1: khác số dòng (10 so với 9)"
         },
         {
           "phep": "wrong_rot",
           "ket_qua": "dat",
-          "chi_tiet": "ten_thang_chu: rớt ở public, hidden-1"
+          "chi_tiet": "yearweek_mac_dinh: rớt ở public, hidden-1"
         },
         {
           "phep": "wrong_rot",
           "ket_qua": "dat",
-          "chi_tiet": "giu_nhan_thang_nam: rớt ở public, hidden-1"
+          "chi_tiet": "lui_theo_dayofweek: rớt ở public, hidden-1"
         },
         {
           "phep": "nghiepvu_khong_lo_so",
@@ -1240,90 +1321,78 @@
         }
       ],
       "solution": {
-        "mkt-s8-thang-sap-sai-thu-tu": {
+        "mkt-s8-tuan-dau-nam-bi-tach-doi": {
           "public": {
-            "so_dong": 12,
+            "so_dong": 9,
             "cot": [
-              "thang",
-              "so_chien_dich",
-              "doanh_thu"
+              "tuan_bat_dau",
+              "so_chien_dich"
             ],
-            "giay": 0.125,
+            "giay": 0.036,
             "dong_dau": [
               [
-                "2024-07",
-                14888,
-                7745900663
+                "2024-12-02",
+                3299
               ],
               [
-                "2024-08",
-                14996,
-                7755913972
+                "2024-12-09",
+                3461
               ],
               [
-                "2024-09",
-                14485,
-                7387851403
+                "2024-12-16",
+                3361
               ],
               [
-                "2024-10",
-                14940,
-                7661906188
+                "2024-12-23",
+                3415
               ],
               [
-                "2024-11",
-                14422,
-                7414457262
+                "2024-12-30",
+                3389
               ]
             ]
           },
           "hidden-1": {
-            "so_dong": 12,
+            "so_dong": 9,
             "cot": [
-              "thang",
-              "so_chien_dich",
-              "doanh_thu"
+              "tuan_bat_dau",
+              "so_chien_dich"
             ],
-            "giay": 0.11,
+            "giay": 0.04,
             "dong_dau": [
               [
-                "2024-07",
-                13448,
-                6998320985
+                "2024-12-02",
+                2974
               ],
               [
-                "2024-08",
-                13548,
-                7003223894
+                "2024-12-09",
+                3134
               ],
               [
-                "2024-09",
-                13045,
-                6650255214
+                "2024-12-16",
+                2996
               ],
               [
-                "2024-10",
-                13458,
-                6908319572
+                "2024-12-23",
+                3063
               ],
               [
-                "2024-11",
-                12963,
-                6672587414
+                "2024-12-30",
+                3066
               ]
             ]
           }
         }
       },
       "starter": {
-        "public": "khác giá trị ở dòng 1, cột 1",
-        "hidden-1": "khác giá trị ở dòng 1, cột 1"
+        "public": "khác số dòng (10 so với 9)",
+        "hidden-1": "khác số dòng (10 so với 9)"
       },
       "wrong": {
-        "ten_thang_chu": {
+        "yearweek_mac_dinh": {
           "bien_the": {
-            "public": "rot (khác giá trị ở dòng 1, cột 1)",
-            "hidden-1": "rot (khác giá trị ở dòng 1, cột 1)"
+            "public": "rot (khác số dòng (10 so với 9))",
+            "hidden-1": "rot (khác số dòng (10 so với 9))"
           },
           "rot_o": [
             "public",
@@ -1331,10 +1400,10 @@
           ],
           "vi_pham_rang_buoc": []
         },
-        "giu_nhan_thang_nam": {
+        "lui_theo_dayofweek": {
           "bien_the": {
-            "public": "rot (khác giá trị ở dòng 1, cột 1)",
-            "hidden-1": "rot (khác giá trị ở dòng 1, cột 1)"
+            "public": "rot (khác số dòng (10 so với 9))",
+            "hidden-1": "rot (khác số dòng (10 so với 9))"
           },
           "rot_o": [
             "public",
@@ -1351,15 +1420,15 @@
       }
     },
     {
-      "ma": "mkt-s9-dang-chay-ngay-1-1",
-      "dong": 324,
-      "tieu_de": "Số chiến dịch đang chạy ngày 1/1/2025 bị thiếu",
+      "ma": "mkt-s9-dang-chay-dau-thang-lech",
+      "dong": 336,
+      "tieu_de": "Số chiến dịch đang chạy ngày đầu tháng lệch lịch chạy",
       "hinhthuc": "debug",
-      "cap": "easy",
+      "cap": "hard",
       "dang": "B4",
       "domain": "operations",
       "dulieu": "mkt",
-      "diem": 20,
+      "diem": 50,
       "trangthai": "review",
       "bo_qua": false,
       "cham": {
@@ -1375,7 +1444,7 @@
       },
       "buoc": [],
       "khoi_sql": {
-        "mkt-s9-dang-chay-ngay-1-1": {
+        "mkt-s9-dang-chay-dau-thang-lech": {
           "solution": [
             "solution"
           ],
@@ -1383,8 +1452,9 @@
             "starter"
           ],
           "wrong": [
-            "thua_mot_ngay",
-            "chi_bat_dau_ngay_1_1"
+            "chi_sua_ngay_cuoi",
+            "chi_sua_ngay_bat_dau",
+            "sua_hai_bien_thieu_can_tren"
           ]
         }
       },
@@ -1399,7 +1469,7 @@
         {
           "phep": "solution_chay_moi_bien_the",
           "ket_qua": "dat",
-          "chi_tiet": "[mkt-s9-dang-chay-ngay-1-1]: public, hidden-1; chạy 2 lần cùng kết quả"
+          "chi_tiet": "[mkt-s9-dang-chay-dau-thang-lech]: public, hidden-1; chạy 2 lần cùng kết quả"
         },
         {
           "phep": "starter_debug_sai",
@@ -1409,12 +1479,17 @@
         {
           "phep": "wrong_rot",
           "ket_qua": "dat",
-          "chi_tiet": "thua_mot_ngay: rớt ở public, hidden-1"
+          "chi_tiet": "chi_sua_ngay_cuoi: rớt ở public, hidden-1"
         },
         {
           "phep": "wrong_rot",
           "ket_qua": "dat",
-          "chi_tiet": "chi_bat_dau_ngay_1_1: rớt ở public, hidden-1"
+          "chi_tiet": "chi_sua_ngay_bat_dau: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "sua_hai_bien_thieu_can_tren: rớt ở hidden-1"
         },
         {
           "phep": "nghiepvu_khong_lo_so",
@@ -1423,48 +1498,64 @@
         }
       ],
       "solution": {
-        "mkt-s9-dang-chay-ngay-1-1": {
+        "mkt-s9-dang-chay-dau-thang-lech": {
           "public": {
-            "so_dong": 3,
+            "so_dong": 11,
             "cot": [
-              "brand_id",
+              "thang",
               "so_dang_chay"
             ],
-            "giay": 0.686,
+            "giay": 1.119,
             "dong_dau": [
               [
-                1,
-                2794
+                "2024-08",
+                8449
               ],
               [
-                2,
-                2905
+                "2024-09",
+                8573
               ],
               [
-                3,
-                2881
+                "2024-10",
+                8532
+              ],
+              [
+                "2024-11",
+                8518
+              ],
+              [
+                "2024-12",
+                8511
               ]
             ]
           },
           "hidden-1": {
-            "so_dong": 3,
+            "so_dong": 11,
             "cot": [
-              "brand_id",
+              "thang",
               "so_dang_chay"
             ],
-            "giay": 0.562,
+            "giay": 1.049,
             "dong_dau": [
               [
-                1,
-                2487
+                "2024-08",
+                7612
               ],
               [
-                2,
-                2602
+                "2024-09",
+                7733
               ],
               [
-                3,
-                2616
+                "2024-10",
+                7712
+              ],
+              [
+                "2024-11",
+                7667
+              ],
+              [
+                "2024-12",
+                7637
               ]
             ]
           }
@@ -1475,7 +1566,7 @@
         "hidden-1": "khác giá trị ở dòng 1, cột 2"
       },
       "wrong": {
-        "thua_mot_ngay": {
+        "chi_sua_ngay_cuoi": {
           "bien_the": {
             "public": "rot (khác giá trị ở dòng 1, cột 2)",
             "hidden-1": "rot (khác giá trị ở dòng 1, cột 2)"
@@ -1486,13 +1577,23 @@
           ],
           "vi_pham_rang_buoc": []
         },
-        "chi_bat_dau_ngay_1_1": {
+        "chi_sua_ngay_bat_dau": {
           "bien_the": {
             "public": "rot (khác giá trị ở dòng 1, cột 2)",
             "hidden-1": "rot (khác giá trị ở dòng 1, cột 2)"
           },
           "rot_o": [
             "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        },
+        "sua_hai_bien_thieu_can_tren": {
+          "bien_the": {
+            "public": "qua",
+            "hidden-1": "rot (khác số dòng (12 so với 11))"
+          },
+          "rot_o": [
             "hidden-1"
           ],
           "vi_pham_rang_buoc": []
@@ -1506,15 +1607,15 @@
       }
     },
     {
-      "ma": "mkt-a1-roi-tong-theo-thuong-hieu",
-      "dong": 351,
-      "tieu_de": "ROI của từng thương hiệu cả kỳ là bao nhiêu?",
+      "ma": "mkt-a1-chi-phi-cho-chien-dich-lo",
+      "dong": 367,
+      "tieu_de": "Mỗi thương hiệu chi bao nhiêu cho chiến dịch lỗ?",
       "hinhthuc": "write",
-      "cap": "easy",
+      "cap": "hard",
       "dang": "A2",
       "domain": "finance",
       "dulieu": "mkt",
-      "diem": 20,
+      "diem": 50,
       "trangthai": "review",
       "bo_qua": false,
       "cham": {
@@ -1530,12 +1631,15 @@
       },
       "buoc": [],
       "khoi_sql": {
-        "mkt-a1-roi-tong-theo-thuong-hieu": {
+        "mkt-a1-chi-phi-cho-chien-dich-lo": {
           "solution": [
             "solution"
           ],
           "wrong": [
-            "avg_roi",
+            "lo_theo_cot_roi_lam_tron",
+            "chi_phi_la_cpa",
+            "ty_trong_theo_so_chien_dich",
+            "thu_hoi_binh_quan_gian_don",
             "thieu_can_tren"
           ]
         }
@@ -1551,12 +1655,27 @@
         {
           "phep": "solution_chay_moi_bien_the",
           "ket_qua": "dat",
-          "chi_tiet": "[mkt-a1-roi-tong-theo-thuong-hieu]: public, hidden-1; chạy 2 lần cùng kết quả"
+          "chi_tiet": "[mkt-a1-chi-phi-cho-chien-dich-lo]: public, hidden-1; chạy 2 lần cùng kết quả"
         },
         {
           "phep": "wrong_rot",
           "ket_qua": "dat",
-          "chi_tiet": "avg_roi: rớt ở public, hidden-1"
+          "chi_tiet": "lo_theo_cot_roi_lam_tron: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "chi_phi_la_cpa: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "ty_trong_theo_so_chien_dich: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "thu_hoi_binh_quan_gian_don: rớt ở public, hidden-1"
         },
         {
           "phep": "wrong_rot",
@@ -1570,38 +1689,38 @@
         }
       ],
       "solution": {
-        "mkt-a1-roi-tong-theo-thuong-hieu": {
+        "mkt-a1-chi-phi-cho-chien-dich-lo": {
           "public": {
             "so_dong": 3,
             "cot": [
               "brand_id",
               "so_chien_dich",
-              "doanh_thu",
-              "chi_phi",
-              "roi"
+              "so_chien_dich_lo",
+              "ty_trong_chi_phi_lo",
+              "ty_le_thu_hoi"
             ],
-            "giay": 0.766,
+            "giay": 1.914,
             "dong_dau": [
               [
                 1,
                 55555,
-                28656364282,
-                9699124862.74,
-                1.9545
+                13276,
+                28.89,
+                56
               ],
               [
                 2,
                 55555,
-                28540346627,
-                9717135990.51,
-                1.9371
+                13359,
+                28.92,
+                56.41
               ],
               [
                 3,
                 55555,
-                28453535162,
-                9711946932.88,
-                1.9297
+                13086,
+                28.37,
+                56.09
               ]
             ]
           },
@@ -1610,32 +1729,32 @@
             "cot": [
               "brand_id",
               "so_chien_dich",
-              "doanh_thu",
-              "chi_phi",
-              "roi"
+              "so_chien_dich_lo",
+              "ty_trong_chi_phi_lo",
+              "ty_le_thu_hoi"
             ],
-            "giay": 0.637,
+            "giay": 1.506,
             "dong_dau": [
               [
                 1,
                 50000,
-                25806916248,
-                8736527281.45,
-                1.9539
+                11948,
+                28.89,
+                55.92
               ],
               [
                 2,
                 50000,
-                25686674980,
-                8747428305.81,
-                1.9365
+                12070,
+                29.08,
+                56.36
               ],
               [
                 3,
                 50000,
-                25572104803,
-                8744243365.26,
-                1.9245
+                11813,
+                28.44,
+                56.09
               ]
             ]
           }
@@ -1643,7 +1762,40 @@
       },
       "starter": {},
       "wrong": {
-        "avg_roi": {
+        "lo_theo_cot_roi_lam_tron": {
+          "bien_the": {
+            "public": "rot (khác giá trị ở dòng 1, cột 3)",
+            "hidden-1": "rot (khác giá trị ở dòng 1, cột 3)"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        },
+        "chi_phi_la_cpa": {
+          "bien_the": {
+            "public": "rot (khác giá trị ở dòng 1, cột 4)",
+            "hidden-1": "rot (khác giá trị ở dòng 1, cột 4)"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        },
+        "ty_trong_theo_so_chien_dich": {
+          "bien_the": {
+            "public": "rot (khác giá trị ở dòng 1, cột 4)",
+            "hidden-1": "rot (khác giá trị ở dòng 1, cột 4)"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        },
+        "thu_hoi_binh_quan_gian_don": {
           "bien_the": {
             "public": "rot (khác giá trị ở dòng 1, cột 5)",
             "hidden-1": "rot (khác giá trị ở dòng 1, cột 5)"
@@ -1674,7 +1826,7 @@
     },
     {
       "ma": "mkt-a2-pheu-theo-loai",
-      "dong": 379,
+      "dong": 398,
       "tieu_de": "Ba tỷ lệ của phễu theo loại chiến dịch, nửa đầu 2025",
       "hinhthuc": "write",
       "cap": "easy",
@@ -1753,7 +1905,7 @@
               "ty_le_khtn_pct",
               "ty_le_chuyen_doi_pct"
             ],
-            "giay": 0.688,
+            "giay": 1.392,
             "dong_dau": [
               [
                 1,
@@ -1801,7 +1953,7 @@
               "ty_le_khtn_pct",
               "ty_le_chuyen_doi_pct"
             ],
-            "giay": 0.569,
+            "giay": 1.164,
             "dong_dau": [
               [
                 1,
@@ -1886,14 +2038,14 @@
     },
     {
       "ma": "mkt-a3-doi-tuong-quy-1",
-      "dong": 410,
+      "dong": 429,
       "tieu_de": "Nhóm đối tượng nào dẫn đầu doanh thu quý 1/2025?",
       "hinhthuc": "write",
-      "cap": "easy",
+      "cap": "basic",
       "dang": "A3",
       "domain": "customer",
       "dulieu": "mkt",
-      "diem": 20,
+      "diem": 10,
       "trangthai": "review",
       "bo_qua": false,
       "cham": {
@@ -1957,7 +2109,7 @@
               "so_chien_dich",
               "doanh_thu"
             ],
-            "giay": 0.675,
+            "giay": 1.518,
             "dong_dau": [
               [
                 4,
@@ -1993,7 +2145,7 @@
               "so_chien_dich",
               "doanh_thu"
             ],
-            "giay": 0.545,
+            "giay": 1.019,
             "dong_dau": [
               [
                 4,
@@ -2058,7 +2210,7 @@
     },
     {
       "ma": "mkt-a4-bang-cheo-ngon-ngu",
-      "dong": 436,
+      "dong": 452,
       "tieu_de": "Lượt chuyển đổi theo ngôn ngữ và thương hiệu",
       "hinhthuc": "write",
       "cap": "easy",
@@ -2131,7 +2283,7 @@
               "tira_beauty",
               "tong"
             ],
-            "giay": 0.697,
+            "giay": 1.261,
             "dong_dau": [
               [
                 1,
@@ -2172,7 +2324,7 @@
               "tira_beauty",
               "tong"
             ],
-            "giay": 0.58,
+            "giay": 1.036,
             "dong_dau": [
               [
                 1,
@@ -2238,8 +2390,8 @@
       }
     },
     {
-      "ma": "mkt-a5-ngay-tren-500-chien-dich",
-      "dong": 463,
+      "ma": "mkt-a5-ngay-tren-350-co-lai",
+      "dong": 479,
       "tieu_de": "Ngày nào tháng 3/2025 khởi chạy hơn 350 chiến dịch có lãi?",
       "hinhthuc": "write",
       "cap": "medium",
@@ -2262,7 +2414,7 @@
       },
       "buoc": [],
       "khoi_sql": {
-        "mkt-a5-ngay-tren-500-chien-dich": {
+        "mkt-a5-ngay-tren-350-co-lai": {
           "solution": [
             "solution"
           ],
@@ -2284,7 +2436,7 @@
         {
           "phep": "solution_chay_moi_bien_the",
           "ket_qua": "dat",
-          "chi_tiet": "[mkt-a5-ngay-tren-500-chien-dich]: public, hidden-1; chạy 2 lần cùng kết quả"
+          "chi_tiet": "[mkt-a5-ngay-tren-350-co-lai]: public, hidden-1; chạy 2 lần cùng kết quả"
         },
         {
           "phep": "wrong_rot",
@@ -2308,7 +2460,7 @@
         }
       ],
       "solution": {
-        "mkt-a5-ngay-tren-500-chien-dich": {
+        "mkt-a5-ngay-tren-350-co-lai": {
           "public": {
             "so_dong": 20,
             "cot": [
@@ -2316,7 +2468,7 @@
               "so_chien_dich",
               "so_chien_dich_lai"
             ],
-            "giay": 0.069,
+            "giay": 0.12,
             "dong_dau": [
               [
                 "2025-03-02",
@@ -2352,7 +2504,7 @@
               "so_chien_dich",
               "so_chien_dich_lai"
             ],
-            "giay": 0.056,
+            "giay": 0.104,
             "dong_dau": [
               [
                 "2025-03-03",
@@ -2408,14 +2560,14 @@
     },
     {
       "ma": "mkt-a6-doanh-thu-nykaa-theo-thang",
-      "dong": 492,
-      "tieu_de": "Giá trị đơn bình quân của Nykaa theo tháng",
+      "dong": 508,
+      "tieu_de": "Lượt chuyển đổi và doanh thu của Nykaa theo tháng",
       "hinhthuc": "write",
-      "cap": "easy",
+      "cap": "basic",
       "dang": "B1",
       "domain": "sales",
       "dulieu": "mkt",
-      "diem": 20,
+      "diem": 10,
       "trangthai": "review",
       "bo_qua": false,
       "cham": {
@@ -2436,8 +2588,9 @@
             "solution"
           ],
           "wrong": [
-            "gom_theo_thang_bo_nam",
-            "binh_quan_gia_tri_don_tung_chien_dich"
+            "binh_quan_thay_tong",
+            "dem_thay_cong",
+            "thieu_can_tren"
           ]
         }
       },
@@ -2457,12 +2610,17 @@
         {
           "phep": "wrong_rot",
           "ket_qua": "dat",
-          "chi_tiet": "gom_theo_thang_bo_nam: rớt ở hidden-1"
+          "chi_tiet": "binh_quan_thay_tong: rớt ở public, hidden-1"
         },
         {
           "phep": "wrong_rot",
           "ket_qua": "dat",
-          "chi_tiet": "binh_quan_gia_tri_don_tung_chien_dich: rớt ở public, hidden-1"
+          "chi_tiet": "dem_thay_cong: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "thieu_can_tren: rớt ở hidden-1"
         },
         {
           "phep": "nghiepvu_khong_lo_so",
@@ -2476,83 +2634,83 @@
             "so_dong": 12,
             "cot": [
               "thang",
+              "so_chien_dich",
               "luot_chuyen_doi",
-              "doanh_thu",
-              "gia_tri_don_bq"
+              "doanh_thu"
             ],
-            "giay": 0.091,
+            "giay": 0.207,
             "dong_dau": [
               [
                 "2024-07",
+                5005,
                 5224622,
-                2630226313,
-                503.43
+                2630226313
               ],
               [
                 "2024-08",
+                4943,
                 5187225,
-                2597876736,
-                500.82
+                2597876736
               ],
               [
                 "2024-09",
+                4671,
                 4791725,
-                2390680030,
-                498.92
+                2390680030
               ],
               [
                 "2024-10",
+                5068,
                 5193529,
-                2583203421,
-                497.39
+                2583203421
               ],
               [
                 "2024-11",
+                4825,
                 5070569,
-                2523763004,
-                497.73
+                2523763004
               ]
             ]
           },
           "hidden-1": {
-            "so_dong": 13,
+            "so_dong": 12,
             "cot": [
               "thang",
+              "so_chien_dich",
               "luot_chuyen_doi",
-              "doanh_thu",
-              "gia_tri_don_bq"
+              "doanh_thu"
             ],
-            "giay": 0.08,
+            "giay": 0.133,
             "dong_dau": [
               [
                 "2024-07",
+                4520,
                 4713410,
-                2373691652,
-                503.6
+                2373691652
               ],
               [
                 "2024-08",
+                4499,
                 4733904,
-                2372507968,
-                501.17
+                2372507968
               ],
               [
                 "2024-09",
+                4204,
                 4324716,
-                2151540362,
-                497.5
+                2151540362
               ],
               [
                 "2024-10",
+                4578,
                 4704033,
-                2341870120,
-                497.84
+                2341870120
               ],
               [
                 "2024-11",
+                4321,
                 4545903,
-                2271175781,
-                499.61
+                2271175781
               ]
             ]
           }
@@ -2560,23 +2718,34 @@
       },
       "starter": {},
       "wrong": {
-        "gom_theo_thang_bo_nam": {
+        "binh_quan_thay_tong": {
           "bien_the": {
-            "public": "qua",
-            "hidden-1": "rot (khác số dòng (12 so với 13))"
+            "public": "rot (khác giá trị ở dòng 1, cột 3)",
+            "hidden-1": "rot (khác giá trị ở dòng 1, cột 3)"
           },
           "rot_o": [
+            "public",
             "hidden-1"
           ],
           "vi_pham_rang_buoc": []
         },
-        "binh_quan_gia_tri_don_tung_chien_dich": {
+        "dem_thay_cong": {
           "bien_the": {
-            "public": "rot (khác giá trị ở dòng 1, cột 4)",
-            "hidden-1": "rot (khác giá trị ở dòng 1, cột 4)"
+            "public": "rot (khác giá trị ở dòng 1, cột 3)",
+            "hidden-1": "rot (khác giá trị ở dòng 1, cột 3)"
           },
           "rot_o": [
             "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        },
+        "thieu_can_tren": {
+          "bien_the": {
+            "public": "qua",
+            "hidden-1": "rot (khác số dòng (13 so với 12))"
+          },
+          "rot_o": [
             "hidden-1"
           ],
           "vi_pham_rang_buoc": []
@@ -2590,15 +2759,15 @@
       }
     },
     {
-      "ma": "mkt-a7-roi-thuong-hieu-cao-bat-thuong",
-      "dong": 519,
-      "tieu_de": "ROI toàn thương hiệu Purplle cao bất thường",
+      "ma": "mkt-a7-roi-thang-nykaa-lech-tai-chinh",
+      "dong": 532,
+      "tieu_de": "Chi phí và ROI theo tháng của Nykaa lệch số tài chính",
       "hinhthuc": "debug",
-      "cap": "easy",
-      "dang": "A2",
+      "cap": "hard",
+      "dang": "B1",
       "domain": "finance",
       "dulieu": "mkt",
-      "diem": 20,
+      "diem": 50,
       "trangthai": "review",
       "bo_qua": false,
       "cham": {
@@ -2614,7 +2783,7 @@
       },
       "buoc": [],
       "khoi_sql": {
-        "mkt-a7-roi-thuong-hieu-cao-bat-thuong": {
+        "mkt-a7-roi-thang-nykaa-lech-tai-chinh": {
           "solution": [
             "solution"
           ],
@@ -2622,8 +2791,10 @@
             "starter"
           ],
           "wrong": [
+            "chi_sua_roi",
+            "roi_tu_tong_cpa",
             "doanh_thu_chia_chi_phi",
-            "chi_phi_quen_nhan_chuyen_doi"
+            "sua_hai_loi_thieu_can_tren"
           ]
         }
       },
@@ -2638,12 +2809,22 @@
         {
           "phep": "solution_chay_moi_bien_the",
           "ket_qua": "dat",
-          "chi_tiet": "[mkt-a7-roi-thuong-hieu-cao-bat-thuong]: public, hidden-1; chạy 2 lần cùng kết quả"
+          "chi_tiet": "[mkt-a7-roi-thang-nykaa-lech-tai-chinh]: public, hidden-1; chạy 2 lần cùng kết quả"
         },
         {
           "phep": "starter_debug_sai",
           "ket_qua": "dat",
-          "chi_tiet": "public: khác giá trị ở dòng 1, cột 2, hidden-1: khác giá trị ở dòng 1, cột 2"
+          "chi_tiet": "public: khác giá trị ở dòng 1, cột 3, hidden-1: khác số dòng (7 so với 6)"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "chi_sua_roi: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "roi_tu_tong_cpa: rớt ở public, hidden-1"
         },
         {
           "phep": "wrong_rot",
@@ -2653,7 +2834,7 @@
         {
           "phep": "wrong_rot",
           "ket_qua": "dat",
-          "chi_tiet": "chi_phi_quen_nhan_chuyen_doi: rớt ở public, hidden-1"
+          "chi_tiet": "sua_hai_loi_thieu_can_tren: rớt ở hidden-1"
         },
         {
           "phep": "nghiepvu_khong_lo_so",
@@ -2662,46 +2843,102 @@
         }
       ],
       "solution": {
-        "mkt-a7-roi-thuong-hieu-cao-bat-thuong": {
+        "mkt-a7-roi-thang-nykaa-lech-tai-chinh": {
           "public": {
-            "so_dong": 1,
+            "so_dong": 6,
             "cot": [
+              "thang",
               "so_chien_dich",
+              "chi_phi",
               "roi"
             ],
-            "giay": 0.062,
+            "giay": 0.242,
             "dong_dau": [
               [
-                29768,
-                1.9284
+                "2025-01",
+                974,
+                170624903.13,
+                1.9815
+              ],
+              [
+                "2025-02",
+                891,
+                153055993.36,
+                2.0351
+              ],
+              [
+                "2025-03",
+                981,
+                168500780.79,
+                2.0667
+              ],
+              [
+                "2025-04",
+                976,
+                170720803.13,
+                1.8255
+              ],
+              [
+                "2025-05",
+                1040,
+                179716352.29,
+                1.9832
               ]
             ]
           },
           "hidden-1": {
-            "so_dong": 1,
+            "so_dong": 6,
             "cot": [
+              "thang",
               "so_chien_dich",
+              "chi_phi",
               "roi"
             ],
-            "giay": 0.054,
+            "giay": 0.227,
             "dong_dau": [
               [
-                26821,
-                1.9298
+                "2025-01",
+                865,
+                150797029.01,
+                1.9859
+              ],
+              [
+                "2025-02",
+                792,
+                135504839.19,
+                2.0695
+              ],
+              [
+                "2025-03",
+                892,
+                153004322.11,
+                2.1236
+              ],
+              [
+                "2025-04",
+                883,
+                153318653.99,
+                1.8496
+              ],
+              [
+                "2025-05",
+                938,
+                162805628.27,
+                1.9694
               ]
             ]
           }
         }
       },
       "starter": {
-        "public": "khác giá trị ở dòng 1, cột 2",
-        "hidden-1": "khác giá trị ở dòng 1, cột 2"
+        "public": "khác giá trị ở dòng 1, cột 3",
+        "hidden-1": "khác số dòng (7 so với 6)"
       },
       "wrong": {
-        "doanh_thu_chia_chi_phi": {
+        "chi_sua_roi": {
           "bien_the": {
-            "public": "rot (khác giá trị ở dòng 1, cột 2)",
-            "hidden-1": "rot (khác giá trị ở dòng 1, cột 2)"
+            "public": "rot (khác giá trị ở dòng 1, cột 3)",
+            "hidden-1": "rot (khác giá trị ở dòng 1, cột 3)"
           },
           "rot_o": [
             "public",
@@ -2709,13 +2946,34 @@
           ],
           "vi_pham_rang_buoc": []
         },
-        "chi_phi_quen_nhan_chuyen_doi": {
+        "roi_tu_tong_cpa": {
           "bien_the": {
-            "public": "rot (khác giá trị ở dòng 1, cột 2)",
-            "hidden-1": "rot (khác giá trị ở dòng 1, cột 2)"
+            "public": "rot (khác giá trị ở dòng 1, cột 3)",
+            "hidden-1": "rot (khác giá trị ở dòng 1, cột 3)"
           },
           "rot_o": [
             "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        },
+        "doanh_thu_chia_chi_phi": {
+          "bien_the": {
+            "public": "rot (khác giá trị ở dòng 1, cột 4)",
+            "hidden-1": "rot (khác giá trị ở dòng 1, cột 4)"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        },
+        "sua_hai_loi_thieu_can_tren": {
+          "bien_the": {
+            "public": "qua",
+            "hidden-1": "rot (khác số dòng (7 so với 6))"
+          },
+          "rot_o": [
             "hidden-1"
           ],
           "vi_pham_rang_buoc": []
@@ -2730,7 +2988,7 @@
     },
     {
       "ma": "mkt-a8-so-chien-dich-tho-thua",
-      "dong": 546,
+      "dong": 561,
       "tieu_de": "Số chiến dịch Tira Beauty trong dữ liệu thô nhiều hơn báo cáo",
       "hinhthuc": "debug",
       "cap": "easy",
@@ -2808,7 +3066,7 @@
               "so_dong",
               "so_chien_dich"
             ],
-            "giay": 0.221,
+            "giay": 0.352,
             "dong_dau": [
               [
                 55605,
@@ -2822,7 +3080,7 @@
               "so_dong",
               "so_chien_dich"
             ],
-            "giay": 0.202,
+            "giay": 0.295,
             "dong_dau": [
               [
                 50047,
@@ -2869,7 +3127,7 @@
     },
     {
       "ma": "mkt-a9-doanh-thu-theo-quy-gop-sai",
-      "dong": 572,
+      "dong": 587,
       "tieu_de": "Doanh thu theo quý không ghi năm",
       "hinhthuc": "debug",
       "cap": "medium",
@@ -2949,7 +3207,7 @@
               "so_chien_dich",
               "doanh_thu"
             ],
-            "giay": 0.103,
+            "giay": 0.235,
             "dong_dau": [
               [
                 2024,
@@ -2985,7 +3243,7 @@
               "so_chien_dich",
               "doanh_thu"
             ],
-            "giay": 0.092,
+            "giay": 0.183,
             "dong_dau": [
               [
                 2024,
@@ -3050,8 +3308,8 @@
       }
     },
     {
-      "ma": "mkt-c3-thang-nykaa-mo-nhieu-nhat",
-      "dong": 602,
+      "ma": "mkt-c3-thang-purplle-mo-nhieu-nhat",
+      "dong": 617,
       "tieu_de": "Tháng nào Purplle mở chiến dịch dày nhất?",
       "hinhthuc": "case",
       "cap": "basic",
@@ -3097,7 +3355,7 @@
         }
       ],
       "khoi_sql": {
-        "mkt-c3-thang-nykaa-mo-nhieu-nhat.b1": {
+        "mkt-c3-thang-purplle-mo-nhieu-nhat.b1": {
           "solution": [
             "solution"
           ],
@@ -3118,7 +3376,7 @@
         {
           "phep": "solution_chay_moi_bien_the",
           "ket_qua": "dat",
-          "chi_tiet": "[mkt-c3-thang-nykaa-mo-nhieu-nhat.b1]: public, hidden-1; chạy 2 lần cùng kết quả"
+          "chi_tiet": "[mkt-c3-thang-purplle-mo-nhieu-nhat.b1]: public, hidden-1; chạy 2 lần cùng kết quả"
         },
         {
           "phep": "wrong_rot",
@@ -3137,7 +3395,7 @@
         }
       ],
       "solution": {
-        "mkt-c3-thang-nykaa-mo-nhieu-nhat.b1": {
+        "mkt-c3-thang-purplle-mo-nhieu-nhat.b1": {
           "public": {
             "so_dong": 11,
             "cot": [
@@ -3146,7 +3404,7 @@
               "so_ngay",
               "binh_quan_ngay"
             ],
-            "giay": 0.052,
+            "giay": 0.07,
             "dong_dau": [
               [
                 "2024-07",
@@ -3188,7 +3446,7 @@
               "so_ngay",
               "binh_quan_ngay"
             ],
-            "giay": 0.045,
+            "giay": 0.104,
             "dong_dau": [
               [
                 "2024-07",
@@ -3260,7 +3518,7 @@
     },
     {
       "ma": "mkt-c4-loai-roi-duoi-muc-chung",
-      "dong": 636,
+      "dong": 651,
       "tieu_de": "Loại chiến dịch nào có ROI thấp hơn mức chung?",
       "hinhthuc": "case",
       "cap": "easy",
@@ -3388,7 +3646,7 @@
               "so_chien_dich",
               "roi"
             ],
-            "giay": 0.737,
+            "giay": 1.176,
             "dong_dau": [
               [
                 2,
@@ -3424,7 +3682,7 @@
               "so_chien_dich",
               "roi"
             ],
-            "giay": 0.598,
+            "giay": 0.972,
             "dong_dau": [
               [
                 2,
@@ -3461,7 +3719,7 @@
               "so_chien_dich",
               "roi"
             ],
-            "giay": 0.095,
+            "giay": 0.152,
             "dong_dau": [
               [
                 166665,
@@ -3475,7 +3733,7 @@
               "so_chien_dich",
               "roi"
             ],
-            "giay": 0.085,
+            "giay": 0.152,
             "dong_dau": [
               [
                 150000,
@@ -3546,6 +3804,6 @@
     "so_cau": 20,
     "so_cau_bo_qua": 0,
     "so_loi": 0,
-    "so_canh_bao": 1
+    "so_canh_bao": 0
   }
 }

@@ -2,7 +2,7 @@
 
 Nguồn: `BAO-CAO-TONG-HOP.md` mục 3.1–3.4, 3.6 (22 điểm của jelly) và các mục 3.5 áp vào jelly. Không còn điểm nào "chờ".
 
-Căn cứ domain (thư mục `H:\My Drive\09._PC\Giang-day\Soan bai\Project DA\Game\`):
+Căn cứ domain (thư mục `Project DA\Game\`):
 - **DD**: `Jelly_Trail_Academy_v2\docs\data_dictionary.md` (định nghĩa chỉ số: win rate, ARPDAU, D7 ROI proxy = doanh thu cohort day 0–6).
 - **RM**: `Jelly_Trail_Academy_v2\README.md` (câu chuyện v2.1.0 Android SEA, bản vá 2.1.1).
 - **QA**: `JELLY_TRAIL_ACADEMY_BUSINESS_ANALYTICS_V2_QA_FINAL.docx` (chương II bảng sáu khái niệm hoàn vốn; mục 3.2, 3.7, 4.2; chương V mục 5.2–5.4 thí nghiệm A/B).

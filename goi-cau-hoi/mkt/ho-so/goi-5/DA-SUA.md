@@ -42,7 +42,7 @@ cả gói chạy `--chi-phan-tich` → **KIEM TRA: 0 loi**; biên dịch `cong-c
 
 ## Quyết định v3 (10/11)
 
-BG = `lesson1_marketing_analytics_foundations.md`, thư mục `Project 01 Marketing Analytics Foundations & Data Pipeline` (ổ H:). QĐC = `QUYET-DINH-CHUNG.md`.
+BG = `lesson1_marketing_analytics_foundations.md`, thư mục `Project DA\Project 01 Marketing Analytics Foundations & Data Pipeline`. QĐC = `QUYET-DINH-CHUNG.md`.
 
 | Mã | Điểm | Quyết định | Căn cứ | Đã sửa gì |
 |---|---|---|---|---|

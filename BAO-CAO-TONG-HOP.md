@@ -1,9 +1,79 @@
 # Báo cáo tổng hợp bộ 500 câu Luyện SQL
 
-Ngày lập: 10/11/2026. Người nhận: giảng viên phụ trách.
+Ngày lập: 10/11/2026; cập nhật 11/11/2026 (v1.1.0, mục 0). Người nhận: giảng viên phụ trách.
 Phạm vi: 5 bộ dữ liệu (`scm`, `aivb`, `jelly`, `hr`, `mkt`) × 5 gói × 20 câu, ở `goi-cau-hoi/<bo>/goi-<k>/`.
 
 Nguồn đã đọc: `cau-hoi.tex` (đếm câu), `DA-SUA.md` (mục "Chờ giảng viên", "Đã xử lý"), `BANG-PHAN-CONG.md`, `REVIEW-B.md` và `REVIEW-C.md` (chỉ lấy số tổng), `<bo>/RA-SOAT-GIONG.md`, `<bo>/BAN-DO-100-CAU.md`, `style/STYLE-<bo>.md` (mục F, G), `mysql/README*.md`. Không chạy SQL; số liệu kết quả truy vấn trích từ các file trên.
+
+---
+
+## 0. Cập nhật v1.1.0 (11/11/2026)
+
+Mục 0 là trạng thái hiện tại. Mục 1–5 bên dưới giữ nguyên bản 10/11 (v1.0.0): số liệu ở đó là trước v3, v4; các điểm ở mục 3 đã được quyết hết ở vòng v3 (`goi-cau-hoi/<bo>/QUYET-DINH-126*.md`, `QUYET-DINH-CHUNG.md`).
+
+### 0.1. Số câu hiện tại (đếm lại từ 25 `cau-hoi.tex`)
+
+| Bộ | Viết | Sửa lỗi | Tối ưu | Case | Cơ bản | Dễ | Trung bình | Khó | Cộng |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| scm | 55 | 29 | 6 | 10 | 23 | 32 | 22 | 23 | 100 |
+| aivb | 55 | 29 | 6 | 10 | 23 | 32 | 22 | 23 | 100 |
+| jelly | 54 | 28 | 8 | 10 | 23 | 32 | 22 | 23 | 100 |
+| hr | 56 | 28 | 6 | 10 | 23 | 32 | 22 | 23 | 100 |
+| mkt | 56 | 28 | 6 | 10 | 23 | 32 | 22 | 23 | 100 |
+| **Cộng** | **276** | **142** | **32** | **50** | **115** | **160** | **110** | **115** | **500** |
+
+Mỗi module (9 câu, không tính case) đúng **2 Cơ bản · 3 Dễ · 2 Trung bình · 2 Khó**, ở cả 50 module (5 bộ × 10 module); mỗi bộ 10 case chia 3 Cơ bản · 2 Dễ · 2 Trung bình · 3 Khó. Thống kê chi tiết theo bộ (module × cấp, hình thức × mảng, phủ dạng × mảng, ô trùng) ở khối "## Thống kê" của từng `BAN-DO-100-CAU.md`, sinh lại bằng `cong-cu/sinh_thong_ke.py`.
+
+### 0.2. Các vòng sau v1.0.0
+
+| Vòng | Việc | Hồ sơ |
+|---|---|---|
+| v3 (10/11) | Quyết 126 điểm "Chờ giảng viên" theo tài liệu dự án, luật, HackerRank; bổ sung biến thể ẩn (`mysql/**/04_bo_sung_bien_the_*.sql`) để hết câu có kết quả public trùng hidden-1 | `QUYET-DINH-CHUNG.md`, `<bo>/QUYET-DINH-126*.md` |
+| Chuẩn hoá (11/11) | Theo `quy_chuan/`: kết luận case "Đúng: " + 3 phương án ≤ 35 tiếng, gợi ý nấc cuối là một biểu thức, tiêu đề ≤ 13 tiếng, ERD Khó chỉ khoá, mỗi gói đúng 4 file | `<bo>/ho-so/CHUAN-HOA.md` |
+| v4 (11/11) | Mỗi module đủ 4 cấp theo lộ trình `quy_chuan/lo-trinh-sql` (trước: M1–3 chỉ Cơ bản/Dễ, M7–10 chỉ Trung bình/Khó). Viết lại hoặc đổi cấp 7–10 câu mỗi gói, câu đổi cấp khác thật ≥ 3/5 trục | `ho-so/goi-<k>/DA-SUA.md` mục "v4" |
+| Kiểm độc lập V4 (11/11) | Mỗi bộ 2 người kiểm (B số lẻ, C số chẵn) tự giải trước rồi so solution: 283 câu (v4 + đổi ở v3). Không có solution sai; 64 câu "Cần sửa" | `<bo>/ho-so/KIEM-V4-DANH-SACH.md`, `KIEM-V4-B.md`, `KIEM-V4-C.md` |
+| Sửa theo KIEM-V4 (11/11) | Sửa hết điểm "Cần sửa"; thu phạm vi câu chậm (giữ độ khó); 4 điểm giảng viên quyết 11/11 (mục 0.4) | `ho-so/goi-<k>/DA-SUA.md` mục "Sửa theo KIEM-V4", "Thu phạm vi câu chậm" |
+
+Kết quả kiểm độc lập V4 (Đạt / Cần sửa):
+
+| Bộ | Số câu | Người kiểm B | Người kiểm C |
+|---|---:|---:|---:|
+| scm | 47 | 17 / 7 | 18 / 5 |
+| aivb | 57 | 25 / 4 | 21 / 7 |
+| jelly | 54 | 20 / 7 | 24 / 3 |
+| hr | 71 | 24 / 12 | 28 / 7 |
+| mkt | 54 | 20 / 7 | 22 / 5 |
+
+Loại lỗi bắt được nhiều nhất (đã sửa hết):
+- Chấm oan ở hidden-1: đề dẫn học viên gắn cứng ngày cuối dữ liệu (jelly-a8, f9); đề không nói rõ cách đếm hoặc mốc kỳ (mkt-t4, k6); đề không nói sắp theo giá trị đã làm tròn hay chưa (scm-n6).
+- Lộ lời giải: chú thích `--` trong starter nói thẳng lỗi (hr-s7, s9, a9); gợi ý nấc cuối đưa trọn lời giải (hr-j9, q9; mkt-s9, j9, t5); case có 4 phương án, phương án đúng khác giọng (scm-c3).
+- Sai cấp: câu Sửa lỗi Khó chỉ có một lỗi (hr-t5); câu Khó thiếu trục (jelly-a6, q6; mkt-t5) → nâng hoặc viết lại, không hạ nhãn.
+- Nghiệp vụ: aivb-t6 tính hợp đồng `'RENEWED'` là còn hiệu lực (trùng với hợp đồng tái tục).
+- Trùng cả ô lẫn chủ đề: hr-j8/r7, scm-p7/n8, mkt-t4/k6 → đổi ô hoặc viết lại. Trùng ô giữa hai gói mà khác chủ đề được giữ (BAN-DO ghi "cho phép, ghi để tham khảo"); trùng ô trong cùng gói: 0.
+
+### 0.3. Kiểm máy cuối (11/11, máy mới)
+
+- Bộ kiểm đầy đủ cả 25 gói (`bash cong-cu/kiem_tat_ca.sh 4`): **25/25 "KIEM TRA: 0 loi"**, 500 câu, mọi wrong rớt ≥ 1 biến thể, mọi solution có kết quả public khác hidden-1. Một cảnh báo `NGHIEPVU_LO_SO` ở `aivb-f5-cohort-khach-vay`: tab Nghiệp vụ nêu năm cohort 2018, 2019, trùng giá trị cột năm trong kết quả, không lộ số liệu. Báo cáo: `bao-cao/kiem-cuoi/<bo>-goi-<k>.json`, `TONG-HOP.txt`.
+- Thời gian chạy: đo lúc MySQL rảnh, mọi solution, wrong và starter < 10 giây; câu chậm nhất là case `scm-c6` bước b3 (5,2–7,0 giây). Đã thu phạm vi 16 câu chậm (scm-j6, j1, c3, c2, s8, q4, t1, f1, k1, c8; aivb-k7 starter, s6, c10, p4, c7; hr-k6 wrong), từng câu giữ cấp, bẫy và kết luận case.
+- Biên dịch XeLaTeX cả 25 gói: 0 lỗi LaTeX, 0 ký tự thiếu font (46–62 trang mỗi gói). PDF ở `dist/pdf-25-goi.zip`, zip Overleaf ở `dist/overleaf-25-goi.zip`.
+- BAN-DO cả 5 bộ khớp 100/100 câu với `cau-hoi.tex` (mã, gói, hình thức, cấp, dạng, mảng).
+
+### 0.4. Giảng viên quyết 11/11 (đã làm)
+
+| Điểm | Quyết định | Đã làm |
+|---|---|---|
+| STYLE-aivb, khái niệm `ty-le-casa` còn ghi `'RENEWED'` là còn hiệu lực | Sửa theo định nghĩa bộ đang dùng | Chỉ `'ACTIVE'` là còn hiệu lực; sửa 4 chỗ trong `style/STYLE-aivb.md`; không câu nào còn dùng định nghĩa cũ |
+| `hr-k6-compa-tu-tinh`: wrong `noi_thieu_nam` chạy 72–88 giây | Sửa | Thu về nhóm chức danh Software Engineer năm 2025: wrong còn 0,2–0,5 giây |
+| `mkt-t5` (Khó) chỉ 2/5 trục, không có bẫy chỉ lộ ở hidden-1 | Sửa | Viết lại thành `mkt-t5-chi-phi-quy-2-theo-ngay-chay` (E2 · finance · Khó): chi phí quý 2 theo ngày bắt đầu so với theo ngày chạy; wrong `thieu_can_tren` chỉ rớt ở hidden-1 |
+| `scm-a2`: ghi chú thiết kế dẫn sách dự án ngược với đáp án | Kiểm theo `Project DA\SupplyChain` | Sách bản 07/11 (`capnhat_0711\project-supply-chain\main.tex`, mục III.3.11, III.3.12, VI.5.1): bỏ đơn huỷ khi tính lead time, tỷ lệ đúng hạn → đáp án đúng; chỉ sửa ghi chú |
+| Câu chậm | Thu phạm vi nếu giữ được độ khó; nếu không thì ghi chú câu chậm vào đề và nới thời gian chạy riêng câu đó | Cả 16 câu thu phạm vi được mà giữ độ khó; chưa câu nào phải nới thời gian |
+
+### 0.5. Còn để giảng viên xem (không chặn)
+
+- Bẫy chỉ lộ ở hidden-1 của 4 câu Khó mkt gói 1 (r6, r9, n4, n9) và của `mkt-t5` cùng dựa vào một dòng biến thể (`NY-CMP-56555`, bắt đầu 1/7/2025); r6, r9, n9 cùng phạm vi Nykaa · tiếng Hindi. Hợp lệ theo quy chuẩn nhưng lặp.
+- Một số câu Khó chỉ dùng 1 bảng theo mẫu o4 (scm gói 1 r6, r8, n3, n6; mkt gói 1 r6, r9, n4, n9), đạt Khó nhờ trục mơ hồ, bẫy, nghiệp vụ.
+- Góp ý không chặn chưa áp, ghi ở `KIEM-V4-*.md` và mục "Sửa theo KIEM-V4": aivb r2, n6, c1, t9, c8; mkt-s3 (cách nói "họp tổng kết").
+- Quy chuẩn không có khoá thời gian chạy riêng cho từng câu: nếu sau này có câu phải giữ bản chậm, ghi `\luuy` trong đề và ghi thời gian cần nới ở `\ghichuthietke` để nền tảng đặt giới hạn riêng.
 
 ---
 

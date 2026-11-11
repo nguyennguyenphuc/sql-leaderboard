@@ -55,7 +55,7 @@ Câu kết "Em … giúp anh/chị" trước có ở 13/20 lời nhắn, nay ch�
 
 ## Quyết định v3 (10/11)
 
-BG = `lesson1_marketing_analytics_foundations.md`, thư mục `Project 01 Marketing Analytics Foundations & Data Pipeline` (ổ H:). QĐC = `QUYET-DINH-CHUNG.md`.
+BG = `lesson1_marketing_analytics_foundations.md`, thư mục `Project DA\Project 01 Marketing Analytics Foundations & Data Pipeline`. QĐC = `QUYET-DINH-CHUNG.md`.
 
 | Mã | Điểm | Quyết định | Căn cứ | Đã sửa gì |
 |---|---|---|---|---|

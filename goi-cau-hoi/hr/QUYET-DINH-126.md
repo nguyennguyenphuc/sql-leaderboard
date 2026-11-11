@@ -3,7 +3,7 @@
 Ngày 10/11/2026. Nguồn điểm: `BAO-CAO-TONG-HOP.md` mục 3.1–3.4, 3.6, 3.8 (22 điểm của `hr`) và mục 3.5 (quy ước chung, áp theo `QUYET-DINH-CHUNG.md`, gọi tắt QDC). Chi tiết từng câu ở mục "Quyết định v3 (10/11)" cuối `ho-so/goi-<k>/DA-SUA.md`.
 
 Nguồn domain đã dùng (chỉ đọc):
-- DD: `H:\My Drive\09._PC\Giang-day\Soan bai\Project DA\Project 02 HR Analytics\data\data_dictionary.md` (mục 1 bảng tháng, 2 `position_plan`, 3 `recruiting_pipeline`, 4 `engagement_survey`, 5 mức lương thị trường).
+- DD: `Project DA\Project 02 HR Analytics\data\data_dictionary.md` (mục 1 bảng tháng, 2 `position_plan`, 3 `recruiting_pipeline`, 4 `engagement_survey`, 5 mức lương thị trường).
 - GEN: `…\Project 02 HR Analytics\scripts\augment_datasets.py` (cách sinh dữ liệu: trần giờ làm thêm theo nước dòng 63–66; nghỉ hưu từ 58 tuổi dòng 133, 434–444; thâm niên và số tháng từ lần đề bạt dòng 226–232, 258; tuyển mới từ tháng thứ hai dòng 388; phiếu khảo sát dòng 415–426, 648–660; yêu cầu `'Backfill'` dòng 600–609).
 - Bộ luật Lao động 2019 (Điều 35 báo trước, Điều 98 tiền lương làm thêm giờ, Điều 105 giờ làm việc bình thường, Điều 169 tuổi nghỉ hưu): https://thuvienphapluat.vn/van-ban/Lao-dong-Tien-luong/Bo-Luat-lao-dong-2019-333670.aspx
 - Nghị định 135/2020 (lộ trình tuổi nghỉ hưu): https://thuvienphapluat.vn/van-ban/bao-hiem/decree-135-2020-nd-cp-on-retirement-age-459280.aspx

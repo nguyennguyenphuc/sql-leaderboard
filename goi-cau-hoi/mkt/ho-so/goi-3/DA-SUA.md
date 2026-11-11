@@ -47,7 +47,7 @@ Khuôn "Truy vấn dưới đây cần đếm, theo …, …" đổi về trật
 
 ## Quyết định v3 (10/11)
 
-BG = `lesson1_marketing_analytics_foundations.md`, thư mục `Project 01 Marketing Analytics Foundations & Data Pipeline` (ổ H:).
+BG = `lesson1_marketing_analytics_foundations.md`, thư mục `Project DA\Project 01 Marketing Analytics Foundations & Data Pipeline`.
 
 | Mã | Điểm | Quyết định | Căn cứ | Đã sửa gì |
 |---|---|---|---|---|

@@ -7,7 +7,7 @@ Thư mục gốc: C:\Cong viec\ProjectDA\sql-leaderboard\ . Đọc trước: mys
 ## (1) MySQL
 - Container MySQL dùng chung: `sqllb-mysql` (mạng `sqllb`, root password trong mysql\.env – KHÔNG in ra). Tạo database `<bo>` và `<bo>_hidden_1`, cấp SELECT cho `sql_runner`.
 - Nguồn Postgres của lớp: CHỈ ĐỌC, luôn `docker exec -i -e PGOPTIONS='-c default_transaction_read_only=on' docker-postgres-1 psql -U postgres -d <db> ...`. TUYỆT ĐỐI không ghi, không ALTER, không stop/restart/compose bất kỳ container nào của project `docker` (docker-postgres-1, docker-backend-1, docker-redis-1, docker-game-api-1).
-- Nguồn trên ổ H: chỉ đọc đúng file cần, KHÔNG quét đệ quy thư mục H: (Google Drive sẽ tải hàng loạt).
+- Nguồn trong thư mục `Project DA` (Google Drive): chỉ đọc đúng file cần, KHÔNG quét đệ quy (Google Drive sẽ tải hàng loạt).
 - Bản rút gọn: tổng ≲ 6 triệu dòng; giữ đủ bảng nhỏ; bảng sự kiện lớn lấy cửa sổ thời gian liền mạch; giữ PK/FK/index; kiểu MySQL hợp lý. Script đánh số trong mysql\<bo>\ (01_tao_bang, 02_nap, 03_bien_the_an) để chạy lại được; dữ liệu CSV trung gian ở mysql\<bo>\du-lieu\ (không đưa vào gói). Kiểm số dòng nguồn = MySQL.
 - `<bo>_hidden_1` theo khuôn Datathon: bỏ ~10% dòng bảng sự kiện chính theo `id % 10 = 7` (giữ FK); thêm 1 dòng ngay sau mốc ngày cuối của bảng sự kiện chính; tạo 1 cặp hoà hạng ở nhóm hay được hỏi top N.
 - Ghi mysql\README-<bo>.md: bảng, số dòng, cửa sổ, kiểu cột, quan hệ (ERD dạng chữ), bẫy dữ liệu đã kiểm (số thật), bảng "Biến thể · khác public · bắt lỗi gì".

@@ -1,6 +1,6 @@
 {
   "goi": "goi-cau-hoi/jelly/goi-5",
-  "thoi_gian": "2026-11-10T15:13:09",
+  "thoi_gian": "2026-11-11T02:16:44",
   "may_chu": "sqllb-mysql:3306 (user sql_runner)",
   "chi_phan_tich": false,
   "khai_bao": {
@@ -39,27 +39,20 @@
       "ty-le-thua"
     ]
   },
-  "so_khoi_sql": 80,
+  "so_khoi_sql": 85,
   "loi_goi": [],
-  "canh_bao_goi": [
-    {
-      "ma_loi": "GOI_FILE_LA",
-      "thong_diep": "thư mục gói có file ngoài 4 file chuẩn (không đưa vào zip): BANG-PHAN-CONG.md, DA-SUA.md, REVIEW-B.md, REVIEW-C.md",
-      "file": "goi-cau-hoi/jelly/goi-5",
-      "dong": null
-    }
-  ],
+  "canh_bao_goi": [],
   "cau": [
     {
-      "ma": "jelly-k1-trung-khoa",
+      "ma": "jelly-k1-phien-ghi-hai-lan",
       "dong": 122,
-      "tieu_de": "Hai bảng nguồn của báo cáo giữ chân có dòng ghi trùng không?",
+      "tieu_de": "Phiên chơi nào bị ghi hai lần?",
       "hinhthuc": "write",
-      "cap": "medium",
+      "cap": "basic",
       "dang": "E1",
-      "domain": "customer",
+      "domain": "operations",
       "dulieu": "jelly",
-      "diem": 30,
+      "diem": 10,
       "trangthai": "review",
       "bo_qua": false,
       "cham": {
@@ -75,12 +68,13 @@
       },
       "buoc": [],
       "khoi_sql": {
-        "jelly-k1-trung-khoa": {
+        "jelly-k1-phien-ghi-hai-lan": {
           "solution": [
             "solution"
           ],
           "wrong": [
-            "khoa_thieu_cot_ngay"
+            "khoa_ky_thuat_ma_phien",
+            "gom_theo_ngay"
           ]
         }
       },
@@ -95,12 +89,17 @@
         {
           "phep": "solution_chay_moi_bien_the",
           "ket_qua": "dat",
-          "chi_tiet": "[jelly-k1-trung-khoa]: public, hidden-1; chạy 2 lần cùng kết quả"
+          "chi_tiet": "[jelly-k1-phien-ghi-hai-lan]: public, hidden-1; chạy 2 lần cùng kết quả"
         },
         {
           "phep": "wrong_rot",
           "ket_qua": "dat",
-          "chi_tiet": "khoa_thieu_cot_ngay: rớt ở public, hidden-1"
+          "chi_tiet": "khoa_ky_thuat_ma_phien: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "gom_theo_ngay: rớt ở public, hidden-1"
         },
         {
           "phep": "nghiepvu_khong_lo_so",
@@ -109,52 +108,76 @@
         }
       ],
       "solution": {
-        "jelly-k1-trung-khoa": {
+        "jelly-k1-phien-ghi-hai-lan": {
           "public": {
-            "so_dong": 2,
+            "so_dong": 57,
             "cot": [
-              "bang",
-              "so_dong",
-              "so_khoa_khac_nhau",
-              "so_dong_thua"
+              "user_id",
+              "session_start",
+              "so_dong"
             ],
-            "giay": 1.16,
+            "giay": 2.098,
             "dong_dau": [
               [
-                "player_daily",
-                79628,
-                79628,
-                0
+                "jta_user_000048",
+                "2026-08-19T13:32:00",
+                2
               ],
               [
-                "tutorial_steps",
-                62782,
-                62782,
-                0
+                "jta_user_000095",
+                "2026-07-02T22:40:00",
+                2
+              ],
+              [
+                "jta_user_000664",
+                "2026-07-09T13:30:00",
+                2
+              ],
+              [
+                "jta_user_000688",
+                "2026-07-03T16:11:00",
+                2
+              ],
+              [
+                "jta_user_001010",
+                "2026-07-29T12:12:00",
+                2
               ]
             ]
           },
           "hidden-1": {
-            "so_dong": 2,
+            "so_dong": 52,
             "cot": [
-              "bang",
-              "so_dong",
-              "so_khoa_khac_nhau",
-              "so_dong_thua"
+              "user_id",
+              "session_start",
+              "so_dong"
             ],
-            "giay": 1.013,
+            "giay": 1.765,
             "dong_dau": [
               [
-                "player_daily",
-                71595,
-                71595,
-                0
+                "jta_user_000048",
+                "2026-08-19T13:32:00",
+                2
               ],
               [
-                "tutorial_steps",
-                56534,
-                56534,
-                0
+                "jta_user_000095",
+                "2026-07-02T22:40:00",
+                2
+              ],
+              [
+                "jta_user_000664",
+                "2026-07-09T13:30:00",
+                2
+              ],
+              [
+                "jta_user_000688",
+                "2026-07-03T16:11:00",
+                2
+              ],
+              [
+                "jta_user_001010",
+                "2026-07-29T12:12:00",
+                2
               ]
             ]
           }
@@ -162,10 +185,21 @@
       },
       "starter": {},
       "wrong": {
-        "khoa_thieu_cot_ngay": {
+        "khoa_ky_thuat_ma_phien": {
           "bien_the": {
-            "public": "rot (khác giá trị ở dòng 1, cột 3)",
-            "hidden-1": "rot (khác giá trị ở dòng 1, cột 3)"
+            "public": "rot (khác số dòng (0 so với 57))",
+            "hidden-1": "rot (khác số dòng (0 so với 52))"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        },
+        "gom_theo_ngay": {
+          "bien_the": {
+            "public": "rot (khác số dòng (36107 so với 57))",
+            "hidden-1": "rot (khác số dòng (32515 so với 52))"
           },
           "rot_o": [
             "public",
@@ -183,7 +217,7 @@
     },
     {
       "ma": "jelly-k2-mo-coi",
-      "dong": 150,
+      "dong": 145,
       "tieu_de": "Giao dịch mua trong màn nào không có lượt chơi màn đó?",
       "hinhthuc": "write",
       "cap": "medium",
@@ -261,7 +295,7 @@
               "so_thieu_luot_choi",
               "ty_le_thieu_pct"
             ],
-            "giay": 2.168,
+            "giay": 5.731,
             "dong_dau": [
               [
                 "booster_bundle",
@@ -285,13 +319,13 @@
               "so_thieu_luot_choi",
               "ty_le_thieu_pct"
             ],
-            "giay": 1.986,
+            "giay": 5.002,
             "dong_dau": [
               [
                 "booster_bundle",
-                562,
-                408,
-                72.6
+                563,
+                409,
+                72.65
               ],
               [
                 "extra_moves_pack",
@@ -348,14 +382,14 @@
     },
     {
       "ma": "jelly-k3-cohort-day-kiem",
-      "dong": 178,
+      "dong": 173,
       "tieu_de": "Số ngày kể từ lúc cài có được tính đúng?",
       "hinhthuc": "write",
-      "cap": "medium",
+      "cap": "easy",
       "dang": "E2",
       "domain": "customer",
       "dulieu": "jelly",
-      "diem": 30,
+      "diem": 20,
       "trangthai": "review",
       "bo_qua": false,
       "cham": {
@@ -376,7 +410,8 @@
             "solution"
           ],
           "wrong": [
-            "datediff_dao_doi_so"
+            "datediff_dao_doi_so",
+            "so_trong_mot_bang"
           ]
         }
       },
@@ -399,6 +434,11 @@
           "chi_tiet": "datediff_dao_doi_so: rớt ở public, hidden-1"
         },
         {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "so_trong_mot_bang: rớt ở hidden-1"
+        },
+        {
           "phep": "nghiepvu_khong_lo_so",
           "ket_qua": "dat",
           "chi_tiet": ""
@@ -410,15 +450,13 @@
             "so_dong": 1,
             "cot": [
               "so_dong_kiem",
-              "so_lech_cohort_day",
               "so_lech_ngay_cai",
-              "so_hoat_dong_truoc_ngay_cai"
+              "so_lech_cohort_day"
             ],
-            "giay": 0.168,
+            "giay": 0.285,
             "dong_dau": [
               [
                 79628,
-                0,
                 0,
                 0
               ]
@@ -428,17 +466,15 @@
             "so_dong": 1,
             "cot": [
               "so_dong_kiem",
-              "so_lech_cohort_day",
               "so_lech_ngay_cai",
-              "so_hoat_dong_truoc_ngay_cai"
+              "so_lech_cohort_day"
             ],
-            "giay": 0.152,
+            "giay": 0.213,
             "dong_dau": [
               [
-                71595,
+                71596,
                 1,
-                1,
-                0
+                1
               ]
             ]
           }
@@ -448,11 +484,21 @@
       "wrong": {
         "datediff_dao_doi_so": {
           "bien_the": {
-            "public": "rot (khác giá trị ở dòng 1, cột 2)",
-            "hidden-1": "rot (khác giá trị ở dòng 1, cột 2)"
+            "public": "rot (khác giá trị ở dòng 1, cột 3)",
+            "hidden-1": "rot (khác giá trị ở dòng 1, cột 3)"
           },
           "rot_o": [
             "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        },
+        "so_trong_mot_bang": {
+          "bien_the": {
+            "public": "qua",
+            "hidden-1": "rot (khác giá trị ở dòng 1, cột 2)"
+          },
+          "rot_o": [
             "hidden-1"
           ],
           "vi_pham_rang_buoc": []
@@ -467,7 +513,7 @@
     },
     {
       "ma": "jelly-k4-max-level-giam",
-      "dong": 204,
+      "dong": 198,
       "tieu_de": "Màn cao nhất trong ngày có lúc giảm không?",
       "hinhthuc": "write",
       "cap": "medium",
@@ -538,7 +584,7 @@
               "so_nguoi_choi",
               "muc_giam_binh_quan"
             ],
-            "giay": 0.301,
+            "giay": 0.463,
             "dong_dau": [
               [
                 2675,
@@ -554,7 +600,7 @@
               "so_nguoi_choi",
               "muc_giam_binh_quan"
             ],
-            "giay": 0.269,
+            "giay": 0.416,
             "dong_dau": [
               [
                 2384,
@@ -599,7 +645,7 @@
     },
     {
       "ma": "jelly-k5-extra-moves-doi-soat",
-      "dong": 230,
+      "dong": 224,
       "tieu_de": "Mua thêm lượt đi ở ba nguồn có khớp nhau?",
       "hinhthuc": "write",
       "cap": "hard",
@@ -671,7 +717,7 @@
               "so_luot_bang_ngay",
               "so_giao_dich_goi"
             ],
-            "giay": 2.595,
+            "giay": 3.601,
             "dong_dau": [
               [
                 "2026-08-01",
@@ -713,7 +759,7 @@
               "so_luot_bang_ngay",
               "so_giao_dich_goi"
             ],
-            "giay": 2.633,
+            "giay": 3.242,
             "dong_dau": [
               [
                 "2026-08-01",
@@ -781,15 +827,15 @@
       }
     },
     {
-      "ma": "jelly-k6-ad-revenue-lam-tron",
-      "dong": 260,
-      "tieu_de": "Doanh thu quảng cáo ở hai nguồn lệch nhau bao nhiêu?",
+      "ma": "jelly-k6-quang-cao-bang-ngay",
+      "dong": 254,
+      "tieu_de": "Ngày nào doanh thu quảng cáo trên bảng chỉ số ngày bị lệch?",
       "hinhthuc": "write",
-      "cap": "hard",
+      "cap": "easy",
       "dang": "E2",
       "domain": "finance",
       "dulieu": "jelly",
-      "diem": 50,
+      "diem": 20,
       "trangthai": "review",
       "bo_qua": false,
       "cham": {
@@ -799,19 +845,20 @@
         ],
         "thutu": "co",
         "socot": "vitri",
-        "saiso": 1e-05,
+        "saiso": 0.01,
         "quettoida": {},
         "ngansach": null
       },
       "buoc": [],
       "khoi_sql": {
-        "jelly-k6-ad-revenue-lam-tron": {
+        "jelly-k6-quang-cao-bang-ngay": {
           "solution": [
             "solution"
           ],
           "wrong": [
-            "so_bang_dau_khac",
-            "lam_tron_roi_so_bang"
+            "so_voi_tong_chua_lam_tron",
+            "lam_tron_tung_lan_xem",
+            "cong_bang_ngay_sau_khi_noi"
           ]
         }
       },
@@ -826,17 +873,22 @@
         {
           "phep": "solution_chay_moi_bien_the",
           "ket_qua": "dat",
-          "chi_tiet": "[jelly-k6-ad-revenue-lam-tron]: public, hidden-1; chạy 2 lần cùng kết quả"
+          "chi_tiet": "[jelly-k6-quang-cao-bang-ngay]: public, hidden-1; chạy 2 lần cùng kết quả"
         },
         {
           "phep": "wrong_rot",
           "ket_qua": "dat",
-          "chi_tiet": "so_bang_dau_khac: rớt ở public, hidden-1"
+          "chi_tiet": "so_voi_tong_chua_lam_tron: rớt ở public, hidden-1"
         },
         {
           "phep": "wrong_rot",
           "ket_qua": "dat",
-          "chi_tiet": "lam_tron_roi_so_bang: rớt ở public, hidden-1"
+          "chi_tiet": "lam_tron_tung_lan_xem: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "cong_bang_ngay_sau_khi_noi: rớt ở public, hidden-1"
         },
         {
           "phep": "nghiepvu_khong_lo_so",
@@ -845,40 +897,56 @@
         }
       ],
       "solution": {
-        "jelly-k6-ad-revenue-lam-tron": {
+        "jelly-k6-quang-cao-bang-ngay": {
           "public": {
             "so_dong": 1,
             "cot": [
-              "so_ngay_nguoi_doi_soat",
-              "so_ngay_nguoi_lech",
-              "tong_chenh_lech_usd",
-              "chenh_lech_lon_nhat_usd"
+              "ngay",
+              "dt_bang_ngay_usd",
+              "dt_tinh_lai_usd"
             ],
-            "giay": 2.011,
+            "giay": 0.488,
             "dong_dau": [
               [
-                64098,
-                243,
-                -0.008,
-                7e-05
+                "2026-08-19",
+                22.63,
+                22.64
               ]
             ]
           },
           "hidden-1": {
-            "so_dong": 1,
+            "so_dong": 6,
             "cot": [
-              "so_ngay_nguoi_doi_soat",
-              "so_ngay_nguoi_lech",
-              "tong_chenh_lech_usd",
-              "chenh_lech_lon_nhat_usd"
+              "ngay",
+              "dt_bang_ngay_usd",
+              "dt_tinh_lai_usd"
             ],
-            "giay": 1.611,
+            "giay": 0.495,
             "dong_dau": [
               [
-                57622,
-                219,
-                -0.00788,
-                6e-05
+                "2026-07-01",
+                1.6,
+                1.59
+              ],
+              [
+                "2026-07-05",
+                6.57,
+                6.56
+              ],
+              [
+                "2026-07-31",
+                15.93,
+                15.92
+              ],
+              [
+                "2026-08-09",
+                18.78,
+                18.77
+              ],
+              [
+                "2026-08-24",
+                21.26,
+                21.27
               ]
             ]
           }
@@ -886,10 +954,10 @@
       },
       "starter": {},
       "wrong": {
-        "so_bang_dau_khac": {
+        "so_voi_tong_chua_lam_tron": {
           "bien_the": {
-            "public": "rot (khác giá trị ở dòng 1, cột 2)",
-            "hidden-1": "rot (khác giá trị ở dòng 1, cột 2)"
+            "public": "rot (khác số dòng (60 so với 1))",
+            "hidden-1": "rot (khác số dòng (60 so với 6))"
           },
           "rot_o": [
             "public",
@@ -897,10 +965,21 @@
           ],
           "vi_pham_rang_buoc": []
         },
-        "lam_tron_roi_so_bang": {
+        "lam_tron_tung_lan_xem": {
           "bien_the": {
-            "public": "rot (khác giá trị ở dòng 1, cột 2)",
-            "hidden-1": "rot (khác giá trị ở dòng 1, cột 2)"
+            "public": "rot (khác số dòng (60 so với 1))",
+            "hidden-1": "rot (khác số dòng (60 so với 6))"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        },
+        "cong_bang_ngay_sau_khi_noi": {
+          "bien_the": {
+            "public": "rot (khác số dòng (60 so với 1))",
+            "hidden-1": "rot (khác số dòng (60 so với 6))"
           },
           "rot_o": [
             "public",
@@ -917,203 +996,15 @@
       }
     },
     {
-      "ma": "jelly-k7-bat-thuong-chi",
-      "dong": 288,
-      "tieu_de": "Ngày chi quảng cáo bất thường không hiện ra",
+      "ma": "jelly-k7-dau-doi-soat-phien",
+      "dong": 281,
+      "tieu_de": "Số người chơi hoạt động tính lại lệch bảng chỉ số ngày",
       "hinhthuc": "debug",
-      "cap": "medium",
-      "dang": "E1",
-      "domain": "marketing",
-      "dulieu": "jelly",
-      "diem": 30,
-      "trangthai": "review",
-      "bo_qua": false,
-      "cham": {
-        "bokiemtra": [
-          "public",
-          "hidden-1"
-        ],
-        "thutu": "co",
-        "socot": "vitri",
-        "saiso": 0.01,
-        "quettoida": {},
-        "ngansach": null
-      },
-      "buoc": [],
-      "khoi_sql": {
-        "jelly-k7-bat-thuong-chi": {
-          "solution": [
-            "solution"
-          ],
-          "starter": [
-            "starter"
-          ],
-          "wrong": [
-            "chuan_tren_dong_quoc_gia",
-            "quen_can_tren"
-          ]
-        }
-      },
-      "loi": [],
-      "canh_bao": [],
-      "kiem_tra": [
-        {
-          "phep": "kiem_tinh (khoá, phần bắt buộc theo hình thức, khối SQL, khái niệm, bước case)",
-          "ket_qua": "dat",
-          "chi_tiet": "0 lỗi"
-        },
-        {
-          "phep": "solution_chay_moi_bien_the",
-          "ket_qua": "dat",
-          "chi_tiet": "[jelly-k7-bat-thuong-chi]: public, hidden-1; chạy 2 lần cùng kết quả"
-        },
-        {
-          "phep": "starter_debug_sai",
-          "ket_qua": "dat",
-          "chi_tiet": "public: khác số dòng (2 so với 4), hidden-1: khác số dòng (2 so với 6)"
-        },
-        {
-          "phep": "wrong_rot",
-          "ket_qua": "dat",
-          "chi_tiet": "chuan_tren_dong_quoc_gia: rớt ở public, hidden-1"
-        },
-        {
-          "phep": "wrong_rot",
-          "ket_qua": "dat",
-          "chi_tiet": "quen_can_tren: rớt ở hidden-1"
-        },
-        {
-          "phep": "nghiepvu_khong_lo_so",
-          "ket_qua": "dat",
-          "chi_tiet": ""
-        }
-      ],
-      "solution": {
-        "jelly-k7-bat-thuong-chi": {
-          "public": {
-            "so_dong": 4,
-            "cot": [
-              "campaign_id",
-              "ngay",
-              "chi_ngay",
-              "chi_tb_chien_dich"
-            ],
-            "giay": 0.003,
-            "dong_dau": [
-              [
-                "JTA-CREATOR-077",
-                "2026-07-01",
-                271.12,
-                230.28
-              ],
-              [
-                "JTA-SEA-SEARCH-101",
-                "2026-07-11",
-                658.23,
-                535.11
-              ],
-              [
-                "JTA-SOCIAL-204",
-                "2026-07-29",
-                843.27,
-                711.84
-              ],
-              [
-                "JTA-SOCIAL-204",
-                "2026-08-18",
-                847.27,
-                711.84
-              ]
-            ]
-          },
-          "hidden-1": {
-            "so_dong": 6,
-            "cot": [
-              "campaign_id",
-              "ngay",
-              "chi_ngay",
-              "chi_tb_chien_dich"
-            ],
-            "giay": 0.003,
-            "dong_dau": [
-              [
-                "JTA-CREATOR-077",
-                "2026-07-01",
-                271.12,
-                230.28
-              ],
-              [
-                "JTA-SEA-SEARCH-101",
-                "2026-07-11",
-                658.23,
-                535.11
-              ],
-              [
-                "JTA-SOCIAL-204",
-                "2026-07-29",
-                843.27,
-                711.84
-              ],
-              [
-                "JTA-SOCIAL-204",
-                "2026-08-18",
-                847.27,
-                711.84
-              ],
-              [
-                "JTA-VIDEO-330",
-                "2026-07-11",
-                521.72,
-                396.45
-              ]
-            ]
-          }
-        }
-      },
-      "starter": {
-        "public": "khác số dòng (2 so với 4)",
-        "hidden-1": "khác số dòng (2 so với 6)"
-      },
-      "wrong": {
-        "chuan_tren_dong_quoc_gia": {
-          "bien_the": {
-            "public": "rot (khác số dòng (240 so với 4))",
-            "hidden-1": "rot (khác số dòng (240 so với 6))"
-          },
-          "rot_o": [
-            "public",
-            "hidden-1"
-          ],
-          "vi_pham_rang_buoc": []
-        },
-        "quen_can_tren": {
-          "bien_the": {
-            "public": "qua",
-            "hidden-1": "rot (khác số dòng (4 so với 6))"
-          },
-          "rot_o": [
-            "hidden-1"
-          ],
-          "vi_pham_rang_buoc": []
-        }
-      },
-      "optimize": null,
-      "buoc_wrong": {},
-      "bien_the": {
-        "public": "jelly",
-        "hidden-1": "jelly_hidden_1"
-      }
-    },
-    {
-      "ma": "jelly-k8-hoan-tien",
-      "dong": 314,
-      "tieu_de": "Doanh thu thuần của các gói vật phẩm ra số âm",
-      "hinhthuc": "debug",
-      "cap": "medium",
+      "cap": "easy",
       "dang": "E2",
-      "domain": "after_sales",
+      "domain": "customer",
       "dulieu": "jelly",
-      "diem": 30,
+      "diem": 20,
       "trangthai": "review",
       "bo_qua": false,
       "cham": {
@@ -1129,7 +1020,7 @@
       },
       "buoc": [],
       "khoi_sql": {
-        "jelly-k8-hoan-tien": {
+        "jelly-k7-dau-doi-soat-phien": {
           "solution": [
             "solution"
           ],
@@ -1137,8 +1028,8 @@
             "starter"
           ],
           "wrong": [
-            "chi_sua_cot_thuan",
-            "case_thieu_else"
+            "chi_sua_cot_dau_tinh_lai",
+            "bo_can_tren_cua_tuan"
           ]
         }
       },
@@ -1153,22 +1044,22 @@
         {
           "phep": "solution_chay_moi_bien_the",
           "ket_qua": "dat",
-          "chi_tiet": "[jelly-k8-hoan-tien]: public, hidden-1; chạy 2 lần cùng kết quả"
+          "chi_tiet": "[jelly-k7-dau-doi-soat-phien]: public, hidden-1; chạy 2 lần cùng kết quả"
         },
         {
           "phep": "starter_debug_sai",
           "ket_qua": "dat",
-          "chi_tiet": "public: khác giá trị ở dòng 1, cột 1, hidden-1: khác giá trị ở dòng 1, cột 1"
+          "chi_tiet": "public: khác giá trị ở dòng 1, cột 3, hidden-1: khác giá trị ở dòng 1, cột 3"
         },
         {
           "phep": "wrong_rot",
           "ket_qua": "dat",
-          "chi_tiet": "chi_sua_cot_thuan: rớt ở public, hidden-1"
+          "chi_tiet": "chi_sua_cot_dau_tinh_lai: rớt ở public, hidden-1"
         },
         {
           "phep": "wrong_rot",
           "ket_qua": "dat",
-          "chi_tiet": "case_thieu_else: rớt ở public, hidden-1"
+          "chi_tiet": "bo_can_tren_cua_tuan: rớt ở public, hidden-1"
         },
         {
           "phep": "nghiepvu_khong_lo_so",
@@ -1177,111 +1068,99 @@
         }
       ],
       "solution": {
-        "jelly-k8-hoan-tien": {
+        "jelly-k7-dau-doi-soat-phien": {
           "public": {
-            "so_dong": 5,
+            "so_dong": 7,
             "cot": [
-              "product_type",
-              "so_giao_dich",
-              "doanh_thu_gop",
-              "tien_hoan",
-              "doanh_thu_thuan"
+              "ngay",
+              "dau_bang_ngay",
+              "dau_tinh_lai",
+              "chenh_lech"
             ],
-            "giay": 0.003,
+            "giay": 0.087,
             "dong_dau": [
               [
-                "booster_bundle",
-                256,
-                1277.44,
-                0,
-                1277.44
+                "2026-07-01",
+                215,
+                215,
+                0
               ],
               [
-                "season_pass",
-                86,
-                859.14,
-                0,
-                859.14
+                "2026-07-02",
+                365,
+                365,
+                0
               ],
               [
-                "extra_moves_pack",
-                261,
-                519.39,
-                0,
-                519.39
+                "2026-07-03",
+                466,
+                466,
+                0
               ],
               [
-                "piggy_bank",
-                145,
-                433.55,
-                0,
-                433.55
+                "2026-07-04",
+                579,
+                579,
+                0
               ],
               [
-                "starter_pack",
-                302,
-                298.98,
-                0,
-                298.98
+                "2026-07-05",
+                651,
+                651,
+                0
               ]
             ]
           },
           "hidden-1": {
-            "so_dong": 5,
+            "so_dong": 7,
             "cot": [
-              "product_type",
-              "so_giao_dich",
-              "doanh_thu_gop",
-              "tien_hoan",
-              "doanh_thu_thuan"
+              "ngay",
+              "dau_bang_ngay",
+              "dau_tinh_lai",
+              "chenh_lech"
             ],
-            "giay": 0.002,
+            "giay": 0.075,
             "dong_dau": [
               [
-                "booster_bundle",
-                231,
-                1152.69,
-                0,
-                1152.69
+                "2026-07-01",
+                194,
+                194,
+                0
               ],
               [
-                "season_pass",
-                77,
-                769.23,
-                0,
-                769.23
+                "2026-07-02",
+                330,
+                330,
+                0
               ],
               [
-                "extra_moves_pack",
-                234,
-                465.66,
-                0,
-                465.66
+                "2026-07-03",
+                415,
+                415,
+                0
               ],
               [
-                "piggy_bank",
-                131,
-                391.69,
-                0,
-                391.69
+                "2026-07-04",
+                519,
+                519,
+                0
               ],
               [
-                "starter_pack",
-                273,
-                270.27,
-                0,
-                270.27
+                "2026-07-05",
+                587,
+                587,
+                0
               ]
             ]
           }
         }
       },
       "starter": {
-        "public": "khác giá trị ở dòng 1, cột 1",
-        "hidden-1": "khác giá trị ở dòng 1, cột 1"
+        "public": "khác giá trị ở dòng 1, cột 3",
+        "hidden-1": "khác giá trị ở dòng 1, cột 3"
       },
       "wrong": {
-        "chi_sua_cot_thuan": {
+        "chi_sua_cot_dau_tinh_lai": {
           "bien_the": {
             "public": "rot (khác giá trị ở dòng 1, cột 4)",
             "hidden-1": "rot (khác giá trị ở dòng 1, cột 4)"
@@ -1292,10 +1171,153 @@
           ],
           "vi_pham_rang_buoc": []
         },
-        "case_thieu_else": {
+        "bo_can_tren_cua_tuan": {
           "bien_the": {
-            "public": "rot (khác kiểu giá trị ở dòng 1, cột 4 (null so với so))",
-            "hidden-1": "rot (khác kiểu giá trị ở dòng 1, cột 4 (null so với so))"
+            "public": "rot (khác số dòng (60 so với 7))",
+            "hidden-1": "rot (khác số dòng (63 so với 7))"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        }
+      },
+      "optimize": null,
+      "buoc_wrong": {},
+      "bien_the": {
+        "public": "jelly",
+        "hidden-1": "jelly_hidden_1"
+      }
+    },
+    {
+      "ma": "jelly-k8-thuan-ra-0",
+      "dong": 307,
+      "tieu_de": "Doanh thu thuần tháng 7 ra 0",
+      "hinhthuc": "debug",
+      "cap": "basic",
+      "dang": "E2",
+      "domain": "after_sales",
+      "dulieu": "jelly",
+      "diem": 10,
+      "trangthai": "review",
+      "bo_qua": false,
+      "cham": {
+        "bokiemtra": [
+          "public",
+          "hidden-1"
+        ],
+        "thutu": "co",
+        "socot": "vitri",
+        "saiso": 0.01,
+        "quettoida": {},
+        "ngansach": null
+      },
+      "buoc": [],
+      "khoi_sql": {
+        "jelly-k8-thuan-ra-0": {
+          "solution": [
+            "solution"
+          ],
+          "starter": [
+            "starter"
+          ],
+          "wrong": [
+            "dao_co_kieu_khac",
+            "bo_can_tren_thang"
+          ]
+        }
+      },
+      "loi": [],
+      "canh_bao": [],
+      "kiem_tra": [
+        {
+          "phep": "kiem_tinh (khoá, phần bắt buộc theo hình thức, khối SQL, khái niệm, bước case)",
+          "ket_qua": "dat",
+          "chi_tiet": "0 lỗi"
+        },
+        {
+          "phep": "solution_chay_moi_bien_the",
+          "ket_qua": "dat",
+          "chi_tiet": "[jelly-k8-thuan-ra-0]: public, hidden-1; chạy 2 lần cùng kết quả"
+        },
+        {
+          "phep": "starter_debug_sai",
+          "ket_qua": "dat",
+          "chi_tiet": "public: khác giá trị ở dòng 1, cột 3, hidden-1: khác giá trị ở dòng 1, cột 3"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "dao_co_kieu_khac: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "bo_can_tren_thang: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "nghiepvu_khong_lo_so",
+          "ket_qua": "dat",
+          "chi_tiet": ""
+        }
+      ],
+      "solution": {
+        "jelly-k8-thuan-ra-0": {
+          "public": {
+            "so_dong": 1,
+            "cot": [
+              "so_giao_dich",
+              "doanh_thu_gop_usd",
+              "doanh_thu_thuan_usd"
+            ],
+            "giay": 0.003,
+            "dong_dau": [
+              [
+                1050,
+                3388.5,
+                3388.5
+              ]
+            ]
+          },
+          "hidden-1": {
+            "so_dong": 1,
+            "cot": [
+              "so_giao_dich",
+              "doanh_thu_gop_usd",
+              "doanh_thu_thuan_usd"
+            ],
+            "giay": 0.003,
+            "dong_dau": [
+              [
+                946,
+                3049.54,
+                3049.54
+              ]
+            ]
+          }
+        }
+      },
+      "starter": {
+        "public": "khác giá trị ở dòng 1, cột 3",
+        "hidden-1": "khác giá trị ở dòng 1, cột 3"
+      },
+      "wrong": {
+        "dao_co_kieu_khac": {
+          "bien_the": {
+            "public": "rot (khác giá trị ở dòng 1, cột 3)",
+            "hidden-1": "rot (khác giá trị ở dòng 1, cột 3)"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        },
+        "bo_can_tren_thang": {
+          "bien_the": {
+            "public": "rot (khác giá trị ở dòng 1, cột 1)",
+            "hidden-1": "rot (khác giá trị ở dòng 1, cột 1)"
           },
           "rot_o": [
             "public",
@@ -1313,7 +1335,7 @@
     },
     {
       "ma": "jelly-k9-phien-hai-dang-ma",
-      "dong": 339,
+      "dong": 328,
       "tieu_de": "Không người chơi mới nào bắt đầu bằng phần hướng dẫn?",
       "hinhthuc": "debug",
       "cap": "hard",
@@ -1393,7 +1415,7 @@
               "so_nguoi_vao_huong_dan",
               "ty_le_pct"
             ],
-            "giay": 1.699,
+            "giay": 2.543,
             "dong_dau": [
               [
                 "Android",
@@ -1417,7 +1439,7 @@
               "so_nguoi_vao_huong_dan",
               "ty_le_pct"
             ],
-            "giay": 1.455,
+            "giay": 2.362,
             "dong_dau": [
               [
                 "Android",
@@ -1472,8 +1494,8 @@
     },
     {
       "ma": "jelly-p1-dem-ket-qua-mot-lan",
-      "dong": 370,
-      "tieu_de": "Kết quả lượt chơi màn 28--30 trong tháng 8",
+      "dong": 360,
+      "tieu_de": "Kết quả lượt chơi màn 28--30 tháng 8 chỉ với một lần quét",
       "hinhthuc": "optimize",
       "cap": "easy",
       "dang": "A3",
@@ -1565,7 +1587,7 @@
               "so_bo_cuoc",
               "so_su_co"
             ],
-            "giay": 0.087,
+            "giay": 0.14,
             "dong_dau": [
               [
                 28,
@@ -1599,7 +1621,7 @@
               "so_bo_cuoc",
               "so_su_co"
             ],
-            "giay": 0.058,
+            "giay": 0.104,
             "dong_dau": [
               [
                 28,
@@ -1688,8 +1710,8 @@
     },
     {
       "ma": "jelly-p2-doanh-thu-hai-nguon",
-      "dong": 396,
-      "tieu_de": "Doanh thu quảng cáo theo nền tảng và định dạng chỉ với một lần quét",
+      "dong": 386,
+      "tieu_de": "Doanh thu quảng cáo theo nền tảng, định dạng chỉ một lần quét",
       "hinhthuc": "optimize",
       "cap": "easy",
       "dang": "A3",
@@ -1780,7 +1802,7 @@
               "so_luot_xem",
               "doanh_thu_usd"
             ],
-            "giay": 0.141,
+            "giay": 0.232,
             "dong_dau": [
               [
                 "Android",
@@ -1816,7 +1838,7 @@
               "so_luot_xem",
               "doanh_thu_usd"
             ],
-            "giay": 0.116,
+            "giay": 0.194,
             "dong_dau": [
               [
                 "Android",
@@ -1908,8 +1930,8 @@
     },
     {
       "ma": "jelly-p3-tren-tb-the-gioi",
-      "dong": 422,
-      "tieu_de": "Màn có tỷ lệ thua cao hơn mặt bằng thế giới chứa màn",
+      "dong": 412,
+      "tieu_de": "Màn có tỷ lệ thua trên mặt bằng thế giới, một lần quét",
       "hinhthuc": "optimize",
       "cap": "hard",
       "dang": "C3",
@@ -2000,7 +2022,7 @@
               "ty_le_thua_pct",
               "tb_the_gioi_pct"
             ],
-            "giay": 0.164,
+            "giay": 0.346,
             "dong_dau": [
               [
                 "Cupcake Meadow",
@@ -2042,7 +2064,7 @@
               "ty_le_thua_pct",
               "tb_the_gioi_pct"
             ],
-            "giay": 0.213,
+            "giay": 0.307,
             "dong_dau": [
               [
                 "Cupcake Meadow",
@@ -2141,8 +2163,8 @@
     },
     {
       "ma": "jelly-p4-luy-ke-tu-noi",
-      "dong": 452,
-      "tieu_de": "Doanh thu luỹ kế trong tháng cho biểu đồ tiến độ",
+      "dong": 444,
+      "tieu_de": "Doanh thu luỹ kế trong tháng không dùng tự nối bảng",
       "hinhthuc": "optimize",
       "cap": "hard",
       "dang": "B3",
@@ -2232,7 +2254,7 @@
               "doanh_thu",
               "luy_ke_thang"
             ],
-            "giay": 0.001,
+            "giay": 0.002,
             "dong_dau": [
               [
                 "2026-07-01",
@@ -2268,7 +2290,7 @@
               "doanh_thu",
               "luy_ke_thang"
             ],
-            "giay": 0.001,
+            "giay": 0.002,
             "dong_dau": [
               [
                 "2026-07-01",
@@ -2318,7 +2340,7 @@
         "quen_can_tren": {
           "bien_the": {
             "public": "qua",
-            "hidden-1": "rot (khác số dòng (62 so với 60))"
+            "hidden-1": "rot (khác số dòng (63 so với 60))"
           },
           "rot_o": [
             "hidden-1"
@@ -2361,8 +2383,8 @@
     },
     {
       "ma": "jelly-p5-nguoi-tra-tien-exists",
-      "dong": 480,
-      "tieu_de": "Đếm người chơi trả tiền theo kênh cho nhẹ hơn",
+      "dong": 474,
+      "tieu_de": "Đếm người trả tiền theo kênh với ít dòng trung gian",
       "hinhthuc": "optimize",
       "cap": "medium",
       "dang": "A2",
@@ -2443,7 +2465,7 @@
               "channel",
               "so_nguoi_tra_tien"
             ],
-            "giay": 0.016,
+            "giay": 0.019,
             "dong_dau": [
               [
                 "Organic",
@@ -2473,7 +2495,7 @@
               "channel",
               "so_nguoi_tra_tien"
             ],
-            "giay": 0.012,
+            "giay": 0.018,
             "dong_dau": [
               [
                 "Organic",
@@ -2549,15 +2571,15 @@
       }
     },
     {
-      "ma": "jelly-p6-dau-tu-sessions",
-      "dong": 508,
-      "tieu_de": "Tỷ lệ giữ chân D1, D7 theo nền tảng chỉ với một lần đọc bảng hoạt động",
+      "ma": "jelly-p6-d1-d3-d7-mot-lan-quet",
+      "dong": 502,
+      "tieu_de": "Số người còn chơi D1, D3, D7 chỉ với một lần quét",
       "hinhthuc": "optimize",
-      "cap": "medium",
+      "cap": "basic",
       "dang": "D2",
       "domain": "customer",
       "dulieu": "jelly",
-      "diem": 30,
+      "diem": 10,
       "trangthai": "review",
       "bo_qua": false,
       "cham": {
@@ -2575,7 +2597,7 @@
       },
       "buoc": [],
       "khoi_sql": {
-        "jelly-p6-dau-tu-sessions": {
+        "jelly-p6-d1-d3-d7-mot-lan-quet": {
           "solution": [
             "solution"
           ],
@@ -2583,8 +2605,8 @@
             "starter"
           ],
           "wrong": [
-            "gom_ca_nhom_chua_du_ngay",
-            "mau_so_tu_bang_hoat_dong"
+            "group_by_ra_ba_dong",
+            "count_bieu_thuc_so_sanh"
           ]
         }
       },
@@ -2599,12 +2621,12 @@
         {
           "phep": "solution_chay_moi_bien_the",
           "ket_qua": "dat",
-          "chi_tiet": "[jelly-p6-dau-tu-sessions]: public, hidden-1; chạy 2 lần cùng kết quả"
+          "chi_tiet": "[jelly-p6-d1-d3-d7-mot-lan-quet]: public, hidden-1; chạy 2 lần cùng kết quả"
         },
         {
           "phep": "solution_thoa_rang_buoc",
           "ket_qua": "dat",
-          "chi_tiet": "{\"users\": 1, \"player_daily\": 1}, dòng trung gian 87023"
+          "chi_tiet": "{\"player_daily\": 1}, dòng trung gian 92702"
         },
         {
           "phep": "starter_opt_dung_ket_qua",
@@ -2614,17 +2636,17 @@
         {
           "phep": "starter_opt_vi_pham",
           "ket_qua": "dat",
-          "chi_tiet": "player_daily quét 2 lần > 1"
+          "chi_tiet": "player_daily quét 3 lần > 1"
         },
         {
           "phep": "wrong_rot",
           "ket_qua": "dat",
-          "chi_tiet": "gom_ca_nhom_chua_du_ngay: rớt ở public, hidden-1"
+          "chi_tiet": "group_by_ra_ba_dong: rớt ở public, hidden-1"
         },
         {
           "phep": "wrong_rot",
           "ket_qua": "dat",
-          "chi_tiet": "mau_so_tu_bang_hoat_dong: rớt ở public, hidden-1"
+          "chi_tiet": "count_bieu_thuc_so_sanh: rớt ở public, hidden-1"
         },
         {
           "phep": "nghiepvu_khong_lo_so",
@@ -2633,64 +2655,36 @@
         }
       ],
       "solution": {
-        "jelly-p6-dau-tu-sessions": {
+        "jelly-p6-d1-d3-d7-mot-lan-quet": {
           "public": {
-            "so_dong": 2,
+            "so_dong": 1,
             "cot": [
-              "platform",
-              "so_nguoi_cai",
               "so_con_d1",
-              "so_con_d7",
-              "ty_le_d1_pct",
-              "ty_le_d7_pct"
+              "so_con_d3",
+              "so_con_d7"
             ],
-            "giay": 0.105,
+            "giay": 0.053,
             "dong_dau": [
               [
-                "Android",
-                9029,
-                3607,
-                2166,
-                39.95,
-                23.99
-              ],
-              [
-                "iOS",
-                3837,
-                1597,
-                978,
-                41.62,
-                25.49
+                783,
+                618,
+                452
               ]
             ]
           },
           "hidden-1": {
-            "so_dong": 2,
+            "so_dong": 1,
             "cot": [
-              "platform",
-              "so_nguoi_cai",
               "so_con_d1",
-              "so_con_d7",
-              "ty_le_d1_pct",
-              "ty_le_d7_pct"
+              "so_con_d3",
+              "so_con_d7"
             ],
-            "giay": 0.093,
+            "giay": 0.034,
             "dong_dau": [
               [
-                "Android",
-                8109,
-                3244,
-                1973,
-                40,
-                24.33
-              ],
-              [
-                "iOS",
-                3471,
-                1449,
-                876,
-                41.75,
-                25.24
+                707,
+                551,
+                411
               ]
             ]
           }
@@ -2701,10 +2695,10 @@
         "hidden-1": "khớp"
       },
       "wrong": {
-        "gom_ca_nhom_chua_du_ngay": {
+        "group_by_ra_ba_dong": {
           "bien_the": {
-            "public": "rot (khác giá trị ở dòng 1, cột 2)",
-            "hidden-1": "rot (khác giá trị ở dòng 1, cột 2)"
+            "public": "rot (khác số cột (2 so với 3))",
+            "hidden-1": "rot (khác số cột (2 so với 3))"
           },
           "rot_o": [
             "public",
@@ -2712,10 +2706,10 @@
           ],
           "vi_pham_rang_buoc": []
         },
-        "mau_so_tu_bang_hoat_dong": {
+        "count_bieu_thuc_so_sanh": {
           "bien_the": {
-            "public": "rot (khác giá trị ở dòng 1, cột 2)",
-            "hidden-1": "rot (khác giá trị ở dòng 1, cột 2)"
+            "public": "rot (khác giá trị ở dòng 1, cột 1)",
+            "hidden-1": "rot (khác giá trị ở dòng 1, cột 1)"
           },
           "rot_o": [
             "public",
@@ -2733,21 +2727,19 @@
         },
         "solution": {
           "quet": {
-            "users": 1,
             "player_daily": 1
           },
-          "dong_trung_gian": 87023,
+          "dong_trung_gian": 92702,
           "khong_ro": []
         },
         "starter": {
           "quet": {
-            "users": 1,
-            "player_daily": 2
+            "player_daily": 3
           },
-          "dong_trung_gian": 214402,
+          "dong_trung_gian": 15394,
           "khong_ro": [],
           "vi_pham": [
-            "player_daily quét 2 lần > 1"
+            "player_daily quét 3 lần > 1"
           ]
         },
         "wrong": {}
@@ -2760,7 +2752,7 @@
     },
     {
       "ma": "jelly-p7-index-ngay",
-      "dong": 537,
+      "dong": 526,
       "tieu_de": "Màn được chơi nhiều nhất ngày 10/8, đọc ít dòng nhất",
       "hinhthuc": "optimize",
       "cap": "easy",
@@ -2856,7 +2848,7 @@
               "so_thang",
               "ty_le_thang_pct"
             ],
-            "giay": 0.033,
+            "giay": 0.061,
             "dong_dau": [
               [
                 6,
@@ -2898,7 +2890,7 @@
               "so_thang",
               "ty_le_thang_pct"
             ],
-            "giay": 0.032,
+            "giay": 0.08,
             "dong_dau": [
               [
                 9,
@@ -3014,15 +3006,15 @@
       }
     },
     {
-      "ma": "jelly-p8-ham-tren-cot",
-      "dong": 564,
-      "tieu_de": "MAU và mức độ gắn bó theo tháng ra sai",
+      "ma": "jelly-p8-moc-dau-dot-su-kien",
+      "dong": 553,
+      "tieu_de": "Hoạt động trong đợt Licorice Rescue thấp hơn bản cũ",
       "hinhthuc": "debug",
-      "cap": "hard",
-      "dang": "B1",
+      "cap": "basic",
+      "dang": "A2",
       "domain": "customer",
       "dulieu": "jelly",
-      "diem": 50,
+      "diem": 10,
       "trangthai": "review",
       "bo_qua": false,
       "cham": {
@@ -3038,7 +3030,7 @@
       },
       "buoc": [],
       "khoi_sql": {
-        "jelly-p8-ham-tren-cot": {
+        "jelly-p8-moc-dau-dot-su-kien": {
           "solution": [
             "solution"
           ],
@@ -3046,8 +3038,8 @@
             "starter"
           ],
           "wrong": [
-            "chia_so_ngay_lich",
-            "giu_ham_year"
+            "bo_can_tren",
+            "mat_ngay_cuoi"
           ]
         }
       },
@@ -3062,22 +3054,22 @@
         {
           "phep": "solution_chay_moi_bien_the",
           "ket_qua": "dat",
-          "chi_tiet": "[jelly-p8-ham-tren-cot]: public, hidden-1; chạy 2 lần cùng kết quả"
+          "chi_tiet": "[jelly-p8-moc-dau-dot-su-kien]: public, hidden-1; chạy 2 lần cùng kết quả"
         },
         {
           "phep": "starter_debug_sai",
           "ket_qua": "dat",
-          "chi_tiet": "public: khác giá trị ở dòng 1, cột 2, hidden-1: khác số dòng (3 so với 2)"
+          "chi_tiet": "public: khác giá trị ở dòng 1, cột 1, hidden-1: khác giá trị ở dòng 1, cột 1"
         },
         {
           "phep": "wrong_rot",
           "ket_qua": "dat",
-          "chi_tiet": "chia_so_ngay_lich: rớt ở public, hidden-1"
+          "chi_tiet": "bo_can_tren: rớt ở public, hidden-1"
         },
         {
           "phep": "wrong_rot",
           "ket_qua": "dat",
-          "chi_tiet": "giu_ham_year: rớt ở hidden-1"
+          "chi_tiet": "mat_ngay_cuoi: rớt ở public, hidden-1"
         },
         {
           "phep": "nghiepvu_khong_lo_so",
@@ -3086,66 +3078,46 @@
         }
       ],
       "solution": {
-        "jelly-p8-ham-tren-cot": {
+        "jelly-p8-moc-dau-dot-su-kien": {
           "public": {
-            "so_dong": 2,
+            "so_dong": 1,
             "cot": [
-              "thang",
-              "mau",
-              "dau_binh_quan",
-              "muc_do_gan_bo"
+              "so_ngay_nguoi",
+              "so_phien"
             ],
-            "giay": 0.474,
+            "giay": 0.055,
             "dong_dau": [
               [
-                "2026-07",
-                7454,
-                1068.55,
-                0.1434
-              ],
-              [
-                "2026-08",
-                12135,
-                1603.55,
-                0.1321
+                7860,
+                12594
               ]
             ]
           },
           "hidden-1": {
-            "so_dong": 2,
+            "so_dong": 1,
             "cot": [
-              "thang",
-              "mau",
-              "dau_binh_quan",
-              "muc_do_gan_bo"
+              "so_ngay_nguoi",
+              "so_phien"
             ],
-            "giay": 0.384,
+            "giay": 0.049,
             "dong_dau": [
               [
-                "2026-07",
-                6709,
-                961.39,
-                0.1433
-              ],
-              [
-                "2026-08",
-                10915,
-                1441,
-                0.132
+                7053,
+                11284
               ]
             ]
           }
         }
       },
       "starter": {
-        "public": "khác giá trị ở dòng 1, cột 2",
-        "hidden-1": "khác số dòng (3 so với 2)"
+        "public": "khác giá trị ở dòng 1, cột 1",
+        "hidden-1": "khác giá trị ở dòng 1, cột 1"
       },
       "wrong": {
-        "chia_so_ngay_lich": {
+        "bo_can_tren": {
           "bien_the": {
-            "public": "rot (khác giá trị ở dòng 2, cột 3)",
-            "hidden-1": "rot (khác giá trị ở dòng 2, cột 3)"
+            "public": "rot (khác giá trị ở dòng 1, cột 1)",
+            "hidden-1": "rot (khác giá trị ở dòng 1, cột 1)"
           },
           "rot_o": [
             "public",
@@ -3153,12 +3125,13 @@
           ],
           "vi_pham_rang_buoc": []
         },
-        "giu_ham_year": {
+        "mat_ngay_cuoi": {
           "bien_the": {
-            "public": "qua",
-            "hidden-1": "rot (khác số dòng (3 so với 2))"
+            "public": "rot (khác giá trị ở dòng 1, cột 1)",
+            "hidden-1": "rot (khác giá trị ở dòng 1, cột 1)"
           },
           "rot_o": [
+            "public",
             "hidden-1"
           ],
           "vi_pham_rang_buoc": []
@@ -3173,8 +3146,8 @@
     },
     {
       "ma": "jelly-p9-select-distinct-thua",
-      "dong": 592,
-      "tieu_de": "Báo cáo phân khúc người chơi theo mức chi chạy nhẹ hơn",
+      "dong": 575,
+      "tieu_de": "Phân khúc người chơi theo mức chi, bớt dòng trung gian",
       "hinhthuc": "optimize",
       "cap": "medium",
       "dang": "C4",
@@ -3269,7 +3242,7 @@
               "doanh_thu_usd",
               "ty_trong_doanh_thu_pct"
             ],
-            "giay": 0.119,
+            "giay": 0.15,
             "dong_dau": [
               [
                 "khong_chi",
@@ -3305,7 +3278,7 @@
               "doanh_thu_usd",
               "ty_trong_doanh_thu_pct"
             ],
-            "giay": 0.093,
+            "giay": 0.14,
             "dong_dau": [
               [
                 "khong_chi",
@@ -3408,7 +3381,7 @@
     },
     {
       "ma": "jelly-c9-ab-mua-them-buoc",
-      "dong": 625,
+      "dong": 608,
       "tieu_de": "Đưa ưu đãi thêm lượt đi sớm hơn có đáng không?",
       "hinhthuc": "case",
       "cap": "hard",
@@ -3446,7 +3419,7 @@
           "diem": 10.0,
           "bang": [
             "ab_assignments",
-            "purchases"
+            "level_attempts"
           ],
           "so_phuongan": 0,
           "phuongan_dung": []
@@ -3479,10 +3452,11 @@
           "diem": 10.0,
           "bang": [
             "ab_assignments",
+            "level_attempts",
             "purchases",
             "player_daily"
           ],
-          "so_phuongan": 4,
+          "so_phuongan": 3,
           "phuongan_dung": [
             1
           ]
@@ -3502,7 +3476,8 @@
             "solution"
           ],
           "wrong": [
-            "chi_tinh_nguoi_da_tiep_xuc"
+            "chi_tinh_nguoi_da_tiep_xuc",
+            "dem_giao_dich_goi_thay_co"
           ]
         },
         "jelly-c9-ab-mua-them-buoc.b3": {
@@ -3551,6 +3526,11 @@
           "chi_tiet": "b2/chi_tinh_nguoi_da_tiep_xuc: rớt ở public, hidden-1"
         },
         {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "b2/dem_giao_dich_goi_thay_co: rớt ở public, hidden-1"
+        },
+        {
           "phep": "solution_chay_moi_bien_the",
           "ket_qua": "dat",
           "chi_tiet": "[jelly-c9-ab-mua-them-buoc.b3]: public, hidden-1; chạy 2 lần cùng kết quả"
@@ -3586,7 +3566,7 @@
               "so_nguoi_du_ngay",
               "so_da_tiep_xuc"
             ],
-            "giay": 0.01,
+            "giay": 0.022,
             "dong_dau": [
               [
                 "control_after_3_fails",
@@ -3610,7 +3590,7 @@
               "so_nguoi_du_ngay",
               "so_da_tiep_xuc"
             ],
-            "giay": 0.009,
+            "giay": 0.017,
             "dong_dau": [
               [
                 "control_after_3_fails",
@@ -3633,25 +3613,25 @@
             "cot": [
               "variant",
               "so_nguoi",
-              "so_giao_dich",
-              "giao_dich_moi_nguoi",
-              "ty_le_nguoi_mua_pct"
+              "so_luot_nhan",
+              "luot_nhan_moi_nguoi",
+              "ty_le_nguoi_nhan_pct"
             ],
-            "giay": 0.089,
+            "giay": 1.126,
             "dong_dau": [
               [
                 "control_after_3_fails",
                 3560,
-                90,
-                0.0253,
-                2.5
+                266,
+                0.0747,
+                7.08
               ],
               [
                 "early_offer_after_1_fail",
                 3617,
-                87,
-                0.0241,
-                2.35
+                303,
+                0.0838,
+                7.91
               ]
             ]
           },
@@ -3660,25 +3640,25 @@
             "cot": [
               "variant",
               "so_nguoi",
-              "so_giao_dich",
-              "giao_dich_moi_nguoi",
-              "ty_le_nguoi_mua_pct"
+              "so_luot_nhan",
+              "luot_nhan_moi_nguoi",
+              "ty_le_nguoi_nhan_pct"
             ],
-            "giay": 0.071,
+            "giay": 0.968,
             "dong_dau": [
               [
                 "control_after_3_fails",
                 3196,
-                83,
-                0.026,
-                2.57
+                233,
+                0.0729,
+                6.85
               ],
               [
                 "early_offer_after_1_fail",
                 3258,
-                77,
-                0.0236,
-                2.33
+                269,
+                0.0826,
+                7.86
               ]
             ]
           }
@@ -3692,7 +3672,7 @@
               "doanh_thu_iap_usd",
               "doanh_thu_moi_nguoi_usd"
             ],
-            "giay": 0.115,
+            "giay": 0.157,
             "dong_dau": [
               [
                 "control_after_3_fails",
@@ -3716,7 +3696,7 @@
               "doanh_thu_iap_usd",
               "doanh_thu_moi_nguoi_usd"
             ],
-            "giay": 0.077,
+            "giay": 0.115,
             "dong_dau": [
               [
                 "control_after_3_fails",
@@ -3742,7 +3722,7 @@
               "so_con_d7",
               "ty_le_giu_chan_d7_pct"
             ],
-            "giay": 0.088,
+            "giay": 0.128,
             "dong_dau": [
               [
                 "control_after_3_fails",
@@ -3766,7 +3746,7 @@
               "so_con_d7",
               "ty_le_giu_chan_d7_pct"
             ],
-            "giay": 0.059,
+            "giay": 0.109,
             "dong_dau": [
               [
                 "control_after_3_fails",
@@ -3813,6 +3793,16 @@
                 "public",
                 "hidden-1"
               ]
+            },
+            "dem_giao_dich_goi_thay_co": {
+              "bien_the": {
+                "public": "rot (khác giá trị ở dòng 1, cột 3)",
+                "hidden-1": "rot (khác giá trị ở dòng 1, cột 3)"
+              },
+              "rot_o": [
+                "public",
+                "hidden-1"
+              ]
             }
           }
         },
@@ -3852,7 +3842,7 @@
     },
     {
       "ma": "jelly-c10-man-28-30",
-      "dong": 679,
+      "dong": 662,
       "tieu_de": "Bản 2.1.1 đã sửa xong màn 28--30 chưa?",
       "hinhthuc": "case",
       "cap": "hard",
@@ -3924,7 +3914,7 @@
             "users",
             "player_daily"
           ],
-          "so_phuongan": 4,
+          "so_phuongan": 3,
           "phuongan_dung": [
             1
           ]
@@ -3936,7 +3926,8 @@
             "solution"
           ],
           "wrong": [
-            "phien_ban_luc_cai"
+            "phien_ban_luc_cai",
+            "ca_cua_so_du_lieu"
           ]
         },
         "jelly-c10-man-28-30.b2": {
@@ -3977,6 +3968,11 @@
           "chi_tiet": "b1/phien_ban_luc_cai: rớt ở public, hidden-1"
         },
         {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "b1/ca_cua_so_du_lieu: rớt ở public, hidden-1"
+        },
+        {
           "phep": "solution_chay_moi_bien_the",
           "ket_qua": "dat",
           "chi_tiet": "[jelly-c10-man-28-30.b2]: public, hidden-1; chạy 2 lần cùng kết quả"
@@ -4012,31 +4008,31 @@
               "so_luot",
               "ty_le_thang_pct"
             ],
-            "giay": 0.062,
+            "giay": 0.095,
             "dong_dau": [
               [
                 "2.0.2",
                 "Android",
-                1265,
-                71.3
+                249,
+                69.48
               ],
               [
                 "2.0.2",
                 "iOS",
-                641,
-                74.41
+                140,
+                72.86
               ],
               [
                 "2.1.0",
                 "Android",
-                2181,
-                61.94
+                235,
+                63.83
               ],
               [
                 "2.1.0",
                 "iOS",
-                893,
-                74.24
+                139,
+                74.1
               ],
               [
                 "2.1.1",
@@ -4054,31 +4050,31 @@
               "so_luot",
               "ty_le_thang_pct"
             ],
-            "giay": 0.051,
+            "giay": 0.126,
             "dong_dau": [
               [
                 "2.0.2",
                 "Android",
-                1095,
-                71.42
+                223,
+                69.96
               ],
               [
                 "2.0.2",
                 "iOS",
-                591,
-                74.45
+                128,
+                72.66
               ],
               [
                 "2.1.0",
                 "Android",
-                1965,
-                61.93
+                208,
+                64.9
               ],
               [
                 "2.1.0",
                 "iOS",
-                787,
-                74.59
+                126,
+                74.6
               ],
               [
                 "2.1.1",
@@ -4099,7 +4095,7 @@
               "ty_le_thua_pct",
               "ty_le_bo_cuoc_pct"
             ],
-            "giay": 0.064,
+            "giay": 0.122,
             "dong_dau": [
               [
                 "2.0.2",
@@ -4147,7 +4143,7 @@
               "ty_le_thua_pct",
               "ty_le_bo_cuoc_pct"
             ],
-            "giay": 0.048,
+            "giay": 0.114,
             "dong_dau": [
               [
                 "2.0.2",
@@ -4197,7 +4193,7 @@
               "ty_le_duoc_moi_pct",
               "ty_le_nhan_them_pct"
             ],
-            "giay": 0.056,
+            "giay": 0.114,
             "dong_dau": [
               [
                 "2.0.2",
@@ -4245,7 +4241,7 @@
               "ty_le_duoc_moi_pct",
               "ty_le_nhan_them_pct"
             ],
-            "giay": 0.072,
+            "giay": 0.097,
             "dong_dau": [
               [
                 "2.0.2",
@@ -4295,7 +4291,7 @@
               "so_con_d1",
               "ty_le_giu_chan_d1_pct"
             ],
-            "giay": 0.134,
+            "giay": 0.208,
             "dong_dau": [
               [
                 "2.0.2",
@@ -4343,7 +4339,7 @@
               "so_con_d1",
               "ty_le_giu_chan_d1_pct"
             ],
-            "giay": 0.13,
+            "giay": 0.217,
             "dong_dau": [
               [
                 "2.0.2",
@@ -4399,6 +4395,16 @@
                 "public",
                 "hidden-1"
               ]
+            },
+            "ca_cua_so_du_lieu": {
+              "bien_the": {
+                "public": "rot (khác giá trị ở dòng 1, cột 3)",
+                "hidden-1": "rot (khác giá trị ở dòng 1, cột 3)"
+              },
+              "rot_o": [
+                "public",
+                "hidden-1"
+              ]
             }
           }
         },
@@ -4433,6 +4439,6 @@
     "so_cau": 20,
     "so_cau_bo_qua": 0,
     "so_loi": 0,
-    "so_canh_bao": 1
+    "so_canh_bao": 0
   }
 }

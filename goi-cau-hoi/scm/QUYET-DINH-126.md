@@ -1,6 +1,6 @@
 # Quyết định 18 điểm "Chờ giảng viên" · bộ Supply Chain (`scm`)
 
-Ngày 10/11/2026. Theo `BRIEF-QUYET-DINH-126.md`, áp `QUYET-DINH-CHUNG.md` (mục 1, 2.3). Chi tiết căn cứ và việc đã sửa ở mục "Quyết định v3 (10/11)" của `ho-so/goi-<k>/DA-SUA.md`. Sách dự án = `H:\My Drive\09._PC\Giang-day\Soan bai\Project DA\SupplyChain\bai-giang\Final\capnhat_0711\project-supply-chain\main.tex` (eDA2026, bản 07/11).
+Ngày 10/11/2026. Theo `BRIEF-QUYET-DINH-126.md`, áp `QUYET-DINH-CHUNG.md` (mục 1, 2.3). Chi tiết căn cứ và việc đã sửa ở mục "Quyết định v3 (10/11)" của `ho-so/goi-<k>/DA-SUA.md`. Sách dự án = `Project DA\SupplyChain\bai-giang\Final\capnhat_0711\project-supply-chain\main.tex` (eDA2026, bản 07/11).
 
 ## 18 điểm của bộ (BAO-CAO-TONG-HOP mục 3.1–3.4, 3.7, 3.8)
 

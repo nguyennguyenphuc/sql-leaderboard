@@ -20,7 +20,7 @@ Thứ tự ưu tiên khi các nguồn mâu thuẫn:
 
 | Mã | Tài liệu | Trạng thái |
 |---|---|---|
-| BG | `lesson1_marketing_analytics_foundations.md`, Project 01 Marketing (thư mục dự án trên ổ H:), mục II.A (thuật ngữ), II.B (phễu), II.C (KPI), III.B (từ điển dữ liệu) | đọc trực tiếp |
+| BG | `lesson1_marketing_analytics_foundations.md`, Project 01 Marketing (thư mục `Project DA\Project 01 Marketing Analytics Foundations & Data Pipeline`), mục II.A (thuật ngữ), II.B (phễu), II.C (KPI), III.B (từ điển dữ liệu) | đọc trực tiếp |
 | PL | `Plan.md`, Project 01 (Lesson 1–2: funnel 4 tầng, KPI CTR, Lead Rate, Conversion Rate, CPA, ROI; Total_Spend) | đọc trực tiếp |
 | DB | Cấu trúc và giá trị cột MySQL `mkt`, kiểm ngày 10/11/2026 | `mysql/README-mkt.md` |
 | SG | `style/STYLE-GUIDE-luyen-sql.md` (mục A–H, đã duyệt) | đọc trực tiếp |

@@ -1,6 +1,6 @@
 {
   "goi": "goi-cau-hoi/jelly/goi-3",
-  "thoi_gian": "2026-11-10T15:11:56",
+  "thoi_gian": "2026-11-11T02:15:27",
   "may_chu": "sqllb-mysql:3306 (user sql_runner)",
   "chi_phan_tich": false,
   "khai_bao": {
@@ -32,27 +32,20 @@
       "vat-pham-ho-tro"
     ]
   },
-  "so_khoi_sql": 70,
+  "so_khoi_sql": 79,
   "loi_goi": [],
-  "canh_bao_goi": [
-    {
-      "ma_loi": "GOI_FILE_LA",
-      "thong_diep": "thư mục gói có file ngoài 4 file chuẩn (không đưa vào zip): BANG-PHAN-CONG.md, DA-SUA.md, REVIEW-B.md, REVIEW-C.md",
-      "file": "goi-cau-hoi/jelly/goi-3",
-      "dong": null
-    }
-  ],
+  "canh_bao_goi": [],
   "cau": [
     {
       "ma": "jelly-j1-luot-choi-kem-the-gioi",
       "dong": 91,
-      "tieu_de": "Lượt chơi gần nhất kèm độ khó thiết kế",
+      "tieu_de": "Lượt chơi cuối ngày 29/8 kèm xác suất thua theo thiết kế",
       "hinhthuc": "write",
-      "cap": "easy",
+      "cap": "basic",
       "dang": "A1",
       "domain": "operations",
       "dulieu": "jelly",
-      "diem": 20,
+      "diem": 10,
       "trangthai": "review",
       "bo_qua": false,
       "cham": {
@@ -73,7 +66,7 @@
             "solution"
           ],
           "wrong": [
-            "thieu_can_tren",
+            "quen_loc_ngay",
             "hoa_thoi_gian_sai_chieu"
           ]
         }
@@ -94,7 +87,7 @@
         {
           "phep": "wrong_rot",
           "ket_qua": "dat",
-          "chi_tiet": "thieu_can_tren: rớt ở hidden-1"
+          "chi_tiet": "quen_loc_ngay: rớt ở hidden-1"
         },
         {
           "phep": "wrong_rot",
@@ -118,7 +111,7 @@
               "result",
               "designed_fail_probability"
             ],
-            "giay": 0.386,
+            "giay": 0.1,
             "dong_dau": [
               [
                 "jta_attempt_000244792",
@@ -166,7 +159,7 @@
               "result",
               "designed_fail_probability"
             ],
-            "giay": 0.277,
+            "giay": 0.082,
             "dong_dau": [
               [
                 "jta_attempt_000244792",
@@ -209,7 +202,7 @@
       },
       "starter": {},
       "wrong": {
-        "thieu_can_tren": {
+        "quen_loc_ngay": {
           "bien_the": {
             "public": "qua",
             "hidden-1": "rot (khác giá trị ở dòng 1, cột 1)"
@@ -311,7 +304,7 @@
               "so_nguoi_tra_tien",
               "doanh_thu_iap_usd"
             ],
-            "giay": 0.02,
+            "giay": 0.029,
             "dong_dau": [
               [
                 "Organic",
@@ -347,12 +340,12 @@
               "so_nguoi_tra_tien",
               "doanh_thu_iap_usd"
             ],
-            "giay": 0.018,
+            "giay": 0.019,
             "dong_dau": [
               [
                 "Organic",
-                466,
-                1595.01
+                467,
+                1600
               ],
               [
                 "Search Ads",
@@ -394,7 +387,7 @@
         "thieu_can_tren": {
           "bien_the": {
             "public": "qua",
-            "hidden-1": "rot (khác giá trị ở dòng 1, cột 2)"
+            "hidden-1": "rot (khác giá trị ở dòng 1, cột 3)"
           },
           "rot_o": [
             "hidden-1"
@@ -410,15 +403,15 @@
       }
     },
     {
-      "ma": "jelly-j3-nguoi-chua-mua",
+      "ma": "jelly-j3-di-sau-chua-tra-tien",
       "dong": 143,
-      "tieu_de": "Bao nhiêu người chơi chưa từng mua?",
+      "tieu_de": "Người chơi đi sâu mà chưa trả tiền đến từ kênh nào?",
       "hinhthuc": "write",
-      "cap": "medium",
+      "cap": "hard",
       "dang": "A2",
       "domain": "customer",
       "dulieu": "jelly",
-      "diem": 30,
+      "diem": 50,
       "trangthai": "review",
       "bo_qua": false,
       "cham": {
@@ -434,13 +427,14 @@
       },
       "buoc": [],
       "khoi_sql": {
-        "jelly-j3-nguoi-chua-mua": {
+        "jelly-j3-di-sau-chua-tra-tien": {
           "solution": [
             "solution"
           ],
           "wrong": [
-            "inner_join",
-            "count_sao_dem_ca_giao_dich"
+            "noi_thang_nhan_dong",
+            "dieu_kien_ngay_o_where",
+            "thieu_can_tren_giao_dich"
           ]
         }
       },
@@ -455,17 +449,22 @@
         {
           "phep": "solution_chay_moi_bien_the",
           "ket_qua": "dat",
-          "chi_tiet": "[jelly-j3-nguoi-chua-mua]: public, hidden-1; chạy 2 lần cùng kết quả"
+          "chi_tiet": "[jelly-j3-di-sau-chua-tra-tien]: public, hidden-1; chạy 2 lần cùng kết quả"
         },
         {
           "phep": "wrong_rot",
           "ket_qua": "dat",
-          "chi_tiet": "inner_join: rớt ở public, hidden-1"
+          "chi_tiet": "noi_thang_nhan_dong: rớt ở public, hidden-1"
         },
         {
           "phep": "wrong_rot",
           "ket_qua": "dat",
-          "chi_tiet": "count_sao_dem_ca_giao_dich: rớt ở public, hidden-1"
+          "chi_tiet": "dieu_kien_ngay_o_where: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "thieu_can_tren_giao_dich: rớt ở hidden-1"
         },
         {
           "phep": "nghiepvu_khong_lo_so",
@@ -474,52 +473,100 @@
         }
       ],
       "solution": {
-        "jelly-j3-nguoi-chua-mua": {
+        "jelly-j3-di-sau-chua-tra-tien": {
           "public": {
-            "so_dong": 2,
+            "so_dong": 5,
             "cot": [
-              "nen_tang",
-              "so_nguoi_choi",
-              "so_chua_mua",
-              "ty_le_chua_mua_pct"
+              "kenh",
+              "so_nguoi_di_sau",
+              "so_chua_tra_tien",
+              "ty_le_chua_tra_tien_pct",
+              "doanh_thu_qc_usd"
             ],
-            "giay": 0.209,
+            "giay": 0.702,
             "dong_dau": [
               [
-                "Android",
-                10054,
-                8406,
-                83.61
+                "Video Network",
+                476,
+                351,
+                73.74,
+                39.79
               ],
               [
-                "iOS",
-                4301,
-                3623,
-                84.24
+                "Search Ads",
+                857,
+                605,
+                70.6,
+                80.89
+              ],
+              [
+                "Social Ads",
+                832,
+                581,
+                69.83,
+                74.43
+              ],
+              [
+                "Organic",
+                1401,
+                973,
+                69.45,
+                122.59
+              ],
+              [
+                "Creator Campaign",
+                206,
+                141,
+                68.45,
+                19.99
               ]
             ]
           },
           "hidden-1": {
-            "so_dong": 2,
+            "so_dong": 5,
             "cot": [
-              "nen_tang",
-              "so_nguoi_choi",
-              "so_chua_mua",
-              "ty_le_chua_mua_pct"
+              "kenh",
+              "so_nguoi_di_sau",
+              "so_chua_tra_tien",
+              "ty_le_chua_tra_tien_pct",
+              "doanh_thu_qc_usd"
             ],
-            "giay": 0.26,
+            "giay": 0.587,
             "dong_dau": [
               [
-                "Android",
-                9032,
-                7572,
-                83.84
+                "Video Network",
+                425,
+                311,
+                73.18,
+                34.55
               ],
               [
-                "iOS",
-                3888,
-                3277,
-                84.28
+                "Search Ads",
+                766,
+                540,
+                70.5,
+                73.32
+              ],
+              [
+                "Social Ads",
+                739,
+                517,
+                69.96,
+                66.28
+              ],
+              [
+                "Organic",
+                1258,
+                879,
+                69.87,
+                110.26
+              ],
+              [
+                "Creator Campaign",
+                186,
+                128,
+                68.82,
+                18.45
               ]
             ]
           }
@@ -527,10 +574,10 @@
       },
       "starter": {},
       "wrong": {
-        "inner_join": {
+        "noi_thang_nhan_dong": {
           "bien_the": {
-            "public": "rot (khác giá trị ở dòng 1, cột 2)",
-            "hidden-1": "rot (khác giá trị ở dòng 1, cột 2)"
+            "public": "rot (khác giá trị ở dòng 1, cột 5)",
+            "hidden-1": "rot (khác giá trị ở dòng 1, cột 5)"
           },
           "rot_o": [
             "public",
@@ -538,13 +585,23 @@
           ],
           "vi_pham_rang_buoc": []
         },
-        "count_sao_dem_ca_giao_dich": {
+        "dieu_kien_ngay_o_where": {
           "bien_the": {
-            "public": "rot (khác giá trị ở dòng 1, cột 2)",
-            "hidden-1": "rot (khác giá trị ở dòng 1, cột 2)"
+            "public": "rot (khác giá trị ở dòng 1, cột 1)",
+            "hidden-1": "rot (khác giá trị ở dòng 1, cột 1)"
           },
           "rot_o": [
             "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        },
+        "thieu_can_tren_giao_dich": {
+          "bien_the": {
+            "public": "qua",
+            "hidden-1": "rot (khác giá trị ở dòng 3, cột 1)"
+          },
+          "rot_o": [
             "hidden-1"
           ],
           "vi_pham_rang_buoc": []
@@ -558,15 +615,15 @@
       }
     },
     {
-      "ma": "jelly-j4-cpi-theo-kenh",
-      "dong": 171,
-      "tieu_de": "Mỗi lượt cài của từng kênh trả phí tốn bao nhiêu?",
+      "ma": "jelly-j4-cpi-thang-8-so-muc-chung",
+      "dong": 176,
+      "tieu_de": "Tháng 8, lượt cài của kênh nào đắt hơn mức chung?",
       "hinhthuc": "write",
-      "cap": "medium",
+      "cap": "hard",
       "dang": "C3",
-      "domain": "finance",
+      "domain": "marketing",
       "dulieu": "jelly",
-      "diem": 30,
+      "diem": 50,
       "trangthai": "review",
       "bo_qua": false,
       "cham": {
@@ -582,13 +639,15 @@
       },
       "buoc": [],
       "khoi_sql": {
-        "jelly-j4-cpi-theo-kenh": {
+        "jelly-j4-cpi-thang-8-so-muc-chung": {
           "solution": [
             "solution"
           ],
           "wrong": [
             "noi_truc_tiep_nhan_dong",
-            "cpi_chung_la_trung_binh_cpi"
+            "cpi_chung_la_trung_binh_cpi",
+            "mau_so_gom_organic",
+            "thieu_can_tren_chi_phi"
           ]
         }
       },
@@ -603,7 +662,7 @@
         {
           "phep": "solution_chay_moi_bien_the",
           "ket_qua": "dat",
-          "chi_tiet": "[jelly-j4-cpi-theo-kenh]: public, hidden-1; chạy 2 lần cùng kết quả"
+          "chi_tiet": "[jelly-j4-cpi-thang-8-so-muc-chung]: public, hidden-1; chạy 2 lần cùng kết quả"
         },
         {
           "phep": "wrong_rot",
@@ -616,13 +675,23 @@
           "chi_tiet": "cpi_chung_la_trung_binh_cpi: rớt ở public, hidden-1"
         },
         {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "mau_so_gom_organic: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "thieu_can_tren_chi_phi: rớt ở hidden-1"
+        },
+        {
           "phep": "nghiepvu_khong_lo_so",
           "ket_qua": "dat",
           "chi_tiet": ""
         }
       ],
       "solution": {
-        "jelly-j4-cpi-theo-kenh": {
+        "jelly-j4-cpi-thang-8-so-muc-chung": {
           "public": {
             "so_dong": 8,
             "cot": [
@@ -632,42 +701,42 @@
               "cpi_usd",
               "chenh_lech_usd"
             ],
-            "giay": 0.019,
+            "giay": 0.048,
             "dong_dau": [
               [
                 "Creator Campaign",
-                "iOS",
-                95,
-                23.03,
-                10.64
+                "Android",
+                239,
+                20.23,
+                7.99
               ],
               [
                 "Creator Campaign",
-                "Android",
-                238,
-                21.09,
-                8.71
-              ],
-              [
-                "Social Ads",
                 "iOS",
-                474,
-                15.43,
-                3.04
+                104,
+                17.05,
+                4.81
+              ],
+              [
+                "Search Ads",
+                "Android",
+                1059,
+                10.52,
+                -1.72
+              ],
+              [
+                "Search Ads",
+                "iOS",
+                439,
+                9.59,
+                -2.66
               ],
               [
                 "Social Ads",
                 "Android",
-                1170,
-                12.89,
-                0.51
-              ],
-              [
-                "Video Network",
-                "Android",
-                737,
-                12.56,
-                0.18
+                1041,
+                14.76,
+                2.52
               ]
             ]
           },
@@ -680,42 +749,42 @@
               "cpi_usd",
               "chenh_lech_usd"
             ],
-            "giay": 0.026,
+            "giay": 0.042,
             "dong_dau": [
               [
                 "Creator Campaign",
-                "iOS",
-                81,
-                27.01,
-                13.23
+                "Android",
+                212,
+                22.81,
+                9.17
               ],
               [
                 "Creator Campaign",
-                "Android",
-                217,
-                23.13,
-                9.35
-              ],
-              [
-                "Social Ads",
                 "iOS",
-                427,
-                17.13,
-                3.34
+                98,
+                18.1,
+                4.46
+              ],
+              [
+                "Search Ads",
+                "Android",
+                957,
+                11.65,
+                -1.99
+              ],
+              [
+                "Search Ads",
+                "iOS",
+                400,
+                10.52,
+                -3.11
               ],
               [
                 "Social Ads",
                 "Android",
-                1043,
-                14.46,
-                0.68
-              ],
-              [
-                "Video Network",
-                "Android",
-                656,
-                14.34,
-                0.56
+                924,
+                16.63,
+                3
               ]
             ]
           }
@@ -725,8 +794,8 @@
       "wrong": {
         "noi_truc_tiep_nhan_dong": {
           "bien_the": {
-            "public": "rot (khác giá trị ở dòng 1, cột 1)",
-            "hidden-1": "rot (khác giá trị ở dòng 1, cột 1)"
+            "public": "rot (khác giá trị ở dòng 1, cột 4)",
+            "hidden-1": "rot (khác giá trị ở dòng 1, cột 4)"
           },
           "rot_o": [
             "public",
@@ -744,6 +813,27 @@
             "hidden-1"
           ],
           "vi_pham_rang_buoc": []
+        },
+        "mau_so_gom_organic": {
+          "bien_the": {
+            "public": "rot (khác giá trị ở dòng 1, cột 5)",
+            "hidden-1": "rot (khác giá trị ở dòng 1, cột 5)"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        },
+        "thieu_can_tren_chi_phi": {
+          "bien_the": {
+            "public": "qua",
+            "hidden-1": "rot (khác giá trị ở dòng 1, cột 5)"
+          },
+          "rot_o": [
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
         }
       },
       "optimize": null,
@@ -755,7 +845,7 @@
     },
     {
       "ma": "jelly-j5-booster-theo-the-gioi",
-      "dong": 201,
+      "dong": 206,
       "tieu_de": "Loại vật phẩm hỗ trợ nào được dùng nhiều ở mỗi thế giới?",
       "hinhthuc": "write",
       "cap": "easy",
@@ -826,7 +916,7 @@
               "booster_type",
               "so_lan_dung"
             ],
-            "giay": 0.366,
+            "giay": 0.786,
             "dong_dau": [
               [
                 "Cupcake Meadow",
@@ -862,7 +952,7 @@
               "booster_type",
               "so_lan_dung"
             ],
-            "giay": 0.33,
+            "giay": 0.778,
             "dong_dau": [
               [
                 "Cupcake Meadow",
@@ -927,7 +1017,7 @@
     },
     {
       "ma": "jelly-j6-phien-co-mua",
-      "dong": 227,
+      "dong": 232,
       "tieu_de": "Phiên vào từ màn hình nào hay phát sinh giao dịch?",
       "hinhthuc": "write",
       "cap": "medium",
@@ -999,7 +1089,7 @@
               "so_phien_co_mua",
               "ty_le_pct"
             ],
-            "giay": 0.932,
+            "giay": 1.576,
             "dong_dau": [
               [
                 "shop",
@@ -1041,7 +1131,7 @@
               "so_phien_co_mua",
               "ty_le_pct"
             ],
-            "giay": 0.775,
+            "giay": 1.021,
             "dong_dau": [
               [
                 "shop",
@@ -1111,7 +1201,7 @@
     },
     {
       "ma": "jelly-j7-join-nhan-dong",
-      "dong": 256,
+      "dong": 261,
       "tieu_de": "Doanh thu quảng cáo theo kênh gấp nhiều lần thực tế",
       "hinhthuc": "debug",
       "cap": "easy",
@@ -1189,7 +1279,7 @@
               "kenh",
               "doanh_thu_qc_usd"
             ],
-            "giay": 0.194,
+            "giay": 0.342,
             "dong_dau": [
               [
                 "Organic",
@@ -1219,7 +1309,7 @@
               "kenh",
               "doanh_thu_qc_usd"
             ],
-            "giay": 0.181,
+            "giay": 0.253,
             "dong_dau": [
               [
                 "Organic",
@@ -1282,7 +1372,7 @@
     },
     {
       "ma": "jelly-j8-left-join-where",
-      "dong": 284,
+      "dong": 289,
       "tieu_de": "Số người chưa tới bước hướng dẫn cuối bằng 0",
       "hinhthuc": "debug",
       "cap": "medium",
@@ -1362,7 +1452,7 @@
               "so_chua_den_buoc_5",
               "ty_le_pct"
             ],
-            "giay": 0.265,
+            "giay": 0.301,
             "dong_dau": [
               [
                 "Android",
@@ -1386,7 +1476,7 @@
               "so_chua_den_buoc_5",
               "ty_le_pct"
             ],
-            "giay": 0.2,
+            "giay": 0.263,
             "dong_dau": [
               [
                 "Android",
@@ -1441,14 +1531,14 @@
     },
     {
       "ma": "jelly-j9-noi-sai-khoa",
-      "dong": 311,
+      "dong": 316,
       "tieu_de": "Lượt chơi gặp sự cố bị gắn nhầm phiên",
       "hinhthuc": "debug",
-      "cap": "medium",
+      "cap": "basic",
       "dang": "A1",
       "domain": "after_sales",
       "dulieu": "jelly",
-      "diem": 30,
+      "diem": 10,
       "trangthai": "review",
       "bo_qua": false,
       "cham": {
@@ -1516,7 +1606,7 @@
               "entry_screen",
               "duration_minutes"
             ],
-            "giay": 0.048,
+            "giay": 0.066,
             "dong_dau": [
               [
                 "jta_attempt_000011285",
@@ -1564,7 +1654,7 @@
               "entry_screen",
               "duration_minutes"
             ],
-            "giay": 0.035,
+            "giay": 0.079,
             "dong_dau": [
               [
                 "jta_attempt_000011285",
@@ -1631,7 +1721,7 @@
     },
     {
       "ma": "jelly-q1-man-thua-tren-tb",
-      "dong": 341,
+      "dong": 343,
       "tieu_de": "Màn nào có tỷ lệ thua cao hơn mức chung của game?",
       "hinhthuc": "write",
       "cap": "easy",
@@ -1703,7 +1793,7 @@
               "so_luot",
               "ty_le_thua_pct"
             ],
-            "giay": 0.843,
+            "giay": 1.819,
             "dong_dau": [
               [
                 46,
@@ -1745,7 +1835,7 @@
               "so_luot",
               "ty_le_thua_pct"
             ],
-            "giay": 0.781,
+            "giay": 1.643,
             "dong_dau": [
               [
                 46,
@@ -1815,7 +1905,7 @@
     },
     {
       "ma": "jelly-q2-nguoi-mua-season-pass",
-      "dong": 368,
+      "dong": 370,
       "tieu_de": "Người mua Season Pass đến từ đâu?",
       "hinhthuc": "write",
       "cap": "easy",
@@ -1886,7 +1976,7 @@
               "kenh",
               "so_nguoi_choi"
             ],
-            "giay": 0.003,
+            "giay": 0.006,
             "dong_dau": [
               [
                 "US",
@@ -1986,15 +2076,15 @@
       }
     },
     {
-      "ma": "jelly-q3-chua-qua-buoc-4",
-      "dong": 393,
-      "tieu_de": "Bao nhiêu người chơi mới dừng ở bước dùng búa kẹo mút?",
+      "ma": "jelly-q3-choi-d0-tren-tb-29-8",
+      "dong": 395,
+      "tieu_de": "Người cài ngày 29/8 nào chơi lâu hơn mức bình quân?",
       "hinhthuc": "write",
-      "cap": "medium",
-      "dang": "D1",
+      "cap": "basic",
+      "dang": "C3",
       "domain": "customer",
       "dulieu": "jelly",
-      "diem": 30,
+      "diem": 10,
       "trangthai": "review",
       "bo_qua": false,
       "cham": {
@@ -2010,13 +2100,13 @@
       },
       "buoc": [],
       "khoi_sql": {
-        "jelly-q3-chua-qua-buoc-4": {
+        "jelly-q3-choi-d0-tren-tb-29-8": {
           "solution": [
             "solution"
           ],
           "wrong": [
-            "moi_nguoi_khong_co_buoc_5",
-            "chua_hoan_thanh_buoc_5"
+            "truy_van_con_thieu_dieu_kien",
+            "loc_ngay_hoat_dong"
           ]
         }
       },
@@ -2031,17 +2121,17 @@
         {
           "phep": "solution_chay_moi_bien_the",
           "ket_qua": "dat",
-          "chi_tiet": "[jelly-q3-chua-qua-buoc-4]: public, hidden-1; chạy 2 lần cùng kết quả"
+          "chi_tiet": "[jelly-q3-choi-d0-tren-tb-29-8]: public, hidden-1; chạy 2 lần cùng kết quả"
         },
         {
           "phep": "wrong_rot",
           "ket_qua": "dat",
-          "chi_tiet": "moi_nguoi_khong_co_buoc_5: rớt ở public, hidden-1"
+          "chi_tiet": "truy_van_con_thieu_dieu_kien: rớt ở public, hidden-1"
         },
         {
           "phep": "wrong_rot",
           "ket_qua": "dat",
-          "chi_tiet": "chua_hoan_thanh_buoc_5: rớt ở public, hidden-1"
+          "chi_tiet": "loc_ngay_hoat_dong: rớt ở public, hidden-1"
         },
         {
           "phep": "nghiepvu_khong_lo_so",
@@ -2050,52 +2140,76 @@
         }
       ],
       "solution": {
-        "jelly-q3-chua-qua-buoc-4": {
+        "jelly-q3-choi-d0-tren-tb-29-8": {
           "public": {
-            "so_dong": 2,
+            "so_dong": 97,
             "cot": [
-              "nen_tang",
-              "so_bat_dau_buoc_4",
-              "so_dung_buoc_4",
-              "ty_le_dung_pct"
+              "user_id",
+              "platform",
+              "playtime_minutes"
             ],
-            "giay": 0.277,
+            "giay": 0.274,
             "dong_dau": [
               [
+                "jta_user_014232",
                 "Android",
-                8249,
-                1777,
-                21.54
+                38
               ],
               [
+                "jta_user_014210",
                 "iOS",
-                3517,
-                669,
-                19.02
+                36
+              ],
+              [
+                "jta_user_014223",
+                "Android",
+                36
+              ],
+              [
+                "jta_user_014167",
+                "Android",
+                35
+              ],
+              [
+                "jta_user_014298",
+                "Android",
+                35
               ]
             ]
           },
           "hidden-1": {
-            "so_dong": 2,
+            "so_dong": 90,
             "cot": [
-              "nen_tang",
-              "so_bat_dau_buoc_4",
-              "so_dung_buoc_4",
-              "ty_le_dung_pct"
+              "user_id",
+              "platform",
+              "playtime_minutes"
             ],
-            "giay": 0.213,
+            "giay": 0.249,
             "dong_dau": [
               [
+                "jta_user_014232",
                 "Android",
-                7417,
-                1590,
-                21.44
+                38
               ],
               [
+                "jta_user_014210",
                 "iOS",
-                3183,
-                618,
-                19.42
+                36
+              ],
+              [
+                "jta_user_014223",
+                "Android",
+                36
+              ],
+              [
+                "jta_user_014298",
+                "Android",
+                35
+              ],
+              [
+                "jta_user_014234",
+                "Android",
+                34
               ]
             ]
           }
@@ -2103,10 +2217,10 @@
       },
       "starter": {},
       "wrong": {
-        "moi_nguoi_khong_co_buoc_5": {
+        "truy_van_con_thieu_dieu_kien": {
           "bien_the": {
-            "public": "rot (khác giá trị ở dòng 1, cột 2)",
-            "hidden-1": "rot (khác giá trị ở dòng 1, cột 2)"
+            "public": "rot (khác số dòng (74 so với 97))",
+            "hidden-1": "rot (khác số dòng (74 so với 90))"
           },
           "rot_o": [
             "public",
@@ -2114,10 +2228,10 @@
           ],
           "vi_pham_rang_buoc": []
         },
-        "chua_hoan_thanh_buoc_5": {
+        "loc_ngay_hoat_dong": {
           "bien_the": {
-            "public": "rot (khác giá trị ở dòng 1, cột 3)",
-            "hidden-1": "rot (khác giá trị ở dòng 1, cột 3)"
+            "public": "rot (khác số dòng (808 so với 97))",
+            "hidden-1": "rot (khác số dòng (729 so với 90))"
           },
           "rot_o": [
             "public",
@@ -2134,8 +2248,8 @@
       }
     },
     {
-      "ma": "jelly-q4-ngay-dau-cao-nhat",
-      "dong": 422,
+      "ma": "jelly-q4-ngay-dau-tren-tb-thang",
+      "dong": 419,
       "tieu_de": "Ngày nào DAU cao hơn mức bình quân của tháng?",
       "hinhthuc": "write",
       "cap": "medium",
@@ -2158,7 +2272,7 @@
       },
       "buoc": [],
       "khoi_sql": {
-        "jelly-q4-ngay-dau-cao-nhat": {
+        "jelly-q4-ngay-dau-tren-tb-thang": {
           "solution": [
             "solution"
           ],
@@ -2178,7 +2292,7 @@
         {
           "phep": "solution_chay_moi_bien_the",
           "ket_qua": "dat",
-          "chi_tiet": "[jelly-q4-ngay-dau-cao-nhat]: public, hidden-1; chạy 2 lần cùng kết quả"
+          "chi_tiet": "[jelly-q4-ngay-dau-tren-tb-thang]: public, hidden-1; chạy 2 lần cùng kết quả"
         },
         {
           "phep": "wrong_rot",
@@ -2192,7 +2306,7 @@
         }
       ],
       "solution": {
-        "jelly-q4-ngay-dau-cao-nhat": {
+        "jelly-q4-ngay-dau-tren-tb-thang": {
           "public": {
             "so_dong": 36,
             "cot": [
@@ -2200,7 +2314,7 @@
               "dau",
               "dau_tb_thang"
             ],
-            "giay": 0.006,
+            "giay": 0.007,
             "dong_dau": [
               [
                 "2026-07-12",
@@ -2236,7 +2350,7 @@
               "dau",
               "dau_tb_thang"
             ],
-            "giay": 0.006,
+            "giay": 0.007,
             "dong_dau": [
               [
                 "2026-07-12",
@@ -2289,15 +2403,15 @@
       }
     },
     {
-      "ma": "jelly-q5-roas-tren-chuan",
-      "dong": 450,
-      "tieu_de": "Chiến dịch nào thu về trên mỗi đồng chi nhiều hơn mức chung?",
+      "ma": "jelly-q5-roas-duoi-muc-chung",
+      "dong": 447,
+      "tieu_de": "Chiến dịch nào thu về trên mỗi đồng chi thấp hơn mức chung?",
       "hinhthuc": "write",
-      "cap": "medium",
+      "cap": "hard",
       "dang": "C3",
       "domain": "finance",
       "dulieu": "jelly",
-      "diem": 30,
+      "diem": 50,
       "trangthai": "review",
       "bo_qua": false,
       "cham": {
@@ -2313,13 +2427,16 @@
       },
       "buoc": [],
       "khoi_sql": {
-        "jelly-q5-roas-tren-chuan": {
+        "jelly-q5-roas-duoi-muc-chung": {
           "solution": [
             "solution"
           ],
           "wrong": [
-            "roas_chung_trung_binh_ty_le",
-            "ghep_hai_muc_hat"
+            "muc_chung_trung_binh_ty_le",
+            "ghep_hai_muc_hat",
+            "doanh_thu_ca_ky",
+            "muc_chung_gom_organic",
+            "luy_ke_gan_cung_29_8"
           ]
         }
       },
@@ -2334,17 +2451,32 @@
         {
           "phep": "solution_chay_moi_bien_the",
           "ket_qua": "dat",
-          "chi_tiet": "[jelly-q5-roas-tren-chuan]: public, hidden-1; chạy 2 lần cùng kết quả"
+          "chi_tiet": "[jelly-q5-roas-duoi-muc-chung]: public, hidden-1; chạy 2 lần cùng kết quả"
         },
         {
           "phep": "wrong_rot",
           "ket_qua": "dat",
-          "chi_tiet": "roas_chung_trung_binh_ty_le: rớt ở public, hidden-1"
+          "chi_tiet": "muc_chung_trung_binh_ty_le: rớt ở public, hidden-1"
         },
         {
           "phep": "wrong_rot",
           "ket_qua": "dat",
           "chi_tiet": "ghep_hai_muc_hat: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "doanh_thu_ca_ky: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "muc_chung_gom_organic: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "luy_ke_gan_cung_29_8: rớt ở hidden-1"
         },
         {
           "phep": "nghiepvu_khong_lo_so",
@@ -2353,96 +2485,80 @@
         }
       ],
       "solution": {
-        "jelly-q5-roas-tren-chuan": {
+        "jelly-q5-roas-duoi-muc-chung": {
           "public": {
-            "so_dong": 4,
+            "so_dong": 3,
             "cot": [
               "campaign_id",
               "kenh",
-              "chi_phi_usd",
-              "doanh_thu_usd",
-              "roas_pct",
-              "roas_chung_pct"
+              "doanh_thu_luy_ke_usd",
+              "roas_d30_pct",
+              "roas_chung_pct",
+              "chenh_lech_diem"
             ],
-            "giay": 0.22,
+            "giay": 0.329,
             "dong_dau": [
               [
-                "JTA-SEA-SEARCH-101",
-                "Search Ads",
-                16753.77,
-                1171.08,
-                6.99,
-                5.54
-              ],
-              [
-                "JTA-SOCIAL-204",
-                "Social Ads",
-                22398.94,
-                1181.2,
-                5.27,
-                5.54
+                "JTA-CREATOR-077",
+                "Creator Campaign",
+                302.08,
+                3.64,
+                5.54,
+                -1.91
               ],
               [
                 "JTA-VIDEO-330",
                 "Video Network",
-                12256.37,
-                635.7,
+                747.12,
                 5.19,
-                5.54
+                5.54,
+                -0.36
               ],
               [
-                "JTA-CREATOR-077",
-                "Creator Campaign",
-                7208.24,
-                262.34,
-                3.64,
-                5.54
+                "JTA-SOCIAL-204",
+                "Social Ads",
+                1376.53,
+                5.27,
+                5.54,
+                -0.27
               ]
             ]
           },
           "hidden-1": {
-            "so_dong": 4,
+            "so_dong": 3,
             "cot": [
               "campaign_id",
               "kenh",
-              "chi_phi_usd",
-              "doanh_thu_usd",
-              "roas_pct",
-              "roas_chung_pct"
+              "doanh_thu_luy_ke_usd",
+              "roas_d30_pct",
+              "roas_chung_pct",
+              "chenh_lech_diem"
             ],
-            "giay": 0.141,
+            "giay": 0.362,
             "dong_dau": [
               [
-                "JTA-SEA-SEARCH-101",
-                "Search Ads",
-                16753.77,
-                1076.83,
-                6.43,
-                4.96
-              ],
-              [
-                "JTA-SOCIAL-204",
-                "Social Ads",
-                22398.94,
-                1044.63,
-                4.66,
-                4.96
+                "JTA-CREATOR-077",
+                "Creator Campaign",
+                273.78,
+                3.28,
+                4.96,
+                -1.68
               ],
               [
                 "JTA-VIDEO-330",
                 "Video Network",
-                12406.37,
-                554.68,
+                660.15,
                 4.47,
-                4.96
+                4.96,
+                -0.49
               ],
               [
-                "JTA-CREATOR-077",
-                "Creator Campaign",
-                7208.24,
-                236.4,
-                3.28,
-                4.96
+                "JTA-SOCIAL-204",
+                "Social Ads",
+                1203.3,
+                4.66,
+                4.96,
+                -0.29
               ]
             ]
           }
@@ -2450,10 +2566,10 @@
       },
       "starter": {},
       "wrong": {
-        "roas_chung_trung_binh_ty_le": {
+        "muc_chung_trung_binh_ty_le": {
           "bien_the": {
-            "public": "rot (khác giá trị ở dòng 1, cột 6)",
-            "hidden-1": "rot (khác giá trị ở dòng 1, cột 6)"
+            "public": "rot (khác số dòng (2 so với 3))",
+            "hidden-1": "rot (khác giá trị ở dòng 1, cột 5)"
           },
           "rot_o": [
             "public",
@@ -2463,11 +2579,43 @@
         },
         "ghep_hai_muc_hat": {
           "bien_the": {
-            "public": "rot (khác giá trị ở dòng 1, cột 1)",
-            "hidden-1": "rot (khác giá trị ở dòng 1, cột 1)"
+            "public": "rot (khác số dòng (4 so với 3))",
+            "hidden-1": "rot (khác số dòng (4 so với 3))"
           },
           "rot_o": [
             "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        },
+        "doanh_thu_ca_ky": {
+          "bien_the": {
+            "public": "rot (khác giá trị ở dòng 1, cột 4)",
+            "hidden-1": "rot (khác giá trị ở dòng 1, cột 4)"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        },
+        "muc_chung_gom_organic": {
+          "bien_the": {
+            "public": "rot (khác số dòng (4 so với 3))",
+            "hidden-1": "rot (khác số dòng (4 so với 3))"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        },
+        "luy_ke_gan_cung_29_8": {
+          "bien_the": {
+            "public": "qua",
+            "hidden-1": "rot (khác giá trị ở dòng 3, cột 3)"
+          },
+          "rot_o": [
             "hidden-1"
           ],
           "vi_pham_rang_buoc": []
@@ -2481,15 +2629,15 @@
       }
     },
     {
-      "ma": "jelly-q6-phien-ban-dau-tien",
+      "ma": "jelly-q6-nguoi-choi-cu-len-210",
       "dong": 480,
-      "tieu_de": "Người chơi lên bản 2.1.0 vào ngày nào?",
+      "tieu_de": "Người chơi cũ cập nhật lên bản 2.1.0 nhanh đến đâu?",
       "hinhthuc": "write",
-      "cap": "medium",
+      "cap": "hard",
       "dang": "B4",
       "domain": "operations",
       "dulieu": "jelly",
-      "diem": 30,
+      "diem": 50,
       "trangthai": "review",
       "bo_qua": false,
       "cham": {
@@ -2505,13 +2653,16 @@
       },
       "buoc": [],
       "khoi_sql": {
-        "jelly-q6-phien-ban-dau-tien": {
+        "jelly-q6-nguoi-choi-cu-len-210": {
           "solution": [
             "solution"
           ],
           "wrong": [
+            "tinh_ca_nguoi_cai_moi",
+            "len_ban_bat_ky",
+            "mau_so_gom_nguoi_da_nghi",
             "dem_moi_ngay_choi_210",
-            "phien_ban_luc_cai"
+            "gan_cung_ngay_su_kien"
           ]
         }
       },
@@ -2526,7 +2677,22 @@
         {
           "phep": "solution_chay_moi_bien_the",
           "ket_qua": "dat",
-          "chi_tiet": "[jelly-q6-phien-ban-dau-tien]: public, hidden-1; chạy 2 lần cùng kết quả"
+          "chi_tiet": "[jelly-q6-nguoi-choi-cu-len-210]: public, hidden-1; chạy 2 lần cùng kết quả"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "tinh_ca_nguoi_cai_moi: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "len_ban_bat_ky: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "mau_so_gom_nguoi_da_nghi: rớt ở public, hidden-1"
         },
         {
           "phep": "wrong_rot",
@@ -2536,7 +2702,7 @@
         {
           "phep": "wrong_rot",
           "ket_qua": "dat",
-          "chi_tiet": "phien_ban_luc_cai: rớt ở public, hidden-1"
+          "chi_tiet": "gan_cung_ngay_su_kien: rớt ở hidden-1"
         },
         {
           "phep": "nghiepvu_khong_lo_so",
@@ -2545,64 +2711,64 @@
         }
       ],
       "solution": {
-        "jelly-q6-phien-ban-dau-tien": {
+        "jelly-q6-nguoi-choi-cu-len-210": {
           "public": {
-            "so_dong": 30,
+            "so_dong": 2,
             "cot": [
-              "ngay",
-              "so_nguoi_len_210"
+              "nen_tang",
+              "so_nguoi_choi_cu",
+              "so_len_210",
+              "so_len_truoc_su_kien",
+              "ty_le_len_210_pct",
+              "so_ngay_cho_tb"
             ],
-            "giay": 0.89,
+            "giay": 0.273,
             "dong_dau": [
               [
-                "2026-07-30",
-                1154
+                "Android",
+                3559,
+                2559,
+                2200,
+                71.9,
+                3.66
               ],
               [
-                "2026-07-31",
-                835
-              ],
-              [
-                "2026-08-01",
-                674
-              ],
-              [
-                "2026-08-02",
-                571
-              ],
-              [
-                "2026-08-03",
-                507
+                "iOS",
+                1475,
+                1048,
+                921,
+                71.05,
+                3.51
               ]
             ]
           },
           "hidden-1": {
-            "so_dong": 30,
+            "so_dong": 2,
             "cot": [
-              "ngay",
-              "so_nguoi_len_210"
+              "nen_tang",
+              "so_nguoi_choi_cu",
+              "so_len_210",
+              "so_len_truoc_su_kien",
+              "ty_le_len_210_pct",
+              "so_ngay_cho_tb"
             ],
-            "giay": 0.752,
+            "giay": 0.233,
             "dong_dau": [
               [
-                "2026-07-30",
-                1054
+                "Android",
+                3194,
+                2317,
+                598,
+                72.54,
+                3.6
               ],
               [
-                "2026-07-31",
-                758
-              ],
-              [
-                "2026-08-01",
-                606
-              ],
-              [
-                "2026-08-02",
-                512
-              ],
-              [
-                "2026-08-03",
-                458
+                "iOS",
+                1335,
+                944,
+                237,
+                70.71,
+                3.51
               ]
             ]
           }
@@ -2610,10 +2776,10 @@
       },
       "starter": {},
       "wrong": {
-        "dem_moi_ngay_choi_210": {
+        "tinh_ca_nguoi_cai_moi": {
           "bien_the": {
-            "public": "rot (khác số dòng (31 so với 30))",
-            "hidden-1": "rot (khác số dòng (31 so với 30))"
+            "public": "rot (khác giá trị ở dòng 1, cột 2)",
+            "hidden-1": "rot (khác giá trị ở dòng 1, cột 2)"
           },
           "rot_o": [
             "public",
@@ -2621,13 +2787,45 @@
           ],
           "vi_pham_rang_buoc": []
         },
-        "phien_ban_luc_cai": {
+        "len_ban_bat_ky": {
           "bien_the": {
-            "public": "rot (khác số dòng (16 so với 30))",
-            "hidden-1": "rot (khác số dòng (16 so với 30))"
+            "public": "rot (khác giá trị ở dòng 1, cột 3)",
+            "hidden-1": "rot (khác giá trị ở dòng 1, cột 3)"
           },
           "rot_o": [
             "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        },
+        "mau_so_gom_nguoi_da_nghi": {
+          "bien_the": {
+            "public": "rot (khác giá trị ở dòng 1, cột 2)",
+            "hidden-1": "rot (khác giá trị ở dòng 1, cột 2)"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        },
+        "dem_moi_ngay_choi_210": {
+          "bien_the": {
+            "public": "rot (khác giá trị ở dòng 1, cột 6)",
+            "hidden-1": "rot (khác giá trị ở dòng 1, cột 6)"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        },
+        "gan_cung_ngay_su_kien": {
+          "bien_the": {
+            "public": "qua",
+            "hidden-1": "rot (khác giá trị ở dòng 1, cột 4)"
+          },
+          "rot_o": [
             "hidden-1"
           ],
           "vi_pham_rang_buoc": []
@@ -2642,8 +2840,8 @@
     },
     {
       "ma": "jelly-q7-exists-quang-cao",
-      "dong": 507,
-      "tieu_de": "Đếm người xem quảng cáo có tặng thưởng lại ra số người không xem",
+      "dong": 509,
+      "tieu_de": "Đếm người xem quảng cáo tặng thưởng lại ra số người không xem",
       "hinhthuc": "debug",
       "cap": "easy",
       "dang": "A2",
@@ -2720,7 +2918,7 @@
               "kenh",
               "so_nguoi_xem"
             ],
-            "giay": 0.189,
+            "giay": 0.199,
             "dong_dau": [
               [
                 "Organic",
@@ -2750,7 +2948,7 @@
               "kenh",
               "so_nguoi_xem"
             ],
-            "giay": 0.116,
+            "giay": 0.157,
             "dong_dau": [
               [
                 "Organic",
@@ -2812,15 +3010,15 @@
       }
     },
     {
-      "ma": "jelly-q8-subquery-nhieu-dong",
-      "dong": 531,
-      "tieu_de": "Giao dịch gần nhất của mỗi người chơi chỉ còn một dòng",
+      "ma": "jelly-q8-giao-dich-ngay-gan-nhat-gb",
+      "dong": 533,
+      "tieu_de": "Giao dịch ngày gần nhất ở Anh lại là giao dịch ngày 1/8",
       "hinhthuc": "debug",
-      "cap": "medium",
+      "cap": "basic",
       "dang": "A1",
       "domain": "sales",
       "dulieu": "jelly",
-      "diem": 30,
+      "diem": 10,
       "trangthai": "review",
       "bo_qua": false,
       "cham": {
@@ -2836,7 +3034,7 @@
       },
       "buoc": [],
       "khoi_sql": {
-        "jelly-q8-subquery-nhieu-dong": {
+        "jelly-q8-giao-dich-ngay-gan-nhat-gb": {
           "solution": [
             "solution"
           ],
@@ -2844,8 +3042,8 @@
             "starter"
           ],
           "wrong": [
-            "lay_gia_cao_nhat",
-            "giao_dich_dau_tien"
+            "thieu_can_tren",
+            "gio_muon_nhat"
           ]
         }
       },
@@ -2860,22 +3058,22 @@
         {
           "phep": "solution_chay_moi_bien_the",
           "ket_qua": "dat",
-          "chi_tiet": "[jelly-q8-subquery-nhieu-dong]: public, hidden-1; chạy 2 lần cùng kết quả"
+          "chi_tiet": "[jelly-q8-giao-dich-ngay-gan-nhat-gb]: public, hidden-1; chạy 2 lần cùng kết quả"
         },
         {
           "phep": "starter_debug_sai",
           "ket_qua": "dat",
-          "chi_tiet": "public: khác số dòng (1 so với 422), hidden-1: khác số dòng (1 so với 382)"
+          "chi_tiet": "public: khác giá trị ở dòng 1, cột 1, hidden-1: khác số dòng (2 so với 1)"
         },
         {
           "phep": "wrong_rot",
           "ket_qua": "dat",
-          "chi_tiet": "lay_gia_cao_nhat: rớt ở public, hidden-1"
+          "chi_tiet": "thieu_can_tren: rớt ở hidden-1"
         },
         {
           "phep": "wrong_rot",
           "ket_qua": "dat",
-          "chi_tiet": "giao_dich_dau_tien: rớt ở public, hidden-1"
+          "chi_tiet": "gio_muon_nhat: rớt ở public"
         },
         {
           "phep": "nghiepvu_khong_lo_so",
@@ -2884,9 +3082,9 @@
         }
       ],
       "solution": {
-        "jelly-q8-subquery-nhieu-dong": {
+        "jelly-q8-giao-dich-ngay-gan-nhat-gb": {
           "public": {
-            "so_dong": 422,
+            "so_dong": 3,
             "cot": [
               "user_id",
               "transaction_id",
@@ -2894,47 +3092,33 @@
               "product_name",
               "price_usd"
             ],
-            "giay": 0.029,
+            "giay": 0.006,
             "dong_dau": [
               [
-                "jta_user_000024",
-                "jta_txn_00000007",
-                "2026-07-31T13:26:44",
+                "jta_user_013792",
+                "jta_txn_00002641",
+                "2026-08-29T09:20:46",
                 "Booster Bundle",
                 4.99
               ],
               [
-                "jta_user_000026",
-                "jta_txn_00000008",
-                "2026-08-03T12:07:58",
+                "jta_user_013502",
+                "jta_txn_00002631",
+                "2026-08-29T15:48:32",
                 "Extra Moves Pack",
                 1.99
               ],
               [
-                "jta_user_000070",
-                "jta_txn_00000017",
-                "2026-07-02T11:01:33",
+                "jta_user_013488",
+                "jta_txn_00002629",
+                "2026-08-29T18:19:46",
                 "Extra Moves Pack",
                 1.99
-              ],
-              [
-                "jta_user_000103",
-                "jta_txn_00000024",
-                "2026-07-07T11:57:37",
-                "Starter Pack",
-                0.99
-              ],
-              [
-                "jta_user_000131",
-                "jta_txn_00000031",
-                "2026-07-01T20:44:11",
-                "Booster Bundle",
-                4.99
               ]
             ]
           },
           "hidden-1": {
-            "so_dong": 382,
+            "so_dong": 1,
             "cot": [
               "user_id",
               "transaction_id",
@@ -2942,40 +3126,12 @@
               "product_name",
               "price_usd"
             ],
-            "giay": 0.02,
+            "giay": 0.005,
             "dong_dau": [
               [
-                "jta_user_000024",
-                "jta_txn_00000007",
-                "2026-07-31T13:26:44",
-                "Booster Bundle",
-                4.99
-              ],
-              [
-                "jta_user_000026",
-                "jta_txn_00000008",
-                "2026-08-03T12:07:58",
-                "Extra Moves Pack",
-                1.99
-              ],
-              [
-                "jta_user_000070",
-                "jta_txn_00000017",
-                "2026-07-02T11:01:33",
-                "Extra Moves Pack",
-                1.99
-              ],
-              [
-                "jta_user_000103",
-                "jta_txn_00000024",
-                "2026-07-07T11:57:37",
-                "Starter Pack",
-                0.99
-              ],
-              [
-                "jta_user_000131",
-                "jta_txn_00000031",
-                "2026-07-01T20:44:11",
+                "jta_user_000648",
+                "jta_txn_00002664",
+                "2026-08-30T10:25:40",
                 "Booster Bundle",
                 4.99
               ]
@@ -2984,29 +3140,27 @@
         }
       },
       "starter": {
-        "public": "khác số dòng (1 so với 422)",
-        "hidden-1": "khác số dòng (1 so với 382)"
+        "public": "khác giá trị ở dòng 1, cột 1",
+        "hidden-1": "khác số dòng (2 so với 1)"
       },
       "wrong": {
-        "lay_gia_cao_nhat": {
+        "thieu_can_tren": {
           "bien_the": {
-            "public": "rot (khác số dòng (431 so với 422))",
-            "hidden-1": "rot (khác số dòng (391 so với 382))"
+            "public": "qua",
+            "hidden-1": "rot (khác giá trị ở dòng 1, cột 2)"
           },
           "rot_o": [
-            "public",
             "hidden-1"
           ],
           "vi_pham_rang_buoc": []
         },
-        "giao_dich_dau_tien": {
+        "gio_muon_nhat": {
           "bien_the": {
-            "public": "rot (khác giá trị ở dòng 1, cột 2)",
-            "hidden-1": "rot (khác giá trị ở dòng 1, cột 2)"
+            "public": "rot (khác số dòng (1 so với 3))",
+            "hidden-1": "qua"
           },
           "rot_o": [
-            "public",
-            "hidden-1"
+            "public"
           ],
           "vi_pham_rang_buoc": []
         }
@@ -3020,7 +3174,7 @@
     },
     {
       "ma": "jelly-q9-not-in-null",
-      "dong": 558,
+      "dong": 555,
       "tieu_de": "Không tìm thấy màn nào chưa từng có giao dịch",
       "hinhthuc": "debug",
       "cap": "medium",
@@ -3104,7 +3258,7 @@
               "level_id",
               "so_luot_choi"
             ],
-            "giay": 0.002,
+            "giay": 0.005,
             "dong_dau": [
               [
                 58,
@@ -3126,7 +3280,7 @@
               "level_id",
               "so_luot_choi"
             ],
-            "giay": 0.002,
+            "giay": 0.003,
             "dong_dau": [
               [
                 59,
@@ -3187,7 +3341,7 @@
     },
     {
       "ma": "jelly-c5-starter-pack-giu-chan",
-      "dong": 588,
+      "dong": 585,
       "tieu_de": "Người mua Starter Pack có ở lại lâu hơn?",
       "hinhthuc": "case",
       "cap": "easy",
@@ -3315,7 +3469,7 @@
               "so_nguoi_choi",
               "so_ngay_hoat_dong_tb"
             ],
-            "giay": 0.157,
+            "giay": 0.159,
             "dong_dau": [
               [
                 "mua",
@@ -3336,7 +3490,7 @@
               "so_nguoi_choi",
               "so_ngay_hoat_dong_tb"
             ],
-            "giay": 0.16,
+            "giay": 0.132,
             "dong_dau": [
               [
                 "mua",
@@ -3360,7 +3514,7 @@
               "phut_choi_d0_tb",
               "ngay_mua_sau_cai_tb"
             ],
-            "giay": 0.133,
+            "giay": 0.162,
             "dong_dau": [
               [
                 "mua",
@@ -3384,7 +3538,7 @@
               "phut_choi_d0_tb",
               "ngay_mua_sau_cai_tb"
             ],
-            "giay": 0.135,
+            "giay": 0.159,
             "dong_dau": [
               [
                 "mua",
@@ -3452,7 +3606,7 @@
     },
     {
       "ma": "jelly-c6-kenh-dang-cat",
-      "dong": 635,
+      "dong": 632,
       "tieu_de": "Có nên cắt kênh Video Network?",
       "hinhthuc": "case",
       "cap": "medium",
@@ -3603,7 +3757,7 @@
               "so_luot_cai",
               "cpi_usd"
             ],
-            "giay": 0.015,
+            "giay": 0.014,
             "dong_dau": [
               [
                 "Creator Campaign",
@@ -3639,7 +3793,7 @@
               "so_luot_cai",
               "cpi_usd"
             ],
-            "giay": 0.011,
+            "giay": 0.012,
             "dong_dau": [
               [
                 "Creator Campaign",
@@ -3676,7 +3830,7 @@
               "so_luot_cai",
               "doanh_thu_d7_moi_luot_cai_usd"
             ],
-            "giay": 0.176,
+            "giay": 0.281,
             "dong_dau": [
               [
                 "Creator Campaign",
@@ -3712,7 +3866,7 @@
               "so_luot_cai",
               "doanh_thu_d7_moi_luot_cai_usd"
             ],
-            "giay": 0.148,
+            "giay": 0.274,
             "dong_dau": [
               [
                 "Creator Campaign",
@@ -3751,7 +3905,7 @@
               "doanh_thu_d7_usd",
               "roas_d7_pct"
             ],
-            "giay": 0.122,
+            "giay": 0.261,
             "dong_dau": [
               [
                 "Search Ads",
@@ -3787,7 +3941,7 @@
               "doanh_thu_d7_usd",
               "roas_d7_pct"
             ],
-            "giay": 0.124,
+            "giay": 0.167,
             "dong_dau": [
               [
                 "Search Ads",
@@ -3874,6 +4028,6 @@
     "so_cau": 20,
     "so_cau_bo_qua": 0,
     "so_loi": 0,
-    "so_canh_bao": 1
+    "so_canh_bao": 0
   }
 }

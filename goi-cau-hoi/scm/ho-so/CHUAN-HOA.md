@@ -1,6 +1,6 @@
 # Chuẩn hoá bộ scm theo quy chuẩn (BRIEF-CHUAN-HOA, 10/11/2026)
 
-Căn cứ: `quy_chuan\` (CHOT-FORMAT-CAU-HOI.md, Huong-dan-cho-team-noi-dung.md, goi-cau-hoi-mau\cau-hoi.tex, HUONG_DAN.md) > QUYET-DINH-CHUNG.md > STYLE-scm.md. Riêng cách gọi: với bộ scm, sách dự án eDA2026 là chuẩn (`H:\My Drive\09._PC\Giang-day\Soan bai\Project DA\SupplyChain\bai-giang\Final\capnhat_0711\project-supply-chain\main.tex`). Không đổi SQL, mã, khoá chấm.
+Căn cứ: `quy_chuan\` (CHOT-FORMAT-CAU-HOI.md, Huong-dan-cho-team-noi-dung.md, goi-cau-hoi-mau\cau-hoi.tex, HUONG_DAN.md) > QUYET-DINH-CHUNG.md > STYLE-scm.md. Riêng cách gọi: với bộ scm, sách dự án eDA2026 là chuẩn (`Project DA\SupplyChain\bai-giang\Final\capnhat_0711\project-supply-chain\main.tex`). Không đổi SQL, mã, khoá chấm.
 
 Việc agent trước đã làm (không tính lại ở bảng dưới): đổi 10 case sang "Đúng: ", khôi phục nấc cuối gợi ý r1, n4, n6, n8, hạ k3, p7 xuống Dễ, đổi mã j6 thành `scm-j6-gmroi-theo-loai-cua-hang`.
 

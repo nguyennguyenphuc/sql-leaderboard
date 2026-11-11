@@ -1,6 +1,6 @@
 {
   "goi": "goi-cau-hoi/hr/goi-3",
-  "thoi_gian": "2026-11-10T15:12:42",
+  "thoi_gian": "2026-11-11T02:16:38",
   "may_chu": "sqllb-mysql:3306 (user sql_runner)",
   "chi_phan_tich": false,
   "khai_bao": {
@@ -33,20 +33,13 @@
       "yeu-cau-tuyen-dung"
     ]
   },
-  "so_khoi_sql": 58,
+  "so_khoi_sql": 67,
   "loi_goi": [],
-  "canh_bao_goi": [
-    {
-      "ma_loi": "GOI_FILE_LA",
-      "thong_diep": "thư mục gói có file ngoài 4 file chuẩn (không đưa vào zip): BANG-PHAN-CONG.md, DA-SUA.md, REVIEW-B.md, REVIEW-C.md",
-      "file": "goi-cau-hoi/hr/goi-3",
-      "dong": null
-    }
-  ],
+  "canh_bao_goi": [],
   "cau": [
     {
       "ma": "hr-j1-yeu-cau-theo-bac",
-      "dong": 95,
+      "dong": 96,
       "tieu_de": "Bậc nào cần tuyển nhiều nhất năm 2025?",
       "hinhthuc": "write",
       "cap": "easy",
@@ -117,7 +110,7 @@
               "so_yeu_cau",
               "chi_phi_bq"
             ],
-            "giay": 0.004,
+            "giay": 0.007,
             "dong_dau": [
               [
                 2,
@@ -153,7 +146,7 @@
               "so_yeu_cau",
               "chi_phi_bq"
             ],
-            "giay": 0.002,
+            "giay": 0.005,
             "dong_dau": [
               [
                 2,
@@ -216,15 +209,15 @@
       }
     },
     {
-      "ma": "hr-j2-vi-tri-ngoai-ke-hoach",
-      "dong": 122,
-      "tieu_de": "Vị trí nào có người làm nhưng chưa có định biên?",
+      "ma": "hr-j2-ngoai-dinh-bien-van-tuyen",
+      "dong": 123,
+      "tieu_de": "Vị trí nằm ngoài định biên có còn được duyệt tuyển?",
       "hinhthuc": "write",
-      "cap": "medium",
+      "cap": "hard",
       "dang": "E2",
       "domain": "operations",
       "dulieu": "hr",
-      "diem": 30,
+      "diem": 50,
       "trangthai": "review",
       "bo_qua": false,
       "cham": {
@@ -240,13 +233,15 @@
       },
       "buoc": [],
       "khoi_sql": {
-        "hr-j2-vi-tri-ngoai-ke-hoach": {
+        "hr-j2-ngoai-dinh-bien-van-tuyen": {
           "solution": [
             "solution"
           ],
           "wrong": [
-            "noi_thieu_nam",
-            "inner_join",
+            "noi_ke_hoach_thieu_nam",
+            "noi_thang_yeu_cau",
+            "phong_ban_tu_ke_hoach",
+            "inner_join_yeu_cau",
             "thieu_can_tren"
           ]
         }
@@ -262,17 +257,27 @@
         {
           "phep": "solution_chay_moi_bien_the",
           "ket_qua": "dat",
-          "chi_tiet": "[hr-j2-vi-tri-ngoai-ke-hoach]: public, hidden-1; chạy 2 lần cùng kết quả"
+          "chi_tiet": "[hr-j2-ngoai-dinh-bien-van-tuyen]: public, hidden-1; chạy 2 lần cùng kết quả"
         },
         {
           "phep": "wrong_rot",
           "ket_qua": "dat",
-          "chi_tiet": "noi_thieu_nam: rớt ở public, hidden-1"
+          "chi_tiet": "noi_ke_hoach_thieu_nam: rớt ở public, hidden-1"
         },
         {
           "phep": "wrong_rot",
           "ket_qua": "dat",
-          "chi_tiet": "inner_join: rớt ở public, hidden-1"
+          "chi_tiet": "noi_thang_yeu_cau: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "phong_ban_tu_ke_hoach: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "inner_join_yeu_cau: rớt ở public"
         },
         {
           "phep": "wrong_rot",
@@ -286,45 +291,55 @@
         }
       ],
       "solution": {
-        "hr-j2-vi-tri-ngoai-ke-hoach": {
+        "hr-j2-ngoai-dinh-bien-van-tuyen": {
           "public": {
             "so_dong": 4,
             "cot": [
               "position_id",
               "nam",
-              "so_dong",
+              "department",
+              "job_level",
               "so_nhan_vien",
-              "so_dong_ca_nam"
+              "so_dong",
+              "so_yeu_cau"
             ],
-            "giay": 0.116,
+            "giay": 0.179,
             "dong_dau": [
               [
                 "P0107",
                 "2024",
-                11,
+                "Finance",
+                5,
                 1,
-                36374
+                11,
+                1
               ],
               [
                 "P0125",
                 "2025",
-                5,
+                "Operations",
+                4,
                 1,
-                37077
+                5,
+                2
               ],
               [
                 "P0239",
                 "2025",
-                5,
+                "Engineering",
+                4,
                 1,
-                37077
+                5,
+                0
               ],
               [
                 "P0327",
                 "2025",
-                11,
+                "HR",
+                4,
                 2,
-                37077
+                11,
+                1
               ]
             ]
           },
@@ -333,39 +348,49 @@
             "cot": [
               "position_id",
               "nam",
-              "so_dong",
+              "department",
+              "job_level",
               "so_nhan_vien",
-              "so_dong_ca_nam"
+              "so_dong",
+              "so_yeu_cau"
             ],
-            "giay": 0.121,
+            "giay": 0.155,
             "dong_dau": [
               [
                 "P0107",
                 "2024",
-                11,
+                "Finance",
+                5,
                 1,
-                32673
+                11,
+                1
               ],
               [
                 "P0125",
                 "2025",
-                5,
+                "Operations",
+                4,
                 1,
-                33292
+                5,
+                2
               ],
               [
                 "P0239",
                 "2025",
-                5,
+                "Engineering",
+                4,
                 1,
-                33292
+                5,
+                1
               ],
               [
                 "P0327",
                 "2025",
-                11,
+                "HR",
+                4,
                 2,
-                33292
+                11,
+                1
               ]
             ]
           }
@@ -373,7 +398,7 @@
       },
       "starter": {},
       "wrong": {
-        "noi_thieu_nam": {
+        "noi_ke_hoach_thieu_nam": {
           "bien_the": {
             "public": "rot (khác số dòng (1 so với 4))",
             "hidden-1": "rot (khác số dòng (1 so với 4))"
@@ -384,14 +409,35 @@
           ],
           "vi_pham_rang_buoc": []
         },
-        "inner_join": {
+        "noi_thang_yeu_cau": {
           "bien_the": {
-            "public": "rot (khác số dòng (0 so với 4))",
-            "hidden-1": "rot (khác số dòng (0 so với 4))"
+            "public": "rot (khác giá trị ở dòng 2, cột 6)",
+            "hidden-1": "rot (khác giá trị ở dòng 2, cột 6)"
           },
           "rot_o": [
             "public",
             "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        },
+        "phong_ban_tu_ke_hoach": {
+          "bien_the": {
+            "public": "rot (khác kiểu giá trị ở dòng 1, cột 3 (null so với chuoi))",
+            "hidden-1": "rot (khác kiểu giá trị ở dòng 1, cột 3 (null so với chuoi))"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        },
+        "inner_join_yeu_cau": {
+          "bien_the": {
+            "public": "rot (khác số dòng (3 so với 4))",
+            "hidden-1": "qua"
+          },
+          "rot_o": [
+            "public"
           ],
           "vi_pham_rang_buoc": []
         },
@@ -415,7 +461,7 @@
     },
     {
       "ma": "hr-j3-tuyen-thay-nguoi-nghi-vi-luong",
-      "dong": 151,
+      "dong": 155,
       "tieu_de": "Yêu cầu tuyển thay người nghỉ vì lương",
       "hinhthuc": "write",
       "cap": "easy",
@@ -483,7 +529,7 @@
               "compa_ratio",
               "approval_date"
             ],
-            "giay": 0.005,
+            "giay": 0.007,
             "dong_dau": [
               [
                 "R0299",
@@ -537,7 +583,7 @@
               "compa_ratio",
               "approval_date"
             ],
-            "giay": 0.004,
+            "giay": 0.006,
             "dong_dau": [
               [
                 "R0299",
@@ -605,15 +651,15 @@
       }
     },
     {
-      "ma": "hr-j4-tin-tuong-quan-ly-theo-phong",
-      "dong": 179,
-      "tieu_de": "Phòng ban nào tin tưởng quản lý thấp nhất quý 4/2025?",
+      "ma": "hr-j4-tin-tuong-quan-ly-cskh-philippines",
+      "dong": 183,
+      "tieu_de": "Điểm tin tưởng quản lý ở phòng Chăm sóc khách hàng Philippines",
       "hinhthuc": "write",
-      "cap": "medium",
-      "dang": "A3",
+      "cap": "basic",
+      "dang": "A2",
       "domain": "customer",
       "dulieu": "hr",
-      "diem": 30,
+      "diem": 10,
       "trangthai": "review",
       "bo_qua": false,
       "cham": {
@@ -629,11 +675,12 @@
       },
       "buoc": [],
       "khoi_sql": {
-        "hr-j4-tin-tuong-quan-ly-theo-phong": {
+        "hr-j4-tin-tuong-quan-ly-cskh-philippines": {
           "solution": [
             "solution"
           ],
           "wrong": [
+            "thieu_dieu_kien_thang",
             "noi_ca_quy"
           ]
         }
@@ -649,7 +696,12 @@
         {
           "phep": "solution_chay_moi_bien_the",
           "ket_qua": "dat",
-          "chi_tiet": "[hr-j4-tin-tuong-quan-ly-theo-phong]: public, hidden-1; chạy 2 lần cùng kết quả"
+          "chi_tiet": "[hr-j4-tin-tuong-quan-ly-cskh-philippines]: public, hidden-1; chạy 2 lần cùng kết quả"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "thieu_dieu_kien_thang: rớt ở public, hidden-1"
         },
         {
           "phep": "wrong_rot",
@@ -663,76 +715,32 @@
         }
       ],
       "solution": {
-        "hr-j4-tin-tuong-quan-ly-theo-phong": {
+        "hr-j4-tin-tuong-quan-ly-cskh-philippines": {
           "public": {
-            "so_dong": 6,
+            "so_dong": 1,
             "cot": [
-              "department",
               "so_phieu",
               "tin_tuong_bq"
             ],
-            "giay": 0.044,
+            "giay": 0.004,
             "dong_dau": [
               [
-                "Engineering",
-                889,
-                55.86
-              ],
-              [
-                "Customer Support",
-                582,
-                56.93
-              ],
-              [
-                "Finance",
-                348,
-                57
-              ],
-              [
-                "Operations",
-                470,
-                57.28
-              ],
-              [
-                "Sales",
-                541,
-                58.01
+                87,
+                53.33
               ]
             ]
           },
           "hidden-1": {
-            "so_dong": 6,
+            "so_dong": 1,
             "cot": [
-              "department",
               "so_phieu",
               "tin_tuong_bq"
             ],
-            "giay": 0.043,
+            "giay": 0.004,
             "dong_dau": [
               [
-                "Engineering",
-                785,
-                55.77
-              ],
-              [
-                "Finance",
-                315,
-                56.68
-              ],
-              [
-                "Operations",
-                425,
-                57.2
-              ],
-              [
-                "Customer Support",
-                531,
-                57.22
-              ],
-              [
-                "Sales",
-                480,
-                57.84
+                73,
+                54.08
               ]
             ]
           }
@@ -740,10 +748,21 @@
       },
       "starter": {},
       "wrong": {
+        "thieu_dieu_kien_thang": {
+          "bien_the": {
+            "public": "rot (khác giá trị ở dòng 1, cột 1)",
+            "hidden-1": "rot (khác giá trị ở dòng 1, cột 1)"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        },
         "noi_ca_quy": {
           "bien_the": {
-            "public": "rot (khác giá trị ở dòng 1, cột 2)",
-            "hidden-1": "rot (khác giá trị ở dòng 1, cột 2)"
+            "public": "rot (khác giá trị ở dòng 1, cột 1)",
+            "hidden-1": "rot (khác giá trị ở dòng 1, cột 1)"
           },
           "rot_o": [
             "public",
@@ -761,7 +780,7 @@
     },
     {
       "ma": "hr-j5-luong-duoi-thi-truong",
-      "dong": 208,
+      "dong": 207,
       "tieu_de": "Nước nào có nhiều người nhận lương dưới 80\\% thị trường?",
       "hinhthuc": "write",
       "cap": "medium",
@@ -832,7 +851,7 @@
               "so_nguoi",
               "chenh_lech_bq"
             ],
-            "giay": 0.036,
+            "giay": 0.049,
             "dong_dau": [
               [
                 "Vietnam",
@@ -868,7 +887,7 @@
               "so_nguoi",
               "chenh_lech_bq"
             ],
-            "giay": 0.032,
+            "giay": 0.042,
             "dong_dau": [
               [
                 "Vietnam",
@@ -933,7 +952,7 @@
     },
     {
       "ma": "hr-j6-quan-ly-khong-cao-hon",
-      "dong": 237,
+      "dong": 236,
       "tieu_de": "Bao nhiêu quản lý không cao bậc hơn cấp dưới?",
       "hinhthuc": "write",
       "cap": "medium",
@@ -998,7 +1017,7 @@
               "so_nhan_vien",
               "so_quan_ly"
             ],
-            "giay": 0.034,
+            "giay": 0.058,
             "dong_dau": [
               [
                 "Vietnam",
@@ -1034,7 +1053,7 @@
               "so_nhan_vien",
               "so_quan_ly"
             ],
-            "giay": 0.031,
+            "giay": 0.065,
             "dong_dau": [
               [
                 "Vietnam",
@@ -1088,7 +1107,7 @@
     },
     {
       "ma": "hr-j7-phieu-khao-sat-gap-ba",
-      "dong": 268,
+      "dong": 267,
       "tieu_de": "Số phiếu khảo sát quý 4/2025 theo phòng ban ra gấp ba",
       "hinhthuc": "debug",
       "cap": "easy",
@@ -1160,7 +1179,7 @@
               "department",
               "so_phieu"
             ],
-            "giay": 0.123,
+            "giay": 0.157,
             "dong_dau": [
               [
                 "Customer Support",
@@ -1190,7 +1209,7 @@
               "department",
               "so_phieu"
             ],
-            "giay": 0.106,
+            "giay": 0.153,
             "dong_dau": [
               [
                 "Customer Support",
@@ -1241,15 +1260,15 @@
       }
     },
     {
-      "ma": "hr-j8-nghi-co-tuyen-thay-the",
-      "dong": 293,
-      "tieu_de": "Tỷ lệ người nghỉ đã có yêu cầu tuyển thay thế ra 100\\%",
+      "ma": "hr-j8-nghi-thang-11-ra-rong",
+      "dong": 292,
+      "tieu_de": "Người nghỉ tháng 11/2025 không khớp được yêu cầu tuyển thay thế nào",
       "hinhthuc": "debug",
-      "cap": "medium",
-      "dang": "E2",
-      "domain": "after_sales",
+      "cap": "basic",
+      "dang": "A1",
+      "domain": "marketing",
       "dulieu": "hr",
-      "diem": 30,
+      "diem": 10,
       "trangthai": "review",
       "bo_qua": false,
       "cham": {
@@ -1265,7 +1284,7 @@
       },
       "buoc": [],
       "khoi_sql": {
-        "hr-j8-nghi-co-tuyen-thay-the": {
+        "hr-j8-nghi-thang-11-ra-rong": {
           "solution": [
             "solution"
           ],
@@ -1273,7 +1292,8 @@
             "starter"
           ],
           "wrong": [
-            "loc_bang_phai_o_where"
+            "noi_theo_vi_tri",
+            "left_join_giu_nguoi_chua_co_yeu_cau"
           ]
         }
       },
@@ -1288,17 +1308,22 @@
         {
           "phep": "solution_chay_moi_bien_the",
           "ket_qua": "dat",
-          "chi_tiet": "[hr-j8-nghi-co-tuyen-thay-the]: public, hidden-1; chạy 2 lần cùng kết quả"
+          "chi_tiet": "[hr-j8-nghi-thang-11-ra-rong]: public, hidden-1; chạy 2 lần cùng kết quả"
         },
         {
           "phep": "starter_debug_sai",
           "ket_qua": "dat",
-          "chi_tiet": "public: khác giá trị ở dòng 1, cột 1, hidden-1: khác giá trị ở dòng 1, cột 1"
+          "chi_tiet": "public: khác số dòng (0 so với 11), hidden-1: khác số dòng (0 so với 9)"
         },
         {
           "phep": "wrong_rot",
           "ket_qua": "dat",
-          "chi_tiet": "loc_bang_phai_o_where: rớt ở public, hidden-1"
+          "chi_tiet": "noi_theo_vi_tri: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "left_join_giu_nguoi_chua_co_yeu_cau: rớt ở hidden-1"
         },
         {
           "phep": "nghiepvu_khong_lo_so",
@@ -1307,53 +1332,115 @@
         }
       ],
       "solution": {
-        "hr-j8-nghi-co-tuyen-thay-the": {
+        "hr-j8-nghi-thang-11-ra-rong": {
           "public": {
-            "so_dong": 1,
+            "so_dong": 11,
             "cot": [
-              "so_nguoi_nghi",
-              "so_co_yeu_cau",
-              "ty_le_pct"
+              "employee_id",
+              "attrition_type",
+              "requisition_id",
+              "start_date"
             ],
-            "giay": 0.05,
+            "giay": 0.04,
             "dong_dau": [
               [
-                798,
-                678,
-                84.96
+                "E00009",
+                "Voluntary",
+                "R0630",
+                "2025-12-29"
+              ],
+              [
+                "E00249",
+                "Voluntary",
+                "R0628",
+                "2025-12-20"
+              ],
+              [
+                "E01195",
+                "Voluntary",
+                "R0636",
+                "2025-12-26"
+              ],
+              [
+                "E01347",
+                "Voluntary",
+                "R0640",
+                "2026-01-21"
+              ],
+              [
+                "E01461",
+                "Voluntary",
+                "R0637",
+                "2026-01-06"
               ]
             ]
           },
           "hidden-1": {
-            "so_dong": 1,
+            "so_dong": 9,
             "cot": [
-              "so_nguoi_nghi",
-              "so_co_yeu_cau",
-              "ty_le_pct"
+              "employee_id",
+              "attrition_type",
+              "requisition_id",
+              "start_date"
             ],
-            "giay": 0.032,
+            "giay": 0.025,
             "dong_dau": [
               [
-                722,
-                556,
-                77.01
+                "E00009",
+                "Voluntary",
+                "R0630",
+                "2025-12-29"
+              ],
+              [
+                "E00249",
+                "Voluntary",
+                "R0628",
+                "2025-12-20"
+              ],
+              [
+                "E01195",
+                "Voluntary",
+                "R0636",
+                "2025-12-26"
+              ],
+              [
+                "E01973",
+                "Voluntary",
+                "R0635",
+                "2026-02-09"
+              ],
+              [
+                "E02279",
+                "Voluntary",
+                "R0614",
+                "2026-01-28"
               ]
             ]
           }
         }
       },
       "starter": {
-        "public": "khác giá trị ở dòng 1, cột 1",
-        "hidden-1": "khác giá trị ở dòng 1, cột 1"
+        "public": "khác số dòng (0 so với 11)",
+        "hidden-1": "khác số dòng (0 so với 9)"
       },
       "wrong": {
-        "loc_bang_phai_o_where": {
+        "noi_theo_vi_tri": {
           "bien_the": {
-            "public": "rot (khác giá trị ở dòng 1, cột 1)",
-            "hidden-1": "rot (khác giá trị ở dòng 1, cột 1)"
+            "public": "rot (khác số dòng (15 so với 11))",
+            "hidden-1": "rot (khác số dòng (13 so với 9))"
           },
           "rot_o": [
             "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        },
+        "left_join_giu_nguoi_chua_co_yeu_cau": {
+          "bien_the": {
+            "public": "qua",
+            "hidden-1": "rot (khác số dòng (10 so với 9))"
+          },
+          "rot_o": [
             "hidden-1"
           ],
           "vi_pham_rang_buoc": []
@@ -1367,15 +1454,15 @@
       }
     },
     {
-      "ma": "hr-j9-trang-thai-quan-ly",
-      "dong": 321,
-      "tieu_de": "Phân loại nhân viên theo quản lý trực tiếp ra thiếu người",
+      "ma": "hr-j9-trang-thai-quan-ly-vuot-100",
+      "dong": 316,
+      "tieu_de": "Phân loại theo quản lý trực tiếp ra tỷ lệ quá 100\\%",
       "hinhthuc": "debug",
-      "cap": "medium",
+      "cap": "hard",
       "dang": "A3",
       "domain": "operations",
       "dulieu": "hr",
-      "diem": 30,
+      "diem": 50,
       "trangthai": "review",
       "bo_qua": false,
       "cham": {
@@ -1391,7 +1478,7 @@
       },
       "buoc": [],
       "khoi_sql": {
-        "hr-j9-trang-thai-quan-ly": {
+        "hr-j9-trang-thai-quan-ly-vuot-100": {
           "solution": [
             "solution"
           ],
@@ -1399,7 +1486,9 @@
             "starter"
           ],
           "wrong": [
-            "left_join_thieu_cung_thang"
+            "chi_sua_left_join",
+            "chi_them_cung_thang",
+            "dem_distinct_thay_cung_thang"
           ]
         }
       },
@@ -1414,7 +1503,7 @@
         {
           "phep": "solution_chay_moi_bien_the",
           "ket_qua": "dat",
-          "chi_tiet": "[hr-j9-trang-thai-quan-ly]: public, hidden-1; chạy 2 lần cùng kết quả"
+          "chi_tiet": "[hr-j9-trang-thai-quan-ly-vuot-100]: public, hidden-1; chạy 2 lần cùng kết quả"
         },
         {
           "phep": "starter_debug_sai",
@@ -1424,7 +1513,17 @@
         {
           "phep": "wrong_rot",
           "ket_qua": "dat",
-          "chi_tiet": "left_join_thieu_cung_thang: rớt ở public, hidden-1"
+          "chi_tiet": "chi_sua_left_join: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "chi_them_cung_thang: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "dem_distinct_thay_cung_thang: rớt ở public, hidden-1"
         },
         {
           "phep": "nghiepvu_khong_lo_so",
@@ -1433,26 +1532,30 @@
         }
       ],
       "solution": {
-        "hr-j9-trang-thai-quan-ly": {
+        "hr-j9-trang-thai-quan-ly-vuot-100": {
           "public": {
             "so_dong": 3,
             "cot": [
               "tinh_trang",
-              "so_nhan_vien"
+              "so_nhan_vien",
+              "ty_le_pct"
             ],
-            "giay": 0.051,
+            "giay": 0.084,
             "dong_dau": [
               [
                 "khong_ghi_quan_ly",
-                28
+                28,
+                0.9
               ],
               [
                 "quan_ly_con_ten",
-                2446
+                2446,
+                78.57
               ],
               [
                 "quan_ly_khong_con_ten",
-                639
+                639,
+                20.53
               ]
             ]
           },
@@ -1460,21 +1563,25 @@
             "so_dong": 3,
             "cot": [
               "tinh_trang",
-              "so_nhan_vien"
+              "so_nhan_vien",
+              "ty_le_pct"
             ],
-            "giay": 0.025,
+            "giay": 0.066,
             "dong_dau": [
               [
                 "khong_ghi_quan_ly",
-                25
+                25,
+                0.89
               ],
               [
                 "quan_ly_con_ten",
-                1951
+                1951,
+                69.83
               ],
               [
                 "quan_ly_khong_con_ten",
-                818
+                818,
+                29.28
               ]
             ]
           }
@@ -1485,7 +1592,29 @@
         "hidden-1": "khác số dòng (1 so với 3)"
       },
       "wrong": {
-        "left_join_thieu_cung_thang": {
+        "chi_sua_left_join": {
+          "bien_the": {
+            "public": "rot (khác số dòng (2 so với 3))",
+            "hidden-1": "rot (khác giá trị ở dòng 2, cột 2)"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        },
+        "chi_them_cung_thang": {
+          "bien_the": {
+            "public": "rot (khác số dòng (1 so với 3))",
+            "hidden-1": "rot (khác số dòng (1 so với 3))"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        },
+        "dem_distinct_thay_cung_thang": {
           "bien_the": {
             "public": "rot (khác số dòng (2 so với 3))",
             "hidden-1": "rot (khác giá trị ở dòng 2, cột 2)"
@@ -1506,7 +1635,7 @@
     },
     {
       "ma": "hr-q1-luong-tren-bq-bac",
-      "dong": 353,
+      "dong": 347,
       "tieu_de": "Ai nhận lương cao hơn bình quân bậc của mình?",
       "hinhthuc": "write",
       "cap": "easy",
@@ -1577,7 +1706,7 @@
               "job_level",
               "monthly_salary_usd"
             ],
-            "giay": 2.082,
+            "giay": 2.987,
             "dong_dau": [
               [
                 "E01055",
@@ -1613,7 +1742,7 @@
               "job_level",
               "monthly_salary_usd"
             ],
-            "giay": 1.465,
+            "giay": 2.243,
             "dong_dau": [
               [
                 "E01055",
@@ -1678,8 +1807,8 @@
     },
     {
       "ma": "hr-q2-tuyen-khi-het-cho-trong",
-      "dong": 379,
-      "tieu_de": "Mỗi nước duyệt bao nhiêu yêu cầu tuyển cho vị trí đã đủ người?",
+      "dong": 373,
+      "tieu_de": "Mỗi nước duyệt bao nhiêu yêu cầu tuyển cho vị trí đủ người?",
       "hinhthuc": "write",
       "cap": "easy",
       "dang": "A3",
@@ -1749,7 +1878,7 @@
               "so_vi_tri",
               "so_yeu_cau"
             ],
-            "giay": 0.005,
+            "giay": 0.007,
             "dong_dau": [
               [
                 "Indonesia",
@@ -1785,7 +1914,7 @@
               "so_vi_tri",
               "so_yeu_cau"
             ],
-            "giay": 0.004,
+            "giay": 0.005,
             "dong_dau": [
               [
                 "Indonesia",
@@ -1849,8 +1978,8 @@
     },
     {
       "ma": "hr-q3-gan-ket-cao-nhat-moi-phong",
-      "dong": 407,
-      "tieu_de": "Ai có điểm gắn kết cao nhất mỗi phòng ban ở từng nước?",
+      "dong": 401,
+      "tieu_de": "Điểm gắn kết cao nhất từng phòng ban mỗi nước",
       "hinhthuc": "write",
       "cap": "medium",
       "dang": "C1",
@@ -1879,7 +2008,7 @@
           "wrong": [
             "max_ca_nuoc",
             "max_ca_24_thang",
-            "moi_nhom_mot_nguoi"
+            "quen_thang_truy_van_ngoai"
           ]
         }
       },
@@ -1909,7 +2038,7 @@
         {
           "phep": "wrong_rot",
           "ket_qua": "dat",
-          "chi_tiet": "moi_nhom_mot_nguoi: rớt ở public, hidden-1"
+          "chi_tiet": "quen_thang_truy_van_ngoai: rớt ở public, hidden-1"
         },
         {
           "phep": "nghiepvu_khong_lo_so",
@@ -1920,86 +2049,86 @@
       "solution": {
         "hr-q3-gan-ket-cao-nhat-moi-phong": {
           "public": {
-            "so_dong": 37,
+            "so_dong": 36,
             "cot": [
               "country",
               "department",
-              "employee_id",
-              "engagement_score"
+              "diem_cao_nhat",
+              "so_nguoi_dat"
             ],
-            "giay": 0.043,
+            "giay": 0.062,
             "dong_dau": [
               [
                 "Indonesia",
                 "Customer Support",
-                "E03869",
-                93
+                93,
+                1
               ],
               [
                 "Indonesia",
                 "Engineering",
-                "E01809",
-                91
+                91,
+                1
               ],
               [
                 "Indonesia",
                 "Finance",
-                "E00067",
-                82
+                82,
+                1
               ],
               [
                 "Indonesia",
                 "HR",
-                "E01384",
-                77
+                77,
+                2
               ],
               [
                 "Indonesia",
-                "HR",
-                "E03681",
-                77
+                "Operations",
+                83,
+                1
               ]
             ]
           },
           "hidden-1": {
-            "so_dong": 38,
+            "so_dong": 36,
             "cot": [
               "country",
               "department",
-              "employee_id",
-              "engagement_score"
+              "diem_cao_nhat",
+              "so_nguoi_dat"
             ],
-            "giay": 0.033,
+            "giay": 0.051,
             "dong_dau": [
               [
                 "Indonesia",
                 "Customer Support",
-                "E03869",
-                93
+                93,
+                1
               ],
               [
                 "Indonesia",
                 "Engineering",
-                "E01809",
-                91
+                91,
+                1
               ],
               [
                 "Indonesia",
                 "Finance",
-                "E03624",
-                81
+                81,
+                1
               ],
               [
                 "Indonesia",
                 "HR",
-                "E01384",
-                77
+                77,
+                2
               ],
               [
                 "Indonesia",
-                "HR",
-                "E03681",
-                77
+                "Operations",
+                78,
+                2
               ]
             ]
           }
@@ -2009,8 +2138,8 @@
       "wrong": {
         "max_ca_nuoc": {
           "bien_the": {
-            "public": "rot (khác số dòng (9 so với 37))",
-            "hidden-1": "rot (khác số dòng (8 so với 38))"
+            "public": "rot (khác số dòng (9 so với 36))",
+            "hidden-1": "rot (khác số dòng (8 so với 36))"
           },
           "rot_o": [
             "public",
@@ -2020,8 +2149,8 @@
         },
         "max_ca_24_thang": {
           "bien_the": {
-            "public": "rot (khác số dòng (2 so với 37))",
-            "hidden-1": "rot (khác số dòng (2 so với 38))"
+            "public": "rot (khác số dòng (2 so với 36))",
+            "hidden-1": "rot (khác số dòng (2 so với 36))"
           },
           "rot_o": [
             "public",
@@ -2029,10 +2158,10 @@
           ],
           "vi_pham_rang_buoc": []
         },
-        "moi_nhom_mot_nguoi": {
+        "quen_thang_truy_van_ngoai": {
           "bien_the": {
-            "public": "rot (khác số dòng (36 so với 37))",
-            "hidden-1": "rot (khác số dòng (36 so với 38))"
+            "public": "rot (khác giá trị ở dòng 1, cột 4)",
+            "hidden-1": "rot (khác giá trị ở dòng 1, cột 4)"
           },
           "rot_o": [
             "public",
@@ -2049,15 +2178,15 @@
       }
     },
     {
-      "ma": "hr-q4-nghi-du-dinh-o-lai-cao",
-      "dong": 435,
-      "tieu_de": "Ai nghỉ tự nguyện dù khảo sát gần nhất nói muốn ở lại?",
+      "ma": "hr-q4-khao-sat-khong-bao-truoc",
+      "dong": 429,
+      "tieu_de": "Nước nào có nhiều người nghỉ mà khảo sát không báo trước?",
       "hinhthuc": "write",
-      "cap": "medium",
-      "dang": "A1",
+      "cap": "hard",
+      "dang": "E2",
       "domain": "after_sales",
       "dulieu": "hr",
-      "diem": 30,
+      "diem": 50,
       "trangthai": "review",
       "bo_qua": false,
       "cham": {
@@ -2073,13 +2202,15 @@
       },
       "buoc": [],
       "khoi_sql": {
-        "hr-q4-nghi-du-dinh-o-lai-cao": {
+        "hr-q4-khao-sat-khong-bao-truoc": {
           "solution": [
             "solution"
           ],
           "wrong": [
             "quy_moi_nhat_ca_bang",
-            "so_quy_voi_thang"
+            "so_quy_voi_thang",
+            "loc_y_dinh_o_where",
+            "mau_so_moi_loai_nghi"
           ]
         }
       },
@@ -2094,7 +2225,7 @@
         {
           "phep": "solution_chay_moi_bien_the",
           "ket_qua": "dat",
-          "chi_tiet": "[hr-q4-nghi-du-dinh-o-lai-cao]: public, hidden-1; chạy 2 lần cùng kết quả"
+          "chi_tiet": "[hr-q4-khao-sat-khong-bao-truoc]: public, hidden-1; chạy 2 lần cùng kết quả"
         },
         {
           "phep": "wrong_rot",
@@ -2107,94 +2238,104 @@
           "chi_tiet": "so_quy_voi_thang: rớt ở public, hidden-1"
         },
         {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "loc_y_dinh_o_where: rớt ở public, hidden-1"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "mau_so_moi_loai_nghi: rớt ở public, hidden-1"
+        },
+        {
           "phep": "nghiepvu_khong_lo_so",
           "ket_qua": "dat",
           "chi_tiet": ""
         }
       ],
       "solution": {
-        "hr-q4-nghi-du-dinh-o-lai-cao": {
+        "hr-q4-khao-sat-khong-bao-truoc": {
           "public": {
-            "so_dong": 10,
+            "so_dong": 6,
             "cot": [
-              "employee_id",
-              "thang_nghi",
-              "survey_quarter",
-              "intent_to_stay"
+              "country",
+              "so_nguoi_nghi",
+              "so_khong_bao_truoc",
+              "ty_le_pct"
             ],
-            "giay": 0.07,
+            "giay": 0.06,
             "dong_dau": [
               [
-                "E03390",
-                "2025-04",
-                "2025-Q2",
-                4
+                "Malaysia",
+                31,
+                9,
+                29.03
               ],
               [
-                "E02937",
-                "2025-05",
-                "2025-Q2",
-                4
+                "Indonesia",
+                95,
+                19,
+                20
               ],
               [
-                "E02597",
-                "2025-06",
-                "2025-Q2",
-                4
+                "Thailand",
+                30,
+                6,
+                20
               ],
               [
-                "E03443",
-                "2025-07",
-                "2025-Q3",
-                4
+                "Philippines",
+                66,
+                11,
+                16.67
               ],
               [
-                "E03573",
-                "2025-08",
-                "2025-Q3",
-                4
+                "Vietnam",
+                139,
+                22,
+                15.83
               ]
             ]
           },
           "hidden-1": {
             "so_dong": 6,
             "cot": [
-              "employee_id",
-              "thang_nghi",
-              "survey_quarter",
-              "intent_to_stay"
+              "country",
+              "so_nguoi_nghi",
+              "so_khong_bao_truoc",
+              "ty_le_pct"
             ],
             "giay": 0.055,
             "dong_dau": [
               [
-                "E03390",
-                "2025-04",
-                "2025-Q2",
-                4
+                "Malaysia",
+                27,
+                6,
+                22.22
               ],
               [
-                "E03443",
-                "2025-07",
-                "2025-Q3",
-                4
+                "Thailand",
+                28,
+                6,
+                21.43
               ],
               [
-                "E03573",
-                "2025-08",
-                "2025-Q3",
-                4
+                "Philippines",
+                57,
+                10,
+                17.54
               ],
               [
-                "E03398",
-                "2025-09",
-                "2025-Q3",
-                4
+                "Indonesia",
+                88,
+                15,
+                17.05
               ],
               [
-                "E02462",
-                "2025-11",
-                "2025-Q4",
-                4
+                "Vietnam",
+                123,
+                19,
+                15.45
               ]
             ]
           }
@@ -2204,8 +2345,8 @@
       "wrong": {
         "quy_moi_nhat_ca_bang": {
           "bien_the": {
-            "public": "rot (khác số dòng (4 so với 10))",
-            "hidden-1": "rot (khác số dòng (0 so với 6))"
+            "public": "rot (khác giá trị ở dòng 1, cột 1)",
+            "hidden-1": "rot (khác giá trị ở dòng 1, cột 1)"
           },
           "rot_o": [
             "public",
@@ -2215,7 +2356,29 @@
         },
         "so_quy_voi_thang": {
           "bien_the": {
+            "public": "rot (khác giá trị ở dòng 1, cột 3)",
+            "hidden-1": "rot (khác giá trị ở dòng 1, cột 3)"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        },
+        "loc_y_dinh_o_where": {
+          "bien_the": {
             "public": "rot (khác giá trị ở dòng 1, cột 1)",
+            "hidden-1": "rot (khác giá trị ở dòng 1, cột 1)"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
+          ],
+          "vi_pham_rang_buoc": []
+        },
+        "mau_so_moi_loai_nghi": {
+          "bien_the": {
+            "public": "rot (khác giá trị ở dòng 1, cột 2)",
             "hidden-1": "rot (khác giá trị ở dòng 1, cột 1)"
           },
           "rot_o": [
@@ -2234,7 +2397,7 @@
     },
     {
       "ma": "hr-q5-sales-lam-them-tren-bq",
-      "dong": 465,
+      "dong": 459,
       "tieu_de": "Bao nhiêu nhân viên kinh doanh làm thêm trên mức bình quân?",
       "hinhthuc": "write",
       "cap": "medium",
@@ -2299,7 +2462,7 @@
               "gio_bq_nguoi",
               "so_nguoi_tren_bq"
             ],
-            "giay": 0.156,
+            "giay": 0.174,
             "dong_dau": [
               [
                 "Indonesia",
@@ -2335,7 +2498,7 @@
               "gio_bq_nguoi",
               "so_nguoi_tren_bq"
             ],
-            "giay": 0.152,
+            "giay": 0.171,
             "dong_dau": [
               [
                 "Indonesia",
@@ -2388,15 +2551,15 @@
       }
     },
     {
-      "ma": "hr-q6-yeu-cau-tuyen-lau",
-      "dong": 494,
-      "tieu_de": "Bao nhiêu yêu cầu tuyển lâu hơn mức bình quân?",
+      "ma": "hr-q6-yeu-cau-thang-12-tuyen-lau",
+      "dong": 488,
+      "tieu_de": "Yêu cầu tuyển nào của tháng 12/2025 lâu hơn mức bình quân?",
       "hinhthuc": "write",
-      "cap": "easy",
-      "dang": "A2",
+      "cap": "basic",
+      "dang": "C3",
       "domain": "marketing",
       "dulieu": "hr",
-      "diem": 20,
+      "diem": 10,
       "trangthai": "review",
       "bo_qua": false,
       "cham": {
@@ -2412,12 +2575,12 @@
       },
       "buoc": [],
       "khoi_sql": {
-        "hr-q6-yeu-cau-tuyen-lau": {
+        "hr-q6-yeu-cau-thang-12-tuyen-lau": {
           "solution": [
             "solution"
           ],
           "wrong": [
-            "bq_ca_hai_nam"
+            "bq_rieng_thang_12"
           ]
         }
       },
@@ -2432,12 +2595,12 @@
         {
           "phep": "solution_chay_moi_bien_the",
           "ket_qua": "dat",
-          "chi_tiet": "[hr-q6-yeu-cau-tuyen-lau]: public, hidden-1; chạy 2 lần cùng kết quả"
+          "chi_tiet": "[hr-q6-yeu-cau-thang-12-tuyen-lau]: public, hidden-1; chạy 2 lần cùng kết quả"
         },
         {
           "phep": "wrong_rot",
           "ket_qua": "dat",
-          "chi_tiet": "bq_ca_hai_nam: rớt ở public"
+          "chi_tiet": "bq_rieng_thang_12: rớt ở public, hidden-1"
         },
         {
           "phep": "nghiepvu_khong_lo_so",
@@ -2446,32 +2609,88 @@
         }
       ],
       "solution": {
-        "hr-q6-yeu-cau-tuyen-lau": {
+        "hr-q6-yeu-cau-thang-12-tuyen-lau": {
           "public": {
-            "so_dong": 1,
+            "so_dong": 19,
             "cot": [
-              "so_yeu_cau_lau",
-              "so_ngay_tuyen_bq"
+              "requisition_id",
+              "department",
+              "approval_date",
+              "time_to_fill_days"
             ],
             "giay": 0.002,
             "dong_dau": [
               [
-                187,
-                39.3
+                "R0661",
+                "Finance",
+                "2025-12-20",
+                85
+              ],
+              [
+                "R0649",
+                "Engineering",
+                "2025-12-06",
+                84
+              ],
+              [
+                "R0648",
+                "Sales",
+                "2025-12-08",
+                73
+              ],
+              [
+                "R0642",
+                "Customer Support",
+                "2025-12-14",
+                71
+              ],
+              [
+                "R0677",
+                "Engineering",
+                "2025-12-08",
+                65
               ]
             ]
           },
           "hidden-1": {
-            "so_dong": 1,
+            "so_dong": 18,
             "cot": [
-              "so_yeu_cau_lau",
-              "so_ngay_tuyen_bq"
+              "requisition_id",
+              "department",
+              "approval_date",
+              "time_to_fill_days"
             ],
             "giay": 0.002,
             "dong_dau": [
               [
-                169,
-                39.3
+                "R0661",
+                "Finance",
+                "2025-12-20",
+                85
+              ],
+              [
+                "R0649",
+                "Engineering",
+                "2025-12-06",
+                84
+              ],
+              [
+                "R0648",
+                "Sales",
+                "2025-12-08",
+                73
+              ],
+              [
+                "R0642",
+                "Customer Support",
+                "2025-12-14",
+                71
+              ],
+              [
+                "R0646",
+                "Operations",
+                "2025-12-15",
+                60
               ]
             ]
           }
@@ -2479,13 +2698,14 @@
       },
       "starter": {},
       "wrong": {
-        "bq_ca_hai_nam": {
+        "bq_rieng_thang_12": {
           "bien_the": {
-            "public": "rot (khác giá trị ở dòng 1, cột 2)",
-            "hidden-1": "qua"
+            "public": "rot (khác số dòng (15 so với 19))",
+            "hidden-1": "rot (khác số dòng (13 so với 18))"
           },
           "rot_o": [
-            "public"
+            "public",
+            "hidden-1"
           ],
           "vi_pham_rang_buoc": []
         }
@@ -2499,7 +2719,7 @@
     },
     {
       "ma": "hr-q7-chua-quan-ly-ai-ra-rong",
-      "dong": 519,
+      "dong": 511,
       "tieu_de": "Danh sách người bậc cao không quản lý ai ra rỗng",
       "hinhthuc": "debug",
       "cap": "easy",
@@ -2571,7 +2791,7 @@
               "country",
               "so_nguoi"
             ],
-            "giay": 0.035,
+            "giay": 0.054,
             "dong_dau": [
               [
                 "Indonesia",
@@ -2601,7 +2821,7 @@
               "country",
               "so_nguoi"
             ],
-            "giay": 0.034,
+            "giay": 0.042,
             "dong_dau": [
               [
                 "Indonesia",
@@ -2652,15 +2872,15 @@
       }
     },
     {
-      "ma": "hr-q8-tren-bq-bac-sai-thang",
-      "dong": 545,
-      "tieu_de": "Danh sách lương trên bình quân phòng ban, bậc bị thừa người",
+      "ma": "hr-q8-tren-bq-phong-sai-nam",
+      "dong": 537,
+      "tieu_de": "Danh sách lương trên bình quân phòng Tài chính Singapore bị thừa người",
       "hinhthuc": "debug",
-      "cap": "medium",
+      "cap": "basic",
       "dang": "C3",
       "domain": "finance",
       "dulieu": "hr",
-      "diem": 30,
+      "diem": 10,
       "trangthai": "review",
       "bo_qua": false,
       "cham": {
@@ -2676,7 +2896,7 @@
       },
       "buoc": [],
       "khoi_sql": {
-        "hr-q8-tren-bq-bac-sai-thang": {
+        "hr-q8-tren-bq-phong-sai-nam": {
           "solution": [
             "solution"
           ],
@@ -2684,7 +2904,7 @@
             "starter"
           ],
           "wrong": [
-            "thieu_tuong_quan_phong"
+            "bo_loc_nuoc"
           ]
         }
       },
@@ -2699,17 +2919,17 @@
         {
           "phep": "solution_chay_moi_bien_the",
           "ket_qua": "dat",
-          "chi_tiet": "[hr-q8-tren-bq-bac-sai-thang]: public, hidden-1; chạy 2 lần cùng kết quả"
+          "chi_tiet": "[hr-q8-tren-bq-phong-sai-nam]: public, hidden-1; chạy 2 lần cùng kết quả"
         },
         {
           "phep": "starter_debug_sai",
           "ket_qua": "dat",
-          "chi_tiet": "public: khác số dòng (163 so với 158), hidden-1: khác số dòng (148 so với 144)"
+          "chi_tiet": "public: khác số dòng (16 so với 13), hidden-1: khác số dòng (16 so với 12)"
         },
         {
           "phep": "wrong_rot",
           "ket_qua": "dat",
-          "chi_tiet": "thieu_tuong_quan_phong: rớt ở public, hidden-1"
+          "chi_tiet": "bo_loc_nuoc: rớt ở public, hidden-1"
         },
         {
           "phep": "nghiepvu_khong_lo_so",
@@ -2718,102 +2938,90 @@
         }
       ],
       "solution": {
-        "hr-q8-tren-bq-bac-sai-thang": {
+        "hr-q8-tren-bq-phong-sai-nam": {
           "public": {
-            "so_dong": 158,
+            "so_dong": 13,
             "cot": [
               "employee_id",
-              "department",
               "job_level",
               "monthly_salary_usd"
             ],
-            "giay": 0.307,
+            "giay": 0.01,
             "dong_dau": [
               [
-                "E00323",
-                "Customer Support",
-                1,
-                2550
+                "E03536",
+                5,
+                15950
               ],
               [
-                "E00610",
-                "Customer Support",
-                1,
-                2583
+                "E02013",
+                5,
+                15067
               ],
               [
-                "E02216",
-                "Customer Support",
-                1,
-                2596
+                "E01910",
+                5,
+                14971
               ],
               [
-                "E02313",
-                "Customer Support",
-                1,
-                2350
+                "E02460",
+                5,
+                13100
               ],
               [
-                "E02378",
-                "Customer Support",
-                1,
-                2350
+                "E00421",
+                5,
+                11700
               ]
             ]
           },
           "hidden-1": {
-            "so_dong": 144,
+            "so_dong": 12,
             "cot": [
               "employee_id",
-              "department",
               "job_level",
               "monthly_salary_usd"
             ],
-            "giay": 0.278,
+            "giay": 0.01,
             "dong_dau": [
               [
-                "E00323",
-                "Customer Support",
-                1,
-                2550
+                "E03536",
+                5,
+                15950
               ],
               [
-                "E00610",
-                "Customer Support",
-                1,
-                2583
+                "E02013",
+                5,
+                15067
               ],
               [
-                "E02216",
-                "Customer Support",
-                1,
-                2596
+                "E01910",
+                5,
+                14971
               ],
               [
-                "E02313",
-                "Customer Support",
-                1,
-                2350
+                "E02460",
+                5,
+                13100
               ],
               [
-                "E02378",
-                "Customer Support",
-                1,
-                2350
+                "E00421",
+                5,
+                11700
               ]
             ]
           }
         }
       },
       "starter": {
-        "public": "khác số dòng (163 so với 158)",
-        "hidden-1": "khác số dòng (148 so với 144)"
+        "public": "khác số dòng (16 so với 13)",
+        "hidden-1": "khác số dòng (16 so với 12)"
       },
       "wrong": {
-        "thieu_tuong_quan_phong": {
+        "bo_loc_nuoc": {
           "bien_the": {
-            "public": "rot (khác số dòng (152 so với 158))",
-            "hidden-1": "rot (khác số dòng (139 so với 144))"
+            "public": "rot (khác số dòng (39 so với 13))",
+            "hidden-1": "rot (khác số dòng (35 so với 12))"
           },
           "rot_o": [
             "public",
@@ -2830,15 +3038,15 @@
       }
     },
     {
-      "ma": "hr-q9-ly-do-pho-bien-moi-nuoc",
-      "dong": 571,
+      "ma": "hr-q9-ly-do-pho-bien-hai-loi",
+      "dong": 558,
       "tieu_de": "Bảng lý do nghỉ việc phổ biến nhất chỉ có một nước",
       "hinhthuc": "debug",
-      "cap": "medium",
+      "cap": "hard",
       "dang": "C1",
       "domain": "after_sales",
       "dulieu": "hr",
-      "diem": 30,
+      "diem": 50,
       "trangthai": "review",
       "bo_qua": false,
       "cham": {
@@ -2854,7 +3062,7 @@
       },
       "buoc": [],
       "khoi_sql": {
-        "hr-q9-ly-do-pho-bien-moi-nuoc": {
+        "hr-q9-ly-do-pho-bien-hai-loi": {
           "solution": [
             "solution"
           ],
@@ -2862,7 +3070,8 @@
             "starter"
           ],
           "wrong": [
-            "tinh_ca_nghi_huu"
+            "chi_sua_tuong_quan",
+            "chi_sua_loai_nghi"
           ]
         }
       },
@@ -2877,7 +3086,7 @@
         {
           "phep": "solution_chay_moi_bien_the",
           "ket_qua": "dat",
-          "chi_tiet": "[hr-q9-ly-do-pho-bien-moi-nuoc]: public, hidden-1; chạy 2 lần cùng kết quả"
+          "chi_tiet": "[hr-q9-ly-do-pho-bien-hai-loi]: public, hidden-1; chạy 2 lần cùng kết quả"
         },
         {
           "phep": "starter_debug_sai",
@@ -2887,7 +3096,12 @@
         {
           "phep": "wrong_rot",
           "ket_qua": "dat",
-          "chi_tiet": "tinh_ca_nghi_huu: rớt ở public"
+          "chi_tiet": "chi_sua_tuong_quan: rớt ở public"
+        },
+        {
+          "phep": "wrong_rot",
+          "ket_qua": "dat",
+          "chi_tiet": "chi_sua_loai_nghi: rớt ở public, hidden-1"
         },
         {
           "phep": "nghiepvu_khong_lo_so",
@@ -2896,7 +3110,7 @@
         }
       ],
       "solution": {
-        "hr-q9-ly-do-pho-bien-moi-nuoc": {
+        "hr-q9-ly-do-pho-bien-hai-loi": {
           "public": {
             "so_dong": 8,
             "cot": [
@@ -2904,7 +3118,7 @@
               "attrition_reason",
               "so_nguoi"
             ],
-            "giay": 0.1,
+            "giay": 0.118,
             "dong_dau": [
               [
                 "Indonesia",
@@ -2940,7 +3154,7 @@
               "attrition_reason",
               "so_nguoi"
             ],
-            "giay": 0.068,
+            "giay": 0.098,
             "dong_dau": [
               [
                 "Indonesia",
@@ -2976,13 +3190,24 @@
         "hidden-1": "khác số dòng (1 so với 7)"
       },
       "wrong": {
-        "tinh_ca_nghi_huu": {
+        "chi_sua_tuong_quan": {
           "bien_the": {
             "public": "rot (khác số dòng (9 so với 8))",
             "hidden-1": "qua"
           },
           "rot_o": [
             "public"
+          ],
+          "vi_pham_rang_buoc": []
+        },
+        "chi_sua_loai_nghi": {
+          "bien_the": {
+            "public": "rot (khác số dòng (1 so với 8))",
+            "hidden-1": "rot (khác số dòng (1 so với 7))"
+          },
+          "rot_o": [
+            "public",
+            "hidden-1"
           ],
           "vi_pham_rang_buoc": []
         }
@@ -2996,7 +3221,7 @@
     },
     {
       "ma": "hr-c5-tuyen-thay-the-kip-khong",
-      "dong": 601,
+      "dong": 588,
       "tieu_de": "Chỗ của người nghỉ có được tuyển người thay kịp không?",
       "hinhthuc": "case",
       "cap": "easy",
@@ -3105,7 +3330,7 @@
               "attrition_type",
               "so_nguoi_nghi"
             ],
-            "giay": 0.04,
+            "giay": 0.041,
             "dong_dau": [
               [
                 "Voluntary",
@@ -3127,7 +3352,7 @@
               "attrition_type",
               "so_nguoi_nghi"
             ],
-            "giay": 0.033,
+            "giay": 0.04,
             "dong_dau": [
               [
                 "Voluntary",
@@ -3155,7 +3380,7 @@
               "so_ngay_bq",
               "so_di_lam_sau_2025"
             ],
-            "giay": 0.043,
+            "giay": 0.061,
             "dong_dau": [
               [
                 "Voluntary",
@@ -3193,7 +3418,7 @@
               "so_ngay_bq",
               "so_di_lam_sau_2025"
             ],
-            "giay": 0.034,
+            "giay": 0.058,
             "dong_dau": [
               [
                 "Voluntary",
@@ -3252,7 +3477,7 @@
     },
     {
       "ma": "hr-c6-luong-thap-va-nghi-viec",
-      "dong": 645,
+      "dong": 632,
       "tieu_de": "Nhóm lương thấp hơn thị trường có nghỉ việc nhiều hơn không?",
       "hinhthuc": "case",
       "cap": "medium",
@@ -3269,7 +3494,7 @@
         ],
         "thutu": "co",
         "socot": "vitri",
-        "saiso": 0.05,
+        "saiso": 0.01,
         "quettoida": {},
         "ngansach": null
       },
@@ -3381,7 +3606,7 @@
               "quan_so_bq",
               "ty_trong_pct"
             ],
-            "giay": 0.069,
+            "giay": 0.111,
             "dong_dau": [
               [
                 "1_duoi_0_9",
@@ -3411,7 +3636,7 @@
               "quan_so_bq",
               "ty_trong_pct"
             ],
-            "giay": 0.085,
+            "giay": 0.105,
             "dong_dau": [
               [
                 "1_duoi_0_9",
@@ -3442,7 +3667,7 @@
               "so_nghi_tu_nguyen",
               "ty_le_nghi_pct"
             ],
-            "giay": 0.075,
+            "giay": 0.1,
             "dong_dau": [
               [
                 "1_duoi_0_9",
@@ -3468,7 +3693,7 @@
               "so_nghi_tu_nguyen",
               "ty_le_nghi_pct"
             ],
-            "giay": 0.071,
+            "giay": 0.08,
             "dong_dau": [
               [
                 "1_duoi_0_9",
@@ -3497,7 +3722,7 @@
               "tl_tu_0_9_pct",
               "ty_trong_duoi_0_9_pct"
             ],
-            "giay": 0.406,
+            "giay": 0.556,
             "dong_dau": [
               [
                 "Indonesia",
@@ -3539,7 +3764,7 @@
               "tl_tu_0_9_pct",
               "ty_trong_duoi_0_9_pct"
             ],
-            "giay": 0.337,
+            "giay": 0.48,
             "dong_dau": [
               [
                 "Indonesia",
@@ -3610,6 +3835,6 @@
     "so_cau": 20,
     "so_cau_bo_qua": 0,
     "so_loi": 0,
-    "so_canh_bao": 1
+    "so_canh_bao": 0
   }
 }

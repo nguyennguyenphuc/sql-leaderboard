@@ -1,9 +1,9 @@
 # Xử lý 126 điểm "Chờ giảng viên" (BAO-CAO-TONG-HOP.md mục 3)
 
 Giảng viên giao: quyết và sửa TOÀN BỘ 126 điểm, dựa trên (1) kiến thức domain trong tài liệu dự án ở
-`H:\My Drive\09._PC\Giang-day\Soan bai\Project DA\` và (2) chuẩn ra đề SQL tham khảo HackerRank. Không còn "chờ".
+`Project DA\` và (2) chuẩn ra đề SQL tham khảo HackerRank. Không còn "chờ".
 
-## Nguồn domain (CHỈ ĐỌC; KHÔNG quét đệ quy ổ H: – Google Drive sẽ tải hàng loạt)
+## Nguồn domain (CHỈ ĐỌC; KHÔNG quét đệ quy thư mục `Project DA` – Google Drive sẽ tải hàng loạt)
 Liệt kê từng cấp thư mục bằng `ls` một cấp, rồi mở đúng file cần (pdf/docx/md/xlsx: dùng công cụ đọc phù hợp).
 - Supply Chain: `Project DA\SupplyChain\` – sách dự án eDA2026 (SQL + Power BI) là chuẩn thuật ngữ; bảng thuật ngữ Việt–Anh. Các file `labs*.py` là bản nháp, KHÔNG dẫn.
 - Finance (aivb): `Project DA\Finance\`, `Project DA\Finnance_Accounting\` – Blueprint, mô tả dữ liệu AIV Bank.

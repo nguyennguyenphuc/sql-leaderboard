@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # 02_nap_hr.sh: nạp bộ HR Analytics (5 CSV của dự án Project 02 HR Analytics) vào MySQL `hr`.
 #
-#   bash mysql/hr/02_nap_hr.sh            # chép CSV từ ổ H: (chỉ đọc đúng 5 file) + tạo bảng + nạp + so số dòng
+#   bash mysql/hr/02_nap_hr.sh            # chép CSV từ thư mục Project DA (biến SQLLB_PROJECT_DA; chỉ đọc đúng 5 file) + tạo bảng + nạp + so số dòng
 #   bash mysql/hr/02_nap_hr.sh --chi-nap  # dùng CSV có sẵn trong mysql/hr/du-lieu/
 #
 # Dữ liệu nhỏ (~101 nghìn dòng) nên nạp ĐỦ, không rút gọn. CSV không có dấu ngoặc kép, ô trống = thiếu dữ liệu -> NULL.
@@ -12,7 +12,7 @@ export MSYS_NO_PATHCONV=1 MSYS2_ARG_CONV_EXCL='*'
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
 DATA="$HERE/du-lieu"
-NGUON="/h/My Drive/09._PC/Giang-day/Soan bai/Project DA/Project 02 HR Analytics/data/generated"
+NGUON="${SQLLB_PROJECT_DA:-}/Project 02 HR Analytics/data/generated"   # SQLLB_PROJECT_DA = thư mục Project DA
 MY_CT=sqllb-mysql
 DB=hr
 FILES=(country_market_benchmark employee_monthly_snapshot engagement_survey position_plan recruiting_pipeline)
@@ -21,6 +21,8 @@ mkdir -p "$DATA"
 my() { docker exec -i "$MY_CT" sh -c 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" exec mysql -uroot --local-infile=1 --default-character-set=utf8mb4 "$@"' mysql "$@"; }
 
 if [[ "${1:-}" != "--chi-nap" ]]; then
+  [[ -n "${SQLLB_PROJECT_DA:-}" && -d "$NGUON" ]] || {
+    echo "LỖI: đặt SQLLB_PROJECT_DA = thư mục Project DA (chứa 'Project 02 HR Analytics'), hoặc chạy --chi-nap" >&2; exit 1; }
   for f in "${FILES[@]}"; do cp "$NGUON/$f.csv" "$DATA/$f.csv"; done
 fi
 # số dòng dữ liệu trong CSV (trừ dòng tiêu đề) = số dòng nguồn

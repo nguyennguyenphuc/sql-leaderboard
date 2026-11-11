@@ -12,7 +12,7 @@ Người áp dụng: 5 agent theo bộ sửa file câu hỏi; mục G của 5 fi
 
 **Thứ tự ưu tiên: quy_chuan (quy_chuan.rar) > QUYET-DINH-CHUNG.md > STYLE-<bo>.md > brief.**
 
-Bản quy chuẩn dùng: `quy_chuan\` ở thư mục gốc. Đã so với `H:\My Drive\09._PC\Giang-day\Soan bai\Ra de SQL\quy_chuan.rar` (sửa 10/11 15:39, 3.640.339 byte, mới hơn bản giải nén): giải nén lại vào thư mục nháp bằng 7-Zip, 20 file giống hệt từng byte, không có gì mới.
+Bản quy chuẩn dùng: `quy_chuan\` ở thư mục gốc. Đã so với `Ra de SQL\quy_chuan.rar` (thư mục soạn bài) (sửa 10/11 15:39, 3.640.339 byte, mới hơn bản giải nén): giải nén lại vào thư mục nháp bằng 7-Zip, 20 file giống hệt từng byte, không có gì mới.
 
 ### 0.1. Các điểm đã sửa theo quy chuẩn lúc 23:05
 

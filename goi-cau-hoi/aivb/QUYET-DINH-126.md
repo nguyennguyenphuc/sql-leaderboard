@@ -2,7 +2,7 @@
 
 Ngày 10/11/2026. Bộ aivb có 34 điểm trong `BAO-CAO-TONG-HOP.md` mục 3; 19 điểm thuộc gói 1–3 ghi ở đây, 15 điểm gói 4–5 (c10, c7, t9, f6, t1, t2, t6, f5, k5, k2, k4, f7, k6, t5, p9) ở `QUYET-DINH-126-g45.md`. Chi tiết từng điểm (căn cứ, việc đã sửa) ở mục "Quyết định v3 (10/11)" của `goi-<k>/DA-SUA.md`.
 
-Nguồn domain (chỉ đọc): `H:\My Drive\09._PC\Giang-day\Soan bai\Project DA\Finance\05_eDA_parameter_book_mini_core_banking_v5.1.5.xlsx` (PB: sheet 02.Model Contract, 05.Account Ownership, 07.Deposit, 08.Lending, 14.Analytical scenarios), `...\Finance\Bang_phan_loai_datamart_va_data_dictionary_AIVBank_v5.1.6.3.xlsx` (DD); `ref_segment` trong DB; Thông tư 32/2024/TT-NHNN (mạng lưới hoạt động của NHTM, Điều 3); Luật Các TCTD 2024 Điều 4 (https://hethongphapluat.com/luat-cac-to-chuc-tin-dung-2024/dieu-4); TT31/2024/TT-NHNN Điều 3 (đã có trong STYLE-aivb mục 0); `QUYET-DINH-CHUNG.md`.
+Nguồn domain (chỉ đọc): `Project DA\Finance\05_eDA_parameter_book_mini_core_banking_v5.1.5.xlsx` (PB: sheet 02.Model Contract, 05.Account Ownership, 07.Deposit, 08.Lending, 14.Analytical scenarios), `...\Finance\Bang_phan_loai_datamart_va_data_dictionary_AIVBank_v5.1.6.3.xlsx` (DD); `ref_segment` trong DB; Thông tư 32/2024/TT-NHNN (mạng lưới hoạt động của NHTM, Điều 3); Luật Các TCTD 2024 Điều 4 (https://hethongphapluat.com/luat-cac-to-chuc-tin-dung-2024/dieu-4); TT31/2024/TT-NHNN Điều 3 (đã có trong STYLE-aivb mục 0); `QUYET-DINH-CHUNG.md`.
 
 | # | Mục BAO-CAO | Mã | Điểm | Trạng thái | Quyết định, căn cứ ngắn |
 |---|---|---|---|---|---|

@@ -3,7 +3,7 @@
 Phạm vi: các điểm "Chờ giảng viên" của aivb gói 4, 5 trong `BAO-CAO-TONG-HOP.md` mục 3 (gói 1–3 do agent khác làm, xem `QUYET-DINH-126.md` của agent đó). Chi tiết từng điểm (căn cứ, việc đã sửa) ở mục "Quyết định v3 (10/11)" của `ho-so/goi-4/DA-SUA.md`, `ho-so/goi-5/DA-SUA.md`.
 
 Nguồn domain:
-- PB: `H:\My Drive\09._PC\Giang-day\Soan bai\Project DA\Finance\05_eDA_parameter_book_mini_core_banking_v5.1.5.xlsx` (mục 4 vòng đời khoản vay, mục 5 vai chủ thể – tài khoản, mục 6B bút toán nguyên tử).
+- PB: `Project DA\Finance\05_eDA_parameter_book_mini_core_banking_v5.1.5.xlsx` (mục 4 vòng đời khoản vay, mục 5 vai chủ thể – tài khoản, mục 6B bút toán nguyên tử).
 - `...\Finance\Bang_phan_loai_datamart_va_data_dictionary_AIVBank_v5.1.6.3.xlsx` (tên bảng, cột); `...\Finance\Tra_loi_18_mau_thuan_20260804.docx` (câu 8: xếp hạng rủi ro theo giá trị dư nợ là chuẩn ngành).
 - `...\Finnance_Accounting\` chỉ có Blueprint ngân sách – thực hiện, không dùng cho điểm nào ở đây.
 - Pháp quy: TT31/2024/TT-NHNN Điều 10 (https://baolamdong.vn/can-cu-phan-loai-nhom-no-doi-voi-khoan-vay-da-co-cau-419186.html); NĐ 86/2024/NĐ-CP (https://luatvietnam.vn/tai-chinh/nghi-dinh-86-2024-nd-cp-phuong-phap-trich-lap-du-phong-rui-ro-cua-to-chuc-tin-dung-359985-d1.html); TT17/2024/TT-NHNN (https://thuvienphapluat.vn/van-ban/Tien-te-Ngan-hang/Circular-17-2024-TT-NHNN-on-opening-checking-accounts-at-payment-service-providers-616720.aspx); Luật Kế toán 2015 Điều 41, NĐ 174/2016/NĐ-CP Điều 12–13 (https://caselaw.vn/van-ban-phap-luat/116303-nghi-dinh-174-2016-nd-cp-huong-dan-luat-ke-toan); TT49/2014/TT-NHNN mẫu B03/TCTD (chỉ tiêu thu nhập lãi thuần).
