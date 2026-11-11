@@ -85,3 +85,16 @@ Cửa chặn giọng văn (BRIEF-KIEM-GOI bước 6), tự rà mọi trường c
 Nghi trùng ô, trùng nội dung:
 - Ô (dạng · mảng · cấp · hình thức) của 8 câu không trùng trong gói và không trùng `cau-hoi.tex` các gói 1, 3, 4, 5 đọc lúc 11/11 (các gói này đang được sửa song song, cần đối chiếu lại khi gộp bản đồ). Lần đối chiếu đầu thấy a7 (A2 · fin · hard · D) trùng n9 gói 1 và bản hạ a2 về Cơ bản (A3 · mkt · basic · W) trùng t6 gói 4, nên a7 đổi sang B1 và a2 giữ Dễ (hạ a6 thay).
 - Trùng nội dung gần: s9 (đang chạy ngày đầu tháng, Sửa lỗi · Khó) cùng chủ đề "chiến dịch đang chạy" với j4 (gói 3, Viết · Trung bình) và t5 (gói 4, Viết · Khó), khác ô và khác kỹ năng chính; a6 (Nykaa theo tháng) gần c3 (Purplle theo tháng, bình quân mỗi ngày) nhưng khác thương hiệu và chỉ số. Dòng bản đồ mới ở `BAN-DO-V4-DONG.md`.
+
+## Sửa theo KIEM-V4 (11/11/2026)
+
+Căn cứ: `ho-so/KIEM-V4-B.md`, `ho-so/KIEM-V4-C.md` (gói 2: 4 câu "Cần sửa"). Chỉ sửa chữ, không đổi SQL, cấp, mã.
+
+| Mã | Điểm B/C | Đã sửa gì | Kết quả kiểm |
+|---|---|---|---|
+| mkt-s8-tuan-dau-nam-bi-tach-doi | C: "dồn chiến dịch vào tuần lễ" sai nghĩa; câu "Hôm đó là thứ Tư." đứng riêng, cụt | `\boicanh`: "tuần lễ" → "tuần nghỉ lễ"; gộp thành "…thêm một dòng tuần bắt đầu ngày 1/1/2025, mà hôm đó là thứ Tư." | Bộ kiểm đầy đủ cả gói (`cong-cu/ket-qua/sua-v4/mkt-goi-2`): KIEM TRA: 0 loi; biên dịch 0 lỗi LaTeX |
+| mkt-s9-dang-chay-dau-thang-lech | B: gợi ý nấc cuối đưa trọn cách sửa cả 3 lỗi, lại là hai biểu thức | Gợi ý 2 còn một biểu thức, chỉ cho ngày cuối của chiến dịch: `DATE_ADD(c.start_date, INTERVAL c.duration_days - 1 DAY)` (sửa 1/3 lỗi); lỗi ngày bắt đầu và cận trên để học viên tự sửa theo gợi ý 1 | như trên |
+| mkt-a1-chi-phi-cho-chien-dich-lo | C: đại từ "nó" chỉ vật trong gợi ý 1 | "cột `roi` của nó ghi bao nhiêu" → "cột `roi` của chiến dịch đó ghi bao nhiêu" | như trên |
+| mkt-a3-doi-tuong-quy-1 | B: `\luuy` "Mã nhóm khách xem ở đầu gói." trỏ tới phần học viên không thấy trên nền tảng | Ghi thẳng: "Mã nhóm khách: 1 College Students, 2 Premium Shoppers, 3 Tier 2 City Customers, 4 Working Women, 5 Youth." | như trên |
+
+Không áp (đề xuất tuỳ chọn, B/C ghi "Đạt"): s1 (ghi chú bẫy đã bị đề tháo), c3 ("Đúng: Bước 1" viết thường), a5 (gợi ý nấc cuối), a7 (đổi lỗi (1) của starter để M4 bớt lặp bẫy CPA). Không câu nào của gói 2 đổi cấp; 0 ô trùng trong gói.

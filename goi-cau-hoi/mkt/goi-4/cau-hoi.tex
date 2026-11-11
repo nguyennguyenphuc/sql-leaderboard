@@ -35,6 +35,10 @@
   {Chiến dịch đang chạy vào một ngày là chiến dịch đã bắt đầu và chưa qua ngày cuối.}
   {ngày xét nằm từ start\_date tới start\_date + duration\_days - 1, tính cả hai đầu}
   {dữ liệu không có ngày kết thúc; ngày cuối tính từ \code{start_date} và \code{duration_days}. Lịch ngày ở \code{calendar}.}
+\khaibaokhainiem{kenh-da-tri}{Kênh của chiến dịch}
+  {Kênh là nền tảng mà chiến dịch xuất hiện. Một chiến dịch có thể chạy đồng thời trên nhiều kênh.}
+  {}
+  {bảng cầu nối \code{campaign_channels} (một dòng cho mỗi cặp chiến dịch, kênh), tên kênh ở \code{channels}. Mỗi chiến dịch có 1 tới 3 kênh; doanh thu và lượt chuyển đổi chỉ ghi cho cả chiến dịch, không tách được theo kênh.}
 \khaibaokhainiem{doi-tuong-va-phan-khuc}{Đối tượng mục tiêu và phân khúc khách hàng}
   {Đối tượng mục tiêu là nhóm người mà chiến dịch nhắm tới. Phân khúc khách hàng là nhóm khách được ghi nhận cho chiến dịch.}
   {}
@@ -89,18 +93,10 @@
   {Dữ liệu thô là dữ liệu đúng như khi nhận từ nguồn, chưa kiểm tra hay sửa. Bản sạch là dữ liệu đã loại lỗi.}
   {}
   {\code{campaigns_raw} giữ nguyên ba file có nhiễu (chuỗi gốc, ô trống thành NULL, có dòng trùng); \code{campaigns} là bản sạch. Khoá dòng của bản thô là (\code{brand_id}, \code{row_index}).}
-\khaibaokhainiem{nhat-ky-nhieu}{Nhật ký nhiễu}
-  {Nhật ký nhiễu ghi lại từng lỗi đã được chèn vào dữ liệu thô để luyện làm sạch.}
-  {}
-  {\code{noise_log}: \code{noise_type} là chuỗi (\code{'NULL'}, \code{'FUNNEL_ERROR'}, \code{'DUPLICATE'}, \code{'INVALID_DATE'}, \code{'NEGATIVE'}, \code{'WHITESPACE'}); \code{old_value}, \code{new_value} là chuỗi. Nối với bản thô theo \code{brand_id} và \code{row_index}.}
 \khaibaokhainiem{dong-trung}{Dòng trùng hoàn toàn}
   {Dòng trùng hoàn toàn là dòng giống một dòng khác ở mọi cột nghiệp vụ.}
   {}
   {so mọi cột của \code{campaigns_raw} trừ \code{raw_id} và \code{row_index} (hai cột vị trí luôn khác nhau).}
-\khaibaokhainiem{ngay-khong-hop-le}{Ngày không hợp lệ}
-  {Ngày không hợp lệ là giá trị ngày trống, sai định dạng, không tồn tại trên lịch hoặc nằm ngoài kỳ dữ liệu.}
-  {}
-  {\code{campaigns_raw.date_raw} là chuỗi dạng \code{'DD-MM-YYYY'}; đọc bằng \code{STR\_TO\_DATE(date\_raw, '\%d-\%m-\%Y')}.}
 
 \begin{document}
 {\LARGE\bfseries Gói câu hỏi SQL · Marketing · gói 4\par}
@@ -204,37 +200,34 @@ Mã danh mục dùng trong đề: thương hiệu \code{brand_id} 1 Nykaa, 2 Pur
 \ghichuthietke{Trung bình: 3 bảng, ký hiệu n-1, một danh mục hai vai; \code{languages} là bảng không cần. Bẫy ở public: \code{COUNT(*)} sau khi ghép đếm đôi khoảng một phần năm chiến dịch (đối tượng trùng phân khúc); thiếu cận trên lấy cả quý 2. Ghép bằng \code{UNION} có \code{campaign_id} cũng ra đúng cột cuối, nên không dùng làm bài sai. hidden-1 bỏ chiến dịch đuôi 7.}
 \end{cauhoi}
 
-% ================================================================ T4 · Viết · Khó · E2 · operations
-\begin{cauhoi}[ma=mkt-t4-quy-tac-doi-chieu-nhat-ky, dulieu=mkt, domain=operations,
-  hinhthuc=write, cap=hard, dang=E2, kynang={nhiều CTE, UNION ALL, EXISTS, LEFT JOIN}, bay={khoa-kep, ngay-ngoai-ky, pheu-bat-ca-so-am},
-  tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
-\tieude{Quy tắc kiểm tra bắt được bao nhiêu nhiễu đã ghi?}
-\boicanh[Anh Bảo · Chuyên viên phân tích marketing]{Anh vừa viết bộ quy tắc kiểm tra file chiến dịch thô trước khi nạp. Anh cần biết mỗi quy tắc bắt được bao nhiêu dòng và có khớp với nhật ký nhiễu gửi kèm file không.}
+% ================================================================ T4 · Viết · Khó · C2 · marketing
+\begin{cauhoi}[ma=mkt-t4-ngung-kenh-anh-huong-doanh-thu, dulieu=mkt, domain=marketing,
+  hinhthuc=write, cap=hard, dang=C2, kynang={nhiều CTE, bảng cầu nối, tính tổng riêng rồi nối, SUM(CASE)}, bay={mau-so-nhan-dong, kenh-dau-chuoi-la-kenh-duy-nhat, thieu-can-tren},
+  tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.01]
+\tieude{Ngừng một kênh thì bao nhiêu doanh thu quý 2 bị ảnh hưởng?}
+\boicanh[Anh Vinh · Trưởng nhóm quảng cáo trả phí]{Một số kênh quảng cáo sắp đổi chính sách và có thể phải tạm ngừng vài tuần. Anh cần biết ở từng thương hiệu, nếu một kênh ngừng thì bao nhiêu phần doanh thu quý 2/2025 bị ảnh hưởng và bao nhiêu phần mất hẳn, để chuẩn bị phương án cho từng kênh.}
 \begin{yeucau}
-  \item Xét mọi dòng của dữ liệu thô và mọi dòng của nhật ký nhiễu.
-  \item Đánh dấu các dòng của dữ liệu thô theo sáu quy tắc kiểm tra, mỗi quy tắc mang tên một loại nhiễu: \code{'NULL'} (trống ít nhất một trong sáu cột số \code{impressions}, \code{clicks}, \code{leads}, \code{conversions}, \code{revenue}, \code{acquisition_cost}); \code{'NEGATIVE'} (lượt hiển thị hoặc doanh thu âm); \code{'FUNNEL_ERROR'} (tầng sau lớn hơn tầng trước ở một trong ba cặp tầng kề nhau của phễu); \code{'INVALID_DATE'} (ngày không hợp lệ, kỳ dữ liệu từ 1/7/2024 tới hết 30/6/2025); \code{'WHITESPACE'} (khoảng trắng thừa ở loại chiến dịch, ngôn ngữ, đối tượng hoặc phân khúc); \code{'DUPLICATE'} (phía sau dòng đó trong cùng file còn một dòng khác cùng thương hiệu, cùng mã chiến dịch).
-  \item Ở mỗi loại nhiễu có trong nhật ký, tính số dòng quy tắc đánh dấu, số dòng nhật ký ghi, và số dòng vừa được quy tắc đánh dấu vừa có trong nhật ký với cùng loại.
-  \item Trả về \code{loai_nhieu}, \code{so_dong_luat}, \code{so_dong_nhat_ky}, \code{so_dong_khop}; sắp \code{loai_nhieu} tăng dần.
+  \item Xét các chiến dịch bắt đầu từ ngày 1/4/2025 tới hết ngày 30/6/2025.
+  \item Ở mỗi thương hiệu và mỗi kênh, tính số chiến dịch có chạy kênh đó, tỷ trọng doanh thu bị ảnh hưởng và tỷ trọng doanh thu mất hẳn khi kênh đó ngừng, theo định nghĩa ở tab Nghiệp vụ. Hai tỷ trọng tính trên tổng doanh thu quý 2/2025 của thương hiệu.
+  \item Trả về \code{brand_id}, \code{channel_name}, \code{so_chien_dich}, \code{ty_trong_anh_huong_pct}, \code{ty_trong_mat_han_pct} (phần trăm, làm tròn 2 chữ số, chỉ làm tròn ở kết quả cuối).
+  \item Sắp \code{brand_id} tăng dần, rồi \code{channel_name} tăng dần.
 \end{yeucau}
 \begin{erd}
-  \erdbang{campaigns_raw}{0,0}{raw_id:PK, brand_id:FK, row_index}
-  \erdbang{noise_log}{1,0}{log_id:PK, brand_id:FK, row_index}
-  \erdbang{brands}{2,0}{brand_id:PK}
-  \erdbang{campaigns}{0,1}{campaign_id:PK, brand_id:FK}
+  \erdbang{campaigns}{0,0}{campaign_id:PK, brand_id:FK, type_id:FK}
+  \erdbang{campaign_channels}{1,0}{campaign_id:FK, channel_id:FK}
+  \erdbang{channels}{2,0}{channel_id:PK}
+  \erdbang{brands}{0,1}{brand_id:PK}
   \erdbang{calendar}{1,1}{cal_date:PK}
-  \erdkhoa{Dòng thô và dòng nhật ký khớp nhau theo cặp (\code{brand_id}, \code{row_index}); \code{row_index} lặp lại ở ba file. \code{campaigns}, \code{calendar} không cần.}
+  \erdkhoa{\code{campaign_channels} nối \code{campaigns} theo \code{campaign_id} và nối \code{channels} theo \code{channel_id}. \code{brands}, \code{calendar} không cần.}
 \end{erd}
-\begin{nghiepvu}{Quyết định bộ quy tắc kiểm tra đã đủ tin cậy để chạy tự động trước mỗi lần nạp file hay chưa.}
-  \quytrinh{Làm sạch dữ liệu}{nạp, kiểm tra, sửa, đối soát}{}
-  \khainiem{du-lieu-tho}
-  \khainiem{nhat-ky-nhieu}
-  \khainiem{ngay-khong-hop-le}
-  \khainiem{dong-trung}
-  \luuy{Một dòng của dữ liệu thô có thể bị một quy tắc bắt dù nhật ký xếp dòng đó vào loại khác, ví dụ dòng có lượt hiển thị âm cũng có lượt nhấp lớn hơn lượt hiển thị. Với dòng trùng, nhật ký ghi theo vị trí của dòng gốc; vị trí của dòng chép thêm không có trong nhật ký.}
+\begin{nghiepvu}{Chuẩn bị phương án ngân sách cho trường hợp một kênh quảng cáo phải tạm ngừng.}
+  \khainiem{chien-dich}
+  \khainiem{kenh-da-tri}
+  \luuy{Khi một kênh ngừng, mọi chiến dịch có chạy kênh đó đều bị ảnh hưởng; doanh thu của các chiến dịch này là phần bị ảnh hưởng. Chiến dịch còn kênh khác vẫn tiếp tục, nên phần mất hẳn chỉ gồm doanh thu của các chiến dịch chạy duy nhất kênh đó. Một chiến dịch chạy nhiều kênh được tính ở mỗi kênh, nên tỷ trọng bị ảnh hưởng của các kênh cộng lại lớn hơn 100\%.}
 \end{nghiepvu}
-\goiy{Ngày \code{'01-01-1999'} đọc được thành ngày hợp lệ trên lịch. Quy tắc kiểm tra ngày của em có bắt dòng đó không?}
-\goiy{Viết mỗi quy tắc thành một nhánh \code{SELECT} tên loại, \code{brand_id}, \code{row_index}, ghép bằng \code{UNION ALL} trong một CTE; đếm theo quy tắc, đếm nhật ký và đếm phần khớp trong ba CTE riêng rồi nối theo loại.}
-\ghichuthietke{Khó: 5 bảng chỉ khoá, 2 bảng nhiễu, quan hệ mở bằng \code{erdkhoa}. Trên public năm loại khớp đủ; \code{'FUNNEL_ERROR'} quy tắc bắt nhiều hơn nhật ký vì dòng có lượt hiển thị âm cũng có lượt nhấp lớn hơn lượt hiển thị (số đo ở README-mkt). Bài sai: quy tắc ngày chỉ kiểm \code{STR_TO_DATE} trống, bỏ sót ngày đọc được mà ngoài kỳ; đối chiếu chỉ theo \code{row_index} làm số khớp nhân lên. Cả hai rớt ở public. hidden-1: dòng \code{NY-CMP-56555} ngày 1/7/2025 nằm ngoài kỳ khai báo trong đề nên quy tắc ngày bắt thêm một dòng không có trong nhật ký. Quy tắc dòng trùng so theo mã chiến dịch (bản thô có đúng một mã cho mỗi chiến dịch, trừ dòng chép); so đủ mọi cột nghiệp vụ cũng ra cùng kết quả.}
+\goiy{Sau khi nối chiến dịch với bảng kênh, một chiến dịch chạy ba kênh còn mấy dòng? Tổng doanh thu của thương hiệu cộng trên các dòng đó có còn đúng không?}
+\goiy{Phần mất hẳn là \code{SUM(CASE WHEN so_kenh = 1 THEN revenue ELSE 0 END)}, với \code{so_kenh} là số dòng của chiến dịch trong \code{campaign_channels}.}
+\ghichuthietke{Khó (kiểm V4, 11/11/2026: viết lại câu cũ \code{mkt-t4-quy-tac-doi-chieu-nhat-ky} vì trùng chủ đề với k6 và chấm oan ở hidden-1 khi đếm nhật ký \code{DUPLICATE}). Ô C2 · marketing · hard · write: không trùng trong gói (f4 là C2 · finance) và không trùng câu nào của bộ. Khác c5 (case Dễ, CTR và ROI theo kênh) và c10 (ROI theo kênh): câu này đo mức doanh thu của thương hiệu phụ thuộc vào từng kênh. Năm trục: bảng 3 (\code{campaigns}, \code{campaign_channels}, \code{channels}; Trung bình); bước 4 tầng: chiến dịch trong quý, số kênh của từng chiến dịch, tổng thương hiệu tính riêng, gom theo thương hiệu và kênh rồi nối lại (Khó); mơ hồ: đề nói bằng ngôn ngữ kinh doanh (bị ảnh hưởng, mất hẳn), định nghĩa ở tab Nghiệp vụ, cách nối mở bằng \code{erdkhoa} (Khó); bẫy 3, một bẫy chỉ lộ ở hidden-1 (Khó); nghiệp vụ: hai tỷ trọng, một tỷ trọng có điều kiện theo số kênh của chiến dịch (Khó). Đạt Khó 4/5. ERD 5 bảng chỉ khoá, 2 bảng nhiễu, không vẽ đường nối. Bài sai: cộng tổng doanh thu thương hiệu trên dòng đã nối kênh (tỷ trọng còn khoảng một nửa, rớt public); coi kênh đứng đầu chuỗi (\code{channel_pos = 1}) là kênh duy nhất (tỷ trọng mất hẳn khoảng 16\% thay vì 5--6\%, rớt public); thiếu cận trên (chỉ rớt hidden-1: \code{NY-CMP-56555} ngày 1/7/2025 chạy WhatsApp và YouTube, số chiến dịch hai dòng Nykaa thêm 1, tỷ trọng Nykaa lệch). Lời giải khoảng 2,5 giây. hidden-1 bỏ chiến dịch đuôi 7 nên kết quả khác public.}
 \end{cauhoi}
 
 % ================================================================ T5 · Viết · Khó · B4 · operations
@@ -255,7 +248,7 @@ Mã danh mục dùng trong đề: thương hiệu \code{brand_id} 1 Nykaa, 2 Pur
   \erdbang{brands}{2,0}{brand_id:PK}
   \erdbang{campaign_channels}{1,1}{campaign_id:FK, channel_id:FK}
   \erdbang{channels}{2,1}{channel_id:PK}
-  \erdkhoa{Một ngày lịch ứng với mọi chiến dịch có ngày bắt đầu không sau ngày đó và ngày cuối không trước ngày đó (điều kiện khoảng, không so bằng). \code{campaign_channels}, \code{channels}, \code{brands} không cần.}
+  \erdkhoa{Lịch nối với chiến dịch theo khái niệm chiến dịch đang chạy ở tab Nghiệp vụ, không theo khoá. \code{campaign_channels}, \code{channels}, \code{brands} không cần.}
 \end{erd}
 \begin{nghiepvu}{Xếp số người theo dõi chiến dịch mỗi tuần cho tháng tới.}
   \quytrinh{Vòng đời chiến dịch}{lên kế hoạch, khởi chạy, đang chạy, kết thúc, đánh giá}{}
@@ -264,8 +257,8 @@ Mã danh mục dùng trong đề: thương hiệu \code{brand_id} 1 Nykaa, 2 Pur
   \luuy{Tuần trong lịch bắt đầu thứ Hai, nên tuần đầu và tuần cuối của tháng có thể không đủ bảy ngày. Bình quân của một tuần chỉ tính trên các ngày của tuần đó nằm trong tháng.}
 \end{nghiepvu}
 \goiy{Một chiến dịch bắt đầu cuối tháng 12/2024 vẫn có thể còn chạy vào những ngày đầu tháng 1/2025. Điều kiện lọc của em có giữ được các chiến dịch đó không?}
-\goiy{Trong CTE, lấy \code{calendar} \code{LEFT JOIN campaigns} với điều kiện \code{start_date <= cal_date} và \code{cal_date <= start_date + INTERVAL duration_days - 1 DAY}, đếm \code{COUNT(campaign_id)} theo ngày; ngoài CTE gom theo \code{week_start}.}
-\ghichuthietke{Khó: 5 bảng chỉ khoá, 3 bảng nhiễu (đủ 5 bảng theo CHOT-FORMAT mục 3; QUYET-DINH-CHUNG 1.3 bản 23:05 cho thêm bảng nhiễu khi lời giải dùng ít bảng), quan hệ mở bằng \code{erdkhoa}. Khoảng xét ở v3 là quý 1/2025 (không lấy quý 2 để tránh các tuần cuối tháng 6/2025 giảm về 0 chỉ vì dữ liệu dừng ở chiến dịch bắt đầu ngày 24/6/2025); v4 rút về tháng 1/2025 vì lời giải nối khoảng ngày đọc lại cả bảng \code{campaigns} cho mỗi ngày lịch, 90 ngày mất 13--15 giây kể cả khi máy rảnh, 31 ngày còn khoảng 5 giây (public) và 3 giây (hidden-1). Bẫy ở public: lọc chiến dịch theo ngày bắt đầu trong tháng làm mất các chiến dịch bắt đầu cuối tháng 12/2024 còn chạy sang tháng 1; lấy ngày cuối bằng ngày bắt đầu cộng thời lượng (thừa một ngày); cận trên viết \code{BETWEEN} tới 1/2/2025 làm tuần cuối thêm một ngày; chia tổng cho 7 ở tuần không đủ ngày. Tuần đầu (30/12/2024) và tuần cuối (27/1/2025) mỗi tuần chỉ có 5 ngày trong khoảng xét. Mọi ngày trong tháng 1 đều có chiến dịch đang chạy nên nối trong cho cùng kết quả; dùng \code{LEFT JOIN} vẫn là cách viết an toàn.}
+\goiy{\code{k.cal_date BETWEEN c.start_date AND c.start_date + INTERVAL c.duration_days - 1 DAY}.}
+\ghichuthietke{Khó: 5 bảng chỉ khoá, 3 bảng nhiễu (đủ 5 bảng theo CHOT-FORMAT mục 3; QUYET-DINH-CHUNG 1.3 bản 23:05 cho thêm bảng nhiễu khi lời giải dùng ít bảng), quan hệ mở bằng \code{erdkhoa}. Khoảng xét ở v3 là quý 1/2025 (không lấy quý 2 để tránh các tuần cuối tháng 6/2025 giảm về 0 chỉ vì dữ liệu dừng ở chiến dịch bắt đầu ngày 24/6/2025); v4 rút về tháng 1/2025 vì lời giải nối khoảng ngày đọc lại cả bảng \code{campaigns} cho mỗi ngày lịch, 90 ngày mất 13--15 giây kể cả khi máy rảnh, 31 ngày còn khoảng 5 giây (public) và 3 giây (hidden-1). Bẫy ở public: lọc chiến dịch theo ngày bắt đầu trong tháng làm mất các chiến dịch bắt đầu cuối tháng 12/2024 còn chạy sang tháng 1; lấy ngày cuối bằng ngày bắt đầu cộng thời lượng (thừa một ngày); cận trên viết \code{BETWEEN} tới 1/2/2025 làm tuần cuối thêm một ngày; chia tổng cho 7 ở tuần không đủ ngày. Tuần đầu (30/12/2024) và tuần cuối (27/1/2025) mỗi tuần chỉ có 5 ngày trong khoảng xét. Mọi ngày trong tháng 1 đều có chiến dịch đang chạy nên nối trong cho cùng kết quả; dùng \code{LEFT JOIN} vẫn là cách viết an toàn. Kiểm V4 (11/11/2026): \code{erdkhoa} không còn viết sẵn điều kiện nối khoảng (chỉ trỏ tới khái niệm đang chạy); gợi ý cuối còn một biểu thức. Năm trục: bảng 2 (Dễ); bước 3--4 tầng: đếm theo ngày bằng nối khoảng, gom theo tuần, tuần thiếu ngày (Khó); mơ hồ: đề chỉ nói ``đang chạy'', cách nối phải tự suy từ khái niệm, ERD không gợi điều kiện (Khó); bẫy 4 nhưng không bẫy nào chỉ lộ ở hidden-1 (Trung bình theo QUYET-DINH-CHUNG 2.2); nghiệp vụ: trạng thái tại thời điểm (Trung bình). Đạt 2/5 trục Khó, cộng số bẫy 4. Không đặt được bẫy hidden-1 bằng biến thể có sẵn: dòng (b) nằm ở ngày 1/7/2025, còn khoảng xét phải ở tháng đủ (mọi chiến dịch kết thúc trước 28/6/2025 nên các tuần cuối tháng 6 giảm về 0) và đủ ngắn để lời giải dưới 10 giây. Chờ giảng viên: giữ Khó hay thêm biến thể ẩn.}
 \end{cauhoi}
 
 % ================================================================ T6 · Viết · Cơ bản · A3 · marketing
@@ -312,7 +305,7 @@ Mã danh mục dùng trong đề: thương hiệu \code{brand_id} 1 Nykaa, 2 Pur
 \end{nghiepvu}
 \goiy{Hai chiến dịch Nykaa cùng doanh thu, một ở quý 4 và một ở quý 1, còn lại mấy dòng sau phép ghép hiện tại?}
 \goiy{Phép ghép bỏ dòng trùng là \code{UNION}; phép ghép giữ mọi dòng là \code{UNION ALL}.}
-\ghichuthietke{Dễ (quyết định v3, QUYET-DINH-CHUNG 2.3 mục 17 bản 23:05: bỏ ngoại lệ M7 không có Dễ; sửa một chỗ dễ thấy là Sửa lỗi Dễ): 2 bảng, chữ trên đường nối; v2 vẽ thêm \code{campaign_types}. Starter ghép bằng \code{UNION} trên (\code{brand_id}, \code{revenue}) nên mất khoảng 1.800 dòng mỗi thương hiệu có doanh thu trùng. Bài sai: bỏ ghép, lọc một khoảng tới trước 31/3 (mất ngày 31/3); đổi sang \code{UNION ALL} nhưng đếm và cộng giá trị khác nhau. Cả hai rớt ở public. Thêm \code{campaign_id} vào hai nhánh \code{UNION} cũng sửa đúng. v2: bài sai đếm và cộng giá trị khác nhau (lỗi ít gặp) thay bằng bài sai giữ \code{UNION} và thêm \code{start_date} vào hai nhánh (vẫn mất chiến dịch cùng ngày, cùng doanh thu). Cấp: cách sửa chỉ đổi một từ khoá, người duyệt cân nhắc hạ Dễ. hidden-1 bỏ chiến dịch đuôi 7.}
+\ghichuthietke{Dễ (quyết định v3, QUYET-DINH-CHUNG 2.3 mục 17 bản 23:05: bỏ ngoại lệ M7 không có Dễ; sửa một chỗ dễ thấy là Sửa lỗi Dễ): 2 bảng, chữ trên đường nối; v2 vẽ thêm \code{campaign_types}. Starter ghép bằng \code{UNION} trên (\code{brand_id}, \code{revenue}) nên mất khoảng 1.800 dòng mỗi thương hiệu có doanh thu trùng. Bài sai: bỏ ghép, lọc một khoảng tới trước 31/3 (mất ngày 31/3); đổi sang \code{UNION ALL} nhưng đếm và cộng giá trị khác nhau. Cả hai rớt ở public. Thêm \code{campaign_id} vào hai nhánh \code{UNION} cũng sửa đúng. v2: bài sai đếm và cộng giá trị khác nhau (lỗi ít gặp) thay bằng bài sai giữ \code{UNION} và thêm \code{start_date} vào hai nhánh (vẫn mất chiến dịch cùng ngày, cùng doanh thu). hidden-1 bỏ chiến dịch đuôi 7.}
 \end{cauhoi}
 
 % ================================================================ T8 · Sửa lỗi · Dễ · D1 · marketing
@@ -364,7 +357,7 @@ Mã danh mục dùng trong đề: thương hiệu \code{brand_id} 1 Nykaa, 2 Pur
 \end{nghiepvu}
 \goiy{\code{SELECT DISTINCT *} so cả cột \code{raw_id} và \code{row_index}. Hai dòng nào của bản thô giống nhau ở cả hai cột đó?}
 \goiy{Liệt kê sau \code{SELECT DISTINCT} mọi cột ở ERD trừ \code{raw_id} và \code{row_index}.}
-\ghichuthietke{Cơ bản (v4, hạ từ Khó; QUYET-DINH-CHUNG 2.3 mục 17 giữ Khó vì sai định nghĩa dòng trùng, v4 nêu định nghĩa ngay trong đề nên lỗi còn lại là một chỗ dễ thấy). Đổi: định nghĩa dòng trùng (bỏ hai cột vị trí) ghi trong yêu cầu; ERD 1 bảng đủ cột, giá trị mẫu là một dòng chép có \code{raw_id}, \code{row_index} khác dòng gốc; người hỏi đổi sang thực tập sinh (Sửa lỗi cấp thấp, STYLE-mkt B.2); bỏ bốn bảng nhiễu. Năm trục: 1 bảng; truy vấn khởi đầu 2 tầng nhưng chỉ sửa danh sách cột trong CTE; đề ghi rõ cột cần bỏ, ERD có giá trị mẫu; 0 bẫy trong đề; 1 khái niệm, không công thức. Đạt Cơ bản 4/5 (số tầng ở mức Dễ). Starter \code{DISTINCT *} giữ \code{raw_id} nên không bỏ được dòng nào. Bài sai: đếm mã khác nhau và cộng doanh thu khác nhau (mất doanh thu của các chiến dịch khác nhau có cùng doanh thu, rớt ở public); cắt cứng \code{row_index < 55555} vì thấy dòng chép nằm cuối file (qua public, rớt ở hidden-1: dòng thật \code{NY-CMP-56555} ở vị trí 55605). Dòng trùng ở bản thô chép nguyên mọi cột, kể cả ô trống, nên \code{DISTINCT} gộp đúng.}
+\ghichuthietke{Cơ bản (v4, hạ từ Khó; QUYET-DINH-CHUNG 2.3 mục 17 giữ Khó vì sai định nghĩa dòng trùng, v4 nêu định nghĩa ngay trong đề nên lỗi còn lại là một chỗ dễ thấy). Đổi: định nghĩa dòng trùng (bỏ hai cột vị trí) ghi trong yêu cầu; ERD 1 bảng đủ cột, giá trị mẫu là một dòng chép có \code{raw_id}, \code{row_index} khác dòng gốc; người hỏi đổi sang thực tập sinh (Sửa lỗi cấp thấp, STYLE-mkt B.2); bỏ bốn bảng nhiễu. Năm trục: 1 bảng; truy vấn khởi đầu 2 tầng nhưng chỉ sửa danh sách cột trong CTE; đề ghi rõ cột cần bỏ, ERD có giá trị mẫu; 0 bẫy trong đề; 1 khái niệm, không công thức. Đạt Cơ bản 4/5 (số tầng ở mức Dễ). Starter \code{DISTINCT *} giữ \code{raw_id} nên không bỏ được dòng nào. Bài sai: đếm mã khác nhau và cộng doanh thu khác nhau (mất doanh thu của các chiến dịch khác nhau có cùng doanh thu, rớt ở public); cắt cứng \code{row_index < 55555} vì thấy dòng chép nằm cuối file (qua public, rớt ở hidden-1: dòng thật \code{NY-CMP-56555} ở vị trí 55605). Dòng trùng ở bản thô chép nguyên mọi cột, kể cả ô trống, nên \code{DISTINCT} gộp đúng. Cùng ô E1 · operations · basic · debug với k9 (gói 5), khác gói nên được phép; kiểm V4 (11/11/2026) kết luận không trùng chủ đề: t9 bỏ trùng rồi đếm dòng, cộng doanh thu theo thương hiệu (lỗi \code{DISTINCT *} giữ cột vị trí), k9 liệt kê mã lặp của Purplle (lỗi toán tử trong \code{HAVING}); k9 đổi người hỏi.}
 \end{cauhoi}
 
 
@@ -559,7 +552,7 @@ Mã danh mục dùng trong đề: thương hiệu \code{brand_id} 1 Nykaa, 2 Pur
 \begin{cauhoi}[ma=mkt-f8-thang-truoc-lay-so-thang-sau, dulieu=mkt, domain=marketing,
   hinhthuc=debug, cap=easy, dang=B2, kynang={LAG, LEAD, CTE}, bay={nham-lag-lead},
   tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
-\tieude{Số chiến dịch tháng trước của Tira Beauty lại lấy số tháng sau}
+\tieude{Tháng đầu kỳ của Tira Beauty lại có số tháng trước}
 \boicanh[Anh Quân · Quản lý thương hiệu Tira Beauty]{Anh so số chiến dịch Tira Beauty mở mỗi tháng với tháng liền trước. Bảng em gửi có tháng 7/2024 vẫn có số tháng trước, dù đó là tháng đầu có dữ liệu, còn tháng 5/2025 lại trống. Anh cần bản đúng trước buổi họp tuần sau.}
 \begin{yeucau}
   \item Truy vấn dưới đây đếm số chiến dịch Tira Beauty bắt đầu trong từng tháng từ tháng 7/2024 tới hết tháng 5/2025, rồi lấy số của tháng liền trước, nhưng cột tháng trước đang lấy nhầm tháng.
@@ -578,7 +571,7 @@ Mã danh mục dùng trong đề: thương hiệu \code{brand_id} 1 Nykaa, 2 Pur
 \end{nghiepvu}
 \goiy{Hàm đang dùng lấy giá trị của dòng phía trước hay dòng phía sau trong thứ tự tháng?}
 \goiy{Đổi \code{LEAD(so_chien_dich)} thành \code{LAG(so_chien_dich)}, giữ \code{OVER (ORDER BY thang)}.}
-\ghichuthietke{Dễ (v4, viết lại từ \code{mkt-f8-lag-khong-chia-thuong-hieu} Khó: hai lỗi chồng nhau thiếu \code{PARTITION BY} và thiếu cận trên; lỗi thiếu \code{PARTITION BY} vẫn có ở f9). Theo bài Dễ ``doanh thu so với hôm trước'' (\code{LAG}) của M8 trên lộ trình, ở dạng Sửa lỗi: truy vấn khởi đầu dùng \code{LEAD} thay \code{LAG}, lỗi logic một chỗ (nhầm chiều của hàm). Dạng B2, mảng sales đổi sang marketing (số chiến dịch mở theo tháng, STYLE-mkt G). Năm trục: 1 bảng; 2 tầng (đếm theo tháng trong CTE, lấy tháng trước); đề ghi rõ kỳ, cột, tháng đầu để trống; 1 lỗi logic một chỗ; 1 khái niệm, không công thức. Đạt Dễ 4/5 (nghiệp vụ ở mức Cơ bản). ERD 2 bảng có chữ trên đường nối, \code{brands} là bảng nhiễu. Bài sai: đổi sang \code{LAG} nhưng sắp trong \code{OVER} theo số chiến dịch; \code{LAG} độ lệch 2. Cả hai rớt cả hai biến thể. hidden-1 bỏ chiến dịch đuôi 7 nên số mỗi tháng khác public.}
+\ghichuthietke{Dễ (v4, viết lại từ \code{mkt-f8-lag-khong-chia-thuong-hieu} Khó: hai lỗi chồng nhau thiếu \code{PARTITION BY} và thiếu cận trên; lỗi thiếu \code{PARTITION BY} vẫn có ở f9). Theo bài Dễ ``doanh thu so với hôm trước'' (\code{LAG}) của M8 trên lộ trình, ở dạng Sửa lỗi: truy vấn khởi đầu dùng \code{LEAD} thay \code{LAG}, lỗi logic một chỗ (nhầm chiều của hàm). Dạng B2, mảng sales đổi sang marketing (số chiến dịch mở theo tháng, STYLE-mkt G). Năm trục: 1 bảng; 2 tầng (đếm theo tháng trong CTE, lấy tháng trước); đề ghi rõ kỳ, cột, tháng đầu để trống; 1 lỗi logic một chỗ; 1 khái niệm, không công thức. Đạt Dễ 4/5 (nghiệp vụ ở mức Cơ bản). ERD 2 bảng có chữ trên đường nối, \code{brands} là bảng nhiễu. Bài sai: đổi sang \code{LAG} nhưng sắp trong \code{OVER} theo số chiến dịch; \code{LAG} độ lệch 2. Cả hai rớt cả hai biến thể. hidden-1 bỏ chiến dịch đuôi 7 nên số mỗi tháng khác public. Kiểm V4 (11/11/2026): tiêu đề đổi sang triệu chứng (bản trước nêu thẳng nguyên nhân ``lấy số tháng sau''). Giữ Dễ, không đổi nhãn với f7 Cơ bản: f7 sai khung cửa sổ, triệu chứng thấy ngay (mọi ngày bằng tổng quý); f8 phải hiểu chiều dịch của hàm, triệu chứng chỉ lộ ở tháng đầu và tháng cuối.}
 \end{cauhoi}
 
 % ================================================================ F9 · Sửa lỗi · Trung bình · C1 · marketing

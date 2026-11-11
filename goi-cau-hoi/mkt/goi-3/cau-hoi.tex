@@ -330,8 +330,8 @@ Mã danh mục dùng trong đề: thương hiệu \code{brand_id} 1 Nykaa, 2 Pur
   \khainiem{ky-va-thang-du}
   \luuy{Tháng 6/2025 chưa đủ dữ liệu: các ngày sau ngày dữ liệu cuối vẫn phải có mặt trên biểu đồ với số 0. Lịch \code{calendar} sẽ được nối thêm các ngày mới khi có dữ liệu tháng sau.}
 \end{nghiepvu}
-\goiy{Một chỗ sai làm mất ngày không có chiến dịch; khi ngày đó hiện lại, cách đếm hiện tại cho nó số 1 thay vì 0. Phạm vi ngày của lịch cũng cần xem lại.}
-\goiy{Đưa điều kiện thương hiệu, loại vào \code{ON}, đếm \code{COUNT(c.campaign_id)} và thêm cận trên \code{k.cal_date < '2025-07-01'}.}
+\goiy{Một chỗ sai làm mất ngày không có chiến dịch; khi ngày đó hiện lại, cách đếm hiện tại cho ngày đó số 1 thay vì 0. Phạm vi ngày của lịch cũng cần xem lại.}
+\goiy{\code{LEFT JOIN campaigns c ON c.start_date = k.cal_date AND c.brand_id = 3 AND c.type_id = 3}.}
 \ghichuthietke{Khó (v4, nâng từ Trung bình). Năm trục: bảng: lời giải 2 bảng (mẫu d4 Khó dùng 2 bảng); ERD 5 bảng chỉ khoá, 3 bảng nhiễu cho đủ 5 bảng (QUYET-DINH-CHUNG 1.3), không vẽ đường nối, không tô cảnh báo, cách nối ở \code{erdkhoa}; sửa lỗi: ba lỗi chồng nhau (điều kiện của bảng bên phải đặt ở WHERE làm mất ngày trống; \code{COUNT(*)} cho ngày trống ra 1, chỉ lộ sau khi sửa lỗi thứ nhất; lọc lịch thiếu cận trên, chỉ lộ ở hidden-1 có thêm ngày 2025-07-01); bẫy: 3, một bẫy chỉ lộ ở hidden-1; mơ hồ: yêu cầu không chỉ chỗ sai, ERD trung tính; nghiệp vụ: lịch đủ ngày cho tháng chưa đủ dữ liệu. Đạt Khó 3/5 cộng trục sửa lỗi. Starter ra 24 dòng (mất 6 ngày cuối tháng). Wrong: \code{chi_dua_dieu_kien_vao_on} (rớt public: ngày trống ra 1; hidden-1 thêm dòng 1/7), \code{chi_sua_cot_dem} (rớt public), \code{sua_hai_loi_thieu_can_tren} (chỉ rớt hidden-1, như thiết kế). Bản Trung bình cũ có một lỗi trong starter. Ô: B1 · operations · hard · debug, không trùng trong gói.}
 \end{cauhoi}
 

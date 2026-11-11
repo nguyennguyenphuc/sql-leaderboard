@@ -266,12 +266,12 @@ Mã danh mục dùng trong đề: thương hiệu \code{brand_id} 1 Nykaa, 2 Pur
 
 % ================================================================ K6 · Viết · Khó · E2 · operations
 \begin{cauhoi}[ma=mkt-k6-do-chinh-xac-quy-tac, dulieu=mkt, domain=operations,
-  hinhthuc=write, cap=hard, dang=E2, kynang={UNION ALL, CTE, khoá kép}, bay={noi-thieu-khoa, luat-bat-thua},
+  hinhthuc=write, cap=hard, dang=E2, kynang={UNION ALL, CTE, khoá kép}, bay={noi-thieu-khoa, luat-bat-thua, ky-theo-lich},
   tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, socot=vitri, saiso=0.01]
 \tieude{Quy tắc kiểm tra lỗi bắt đúng bao nhiêu phần trăm?}
 \boicanh[Chị Hạnh · Trưởng phòng marketing số]{Phòng dữ liệu vừa viết bộ quy tắc tự kiểm tra lỗi cho file thô. Trước khi áp cho file mới, chị muốn biết bộ quy tắc bắt đúng bao nhiêu và bỏ sót bao nhiêu so với nhật ký nhiễu.}
 \begin{yeucau}
-  \item Áp năm quy tắc kiểm tra cho từng dòng của \code{campaigns_raw}: \code{'NULL'} (trống ở một trong sáu cột \code{impressions}, \code{clicks}, \code{leads}, \code{conversions}, \code{revenue}, \code{acquisition_cost}); \code{'NEGATIVE'} (lượt hiển thị hoặc doanh thu âm); \code{'FUNNEL_ERROR'} (một tầng của phễu lớn hơn tầng trước); \code{'WHITESPACE'} (một trong bốn cột chuỗi \code{campaign_type}, \code{target_audience}, \code{language}, \code{customer_segment} có khoảng trắng thừa); \code{'INVALID_DATE'} (ngày gốc không hợp lệ, xem khái niệm ngày không hợp lệ).
+  \item Áp năm quy tắc kiểm tra cho từng dòng của \code{campaigns_raw}: \code{'NULL'} (trống ở một trong sáu cột \code{impressions}, \code{clicks}, \code{leads}, \code{conversions}, \code{revenue}, \code{acquisition_cost}); \code{'NEGATIVE'} (lượt hiển thị hoặc doanh thu âm); \code{'FUNNEL_ERROR'} (một tầng của phễu lớn hơn tầng trước); \code{'WHITESPACE'} (một trong bốn cột chuỗi \code{campaign_type}, \code{target_audience}, \code{language}, \code{customer_segment} có khoảng trắng thừa); \code{'INVALID_DATE'} (ngày gốc trống, sai dạng \code{'DD-MM-YYYY'}, không có thật, hoặc nằm ngoài kỳ dữ liệu từ 1/7/2024 tới hết 30/6/2025).
   \item So với nhật ký nhiễu cùng loại, bỏ loại \code{'DUPLICATE'}. Mỗi dòng của bản thô chỉ tính một lần cho mỗi loại.
   \item Ở mỗi loại, tính số dòng quy tắc bắt, số dòng có trong nhật ký, số dòng bắt đúng (có ở cả hai), tỷ lệ đúng (số dòng bắt đúng chia số dòng quy tắc bắt) và tỷ lệ bỏ sót (số dòng trong nhật ký mà quy tắc không bắt, chia số dòng trong nhật ký).
   \item Trả về \code{loai_nhieu}, \code{so_dong_luat_bat}, \code{so_dong_nhat_ky}, \code{so_bat_dung}, \code{ty_le_dung_pct}, \code{ty_le_bo_sot_pct} (phần trăm, 2 chữ số); sắp \code{loai_nhieu} theo thứ tự chữ cái.
@@ -292,7 +292,7 @@ Mã danh mục dùng trong đề: thương hiệu \code{brand_id} 1 Nykaa, 2 Pur
 \end{nghiepvu}
 \goiy{Ba thương hiệu đều có dòng ở vị trí 0, 1, 2… Nối chỉ theo vị trí dòng thì một dòng nhật ký khớp với mấy dòng của bản thô?}
 \goiy{Dựng hai tập (loại, \code{brand_id}, \code{row_index}): một từ quy tắc, một từ nhật ký; gộp bằng \code{UNION ALL} kèm cờ nguồn, gom theo cả ba cột rồi mới đếm.}
-\ghichuthietke{Khó: 5 bảng chỉ khoá, 3 bảng nhiễu. Kết quả cho thấy quy tắc phễu bắt thừa các dòng có lượt hiển thị âm (đã ghi ở loại NEGATIVE). Bài sai: nối chỉ theo \code{row_index} (nhân dòng giữa thương hiệu, rớt public); quy tắc ngày bỏ nhánh ngoài kỳ (bỏ sót dòng năm 1999, 2030, rớt public). hidden-1 có dòng \code{'01-07-2025'} quy tắc ngày bắt nhưng nhật ký không ghi (tỷ lệ đúng dưới 100\%).}
+\ghichuthietke{Khó: 5 bảng chỉ khoá, 3 bảng nhiễu. Kết quả cho thấy quy tắc phễu bắt thừa các dòng có lượt hiển thị âm (đã ghi ở loại NEGATIVE). Bài sai: nối chỉ theo \code{row_index} (nhân dòng giữa thương hiệu, rớt public); quy tắc ngày bỏ nhánh ngoài kỳ (bỏ sót dòng năm 1999, 2030, rớt public). hidden-1 có dòng \code{'01-07-2025'} quy tắc ngày bắt nhưng nhật ký không ghi (tỷ lệ đúng dưới 100\%). Kiểm V4 (11/11/2026): quy tắc ngày ghi rõ mốc kỳ 1/7/2024 tới hết 30/6/2025 ngay trong yêu cầu (bản trước chỉ trỏ tới khái niệm, không có mốc, học viên lấy kỳ theo lịch thì bị chấm oan ở hidden-1); thêm bài sai lấy kỳ theo \code{calendar} (chỉ rớt hidden-1, lịch có thêm ngày 1/7/2025). Câu t4 cũ cùng chủ đề đã được viết lại.}
 \end{cauhoi}
 
 % ================================================================ K7 · Sửa lỗi · Dễ · E1 · customer
@@ -339,7 +339,7 @@ Mã danh mục dùng trong đề: thương hiệu \code{brand_id} 1 Nykaa, 2 Pur
 \end{erd}
 \begin{nghiepvu}{Đối chiếu số ô trống ghi trong nhật ký với số ô trống đếm được trên dữ liệu thô.}
   \khainiem{nhat-ky-nhieu}
-  \luuy{Ô trống trong dữ liệu thô và loại nhiễu ô trống ghi trong nhật ký là hai thứ khác nhau.}
+  \luuy{Mỗi dòng nhật ký ghi một ô đã bị làm nhiễu; loại nhiễu nằm ở cột \code{noise_type}.}
 \end{nghiepvu}
 \goiy{Xem các giá trị khác nhau của \code{noise_type}: loại ô trống được ghi thế nào?}
 \goiy{So bằng chuỗi \code{noise_type = 'NULL'}.}
@@ -351,7 +351,7 @@ Mã danh mục dùng trong đề: thương hiệu \code{brand_id} 1 Nykaa, 2 Pur
   hinhthuc=debug, cap=basic, dang=E1, kynang={GROUP BY, HAVING}, bay={sai-toan-tu-having},
   tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, socot=vitri]
 \tieude{Danh sách mã chiến dịch lặp của Purplle ra gần cả file}
-\boicanh[Bạn Linh · Thực tập sinh]{Em lọc các mã chiến dịch xuất hiện nhiều lần trong file thô của Purplle mà danh sách ra mấy chục nghìn mã, gần bằng cả file.}
+\boicanh[Bạn Hiếu · Thực tập sinh]{Bên nhập liệu cần danh sách mã chiến dịch bị chép lặp trong file thô của Purplle để xoá bản thừa. Danh sách em lọc ra tới mấy chục nghìn mã, gần bằng cả file, anh chị xem giúp em.}
 \begin{yeucau}
   \item Truy vấn dưới đây cần liệt kê các mã chiến dịch (\code{campaign_id}) xuất hiện hơn một lần trong bản thô \code{campaigns_raw} của Purplle (\code{brand_id = 2}), kèm số dòng của mỗi mã.
   \item Giữ tên cột \code{campaign_id}, \code{so_dong}; sắp \code{campaign_id} theo thứ tự chữ cái.
@@ -367,7 +367,7 @@ Mã danh mục dùng trong đề: thương hiệu \code{brand_id} 1 Nykaa, 2 Pur
 \end{nghiepvu}
 \goiy{Điều kiện trong \code{HAVING} của truy vấn khởi đầu giữ những mã có bao nhiêu dòng?}
 \goiy{Giữ nhóm có \code{COUNT(*) > 1}.}
-\ghichuthietke{Cơ bản (v4, viết lại từ câu Khó \code{mkt-k9-doanh-thu-sach-con-trung}; nội dung đối soát doanh thu thô với bản sạch chuyển sang k5 Dễ và c9 bước 4). Bài Cơ bản ``dòng trùng, HAVING COUNT > 1'' của Module 9 trên lộ trình, ở dạng Sửa lỗi: starter viết \code{HAVING COUNT(*) >= 1}, sai một toán tử, ra mọi mã của Purplle (rớt public). 5 trục: 1 bảng · 1 tầng gom có điều kiện nhóm · cột, giá trị lọc ghi rõ, ERD có giá trị mẫu (\code{PU-CMP-11110} ở vị trí 55586 là bản chép) · 0 bẫy dữ liệu · 1 khái niệm: Cơ bản 5/5. Bài sai: \code{HAVING COUNT(*) > 2} (public ra 0 dòng, hidden-1 chỉ còn \code{PU-CMP-31194} có 3 dòng); gom cả \code{row_index} (0 dòng, rớt public); quên lọc Purplle (rớt public). hidden-1 bỏ chiến dịch đuôi 7 và có thêm bản chép thứ ba của \code{PU-CMP-31194}. Cùng chủ đề dòng trùng với k2 (Trung bình: số dòng thừa, doanh thu thừa), k9 là bước tìm mã.}
+\ghichuthietke{Cơ bản (v4, viết lại từ câu Khó \code{mkt-k9-doanh-thu-sach-con-trung}; nội dung đối soát doanh thu thô với bản sạch chuyển sang k5 Dễ và c9 bước 4). Bài Cơ bản ``dòng trùng, HAVING COUNT > 1'' của Module 9 trên lộ trình, ở dạng Sửa lỗi: starter viết \code{HAVING COUNT(*) >= 1}, sai một toán tử, ra mọi mã của Purplle (rớt public). 5 trục: 1 bảng · 1 tầng gom có điều kiện nhóm · cột, giá trị lọc ghi rõ, ERD có giá trị mẫu (\code{PU-CMP-11110} ở vị trí 55586 là bản chép) · 0 bẫy dữ liệu · 1 khái niệm: Cơ bản 5/5. Bài sai: \code{HAVING COUNT(*) > 2} (public ra 0 dòng, hidden-1 chỉ còn \code{PU-CMP-31194} có 3 dòng); gom cả \code{row_index} (0 dòng, rớt public); quên lọc Purplle (rớt public). hidden-1 bỏ chiến dịch đuôi 7 và có thêm bản chép thứ ba của \code{PU-CMP-31194}. Cùng chủ đề dòng trùng với k2 (Trung bình: số dòng thừa, doanh thu thừa), k9 là bước tìm mã. Cùng ô E1 · operations · basic · debug với t9 (gói 4), khác gói nên được phép; kiểm V4 (11/11/2026) kết luận không trùng chủ đề: t9 bỏ trùng rồi đếm dòng, cộng doanh thu (lỗi \code{DISTINCT *}), k9 liệt kê mã lặp (lỗi toán tử \code{HAVING}). Đổi người hỏi (trước cùng Bạn Linh với t9) và lời nhắn nêu việc dùng danh sách.}
 \end{cauhoi}
 
 
@@ -388,7 +388,7 @@ Mã danh mục dùng trong đề: thương hiệu \code{brand_id} 1 Nykaa, 2 Pur
   \item Bảng \code{campaigns} chỉ được quét 1 lần.
 \end{rangbuoc}
 \begin{erd}
-  \erdbang{campaigns}{0,0}{campaign_id:PK, brand_id*=1, revenue*=1.867.515, acquisition_cost*, conversions*=2.355}
+  \erdbang{campaigns}{0,0}{campaign_id:PK, brand_id*=1, revenue*=1867515, acquisition_cost*=111.03, conversions*=2355}
 \end{erd}
 \begin{nghiepvu}{Giảm tải cho bảng theo dõi hiệu quả đầu tư làm mới liên tục.}
   \khainiem{roi}
@@ -437,7 +437,7 @@ Mã danh mục dùng trong đề: thương hiệu \code{brand_id} 1 Nykaa, 2 Pur
   hinhthuc=optimize, cap=hard, dang=C1, kynang={ROW\_NUMBER, PARTITION BY}, bay={quet-lai-tung-thuong-hieu, quy-tac-hoa},
   tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, socot=vitri, quettoida={campaigns=1}]
 \tieude{Ba chiến dịch dẫn đầu doanh thu mỗi thương hiệu, quét một lần}
-\boicanh[Anh Khoa · Data engineer]{Bảng vàng chiến dịch trên trang chủ nội bộ đang chép ba đoạn giống nhau cho ba thương hiệu, thêm thương hiệu mới lại phải chép thêm một đoạn. Anh muốn một bản dùng chung, đọc bảng chiến dịch đúng một lần.}
+\boicanh[Anh Khoa · Data engineer]{Bảng vàng chiến dịch trên trang chủ nội bộ đang lấy số bằng ba đoạn giống nhau, mỗi thương hiệu một đoạn, thêm thương hiệu mới lại phải chép thêm một đoạn. Anh muốn một bản dùng chung, đọc bảng chiến dịch đúng một lần.}
 \begin{yeucau}
   \item Giữ nguyên kết quả: ba chiến dịch có doanh thu cao nhất của từng thương hiệu trong cả kỳ; doanh thu bằng nhau thì \code{campaign_id} nhỏ hơn (so theo chuỗi) xếp trên.
   \item Trả về \code{brand_id}, \code{campaign_id}, \code{revenue}; sắp \code{brand_id} tăng dần, \code{revenue} giảm dần, rồi \code{campaign_id}.
@@ -546,35 +546,38 @@ Mã danh mục dùng trong đề: thương hiệu \code{brand_id} 1 Nykaa, 2 Pur
 \ghichuthietke{Cơ bản (v4, viết lại từ câu Khó \code{mkt-p6-dong-trung-du-lieu-tho}; nội dung dòng trùng đã có ở k2, k9): đúng mẫu Cơ bản của CHOT mục 4 (ba truy vấn con quét lại một bảng gộp thành đếm có điều kiện, như o1). Starter ba truy vấn con, mỗi truy vấn đọc \code{campaigns} theo chỉ mục (\code{brand_id}, \code{start_date}): 3 lần quét. 5 trục: 1 bảng có giá trị mẫu (dòng \code{PU-CMP-10740}) · 1 tầng đếm · cột, khoảng thời lượng, khoảng ngày ghi rõ · 0 bẫy dữ liệu · 1 khái niệm: Cơ bản 5/5. Khác p1 (cũng Cơ bản): p1 gom ba chỉ số theo thương hiệu bằng \code{GROUP BY}, p6 đếm có điều kiện ra một dòng. Bài sai: nhóm vừa lấy từ 10 ngày (đếm hai lần chiến dịch 10 ngày, rớt public); quên lọc Purplle (rớt public).}
 \end{cauhoi}
 
-% ================================================================ P7 · Viết · Trung bình · A1 · customer
+% ================================================================ P7 · Viết · Trung bình · C3 · customer
 \begin{cauhoi}[ma=mkt-p7-chien-dich-ngay-8-3-theo-chi-muc, dulieu=mkt, domain=customer,
-  hinhthuc=write, cap=medium, dang=A1, kynang={JOIN, điều kiện dùng chỉ mục}, bay={nham-vai-doi-tuong},
-  tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, socot=vitri]
-\tieude{Purplle mở những chiến dịch nào cho phụ nữ đi làm ngày 8/3/2025?}
-\boicanh[Chị Ngân · Quản lý thương hiệu Purplle]{Chị đang tổng kết đợt 8/3 của Purplle. Chị cần danh sách chiến dịch bắt đầu đúng ngày đó nhắm vào phụ nữ đi làm, kèm loại chiến dịch và hiệu quả.}
+  hinhthuc=write, cap=medium, dang=C3, kynang={JOIN, CTE, tỷ lệ của tổng, điều kiện dùng chỉ mục}, bay={nham-vai-doi-tuong, binh-quan-cot-roi, muc-chung-sai-pham-vi},
+  tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, socot=vitri, saiso=0.01]
+\tieude{Chiến dịch 8/3 nào của Purplle cho phụ nữ đi làm vượt ROI chung?}
+\boicanh[Chị Ngân · Quản lý thương hiệu Purplle]{Chị đang tổng kết đợt 8/3 của Purplle. Trong các chiến dịch bắt đầu đúng ngày đó nhắm vào phụ nữ đi làm, chị muốn giữ lại những chiến dịch có hiệu quả đầu tư tốt hơn mặt bằng chung của cả ngày để năm sau chạy lại.}
 \begin{yeucau}
-  \item Xét chiến dịch của Purplle bắt đầu ngày 8/3/2025, đối tượng mục tiêu Working Women (phụ nữ đi làm).
-  \item Trả về \code{campaign_id}, \code{type_name}, \code{revenue} (đơn vị tiền), \code{roi} (cột có sẵn).
+  \item Xét các chiến dịch của Purplle bắt đầu ngày 8/3/2025.
+  \item Mức chung là ROI (lợi tức đầu tư) của mọi chiến dịch Purplle bắt đầu ngày đó, thuộc mọi đối tượng, tính theo tỷ lệ của tổng như ở tab Nghiệp vụ.
+  \item Liệt kê các chiến dịch trong ngày có đối tượng mục tiêu Working Women (phụ nữ đi làm) và cột \code{roi} lớn hơn mức chung (so với mức chung chưa làm tròn).
+  \item Trả về \code{campaign_id}, \code{type_name}, \code{revenue} (đơn vị tiền), \code{roi} (cột có sẵn), \code{roi_chung} (mức chung, làm tròn 4 chữ số).
   \item Sắp \code{revenue} giảm dần; bằng nhau thì \code{campaign_id} nhỏ hơn (so theo chuỗi) đứng trước.
   \item Máy chỉ chấm bảng kết quả. Phần chỉ mục là bài tự luyện, không chấm: sau khi đúng, chạy \code{EXPLAIN} để xem bước đọc \code{campaigns} có dùng chỉ mục (\code{brand_id}, \code{start_date}) không.
 \end{yeucau}
 \begin{erd}
-  \erdbang{campaigns}{0,0}{campaign_id:PK, brand_id:FK, type_id:FK, target_audience_id:FK, segment_id:FK, start_date*, revenue*, roi*}
+  \erdbang{campaigns}{0,0}{campaign_id:PK, brand_id:FK, type_id:FK, target_audience_id:FK, segment_id:FK, start_date*, revenue*, acquisition_cost*, conversions*, roi*}
   \erdbang{campaign_types}{1,0}{type_id:PK, type_name*}
   \erdbang{audiences}{0,1}{audience_id:PK, audience_name}
-  \erdbang{brands}{1,1}{brand_id:PK, brand_name}
   \erdnoi[kieu=n-1]{campaigns.type_id}{campaign_types.type_id}
   \erdnoi[kieu=n-1]{campaigns.target_audience_id}{audiences.audience_id}
-  \erdnoi[kieu=n-1]{campaigns.brand_id}{brands.brand_id}
 \end{erd}
 \begin{nghiepvu}{Chọn chiến dịch 8/3 của Purplle đáng chạy lại cho nhóm phụ nữ đi làm.}
   \khainiem{doi-tuong-va-phan-khuc}
+  \khainiem{chi-phi-chien-dich}
+  \khainiem{roi}
+  \khainiem{binh-quan-gia-quyen}
   \khainiem{dieu-kien-dung-chi-muc}
-  \luuy{Đối tượng mục tiêu và phân khúc khách hàng cùng dùng danh mục \code{audiences} nhưng là hai cột khác nhau. Đề hỏi đối tượng mục tiêu, tức nhóm mà chiến dịch nhắm tới.}
+  \luuy{Đối tượng mục tiêu và phân khúc khách hàng cùng dùng danh mục \code{audiences} nhưng là hai cột khác nhau. Đề hỏi đối tượng mục tiêu, tức nhóm mà chiến dịch nhắm tới; mã của Working Women là 4.}
 \end{nghiepvu}
-\goiy{Nhóm Working Women có \code{audience_id} bao nhiêu, và cột nào của \code{campaigns} ghi đối tượng mục tiêu?}
-\goiy{Lọc \code{brand_id = 2 AND start_date = '2025-03-08' AND target_audience_id = 4}; \code{EXPLAIN} sẽ cho thấy bước đọc dùng chỉ mục.}
-\ghichuthietke{Trung bình: 4 bảng có ký hiệu n-1. Câu Viết của Module 10: chấm theo kết quả; phần chỉ mục ghi rõ trong yêu cầu là tự luyện, không chấm (bản v1 ghi như yêu cầu bắt buộc). Giữ Trung bình (quyết định v3): ngoài một phép lọc và một phép nối, học viên phải phân biệt hai vai của \code{audiences} (đối tượng mục tiêu và phân khúc). Bài sai: lọc \code{segment_id = 4} (nhầm vai, rớt public); quên lọc thương hiệu (rớt public).}
+\goiy{Bình quân cột \code{roi} của các chiến dịch trong ngày có bằng ROI tính từ tổng doanh thu và tổng chi phí không? Mức chung tính trên nhóm chiến dịch nào?}
+\goiy{Mức chung là \code{(SUM(revenue) - SUM(acquisition_cost * conversions)) / SUM(acquisition_cost * conversions)} trên mọi chiến dịch Purplle ngày 8/3/2025.}
+\ghichuthietke{Trung bình (kiểm V4, 11/11/2026: người kiểm B chấm bản cũ thực chất Dễ trên cả 5 trục; đề xuất của B bắt nối \code{audiences} hai vai không áp vì trái QUYET-DINH-CHUNG 2.3 mục 18 theo người điều phối, thay bằng so với mức chung, đúng hướng QUYET-DINH-CHUNG 2.1 ``thêm bẫy hoặc bước thật''). Câu Viết của Module 10: chấm theo kết quả; phần chỉ mục ghi rõ trong yêu cầu là tự luyện, không chấm. Dạng đổi A1 → C3 (so với chuẩn), ô C3 · customer · medium · write không trùng câu nào của bộ. Năm trục: bảng 2 có nối (Trung bình); bước 3 tầng: lọc theo chỉ mục trong CTE, tính mức chung trên cả nhóm, lọc theo vai và so với mức chung (Trung bình); mơ hồ: ROI của tổng định nghĩa ở tab Nghiệp vụ, học viên tự chọn cách tính mức chung (Trung bình); bẫy 3: nhầm vai đối tượng với phân khúc, bình quân cột \code{roi} (mức chung 2,35 thay vì 1,72 ở public), mức chung chỉ tính trên nhóm phụ nữ đi làm (Trung bình); nghiệp vụ: ROI của tổng, công thức hai thành phần với chi phí bằng CPA nhân lượt chuyển đổi (Trung bình). Đạt Trung bình 5/5. ERD 3 bảng có ký hiệu n-1, \code{audiences} là bảng nhiễu (bỏ \code{brands} để còn 1 bảng nhiễu theo QUYET-DINH-CHUNG 1.3). Ba bài sai đều rớt ở public. Public 14 dòng, hidden-1 13 dòng (bỏ chiến dịch đuôi 7).}
 \end{cauhoi}
 
 % ================================================================ P8 · Sửa lỗi · Dễ · B1 · marketing

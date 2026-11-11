@@ -119,3 +119,13 @@ Không trùng trong gói (đã đối chiếu cả 20 câu). Giữa các gói: `
 Dòng bản đồ mới: `BAN-DO-V4-DONG.md` (7 dòng, kèm mã cũ). `../../BAN-DO-100-CAU.md` không sửa theo brief v4.
 
 Điểm tự thấy yếu: j6 chưa có bẫy chỉ lộ ở hidden-1; q4 Khó chỉ dùng một bảng và ra 6 dòng (đúng mẫu o4 nhưng ít dòng); ERD Khó của j9, q4, q9 phải thêm 3–4 bảng nhiễu cho đủ 5 bảng (QUYET-DINH-CHUNG 1.3).
+
+## Sửa theo KIEM-V4 (11/11/2026)
+
+Căn cứ: `ho-so/KIEM-V4-B.md`, `ho-so/KIEM-V4-C.md` (gói 3: 1 câu "Cần sửa"). Chỉ sửa chữ, không đổi SQL, cấp, mã.
+
+| Mã | Điểm B/C | Đã sửa gì | Kết quả kiểm |
+|---|---|---|---|
+| mkt-j9-lich-paid-ads-tira-chua-dung-duoc | B: gợi ý 2 ("Đưa điều kiện thương hiệu, loại vào ON, đếm COUNT(c.campaign_id) và thêm cận trên …") là trọn lời giải của cả 3 lỗi | Gợi ý 2 còn một biểu thức cho lỗi thứ nhất: `LEFT JOIN campaigns c ON c.start_date = k.cal_date AND c.brand_id = 3 AND c.type_id = 3`; lỗi đếm và lỗi cận trên để học viên tự sửa theo gợi ý 1. Gợi ý 1: "cho nó số 1" → "cho ngày đó số 1" (đại từ "nó" chỉ vật) | Bộ kiểm đầy đủ cả gói (`cong-cu/ket-qua/sua-v4/mkt-goi-3`): KIEM TRA: 0 loi; biên dịch 0 lỗi LaTeX |
+
+Không áp (đề xuất tuỳ chọn, B/C ghi "Đạt"): j3 (đổi sang Paid Ads cho bớt na ná r1), q4 (bỏ câu đầu của `\luuy`), q9 (thêm lỗi thứ ba vào truy vấn con), j6 (bẫy hidden-1 cần `mkt_hidden_2`). Không câu nào của gói 3 đổi cấp; 0 ô trùng trong gói.

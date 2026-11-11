@@ -358,6 +358,56 @@ FROM theo_dong
 GROUP BY loai
 ORDER BY loai_nhieu;
 
+-- [mkt-k6-do-chinh-xac-quy-tac] wrong: ky_theo_lich
+-- Lấy kỳ dữ liệu theo ngày đầu và ngày cuối của calendar thay vì mốc 1/7/2024 tới hết 30/6/2025 ghi trong đề: hidden-1 có thêm ngày lịch 1/7/2025 nên dòng '01-07-2025' không bị bắt (chỉ rớt ở hidden-1).
+WITH luat AS (
+  SELECT brand_id, row_index, 'NULL' AS loai FROM campaigns_raw
+  WHERE impressions IS NULL OR clicks IS NULL OR leads IS NULL
+     OR conversions IS NULL OR revenue IS NULL OR acquisition_cost IS NULL
+  UNION ALL
+  SELECT brand_id, row_index, 'NEGATIVE' FROM campaigns_raw
+  WHERE impressions < 0 OR revenue < 0
+  UNION ALL
+  SELECT brand_id, row_index, 'FUNNEL_ERROR' FROM campaigns_raw
+  WHERE clicks > impressions OR leads > clicks OR conversions > leads
+  UNION ALL
+  SELECT brand_id, row_index, 'WHITESPACE' FROM campaigns_raw
+  WHERE campaign_type <> TRIM(campaign_type) OR target_audience <> TRIM(target_audience)
+     OR `language` <> TRIM(`language`) OR customer_segment <> TRIM(customer_segment)
+  UNION ALL
+  SELECT brand_id, row_index, 'INVALID_DATE' FROM campaigns_raw
+  WHERE date_raw IS NULL
+     OR date_raw NOT REGEXP '^[0-9]{2}-[0-9]{2}-[0-9]{4}$'
+     OR STR_TO_DATE(date_raw, '%d-%m-%Y') IS NULL
+     OR STR_TO_DATE(date_raw, '%d-%m-%Y') < (SELECT MIN(cal_date) FROM calendar)
+     OR STR_TO_DATE(date_raw, '%d-%m-%Y') > (SELECT MAX(cal_date) FROM calendar)
+),
+nhat_ky AS (
+  SELECT DISTINCT brand_id, row_index, noise_type AS loai
+  FROM noise_log
+  WHERE noise_type <> 'DUPLICATE'
+),
+gop AS (
+  SELECT loai, brand_id, row_index, 1 AS tu_luat, 0 AS tu_nhat_ky FROM luat
+  UNION ALL
+  SELECT loai, brand_id, row_index, 0, 1 FROM nhat_ky
+),
+theo_dong AS (
+  SELECT loai, brand_id, row_index,
+         MAX(tu_luat) AS luat_bat, MAX(tu_nhat_ky) AS co_nhat_ky
+  FROM gop
+  GROUP BY loai, brand_id, row_index
+)
+SELECT loai AS loai_nhieu,
+       SUM(luat_bat) AS so_dong_luat_bat,
+       SUM(co_nhat_ky) AS so_dong_nhat_ky,
+       SUM(luat_bat * co_nhat_ky) AS so_bat_dung,
+       ROUND(100 * SUM(luat_bat * co_nhat_ky) / SUM(luat_bat), 2) AS ty_le_dung_pct,
+       ROUND(100 * (SUM(co_nhat_ky) - SUM(luat_bat * co_nhat_ky)) / SUM(co_nhat_ky), 2) AS ty_le_bo_sot_pct
+FROM theo_dong
+GROUP BY loai
+ORDER BY loai_nhieu;
+
 -- [mkt-k7-doi-tuong-tho-le-te] starter
 SELECT target_audience AS doi_tuong,
        COUNT(DISTINCT campaign_id) AS so_chien_dich
@@ -735,30 +785,73 @@ FROM campaigns
 WHERE start_date >= '2025-05-01' AND start_date < '2025-06-01';
 
 -- [mkt-p7-chien-dich-ngay-8-3-theo-chi-muc] solution
-SELECT c.campaign_id, t.type_name, c.revenue, c.roi
-FROM campaigns c
-JOIN campaign_types t ON t.type_id = c.type_id
-WHERE c.brand_id = 2
-  AND c.start_date = '2025-03-08'
-  AND c.target_audience_id = 4
-ORDER BY c.revenue DESC, c.campaign_id;
+WITH ngay AS (
+  SELECT campaign_id, type_id, target_audience_id, revenue, roi, acquisition_cost, conversions
+  FROM campaigns
+  WHERE brand_id = 2 AND start_date = '2025-03-08'
+), muc AS (
+  SELECT (SUM(revenue) - SUM(acquisition_cost * conversions)) / SUM(acquisition_cost * conversions) AS roi_chung
+  FROM ngay
+)
+SELECT n.campaign_id, t.type_name, n.revenue, n.roi, ROUND(m.roi_chung, 4) AS roi_chung
+FROM ngay n
+JOIN campaign_types t ON t.type_id = n.type_id
+CROSS JOIN muc m
+WHERE n.target_audience_id = 4
+  AND n.roi > m.roi_chung
+ORDER BY n.revenue DESC, n.campaign_id;
 
 -- [mkt-p7-chien-dich-ngay-8-3-theo-chi-muc] wrong: nham_cot_phan_khuc
-SELECT c.campaign_id, t.type_name, c.revenue, c.roi
-FROM campaigns c
-JOIN campaign_types t ON t.type_id = c.type_id
-WHERE c.brand_id = 2
-  AND c.start_date = '2025-03-08'
-  AND c.segment_id = 4
-ORDER BY c.revenue DESC, c.campaign_id;
+-- Lọc phụ nữ đi làm theo segment_id (phân khúc khách hàng) thay vì target_audience_id (rớt ở public).
+WITH ngay AS (
+  SELECT campaign_id, type_id, segment_id, revenue, roi, acquisition_cost, conversions
+  FROM campaigns
+  WHERE brand_id = 2 AND start_date = '2025-03-08'
+), muc AS (
+  SELECT (SUM(revenue) - SUM(acquisition_cost * conversions)) / SUM(acquisition_cost * conversions) AS roi_chung
+  FROM ngay
+)
+SELECT n.campaign_id, t.type_name, n.revenue, n.roi, ROUND(m.roi_chung, 4) AS roi_chung
+FROM ngay n
+JOIN campaign_types t ON t.type_id = n.type_id
+CROSS JOIN muc m
+WHERE n.segment_id = 4
+  AND n.roi > m.roi_chung
+ORDER BY n.revenue DESC, n.campaign_id;
 
--- [mkt-p7-chien-dich-ngay-8-3-theo-chi-muc] wrong: quen_loc_thuong_hieu
-SELECT c.campaign_id, t.type_name, c.revenue, c.roi
-FROM campaigns c
-JOIN campaign_types t ON t.type_id = c.type_id
-WHERE c.start_date = '2025-03-08'
-  AND c.target_audience_id = 4
-ORDER BY c.revenue DESC, c.campaign_id;
+-- [mkt-p7-chien-dich-ngay-8-3-theo-chi-muc] wrong: binh_quan_cot_roi
+-- Mức chung lấy bình quân cột roi thay vì ROI của tổng: mức chung cao hơn khoảng 0,6 (rớt ở public).
+WITH ngay AS (
+  SELECT campaign_id, type_id, target_audience_id, revenue, roi
+  FROM campaigns
+  WHERE brand_id = 2 AND start_date = '2025-03-08'
+), muc AS (
+  SELECT AVG(roi) AS roi_chung FROM ngay
+)
+SELECT n.campaign_id, t.type_name, n.revenue, n.roi, ROUND(m.roi_chung, 4) AS roi_chung
+FROM ngay n
+JOIN campaign_types t ON t.type_id = n.type_id
+CROSS JOIN muc m
+WHERE n.target_audience_id = 4
+  AND n.roi > m.roi_chung
+ORDER BY n.revenue DESC, n.campaign_id;
+
+-- [mkt-p7-chien-dich-ngay-8-3-theo-chi-muc] wrong: muc_chung_chi_tinh_phu_nu_di_lam
+-- Mức chung chỉ tính trên các chiến dịch nhắm phụ nữ đi làm, không phải mọi chiến dịch Purplle trong ngày (rớt ở public).
+WITH ngay AS (
+  SELECT campaign_id, type_id, revenue, roi, acquisition_cost, conversions
+  FROM campaigns
+  WHERE brand_id = 2 AND start_date = '2025-03-08' AND target_audience_id = 4
+), muc AS (
+  SELECT (SUM(revenue) - SUM(acquisition_cost * conversions)) / SUM(acquisition_cost * conversions) AS roi_chung
+  FROM ngay
+)
+SELECT n.campaign_id, t.type_name, n.revenue, n.roi, ROUND(m.roi_chung, 4) AS roi_chung
+FROM ngay n
+JOIN campaign_types t ON t.type_id = n.type_id
+CROSS JOIN muc m
+WHERE n.roi > m.roi_chung
+ORDER BY n.revenue DESC, n.campaign_id;
 
 -- [mkt-p8-so-chien-dich-theo-thang-lech] starter
 SELECT m.thang,

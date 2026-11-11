@@ -310,7 +310,7 @@ Mã danh mục dùng trong đề: thương hiệu \code{brand_id} 1 Nykaa, 2 Pur
   hinhthuc=debug, cap=medium, dang=B1, kynang={WEEKDAY, DATE_SUB, GROUP BY tuần}, bay={tuan-tach-o-ranh-gioi-nam, dayofweek-1-la-chu-nhat},
   tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, socot=vitri]
 \tieude{Số chiến dịch theo tuần bị tách đôi ở tuần đầu năm}
-\boicanh[Chị Hạnh · Trưởng phòng marketing số]{Chị cần số chiến dịch mở mỗi tuần quanh dịp năm mới để xem các thương hiệu có dồn chiến dịch vào tuần lễ không. Bảng em gửi có một tuần cuối năm ít hẳn so với các tuần khác, lại thêm một dòng tuần bắt đầu ngày 1/1/2025. Hôm đó là thứ Tư.}
+\boicanh[Chị Hạnh · Trưởng phòng marketing số]{Chị cần số chiến dịch mở mỗi tuần quanh dịp năm mới để xem các thương hiệu có dồn chiến dịch vào tuần nghỉ lễ không. Bảng em gửi có một tuần cuối năm ít hẳn so với các tuần khác, lại thêm một dòng tuần bắt đầu ngày 1/1/2025, mà hôm đó là thứ Tư.}
 \begin{yeucau}
   \item Truy vấn dưới đây cần đếm số chiến dịch của ba thương hiệu bắt đầu trong từng tuần, tuần tính từ thứ Hai tới hết Chủ nhật, cho 9 tuần từ tuần bắt đầu ngày 2/12/2024 tới tuần bắt đầu ngày 27/1/2025.
   \item Sửa truy vấn để mỗi tuần đúng một dòng; giữ nguyên các cột \code{tuan_bat_dau} (ngày thứ Hai đầu tuần), \code{so_chien_dich}, phạm vi ngày và thứ tự sắp.
@@ -356,7 +356,7 @@ Mã danh mục dùng trong đề: thương hiệu \code{brand_id} 1 Nykaa, 2 Pur
   \luuy{Lịch chạy của các bạn quản lý thương hiệu tính một chiến dịch là đang chạy từ ngày bắt đầu tới hết ngày cuối, tính cả hai ngày. Ngày 1/7/2024 là ngày đầu kỳ dữ liệu, chưa có chiến dịch nào mở từ trước, nên bảng bắt đầu từ ngày 1/8/2024.}
 \end{nghiepvu}
 \goiy{Xét một chiến dịch bắt đầu đúng ngày 1/9/2024 và một chiến dịch có ngày cuối là 31/8/2024: truy vấn hiện tại đếm chiến dịch nào vào ngày 1/9? Khi lịch có thêm ngày 1/7/2025, bảng có thêm dòng nào?}
-\goiy{Điều kiện nối: \code{c.start_date <= k.cal_date AND DATE_ADD(c.start_date, INTERVAL c.duration_days - 1 DAY) >= k.cal_date}; lọc thêm \code{k.cal_date <= '2025-06-01'}.}
+\goiy{Ngày cuối của chiến dịch là \code{DATE_ADD(c.start_date, INTERVAL c.duration_days - 1 DAY)}.}
 \ghichuthietke{Khó (v4 viết lại từ s9 Dễ ``Số chiến dịch đang chạy ngày 1/1/2025 bị thiếu'', một lỗi so sánh). Ba lỗi chồng nhau: (1) \code{c.start_date < k.cal_date} bỏ chiến dịch bắt đầu đúng ngày 1; (2) ngày bắt đầu cộng thời lượng không trừ 1, đếm thừa chiến dịch kết thúc ngày cuối tháng trước; hai lỗi ở hai đầu bù trừ một phần nên số chỉ lệch vài chục, tháng thừa tháng thiếu, khó thấy; (3) thiếu cận trên, chỉ lộ ở hidden-1 (lịch có ngày 1/7/2025, chiến dịch NY-CMP-56555 bắt đầu ngày đó, thêm dòng 2025-07). 5 trục: số bảng 2 (Dễ); số bước 2: nối theo khoảng ngày rồi gom (Dễ); mơ hồ: lời nhắn chỉ nêu triệu chứng, học viên tự đối chiếu khái niệm đang chạy (Khó); bẫy 3, một bẫy chỉ lộ ở hidden-1 (Khó); nghiệp vụ: trạng thái tại thời điểm (Trung bình); sửa lỗi: 3 lỗi chồng nhau (Khó theo QDC 2.2). ERD 5 bảng chỉ khoá, trung tính như mẫu d4, không vẽ đường nối. Bài sai chỉ sửa đầu ngày cuối, bài sai chỉ sửa đầu ngày bắt đầu rớt ở public; bài sai sửa hai đầu nhưng thiếu cận trên rớt ở hidden-1. Không trùng ô với j4 (Viết · Trung bình, từng ngày một tuần) và t5 (Viết · Khó).}
 \end{cauhoi}
 
@@ -389,7 +389,7 @@ Mã danh mục dùng trong đề: thương hiệu \code{brand_id} 1 Nykaa, 2 Pur
   \khainiem{binh-quan-gia-quyen}
   \luuy{Chiến dịch lỗ là chiến dịch có doanh thu nhỏ hơn chi phí chiến dịch; doanh thu bằng chi phí là hoà vốn. Cột \code{roi} đã làm tròn 2 chữ số. Tỷ lệ thu hồi của một nhóm chiến dịch là tổng doanh thu chia tổng chi phí của nhóm đó.}
 \end{nghiepvu}
-\goiy{Một chiến dịch chi 100.000 và thu 99.900 thì lỗ, nhưng cột \code{roi} của nó ghi bao nhiêu sau khi làm tròn 2 chữ số? Tỷ trọng chi phí tính trên tiền hay trên số chiến dịch?}
+\goiy{Một chiến dịch chi 100.000 và thu 99.900 thì lỗ, nhưng cột \code{roi} của chiến dịch đó ghi bao nhiêu sau khi làm tròn 2 chữ số? Tỷ trọng chi phí tính trên tiền hay trên số chiến dịch?}
 \goiy{Điều kiện lỗ là \code{revenue < acquisition_cost * conversions}; cộng chi phí có điều kiện bằng \code{SUM(CASE WHEN ... THEN acquisition_cost * conversions ELSE 0 END)}.}
 \ghichuthietke{Khó (v4 viết lại từ a1 Dễ ``ROI của từng thương hiệu cả kỳ là bao nhiêu?''; ROI theo tỷ lệ của tổng vẫn được luyện ở a7 và c4). 5 trục: số bảng 1 (Cơ bản; câu Khó không bắt buộc nhiều bảng, QDC 0.1 \#6); số bước 3: chi phí từng chiến dịch, xếp lỗ, cộng có điều kiện rồi chia hai tỷ lệ (Trung bình); mơ hồ: đề chỉ nói ``chiến dịch lỗ'', ``tỷ trọng chi phí'', ``tỷ lệ thu hồi'', học viên tự suy ra phép tính từ tab Nghiệp vụ (Khó); bẫy 5, một bẫy chỉ lộ ở hidden-1: xếp lỗ theo cột \code{roi} đã làm tròn (cả kỳ có 198 chiến dịch lỗ rất ít mà \code{roi} ghi 0,00), CPA nhầm với chi phí chiến dịch, tỷ trọng theo số chiến dịch, bình quân giản đơn tỷ lệ thu hồi, thiếu cận trên (Khó); nghiệp vụ: chỉ số nhiều điều kiện, định nghĩa lỗ theo doanh thu và chi phí, hai tỷ lệ của tổng trên cùng nhóm (Khó). Đạt 3/5 trục Khó. ERD 5 bảng chỉ khoá, 4 bảng nhiễu, không vẽ đường nối (QDC 1.3). Bài sai \code{roi < 0}, bài sai cộng CPA, bài sai tỷ trọng theo số chiến dịch, bài sai bình quân tỷ lệ thu hồi rớt ở public; bài sai thiếu cận trên rớt ở hidden-1 (Nykaa thêm chiến dịch ngày 1/7/2025). hidden-1 bỏ chiến dịch đuôi 7 nên kết quả khác public.}
 \end{cauhoi}
@@ -442,7 +442,7 @@ Mã danh mục dùng trong đề: thương hiệu \code{brand_id} 1 Nykaa, 2 Pur
 \end{erd}
 \begin{nghiepvu}{Đánh giá nhóm đối tượng nào đáng được nhắm nhiều hơn trong quý tới.}
   \khainiem{doi-tuong-va-phan-khuc}
-  \luuy{Đối tượng mục tiêu là nhóm người mà chiến dịch nhắm tới, ghi ở cột \code{target_audience_id}. Mã nhóm khách xem ở đầu gói.}
+  \luuy{Đối tượng mục tiêu là nhóm người mà chiến dịch nhắm tới, ghi ở cột \code{target_audience_id}. Mã nhóm khách: 1 College Students, 2 Premium Shoppers, 3 Tier 2 City Customers, 4 Working Women, 5 Youth.}
 \end{nghiepvu}
 \goiy{Gom theo \code{target_audience_id}; lọc \code{start_date >= '2025-01-01' AND start_date < '2025-04-01'}.}
 \ghichuthietke{Cơ bản (v4 hạ từ Dễ: ERD còn 1 bảng có giá trị mẫu, bỏ \code{audiences} và cột \code{segment_id}; đề ghi thẳng cột gom; gợi ý 1 nấc; bỏ bẫy nhầm đối tượng với phân khúc khỏi phần đề. SQL giữ). 5 trục: số bảng 1; số bước 1 (\code{GROUP BY} một cột với \code{COUNT}, \code{SUM}); mơ hồ: đề ghi rõ cột và giá trị lọc; bẫy 0, chỉ có cận trên của quý; nghiệp vụ: một khái niệm, không công thức. Đạt 5/5 trục Cơ bản. Bài sai gom theo \code{segment_id} (lỗi hay gặp vì hai cột dùng chung mã nhóm khách) rớt ở public, thứ hạng khác; bài sai thiếu cận trên gộp quý 2, rớt ở public. Doanh thu năm nhóm chênh nhau dưới 4\%. hidden-1 bỏ chiến dịch đuôi 7.}

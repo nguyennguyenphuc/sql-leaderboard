@@ -195,140 +195,129 @@ JOIN audiences a ON a.audience_id = h.audience_id
 GROUP BY a.audience_id, a.audience_name
 ORDER BY a.audience_id;
 
--- [mkt-t4-quy-tac-doi-chieu-nhat-ky] solution
-WITH luat AS (
-  SELECT 'NULL' AS loai, brand_id, row_index FROM campaigns_raw
-  WHERE impressions IS NULL OR clicks IS NULL OR leads IS NULL OR conversions IS NULL
-     OR revenue IS NULL OR acquisition_cost IS NULL
-  UNION ALL
-  SELECT 'NEGATIVE', brand_id, row_index FROM campaigns_raw
-  WHERE impressions < 0 OR revenue < 0
-  UNION ALL
-  SELECT 'FUNNEL_ERROR', brand_id, row_index FROM campaigns_raw
-  WHERE clicks > impressions OR leads > clicks OR conversions > leads
-  UNION ALL
-  SELECT 'INVALID_DATE', brand_id, row_index FROM campaigns_raw
-  WHERE STR_TO_DATE(date_raw, '%d-%m-%Y') IS NULL
-     OR STR_TO_DATE(date_raw, '%d-%m-%Y') < '2024-07-01'
-     OR STR_TO_DATE(date_raw, '%d-%m-%Y') >= '2025-07-01'
-  UNION ALL
-  SELECT 'WHITESPACE', brand_id, row_index FROM campaigns_raw
-  WHERE campaign_type <> TRIM(campaign_type) OR `language` <> TRIM(`language`)
-     OR target_audience <> TRIM(target_audience) OR customer_segment <> TRIM(customer_segment)
-  UNION ALL
-  SELECT 'DUPLICATE', r.brand_id, r.row_index FROM campaigns_raw r
-  WHERE EXISTS (SELECT 1 FROM campaigns_raw s
-                WHERE s.brand_id = r.brand_id AND s.campaign_id = r.campaign_id AND s.row_index > r.row_index)
-), nhat_ky AS (
-  SELECT DISTINCT noise_type AS loai, brand_id, row_index FROM noise_log
-), dem_luat AS (
-  SELECT loai, COUNT(*) AS so_dong_luat FROM luat GROUP BY loai
-), dem_nhat_ky AS (
-  SELECT loai, COUNT(*) AS so_dong_nhat_ky FROM nhat_ky GROUP BY loai
-), dem_khop AS (
-  SELECT l.loai, COUNT(*) AS so_dong_khop
-  FROM luat l
-  JOIN nhat_ky n ON n.loai = l.loai AND n.brand_id = l.brand_id AND n.row_index = l.row_index
-  GROUP BY l.loai
+-- [mkt-t4-ngung-kenh-anh-huong-doanh-thu] solution
+WITH cd_quy AS (
+  SELECT campaign_id, brand_id, revenue
+  FROM campaigns
+  WHERE start_date >= '2025-04-01' AND start_date < '2025-07-01'
+), so_kenh AS (
+  SELECT q.campaign_id, COUNT(*) AS so_kenh
+  FROM cd_quy q
+  JOIN campaign_channels cc ON cc.campaign_id = q.campaign_id
+  GROUP BY q.campaign_id
+), tong_thuong_hieu AS (
+  SELECT brand_id, SUM(revenue) AS doanh_thu_tong
+  FROM cd_quy
+  GROUP BY brand_id
+), theo_kenh AS (
+  SELECT q.brand_id, cc.channel_id,
+         COUNT(*) AS so_chien_dich,
+         SUM(q.revenue) AS doanh_thu_anh_huong,
+         SUM(CASE WHEN s.so_kenh = 1 THEN q.revenue ELSE 0 END) AS doanh_thu_mat_han
+  FROM cd_quy q
+  JOIN campaign_channels cc ON cc.campaign_id = q.campaign_id
+  JOIN so_kenh s ON s.campaign_id = q.campaign_id
+  GROUP BY q.brand_id, cc.channel_id
 )
-SELECT k.loai AS loai_nhieu,
-       COALESCE(l.so_dong_luat, 0) AS so_dong_luat,
-       k.so_dong_nhat_ky,
-       COALESCE(m.so_dong_khop, 0) AS so_dong_khop
-FROM dem_nhat_ky k
-LEFT JOIN dem_luat l ON l.loai = k.loai
-LEFT JOIN dem_khop m ON m.loai = k.loai
-ORDER BY k.loai;
+SELECT k.brand_id, ch.channel_name, k.so_chien_dich,
+       ROUND(k.doanh_thu_anh_huong * 100 / t.doanh_thu_tong, 2) AS ty_trong_anh_huong_pct,
+       ROUND(k.doanh_thu_mat_han * 100 / t.doanh_thu_tong, 2) AS ty_trong_mat_han_pct
+FROM theo_kenh k
+JOIN tong_thuong_hieu t ON t.brand_id = k.brand_id
+JOIN channels ch ON ch.channel_id = k.channel_id
+ORDER BY k.brand_id, ch.channel_name;
 
--- [mkt-t4-quy-tac-doi-chieu-nhat-ky] wrong: ngay_chi_kiem_doc_duoc
--- Luật ngày chỉ bắt chuỗi không đọc được, bỏ sót '01-01-1999', '15-06-2030' (đọc được nhưng ngoài kỳ) (rớt ở public).
-WITH luat AS (
-  SELECT 'NULL' AS loai, brand_id, row_index FROM campaigns_raw
-  WHERE impressions IS NULL OR clicks IS NULL OR leads IS NULL OR conversions IS NULL
-     OR revenue IS NULL OR acquisition_cost IS NULL
-  UNION ALL
-  SELECT 'NEGATIVE', brand_id, row_index FROM campaigns_raw
-  WHERE impressions < 0 OR revenue < 0
-  UNION ALL
-  SELECT 'FUNNEL_ERROR', brand_id, row_index FROM campaigns_raw
-  WHERE clicks > impressions OR leads > clicks OR conversions > leads
-  UNION ALL
-  SELECT 'INVALID_DATE', brand_id, row_index FROM campaigns_raw
-  WHERE STR_TO_DATE(date_raw, '%d-%m-%Y') IS NULL
-  UNION ALL
-  SELECT 'WHITESPACE', brand_id, row_index FROM campaigns_raw
-  WHERE campaign_type <> TRIM(campaign_type) OR `language` <> TRIM(`language`)
-     OR target_audience <> TRIM(target_audience) OR customer_segment <> TRIM(customer_segment)
-  UNION ALL
-  SELECT 'DUPLICATE', r.brand_id, r.row_index FROM campaigns_raw r
-  WHERE EXISTS (SELECT 1 FROM campaigns_raw s
-                WHERE s.brand_id = r.brand_id AND s.campaign_id = r.campaign_id AND s.row_index > r.row_index)
-), nhat_ky AS (
-  SELECT DISTINCT noise_type AS loai, brand_id, row_index FROM noise_log
-), dem_luat AS (
-  SELECT loai, COUNT(*) AS so_dong_luat FROM luat GROUP BY loai
-), dem_nhat_ky AS (
-  SELECT loai, COUNT(*) AS so_dong_nhat_ky FROM nhat_ky GROUP BY loai
-), dem_khop AS (
-  SELECT l.loai, COUNT(*) AS so_dong_khop
-  FROM luat l
-  JOIN nhat_ky n ON n.loai = l.loai AND n.brand_id = l.brand_id AND n.row_index = l.row_index
-  GROUP BY l.loai
+-- [mkt-t4-ngung-kenh-anh-huong-doanh-thu] wrong: tong_thuong_hieu_tren_dong_da_noi
+-- Tổng doanh thu thương hiệu cộng trên các dòng đã nối kênh: chiến dịch nhiều kênh bị cộng nhiều lần, tỷ trọng còn khoảng một nửa (rớt ở public).
+WITH cd_kenh AS (
+  SELECT c.campaign_id, c.brand_id, c.revenue, cc.channel_id
+  FROM campaigns c
+  JOIN campaign_channels cc ON cc.campaign_id = c.campaign_id
+  WHERE c.start_date >= '2025-04-01' AND c.start_date < '2025-07-01'
+), so_kenh AS (
+  SELECT campaign_id, COUNT(*) AS so_kenh
+  FROM cd_kenh
+  GROUP BY campaign_id
+), tong_thuong_hieu AS (
+  SELECT brand_id, SUM(revenue) AS doanh_thu_tong
+  FROM cd_kenh
+  GROUP BY brand_id
+), theo_kenh AS (
+  SELECT k.brand_id, k.channel_id,
+         COUNT(*) AS so_chien_dich,
+         SUM(k.revenue) AS doanh_thu_anh_huong,
+         SUM(CASE WHEN s.so_kenh = 1 THEN k.revenue ELSE 0 END) AS doanh_thu_mat_han
+  FROM cd_kenh k
+  JOIN so_kenh s ON s.campaign_id = k.campaign_id
+  GROUP BY k.brand_id, k.channel_id
 )
-SELECT k.loai AS loai_nhieu,
-       COALESCE(l.so_dong_luat, 0) AS so_dong_luat,
-       k.so_dong_nhat_ky,
-       COALESCE(m.so_dong_khop, 0) AS so_dong_khop
-FROM dem_nhat_ky k
-LEFT JOIN dem_luat l ON l.loai = k.loai
-LEFT JOIN dem_khop m ON m.loai = k.loai
-ORDER BY k.loai;
+SELECT k.brand_id, ch.channel_name, k.so_chien_dich,
+       ROUND(k.doanh_thu_anh_huong * 100 / t.doanh_thu_tong, 2) AS ty_trong_anh_huong_pct,
+       ROUND(k.doanh_thu_mat_han * 100 / t.doanh_thu_tong, 2) AS ty_trong_mat_han_pct
+FROM theo_kenh k
+JOIN tong_thuong_hieu t ON t.brand_id = k.brand_id
+JOIN channels ch ON ch.channel_id = k.channel_id
+ORDER BY k.brand_id, ch.channel_name;
 
--- [mkt-t4-quy-tac-doi-chieu-nhat-ky] wrong: doi_chieu_thieu_brand
--- Đối chiếu nhật ký chỉ theo row_index: vị trí dòng lặp lại ở ba file nên số dòng khớp bị nhân lên (rớt ở public).
-WITH luat AS (
-  SELECT 'NULL' AS loai, brand_id, row_index FROM campaigns_raw
-  WHERE impressions IS NULL OR clicks IS NULL OR leads IS NULL OR conversions IS NULL
-     OR revenue IS NULL OR acquisition_cost IS NULL
-  UNION ALL
-  SELECT 'NEGATIVE', brand_id, row_index FROM campaigns_raw
-  WHERE impressions < 0 OR revenue < 0
-  UNION ALL
-  SELECT 'FUNNEL_ERROR', brand_id, row_index FROM campaigns_raw
-  WHERE clicks > impressions OR leads > clicks OR conversions > leads
-  UNION ALL
-  SELECT 'INVALID_DATE', brand_id, row_index FROM campaigns_raw
-  WHERE STR_TO_DATE(date_raw, '%d-%m-%Y') IS NULL
-     OR STR_TO_DATE(date_raw, '%d-%m-%Y') < '2024-07-01'
-     OR STR_TO_DATE(date_raw, '%d-%m-%Y') >= '2025-07-01'
-  UNION ALL
-  SELECT 'WHITESPACE', brand_id, row_index FROM campaigns_raw
-  WHERE campaign_type <> TRIM(campaign_type) OR `language` <> TRIM(`language`)
-     OR target_audience <> TRIM(target_audience) OR customer_segment <> TRIM(customer_segment)
-  UNION ALL
-  SELECT 'DUPLICATE', r.brand_id, r.row_index FROM campaigns_raw r
-  WHERE EXISTS (SELECT 1 FROM campaigns_raw s
-                WHERE s.brand_id = r.brand_id AND s.campaign_id = r.campaign_id AND s.row_index > r.row_index)
-), nhat_ky AS (
-  SELECT DISTINCT noise_type AS loai, brand_id, row_index FROM noise_log
-), dem_luat AS (
-  SELECT loai, COUNT(*) AS so_dong_luat FROM luat GROUP BY loai
-), dem_nhat_ky AS (
-  SELECT loai, COUNT(*) AS so_dong_nhat_ky FROM nhat_ky GROUP BY loai
-), dem_khop AS (
-  SELECT l.loai, COUNT(*) AS so_dong_khop
-  FROM luat l
-  JOIN nhat_ky n ON n.loai = l.loai AND n.row_index = l.row_index
-  GROUP BY l.loai
+-- [mkt-t4-ngung-kenh-anh-huong-doanh-thu] wrong: kenh_dau_chuoi_la_kenh_duy_nhat
+-- Coi kênh đứng đầu chuỗi (channel_pos = 1) là kênh duy nhất: phần mất hẳn gộp cả chiến dịch còn kênh khác (rớt ở public).
+WITH cd_quy AS (
+  SELECT campaign_id, brand_id, revenue
+  FROM campaigns
+  WHERE start_date >= '2025-04-01' AND start_date < '2025-07-01'
+), tong_thuong_hieu AS (
+  SELECT brand_id, SUM(revenue) AS doanh_thu_tong
+  FROM cd_quy
+  GROUP BY brand_id
+), theo_kenh AS (
+  SELECT q.brand_id, cc.channel_id,
+         COUNT(*) AS so_chien_dich,
+         SUM(q.revenue) AS doanh_thu_anh_huong,
+         SUM(CASE WHEN cc.channel_pos = 1 THEN q.revenue ELSE 0 END) AS doanh_thu_mat_han
+  FROM cd_quy q
+  JOIN campaign_channels cc ON cc.campaign_id = q.campaign_id
+  GROUP BY q.brand_id, cc.channel_id
 )
-SELECT k.loai AS loai_nhieu,
-       COALESCE(l.so_dong_luat, 0) AS so_dong_luat,
-       k.so_dong_nhat_ky,
-       COALESCE(m.so_dong_khop, 0) AS so_dong_khop
-FROM dem_nhat_ky k
-LEFT JOIN dem_luat l ON l.loai = k.loai
-LEFT JOIN dem_khop m ON m.loai = k.loai
-ORDER BY k.loai;
+SELECT k.brand_id, ch.channel_name, k.so_chien_dich,
+       ROUND(k.doanh_thu_anh_huong * 100 / t.doanh_thu_tong, 2) AS ty_trong_anh_huong_pct,
+       ROUND(k.doanh_thu_mat_han * 100 / t.doanh_thu_tong, 2) AS ty_trong_mat_han_pct
+FROM theo_kenh k
+JOIN tong_thuong_hieu t ON t.brand_id = k.brand_id
+JOIN channels ch ON ch.channel_id = k.channel_id
+ORDER BY k.brand_id, ch.channel_name;
+
+-- [mkt-t4-ngung-kenh-anh-huong-doanh-thu] wrong: thieu_can_tren
+-- Chỉ có cận dưới 1/4/2025: hidden-1 lấy thêm NY-CMP-56555 (Nykaa, 1/7/2025, WhatsApp và YouTube), số chiến dịch và tỷ trọng Nykaa lệch (chỉ rớt ở hidden-1).
+WITH cd_quy AS (
+  SELECT campaign_id, brand_id, revenue
+  FROM campaigns
+  WHERE start_date >= '2025-04-01'
+), so_kenh AS (
+  SELECT q.campaign_id, COUNT(*) AS so_kenh
+  FROM cd_quy q
+  JOIN campaign_channels cc ON cc.campaign_id = q.campaign_id
+  GROUP BY q.campaign_id
+), tong_thuong_hieu AS (
+  SELECT brand_id, SUM(revenue) AS doanh_thu_tong
+  FROM cd_quy
+  GROUP BY brand_id
+), theo_kenh AS (
+  SELECT q.brand_id, cc.channel_id,
+         COUNT(*) AS so_chien_dich,
+         SUM(q.revenue) AS doanh_thu_anh_huong,
+         SUM(CASE WHEN s.so_kenh = 1 THEN q.revenue ELSE 0 END) AS doanh_thu_mat_han
+  FROM cd_quy q
+  JOIN campaign_channels cc ON cc.campaign_id = q.campaign_id
+  JOIN so_kenh s ON s.campaign_id = q.campaign_id
+  GROUP BY q.brand_id, cc.channel_id
+)
+SELECT k.brand_id, ch.channel_name, k.so_chien_dich,
+       ROUND(k.doanh_thu_anh_huong * 100 / t.doanh_thu_tong, 2) AS ty_trong_anh_huong_pct,
+       ROUND(k.doanh_thu_mat_han * 100 / t.doanh_thu_tong, 2) AS ty_trong_mat_han_pct
+FROM theo_kenh k
+JOIN tong_thuong_hieu t ON t.brand_id = k.brand_id
+JOIN channels ch ON ch.channel_id = k.channel_id
+ORDER BY k.brand_id, ch.channel_name;
 
 -- [mkt-t5-dang-chay-binh-quan-theo-tuan] solution
 WITH theo_ngay AS (
