@@ -257,9 +257,9 @@ Khung xanh nét đứt (\emph{Thiết kế ERD}) là ghi chú cho người duy�
   hinhthuc=write, cap=medium, dang=E2, kynang={JOIN nhiều cột, ABS, MAX}, bay={noi-thieu-nam},
   tacgia={Agent A · gói 5}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.001]
 \tieude{Compa-ratio trong hệ thống có khớp mức lương thị trường?}
-\boicanh[Chị Thu · Chuyên viên tiền lương – phúc lợi]{Kỳ điều chỉnh lương tới chị định dùng compa-ratio có sẵn trong hệ thống. Em đối chiếu giúp chị con số này với mức lương thị trường năm 2025.}
+\boicanh[Chị Thu · Chuyên viên tiền lương – phúc lợi]{Kỳ điều chỉnh lương tới của nhóm kỹ sư phần mềm, chị định dùng compa-ratio có sẵn trong hệ thống. Em đối chiếu giúp chị con số này với mức lương thị trường năm 2025.}
 \begin{yeucau}
-  \item Xét mọi dòng nhân viên – tháng của năm 2025.
+  \item Xét mọi dòng nhân viên – tháng của năm 2025 thuộc nhóm chức danh \code{job_family = 'Software Engineer'}.
   \item Tính lại compa-ratio (tỷ số lương trên mức thị trường trung vị) bằng cách chia trực tiếp tiền lương tháng cho mức lương thị trường P50 cùng năm, nước, chức danh, bậc; không làm tròn giá trị tính lại. So với compa-ratio có sẵn.
   \item Coi một dòng là lệch khi chênh lệch tuyệt đối lớn hơn 0,02.
   \item Trả về theo nước: \code{country}, \code{so_dong}, \code{so_dong_lech}, \code{lech_lon_nhat} (chênh lệch tuyệt đối lớn nhất, làm tròn 4 chữ số); sắp theo \code{country}.
@@ -271,14 +271,14 @@ Khung xanh nét đứt (\emph{Thiết kế ERD}) là ghi chú cho người duy�
   \erdnoi[kieu=n-1]{employee_monthly_snapshot.job_family}{country_market_benchmark.job_role}
   \erdnoi[kieu=n-1]{employee_monthly_snapshot.position_id}{positions.position_id}
 \end{erd}
-\begin{nghiepvu}{Quyết định có dùng thẳng compa-ratio trong hệ thống cho kỳ điều chỉnh lương hay phải tính lại.}
+\begin{nghiepvu}{Quyết định có dùng thẳng compa-ratio trong hệ thống cho kỳ điều chỉnh lương của nhóm kỹ sư phần mềm hay phải tính lại.}
   \khainiem{compa-ratio}
   \khainiem{luong-thi-truong}
   \luuy{Mức lương thị trường đổi theo năm. Mỗi dòng nhân viên – tháng chỉ ứng với một mức P50.}
 \end{nghiepvu}
-\goiy{Một dòng tháng năm 2025 được ghép với bao nhiêu dòng mức lương thị trường nếu chỉ ghép theo nước, chức danh và bậc?}
+\goiy{Một dòng tháng năm 2025 của nhóm Software Engineer được ghép với bao nhiêu dòng mức lương thị trường nếu chỉ ghép theo nước, chức danh và bậc?}
 \goiy{Thêm điều kiện \code{benchmark_year = LEFT(snapshot_month, 4)}; đếm lệch bằng \code{SUM(ABS(...) > 0.02)}.}
-\ghichuthietke{Trung bình, E2: đối soát cột tính sẵn với nguồn gốc. Lương đã làm tròn nên lệch nhỏ là bình thường, ngưỡng 0,02 cho thấy độ lệch rất nhỏ. Đề ghi rõ không làm tròn giá trị tính lại (làm tròn 3 chữ số đổi so\_dong\_lech); saiso 0,001 cho lech\_lon\_nhat. Wrong nối thiếu năm: nhân đôi dòng và so với P50 năm khác. Cấp v3 (QUYET-DINH-CHUNG 2.2, hạ từ Khó): 2 bảng lời giải – Trung bình; nối nhiều cột rồi gom – Trung bình; 1–2 bẫy (thiếu năm, làm tròn) – Trung bình; công thức compa-ratio ghép theo năm – Trung bình; đề nói bằng lời – Khó. Đạt Trung bình 4/5. ERD 3 bảng chỉ ký hiệu, 1 bảng nhiễu, bỏ erdkhoa; cách ghép năm nằm ở lưu ý và gợi ý 1. Kiểm V4 (11/11/2026): wrong nối thiếu năm, cũng là lỗi học viên hay mắc, chạy khoảng 72–88 giây mỗi biến thể (máy bận), nên học viên mắc lỗi này có thể gặp hết giờ thay vì thấy sai kết quả; lời giải khoảng 0,9 giây.}
+\ghichuthietke{Trung bình, E2: đối soát cột tính sẵn với nguồn gốc. Lương đã làm tròn nên lệch nhỏ là bình thường, ngưỡng 0,02 cho thấy độ lệch rất nhỏ. Đề ghi rõ không làm tròn giá trị tính lại (làm tròn 3 chữ số đổi so\_dong\_lech); saiso 0,001 cho lech\_lon\_nhat. Wrong nối thiếu năm: nhân đôi dòng và so với P50 năm khác. Cấp v3 (QUYET-DINH-CHUNG 2.2, hạ từ Khó): 2 bảng lời giải – Trung bình; nối nhiều cột rồi gom – Trung bình; 1–2 bẫy (thiếu năm, làm tròn) – Trung bình; công thức compa-ratio ghép theo năm – Trung bình; đề nói bằng lời – Khó. Đạt Trung bình 4/5. ERD 3 bảng chỉ ký hiệu, 1 bảng nhiễu, bỏ erdkhoa; cách ghép năm nằm ở lưu ý và gợi ý 1. Phạm vi một nhóm chức danh (giảng viên quyết 11/11/2026): khi nối thiếu năm, bảng mức lương thị trường lọc theo nhóm chức danh chỉ còn vài chục dòng, nên lỗi này vẫn ra kết quả sai nhanh như lời giải, kể cả khi học viên lọc năm bằng hàm trên \code{snapshot_month}.}
 \end{cauhoi}
 
 % ================================================================ k7 · debug · basic · E1 · finance

@@ -103,7 +103,7 @@ Quy ước:
 | `interest_rate` (tiền gửi) | lãi suất tiền gửi (%/năm) | "lãi" đứng một mình chỉ lãi suất | Lưu dạng tỷ lệ | DA |
 | `maturity_date` (tiền gửi) | ngày đến hạn | ngày đáo hạn (chấp nhận khi nói hợp đồng chung) | TT49 Điều 6 dùng "ngày đến hạn" | TT49 |
 | `deposit_status` = 'ACTIVE' | đang còn hiệu lực | | | DA |
-| 'RENEWED' | tái tục; lần đầu "tái tục (kéo dài thời hạn gửi tiền khi đến hạn)" | gia hạn (từ của tín dụng), quay vòng, lăn sổ | TT49 Điều 9: "kéo dài thời hạn gửi tiền vào ngày đến hạn"; TT48 Điều 15: "kéo dài thêm một thời hạn mới" | TT49; TT48 |
+| 'RENEWED' | tái tục; lần đầu "tái tục (kéo dài thời hạn gửi tiền khi đến hạn)" | gia hạn (từ của tín dụng), quay vòng, lăn sổ; "còn hiệu lực" cho 'RENEWED' | Trong bộ dữ liệu, 'RENEWED' là hợp đồng cũ đã tái tục sang hợp đồng mới ('ACTIVE'), không còn hiệu lực; cộng cả hai là tính trùng (quyết 11/11/2026). TT49 Điều 9: "kéo dài thời hạn gửi tiền vào ngày đến hạn"; TT48 Điều 15: "kéo dài thêm một thời hạn mới" | TT49; TT48 |
 | 'CLOSED' (tiền gửi) | đã tất toán | đóng sổ, chốt sổ | | DA |
 | 'EARLY_TERMINATED' | rút trước hạn | phá sổ, bẻ sổ, tất toán sớm | TT48 Điều 17: "rút trước hạn"; TT49 Điều 10: "chi trả trước hạn" | TT48; TT49 |
 | `settlement_account_id` | tài khoản nhận gốc và lãi | tài khoản liên kết | TT49 Điều 9: không kéo dài thì chuyển gốc, lãi vào tài khoản thanh toán của khách hàng | TT49; DA |
@@ -401,11 +401,11 @@ Cột "trong bộ dữ liệu" dựa trên mô tả 26 bảng của database `ai
 \khaibaokhainiem{ty-le-casa}{Tỷ lệ CASA}
   {Tỷ lệ CASA là phần tiền gửi không kỳ hạn trong tổng tiền gửi của khách hàng.}
   {số dư tiền gửi không kỳ hạn / (số dư tiền gửi không kỳ hạn + số tiền gửi có kỳ hạn còn hiệu lực)}
-  {tử số từ \code{core_account_balance}; tiền gửi có kỳ hạn còn hiệu lực là \code{core_deposit_contract.principal} với \code{deposit_status} thuộc \code{'ACTIVE'}, \code{'RENEWED'}. Hai phần phải lấy cùng một ngày.}
+  {tử số từ \code{core_account_balance}; tiền gửi có kỳ hạn còn hiệu lực là \code{core_deposit_contract.principal} với \code{deposit_status = 'ACTIVE'} (\code{'RENEWED'} là hợp đồng cũ đã tái tục sang hợp đồng mới, không tính vào để khỏi trùng). Hai phần phải lấy cùng một ngày.}
 \khaibaokhainiem{tien-gui-co-ky-han}{Tiền gửi có kỳ hạn}
   {Tiền gửi có kỳ hạn là khoản tiền của khách hàng gửi tại tổ chức tín dụng trong một thời hạn nhất định, với nguyên tắc hoàn trả đầy đủ tiền gốc và lãi.}
   {}
-  {\code{core_deposit_contract}: \code{principal} (số tiền gửi), \code{interest_rate}, \code{term_months} (kỳ hạn), \code{maturity_date} (ngày đến hạn), \code{settlement_account_id} (tài khoản nhận gốc và lãi), \code{pledged_flag} (đang làm tài sản bảo đảm). Sản phẩm qua \code{core_contract.product_version_id}.}
+  {\code{core_deposit_contract}: \code{principal} (số tiền gửi), \code{interest_rate}, \code{term_months} (kỳ hạn), \code{maturity_date} (ngày đến hạn), \code{deposit_status} (\code{'ACTIVE'} là đang còn hiệu lực), \code{settlement_account_id} (tài khoản nhận gốc và lãi), \code{pledged_flag} (đang làm tài sản bảo đảm). Sản phẩm qua \code{core_contract.product_version_id}.}
 \khaibaokhainiem{tai-tuc}{Tái tục}
   {Tái tục là việc kéo dài thời hạn gửi tiền vào ngày đến hạn của khoản tiền gửi có kỳ hạn, theo thoả thuận giữa ngân hàng và khách hàng.}
   {tỷ lệ tái tục = số hợp đồng tái tục / số hợp đồng đã đến hạn}
@@ -413,7 +413,7 @@ Cột "trong bộ dữ liệu" dựa trên mô tả 26 bảng của database `ai
 \khaibaokhainiem{rut-truoc-han}{Rút trước hạn và tất toán}
   {Rút trước hạn là việc khách hàng nhận lại tiền gửi trước ngày đến hạn. Tất toán là việc kết thúc hợp đồng tiền gửi và chi trả gốc, lãi cho khách hàng.}
   {tỷ lệ rút trước hạn = số hợp đồng rút trước hạn / số hợp đồng trong phạm vi xét}
-  {\code{deposit_status}: \code{'EARLY_TERMINATED'} (rút trước hạn), \code{'CLOSED'} (đã tất toán), \code{'ACTIVE'}, \code{'RENEWED'}. Lệnh chi trả tiền gửi đến hạn có \code{transaction_type = 'TD_MATURITY'}.}
+  {\code{deposit_status}: \code{'EARLY_TERMINATED'} (rút trước hạn), \code{'CLOSED'} (đã tất toán), \code{'ACTIVE'} (đang còn hiệu lực), \code{'RENEWED'} (hợp đồng cũ đã tái tục sang hợp đồng mới, không còn hiệu lực). Lệnh chi trả tiền gửi đến hạn có \code{transaction_type = 'TD_MATURITY'}.}
 
 % --- Tài khoản, thanh toán
 \khaibaokhainiem{so-du}{Số dư tài khoản}

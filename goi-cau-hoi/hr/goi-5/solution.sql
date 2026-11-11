@@ -289,6 +289,7 @@ JOIN country_market_benchmark b
  AND b.job_role       = s.job_family
  AND b.job_level      = s.job_level
 WHERE s.snapshot_month BETWEEN '2025-01' AND '2025-12'
+  AND s.job_family = 'Software Engineer'
 GROUP BY s.country
 ORDER BY s.country;
 
@@ -304,6 +305,7 @@ JOIN country_market_benchmark b
  AND b.job_role  = s.job_family
  AND b.job_level = s.job_level
 WHERE s.snapshot_month BETWEEN '2025-01' AND '2025-12'
+  AND s.job_family = 'Software Engineer'
 GROUP BY s.country
 ORDER BY s.country;
 
