@@ -11,6 +11,9 @@ Bộ kiểm đọc một gói câu hỏi (4 file, chuẩn `aio-sql-cauhoi` v0.4)
 | `may_cham.py` | chạy truy vấn (user chỉ SELECT, có giới hạn thời gian), so kết quả, đo `EXPLAIN ANALYZE` |
 | `bien-the.json` | ánh xạ `dulieu` → database theo biến thể (`scm` → `scm`, `scm_hidden_1`; `datathon-2026` → `datathon_2026…`) |
 | `tu_kiem_thu.py` | tự kiểm thử bộ kiểm (gói mẫu, gói thử, gói làm hỏng, so kết quả) |
+| `kiem_tat_ca.sh` | chạy bộ kiểm đầy đủ cho mọi gói (`bash cong-cu/kiem_tat_ca.sh [N=3] [bộ...]`, N gói song song), ra `ket-qua/kiem-cuoi/<bộ>-goi-<k>/` và `TONG-HOP.txt` |
+| `tien_do.sh` | báo tiến độ soạn đề theo bộ, gói (chỉ đọc file, không chạy SQL) |
+| `sinh_thong_ke.py` | sinh lại số liệu khối "## Thống kê" của `goi-cau-hoi/<bộ>/BAN-DO-100-CAU.md` từ `cau-hoi.tex` (`python -X utf8 cong-cu/sinh_thong_ke.py <bộ>`; chỉ in, không sửa BAN-DO) |
 | `bien_dich.sh` | biên dịch thử gói bằng XeLaTeX trong image `texlive/texlive` |
 | `va-xelatex.tex` | 2 dòng vá XeLaTeX đặt trong `cau-hoi.tex` (không sửa `.sty`) |
 | `Dockerfile` | image `sqllb-tools` = python:3.12-slim + PyMySQL 1.2.4 + sqlglot 30.30.0 |

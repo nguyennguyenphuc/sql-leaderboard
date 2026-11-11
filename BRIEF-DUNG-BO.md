@@ -2,7 +2,7 @@
 
 Hạn chót cứng: ~45 phút. Ưu tiên theo thứ tự: (1) MySQL + biến thể ẩn + README (để 5 agent soạn gói bắt đầu được), (2) STYLE-<bo>.md, (3) BAN-DO-100-CAU.md.
 
-Thư mục gốc: C:\Cong viec\ProjectDA\sql-leaderboard\ . Đọc trước: mysql\README.md (cách bộ Supply Chain đã được dựng – LÀM THEO ĐÚNG KHUÔN ĐÓ), cong-cu\README.md, quy_chuan\CHOT-FORMAT-CAU-HOI.md (mục 6 biến thể), BRIEF-SOAN-GOI.md (mục Phân bổ), style\STYLE-scm.md (mẫu cấu trúc bộ chuẩn).
+Thư mục gốc: thư mục gốc repo `sql-leaderboard`. Đọc trước: mysql\README.md (cách bộ Supply Chain đã được dựng – LÀM THEO ĐÚNG KHUÔN ĐÓ), cong-cu\README.md, quy_chuan\CHOT-FORMAT-CAU-HOI.md (mục 6 biến thể), BRIEF-SOAN-GOI.md (mục Phân bổ), style\STYLE-scm.md (mẫu cấu trúc bộ chuẩn).
 
 ## (1) MySQL
 - Container MySQL dùng chung: `sqllb-mysql` (mạng `sqllb`, root password trong mysql\.env – KHÔNG in ra). Tạo database `<bo>` và `<bo>_hidden_1`, cấp SELECT cho `sql_runner`.

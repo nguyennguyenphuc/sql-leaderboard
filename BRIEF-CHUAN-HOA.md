@@ -8,7 +8,7 @@ Trước đây một số brief nội bộ lệch quy chuẩn; nay áp quy chu�
 3. **Tiêu đề** ≤ 13 tiếng; câu Tối ưu được nêu ràng buộc; bối cảnh vẫn không nhắc kỹ thuật SQL.
 4. **ERD cấp Khó**: chỉ khoá – không vẽ `\erdnoi`, cách nối ghi trong `\erdkhoa` (như mẫu w4, d4, o4); số bảng theo CHOT mục 3 (lời giải dùng ≤ 3 bảng thì thêm bảng nhiễu cho đủ 5). ERD các cấp khác giữ đúng CHOT mục 3.
 5. **Cấp**: chấm lại theo Huong-dan mục 6 + QUYET-DINH-CHUNG.md mục 2 (bản đã sửa): mọi module có đủ 4 cấp; sửa lỗi một chỗ dễ thấy là Dễ. Chỉ đổi cấp khi rõ ràng lệch; cấp đổi thì ERD phải đổi theo, cập nhật BAN-DO-100-CAU.md, BANG-PHAN-CONG.md.
-6. **Thư mục gói đúng 4 file** (CHOT-FORMAT mục 4): chuyển mọi file khác trong goi-cau-hoi\<bo>\goi-<k>\ (BANG-PHAN-CONG.md, DA-SUA.md, REVIEW-*.md, BAN-DO-GOI.md, KIEM-V3…) sang goi-cau-hoi\<bo>\ho-so\goi-<k>\ (giữ nguyên tên). Dùng `git mv` nếu file đã được git theo dõi (repo ở C:\Cong viec\ProjectDA\sql-leaderboard, KHÔNG commit). Sửa đường dẫn nhắc tới các file này trong README/BRIEF nếu có.
+6. **Thư mục gói đúng 4 file** (CHOT-FORMAT mục 4): chuyển mọi file khác trong goi-cau-hoi\<bo>\goi-<k>\ (BANG-PHAN-CONG.md, DA-SUA.md, REVIEW-*.md, BAN-DO-GOI.md, KIEM-V3…) sang goi-cau-hoi\<bo>\ho-so\goi-<k>\ (giữ nguyên tên). Dùng `git mv` nếu file đã được git theo dõi (KHÔNG commit). Sửa đường dẫn nhắc tới các file này trong README/BRIEF nếu có.
 
 Không đổi SQL, mã, khoá chấm trừ khi bước 5 đổi cấp. Văn bản mới qua cửa chặn giọng văn (BRIEF-KIEM-GOI bước 6, trừ các cụm mà gói mẫu dùng).
 Kiểm: `--chi-phan-tich` cả 5 gói → 0 lỗi và hết cảnh báo GOI_FILE_LA; biên dịch lại 5 gói (`bash cong-cu/bien_dich.sh <goi> <ra tuyệt đối>`) → 0 lỗi LaTeX. Ghi goi-cau-hoi\<bo>\ho-so\CHUAN-HOA.md: số chỗ sửa theo 6 mục, các câu đổi cấp.

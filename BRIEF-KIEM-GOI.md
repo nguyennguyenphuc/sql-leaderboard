@@ -2,7 +2,7 @@
 
 Quy chuẩn (DOC_TRUOC.md): mỗi gói có 2 người kiểm, mỗi người nhận một nửa số câu và kiểm CẢ SQL lẫn nội dung/nghiệp vụ. Hạn: ~25 phút. Không bỏ bước nào dưới đây.
 
-Thư mục gốc: C:\Cong viec\ProjectDA\sql-leaderboard\
+Thư mục gốc: thư mục gốc repo `sql-leaderboard`
 - B nhận các câu thứ 1, 3, 5, … (theo thứ tự xuất hiện trong cau-hoi.tex); C nhận các câu thứ 2, 4, 6, … Case tính là một câu.
 - Đọc trước: quy_chuan\CHOT-FORMAT-CAU-HOI.md, quy_chuan\Huong-dan-cho-team-noi-dung.md, quy_chuan\goi-cau-hoi-mau\HUONG_DAN.md, style\STYLE-<bo>.md (thuật ngữ + giọng văn chuẩn giáo trình + khuôn cấm), mysql\README.md hoặc mysql\README-<bo>.md (dữ liệu, biến thể ẩn), cong-cu\README.md.
 - CHỈ ĐỌC gói: không sửa cau-hoi.tex / solution.sql. Ghi DUY NHẤT file goi-cau-hoi\<bo>\goi-<k>\REVIEW-<B|C>.md. Nháp ở cong-cu\ket-qua\review\<bo>-goi-<k>-<B|C>\.

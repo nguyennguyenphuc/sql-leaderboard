@@ -2,7 +2,7 @@
 
 Bạn soạn MỘT gói 20 câu SQL Leaderboard theo đúng quy chuẩn. Hạn chót cứng: xong trong ~60 phút (cả tự kiểm). Chất lượng vẫn phải đạt: 0 lỗi bộ kiểm, biên dịch được, giọng văn chuẩn.
 
-Thư mục gốc: C:\Cong viec\ProjectDA\sql-leaderboard\
+Thư mục gốc: thư mục gốc repo `sql-leaderboard`
 
 ## Đọc trước (bắt buộc)
 1. quy_chuan\CHOT-FORMAT-CAU-HOI.md; quy_chuan\Huong-dan-cho-team-noi-dung.md (khung 8 phần, ERD to dần theo cấp, tab Nghiệp vụ không lộ số, scale độ khó 5 trục, 18 dạng A1–E3); quy_chuan\goi-cau-hoi-mau\HUONG_DAN.md (cú pháp đầy đủ); quy_chuan\goi-cau-hoi-mau\cau-hoi.tex + solution.sql (CHÉP KHUNG câu mẫu cùng hình thức + cấp); quy_chuan\CHOT-LO-TRINH.md + quy_chuan\lo-trinh-sql\assets\js\data.js (module của gói bạn dạy gì: goals, syntax, mistakes).
