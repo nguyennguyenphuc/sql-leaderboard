@@ -140,82 +140,81 @@ tháng 7/2026 (tháng 8 dừng ở 29/8). Cohort D7 chỉ lấy người cài �
 | jelly-c9-ab-mua-them-buoc | 5 | case | case | hard | – | marketing | Đưa ưu đãi thêm lượt đi sớm hơn có đáng không? | b1 Cỡ mẫu của hai nhánh; b2 Chỉ số chính trên mọi người được chia; b3 Doanh thu IAP D0–D6 trên mỗi người; b4 Chỉ số bảo vệ: giữ chân D7; b5 Kết luận | ab_assignments, level_attempts, purchases, player_daily | b1: dem_tiep_xuc_bang_is_null; b2: chi_tinh_nguoi_da_tiep_xuc, dem_giao_dich_goi_thay_co; b3: mau_so_nguoi_tra_tien; b4: gom_ca_nguoi_chua_du_ngay |
 | jelly-c10-man-28-30 | 5 | case | case | hard | – | after_sales | Bản 2.1.1 đã sửa xong màn 28–30 chưa? | b1 Tỷ lệ thắng màn 28–30 theo phiên bản và nền tảng; b2 Tỷ lệ thua và bỏ cuộc; b3 Lượt chơi được mời thêm lượt đi; b4 Giữ chân D1 theo phiên bản lúc cài; b5 Kết luận | level_attempts, users, player_daily | b1: phien_ban_luc_cai, ca_cua_so_du_lieu; b4: mau_so_tu_bang_hoat_dong |
 
-## Thống kê (đếm từ bảng trên)
+## Thống kê (sinh lại tự động từ cau-hoi.tex, 100 câu)
 
-**Hình thức:** write 54 · debug 28 · optimize 8 · case 10 = 100. **Cấp:** basic 14 · easy 35 · medium 36 · hard 15.
+### Module × cấp
+
+| Tiền tố | Cơ bản | Dễ | Trung bình | Khó |
+|---|---:|---:|---:|---:|
+| `a` | 2 | 3 | 2 | 2 |
+| `c` | 3 | 2 | 2 | 3 |
+| `f` | 2 | 3 | 2 | 2 |
+| `j` | 2 | 3 | 2 | 2 |
+| `k` | 2 | 3 | 2 | 2 |
+| `n` | 2 | 3 | 2 | 2 |
+| `p` | 2 | 3 | 2 | 2 |
+| `q` | 2 | 3 | 2 | 2 |
+| `r` | 2 | 3 | 2 | 2 |
+| `s` | 2 | 3 | 2 | 2 |
+| `t` | 2 | 3 | 2 | 2 |
 
 ### Hình thức × cấp
 
-| Hình thức | basic | easy | medium | hard | Cộng |
+| Hình thức | Cơ bản | Dễ | Trung bình | Khó | Cộng |
 |---|---:|---:|---:|---:|---:|
-| write | 8 | 20 | 20 | 6 | 54 |
-| debug | 3 | 10 | 11 | 4 | 28 |
-| optimize | · | 3 | 3 | 2 | 8 |
-| case | 3 | 2 | 2 | 3 | 10 |
-| **Cộng** | 14 | 35 | 36 | 15 | 100 |
+| Viết | 12 | 16 | 13 | 13 | 54 |
+| Sửa lỗi | 7 | 11 | 5 | 5 | 28 |
+| Tối ưu | 1 | 3 | 2 | 2 | 8 |
+| Case | 3 | 2 | 2 | 3 | 10 |
 
-### Theo module: cấp và hình thức
+### Hình thức × mảng
 
-| Module | basic | easy | medium | hard | write | debug | optimize | Cộng |
-|---|---:|---:|---:|---:|---:|---:|---:|---:|
-| M1 Retrieval | 5 | 4 | · | · | 6 | 3 | · | 9 |
-| M2 NULL & Expressions | 3 | 6 | · | · | 6 | 3 | · | 9 |
-| M3 String & Date | 3 | 6 | · | · | 6 | 3 | · | 9 |
-| M4 Aggregation | · | 6 | 3 | · | 6 | 3 | · | 9 |
-| M5 Joins | · | 4 | 5 | · | 6 | 3 | · | 9 |
-| M6 Subqueries | · | 3 | 6 | · | 6 | 3 | · | 9 |
-| M7 CTE & Set Operations | · | 1 | 4 | 4 | 6 | 3 | · | 9 |
-| M8 Window Functions | · | · | 7 | 2 | 6 | 3 | · | 9 |
-| M9 Data Quality | · | · | 6 | 3 | 6 | 3 | · | 9 |
-| M10 Query Performance | · | 3 | 3 | 3 | · | 1 | 8 | 9 |
-| Case | 3 | 2 | 2 | 3 | · | · | · | 10 |
+| Hình thức | Hậu mãi | Khách hàng | Tài chính | Marketing | Vận hành | Bán hàng |
+|---|---:|---:|---:|---:|---:|---:|
+| Viết | 3 | 13 | 7 | 9 | 13 | 9 |
+| Sửa lỗi | 5 | 6 | 4 | 3 | 4 | 6 |
+| Tối ưu | 0 | 1 | 3 | 0 | 3 | 1 |
+| Case | 1 | 1 | 2 | 3 | 2 | 1 |
 
 ### Theo gói
 
-| Gói | write | debug | optimize | case | basic | easy | medium | hard |
-|---|---:|---:|---:|---:|---:|---:|---:|---:|
-| 1 | 12 | 6 | · | 2 | 10 | 10 | · | · |
-| 2 | 12 | 6 | · | 2 | 4 | 13 | 3 | · |
-| 3 | 12 | 6 | · | 2 | · | 8 | 12 | · |
-| 4 | 12 | 6 | · | 2 | · | 1 | 12 | 7 |
-| 5 | 6 | 4 | 8 | 2 | · | 3 | 9 | 8 |
+| Gói | Cơ bản | Dễ | Trung bình | Khó | Cộng |
+|---|---:|---:|---:|---:|---:|
+| goi-1 | < | g | e | n | e | r | a | t | o | r |   | o | b | j | e | c | t |   | m | a | i | n | . | < | l | o | c | a | l | s | > | . | < | g | e | n | e | x | p | r | > |   | a | t |   | 0 | x | 0 | 0 | 0 | 0 | 0 | 1 | B | 3 | 4 | 5 | 7 | 2 | C | A | 9 | 0 | > | 20 |
+| goi-2 | < | g | e | n | e | r | a | t | o | r |   | o | b | j | e | c | t |   | m | a | i | n | . | < | l | o | c | a | l | s | > | . | < | g | e | n | e | x | p | r | > |   | a | t |   | 0 | x | 0 | 0 | 0 | 0 | 0 | 1 | B | 3 | 4 | 5 | 7 | 2 | C | A | 9 | 0 | > | 20 |
+| goi-3 | < | g | e | n | e | r | a | t | o | r |   | o | b | j | e | c | t |   | m | a | i | n | . | < | l | o | c | a | l | s | > | . | < | g | e | n | e | x | p | r | > |   | a | t |   | 0 | x | 0 | 0 | 0 | 0 | 0 | 1 | B | 3 | 4 | 5 | 7 | 2 | C | A | 9 | 0 | > | 20 |
+| goi-4 | < | g | e | n | e | r | a | t | o | r |   | o | b | j | e | c | t |   | m | a | i | n | . | < | l | o | c | a | l | s | > | . | < | g | e | n | e | x | p | r | > |   | a | t |   | 0 | x | 0 | 0 | 0 | 0 | 0 | 1 | B | 3 | 4 | 5 | 7 | 2 | C | A | 9 | 0 | > | 20 |
+| goi-5 | < | g | e | n | e | r | a | t | o | r |   | o | b | j | e | c | t |   | m | a | i | n | . | < | l | o | c | a | l | s | > | . | < | g | e | n | e | x | p | r | > |   | a | t |   | 0 | x | 0 | 0 | 0 | 0 | 0 | 1 | B | 3 | 4 | 5 | 7 | 2 | C | A | 9 | 0 | > | 20 |
 
 ### Phủ dạng × mảng (90 câu module; case không tính)
 
-| Dạng | customer | sales | marketing | operations | finance | after_sales | Cộng |
+| Dạng | sales | marketing | customer | operations | finance | after_sales | Cộng |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| A1 Tra cứu lọc | 2 | 6 | 2 | 7 | · | 1 | 18 |
-| A2 KPI | 3 | 5 | 1 | 2 | 5 | 1 | 17 |
-| A3 Phân rã | 1 | 2 | 3 | 5 | 2 | 1 | 14 |
-| A4 Bảng chéo | · | · | · | · | · | · | 0 |
-| B1 Xu hướng | 2 | · | · | · | 2 | · | 4 |
-| B2 So kỳ trước | 1 | · | · | · | 1 | · | 2 |
-| B3 Luỹ kế, trượt | 1 | · | 1 | · | 1 | · | 3 |
-| B4 Trạng thái tại thời điểm | · | · | 1 | 1 | · | · | 2 |
-| C1 Top N mỗi nhóm | · | 1 | · | 2 | · | · | 3 |
-| C2 Tỷ trọng | · | 1 | · | · | · | · | 1 |
-| C3 So với chuẩn | 2 | · | 2 | 2 | 1 | · | 7 |
-| C4 Phân khúc | · | · | · | · | 1 | · | 1 |
-| D1 Phễu | 2 | · | · | · | · | · | 2 |
-| D2 Cohort | 3 | · | · | · | · | · | 3 |
-| D3 Chuỗi liên tiếp | 1 | · | · | · | · | · | 1 |
-| E1 Bất thường | 1 | · | 1 | 2 | · | · | 4 |
-| E2 Đối soát | 1 | 1 | 1 | 1 | 2 | 2 | 8 |
-| E3 Cấu trúc cây | · | · | · | · | · | · | 0 |
-| **Cộng** | 20 | 16 | 12 | 22 | 15 | 5 | 90 |
+| A1 | 5 | 1 | 2 | 5 | · | 2 | 15 |
+| A2 | 5 | 2 | 4 | 2 | 3 | 2 | 18 |
+| A3 | 2 | 3 | 2 | 4 | 2 | · | 13 |
+| A4 | · | · | · | · | · | · | 0 |
+| B1 | · | · | · | · | 2 | 1 | 3 |
+| B2 | · | · | 1 | · | 1 | · | 2 |
+| B3 | · | 1 | 1 | · | 1 | · | 3 |
+| B4 | · | 1 | · | 1 | · | · | 2 |
+| C1 | · | · | · | 2 | · | · | 2 |
+| C2 | 1 | · | · | · | 1 | · | 2 |
+| C3 | · | 3 | 2 | 2 | 1 | 1 | 9 |
+| C4 | 2 | · | 1 | · | 1 | · | 4 |
+| D1 | · | · | 1 | · | · | · | 1 |
+| D2 | · | · | 3 | · | · | · | 3 |
+| D3 | · | · | 1 | · | · | · | 1 |
+| E1 | · | · | · | 3 | · | · | 3 |
+| E2 | 1 | 1 | 2 | 1 | 2 | 2 | 9 |
+| E3 | · | · | · | · | · | · | 0 |
+| **Cộng** | 16 | 12 | 20 | 20 | 14 | 8 | 90 |
 
-Dạng có câu: 16/18; chưa có: A4, E3; chỉ 1 câu: C2, C4, D3.
+Dạng có câu: 16/18; chưa có: A4, E3; chỉ 1 câu: D1, D3.
 
-Mảng trên cả 100 câu (gồm case): customer 21, sales 17, marketing 15, operations 24, finance 17, after_sales 6.
+Mảng trên cả 100 câu (gồm case): sales 17, marketing 15, customer 21, operations 22, finance 16, after_sales 9.
 
-### Kiểm khung phân bổ
-
-Lệch khung (module 9 câu: M1–M9 6 write + 3 debug, M10 ~6 optimize; cấp M1–3 basic/easy, M4–6 easy/medium, M7–10 medium/hard; case gói 1 → 5: basic+basic, basic+easy, easy+medium, medium+hard, hard+hard):
-
-- `jelly-p1-dem-ket-qua-mot-lan` (M10) cấp easy, ngoài khung medium / hard.
-- `jelly-p2-doanh-thu-hai-nguon` (M10) cấp easy, ngoài khung medium / hard.
-- `jelly-t7-union-doanh-thu` (M7) cấp easy (v3, chấm lại theo QUYET-DINH-CHUNG 2.3 mục 7: quy chuẩn không gắn cấp với module).
-- `jelly-p7-index-ngay` (M10) cấp easy, ngoài khung medium / hard.
+### Ô trùng (dạng × mảng × cấp × hình thức)
 
 Ô dạng × mảng × cấp × hình thức trùng **trong cùng một gói**: không có (đếm lại từ khoá `\begin{cauhoi}` của 5 gói sau sửa KIEM-V4, 11/11/2026; case tính theo ô của case).
 

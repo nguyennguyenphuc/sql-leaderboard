@@ -90,6 +90,30 @@ def main():
         ds = theo_goi[k]
         dong.append(f"| goi-{k} | " + " | ".join(str(sum(1 for t in ds if t.get("cap") == c) for c in CAP))
                     + f" | {len(ds)} |")
+    # 4b. phu dang x mang (cau module; case khong tinh)
+    module = [t for t in tat_ca if t.get("hinhthuc") != "case"]
+    mang_ds4 = [m for m in TEN_MANG if any(t.get("domain") == m for t in tat_ca)]
+    dang_ds = sorted({t.get("dang", "?") for t in module} | {f"{c}{n}" for c in "ABCDE" for n in (1, 2, 3)}
+                     | {"A4", "B4", "C4"})
+    dong.append(f"\n### Phủ dạng × mảng ({len(module)} câu module; case không tính)\n")
+    dong.append("| Dạng | " + " | ".join(mang_ds4) + " | Cộng |")
+    dong.append("|---|" + "---:|" * (len(mang_ds4) + 1))
+    co, mot = [], []
+    for d in dang_ds:
+        so = [sum(1 for t in module if t.get("dang") == d and t.get("domain") == m) for m in mang_ds4]
+        tong = sum(so)
+        if tong:
+            co.append(d)
+        if tong == 1:
+            mot.append(d)
+        dong.append(f"| {d} | " + " | ".join(str(x) if x else "·" for x in so) + f" | {tong} |")
+    dong.append("| **Cộng** | " + " | ".join(str(sum(1 for t in module if t.get("domain") == m)) for m in mang_ds4)
+                + f" | {len(module)} |")
+    chua = [d for d in dang_ds if d not in co]
+    dong.append(f"\nDạng có câu: {len(co)}/{len(dang_ds)}; chưa có: {', '.join(chua) or 'không'}; "
+                f"chỉ 1 câu: {', '.join(mot) or 'không'}.")
+    dong.append("\nMảng trên cả " + str(len(tat_ca)) + " câu (gồm case): " + ", ".join(
+        f"{m} {sum(1 for t in tat_ca if t.get('domain') == m)}" for m in mang_ds4) + ".")
     # 5. trùng ô trong cùng bo (dang x mang x cap x hinhthuc)
     o = {}
     for k in range(1, 6):
