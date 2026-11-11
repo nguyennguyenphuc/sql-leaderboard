@@ -7,11 +7,11 @@ Kiểm lại:
 
 Bảng nhân vật của gói:
 - Anh Khánh · Giám đốc marketing (c7, c8)
-- Chị Hạnh · Trưởng phòng marketing số (t2, t5, t8, f1)
+- Chị Hạnh · Trưởng phòng marketing số (t2, t8, f1; t5 cũ, nay t5 do Chị Mai hỏi)
 - Chị Ngân · Quản lý thương hiệu Purplle (t6, f2)
 - Anh Quân · Quản lý thương hiệu Tira Beauty (f3)
 - Anh Phong · Giám đốc tài chính (t1, f8)
-- Chị Mai · Kế toán quản trị (t7, f4, f7)
+- Chị Mai · Kế toán quản trị (t5 từ 11/11/2026, t7, f4, f7)
 - Anh Bảo · Chuyên viên phân tích marketing (t4, t9, f6)
 - Chị Thảo · Chuyên viên phân tích marketing (t3, f5)
 - Bạn Vy · Thực tập sinh (f9)
@@ -156,4 +156,43 @@ Bản đồ: dòng t4, f8 và mục "Ô trùng giữa các gói" của `BAN-DO-1
 
 ### Chờ giảng viên (kiểm V4)
 
-- **mkt-t5** (Khó): theo QUYET-DINH-CHUNG 2.2, trục bẫy của Khó cần ít nhất một bẫy chỉ lộ ở hidden-1; câu chỉ đạt 2/5 trục Khó (bước, mơ hồ) cộng số bẫy 4, không đặt được bẫy hidden-1 bằng biến thể có sẵn (lý do ở bảng trên). Không đổi cấp theo giao việc. Hướng xử lý cần giảng viên chọn: (1) thêm biến thể ẩn mới (`mkt_hidden_2`) tạo một bẫy riêng cho tháng 1/2025 mà bản public không có; (2) chấp nhận sát ranh như a1 (QUYET-DINH-CHUNG 0.1 \#6); (3) hạ Trung bình và nâng một câu khác của M7.
+- **mkt-t5** (Khó): **Đã quyết 11/11: sửa** (giảng viên chọn viết lại cho đủ Khó; xem mục "Viết lại mkt-t5 cho đủ Khó (11/11/2026)" ở cuối file). Ghi chú lúc chờ: theo QUYET-DINH-CHUNG 2.2, trục bẫy của Khó cần ít nhất một bẫy chỉ lộ ở hidden-1; câu chỉ đạt 2/5 trục Khó (bước, mơ hồ) cộng số bẫy 4, không đặt được bẫy hidden-1 bằng biến thể có sẵn (lý do ở bảng trên). Không đổi cấp theo giao việc. Hướng xử lý cần giảng viên chọn: (1) thêm biến thể ẩn mới (`mkt_hidden_2`) tạo một bẫy riêng cho tháng 1/2025 mà bản public không có; (2) chấp nhận sát ranh như a1 (QUYET-DINH-CHUNG 0.1 \#6); (3) hạ Trung bình và nâng một câu khác của M7.
+
+## Viết lại mkt-t5 cho đủ Khó (11/11/2026)
+
+Giảng viên quyết **sửa** (mục "Chờ giảng viên (kiểm V4)" ở trên): giữ gói 4, M7, Viết, Khó; viết lại bài toán để đủ 3/5 trục Khó và có bẫy chỉ lộ ở hidden-1 bằng biến thể có sẵn, không sửa database.
+
+| | Cũ | Mới |
+|---|---|---|
+| Mã | `mkt-t5-dang-chay-binh-quan-theo-tuan` | `mkt-t5-chi-phi-quy-2-theo-ngay-chay` |
+| Bài toán | Bình quân số chiến dịch đang chạy mỗi ngày theo tuần, tháng 1/2025 | Chi phí quý 2/2025 của Nykaa theo từng loại chiến dịch, ghi theo ngày bắt đầu (báo cáo phòng marketing) so với ghi theo ngày chạy (sổ kế toán), và chênh lệch |
+| Ô | B4 · operations · hard · write | E2 · finance · hard · write (đối soát hai cách ghi chi phí); không trùng trong gói 4, không trùng câu nào của bộ (k5 là E2 · finance · easy) |
+| Người hỏi | Chị Hạnh · Trưởng phòng marketing số | Chị Mai · Kế toán quản trị |
+| Kỹ năng | CTE, LEFT JOIN khoảng ngày, AVG | nhiều CTE, nối khoảng ngày với lịch, tính riêng hai cách ghi rồi nối (mục tiêu M7 của `data.js`: "tính hai đại lượng riêng rồi mới nối, tránh cộng trùng") |
+| ERD | 5 bảng, 3 bảng nhiễu | 5 bảng chỉ khoá (`campaigns`, `campaign_types`, `calendar` + 2 bảng nhiễu `brands`, `campaign_channels`), không `\erdnoi`; `\erdkhoa` chỉ nêu khoá `type_id` và trỏ lịch về khái niệm chiến dịch đang chạy |
+
+Không trùng chủ đề: khác f7 (chi phí luỹ kế theo ngày bắt đầu, lỗi thiếu `ORDER BY`), s1 (đếm chiến dịch chạy sang tháng sau), j4, s9 (đếm chiến dịch đang chạy), t4 và k6 (doanh thu khi ngừng kênh; độ chính xác quy tắc kiểm tra lỗi). Không thêm khái niệm khai báo mới: dùng `chi-phi-chien-dich`, `chien-dich-dang-chay`; quy tắc hai cách ghi viết ở `\luuy`.
+
+Năm trục (QUYET-DINH-CHUNG 2.2), ghi cả ở `\ghichuthietke`:
+- Số bảng lời giải cần: 3 (`campaigns`, `calendar`, `campaign_types`) · Khó (mức thường gặp).
+- Số bước: 4 tầng (nối lịch theo khoảng ngày lấy chi phí từng ngày chạy, gom theo loại; tính riêng chi phí ghi theo ngày bắt đầu; nối hai kết quả với danh mục rồi lấy chênh lệch) · Khó.
+- Mơ hồ: đề nói bằng cách ghi sổ; cách chia chi phí, cách lấy phần nằm trong quý và cách nối lịch phải tự suy · Khó.
+- Bẫy: 4, có một bẫy chỉ lộ ở hidden-1 · Khó.
+- Nghiệp vụ: chi phí hai thành phần, chia đều theo ngày chạy, chỉ lấy phần nằm trong kỳ, so với cách ghi khác · Khó.
+Đạt Khó 5/5 (cũ 2/5).
+
+Bài sai (bộ kiểm):
+- `tinh_hai_cach_tren_mot_lan_noi`: tính cả hai cách ghi trên một lần nối với lịch, chi phí ghi theo ngày bắt đầu bị cộng ở mỗi ngày chạy (gấp khoảng 17 lần) · rớt public, hidden-1.
+- `chi_xet_chien_dich_bat_dau_trong_quy`: mất phần chi phí của chiến dịch bắt đầu tháng 3/2025 còn chạy sang tháng 4, chênh lệch ra 0 · rớt public, hidden-1.
+- `ngay_cuoi_thua_mot_ngay`: ngày chạy cuối lấy `start_date + duration_days` · rớt public, hidden-1.
+- `thieu_can_tren`: lọc ngày bắt đầu và ngày lịch chỉ từ 1/4/2025 · **chỉ rớt hidden-1**. Dựa vào biến thể (b) của `mysql/README-mkt.md` (`03_bien_the_an_mkt.sql`): `NY-CMP-56555` (Nykaa, Social Media, chép `NY-CMP-1000`, chi phí 2.355 × 111,03) bắt đầu 1/7/2025, kèm ngày lịch 2025-07-01; dòng Social Media của bài sai lệch cả hai cột chi phí. Ở public lịch và chiến dịch dừng ở tháng 6/2025 nên bài sai khớp.
+
+Kết quả public ≠ hidden-1 ở mọi dòng (hidden-1 bỏ chiến dịch đuôi 7). Chênh lệch ở public bằng 10–12% chi phí ghi theo ngày bắt đầu, mỗi loại 41,6–48,1 triệu đơn vị tiền. Làm tròn 2 chữ số, `saiso=0.01`: cách tính theo từng ngày lịch và cách tính số ngày bằng `DATEDIFF` (`LEAST`/`GREATEST`) lệch nhau dưới 0,001 trước khi làm tròn, đã thử cả hai.
+
+Thời gian (`do_gio.py`, 3 lần, lúc MySQL đang phục vụ agent khác, CPU container khoảng 98%): solution 1,5–2,0 giây (public), 1,5–1,6 giây (hidden-1); cách giải tự nhiên khác (tính số ngày bằng `DATEDIFF`) khoảng 1,2 giây; bài sai chậm nhất khoảng 1,5 giây. Không còn nối khoảng ngày trên cả ba thương hiệu nên không vượt 5 giây.
+
+Kiểm lại: bộ kiểm đầy đủ cả gói (`cong-cu/ket-qua/quyet-gv/mkt-goi-4`) **KIEM TRA: 0 loi**, 20 câu, 80 khối SQL, t5 0 lỗi 0 cảnh báo; biên dịch XeLaTeX (`cong-cu/ket-qua/quyet-gv/mkt-goi-4/bien-dich`) 0 lỗi LaTeX, 0 ký tự thiếu, 0 cảnh báo `aio-sql-cauhoi`; xem lại trang PDF của câu (ERD, tab Nghiệp vụ hiển thị đủ). Thư mục gói vẫn 4 file; M7 vẫn 2 Cơ bản · 3 Dễ · 2 Trung bình · 2 Khó.
+
+Đồng bộ: `cau-hoi.tex`, `solution.sql`, `BANG-PHAN-CONG.md`, `BAN-DO-100-CAU.md` (dòng t5, thống kê dạng × mảng, hình thức × mảng, mảng trên 100 câu, ghi chú ô ở mục "Ô trùng" và "Chênh lệch"). Danh sách 7 ô trùng giữa các gói không đổi.
+
+Cửa chặn giọng văn (BRIEF-KIEM-GOI bước 6): đọc lại tiêu đề (13 tiếng), lời nhắn, yêu cầu, `\luuy`, hai gợi ý. Lời nhắn không dùng khuôn "Em … giúp chị", không nhắc kỹ thuật SQL, không lộ số; `\luuy` viết bằng "là" thay khuôn "mệnh đề: kết luận"; thuật ngữ theo STYLE-mkt A.3 ("chi phí chiến dịch", "đơn vị tiền"), không dùng "năm tài chính". Gợi ý cuối chỉ một biểu thức (chi phí của một ngày chạy).

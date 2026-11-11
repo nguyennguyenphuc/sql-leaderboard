@@ -98,7 +98,7 @@ Dữ liệu sạch (`C`) không có NULL: module NULL và Data Quality dùng `R`
 | mkt-t2-pheu-dang-dai | 4 | M7 | W | easy | D1 | mkt | Phễu bốn tầng của từng thương hiệu quý 1/2025 | Xét các chiến dịch bắt đầu từ ngày 1/1/2025 tới hết ngày 31/3/2025. · Ở mỗi thương hiệu, tính tổng số lượng của bốn tầng: nhận biết là tổng `impressions`, quan tâm là tổng `clicks`, cân nhắc là tổng ` … | C | thu-tu-tang |
 | mkt-t3-nhom-khach-hai-vai | 4 | M7 | W | medium | A3 | cus | Mỗi nhóm khách hàng có mặt trong bao nhiêu chiến dịch? | Xét các chiến dịch bắt đầu từ ngày 1/1/2025 tới hết ngày 31/3/2025. · Ở mỗi nhóm khách của `audiences`, đếm số chiến dịch có nhóm này là đối tượng mục tiêu, số chiến dịch có nhóm này là phân khúc khách hàng, và số … | AU, C | dem-doi-hai-vai, thieu-can-tren |
 | mkt-t4-ngung-kenh-anh-huong-doanh-thu | 4 | M7 | W | hard | C2 | mkt | Ngừng một kênh thì bao nhiêu doanh thu quý 2 bị ảnh hưởng? | Xét các chiến dịch bắt đầu từ ngày 1/4/2025 tới hết ngày 30/6/2025. · Ở mỗi thương hiệu và mỗi kênh, tính số chiến dịch có chạy kênh đó, tỷ trọng doanh thu bị ảnh hưởng và tỷ trọng doanh thu mất hẳn khi kênh đó ngừng, theo định nghĩa ở tab Nghiệp vụ… | C, CC, CH | mau-so-nhan-dong, kenh-dau-chuoi-la-kenh-duy-nhat, thieu-can-tren |
-| mkt-t5-dang-chay-binh-quan-theo-tuan | 4 | M7 | W | hard | B4 | ops | Bình quân mỗi ngày có bao nhiêu chiến dịch đang chạy? | Xét mọi ngày trong lịch từ ngày 1/1/2025 tới hết ngày 31/1/2025. · Đếm cho mỗi ngày số chiến dịch đang chạy (cả ba thương hiệu) như định nghĩa ở tab Nghiệp vụ, rồi gom các ngày theo tuần. | K, C | bo-chien-dich-bat-dau-truoc-ky, lech-bien-ngay-cuoi, can-tren-lay-them-ngay, tuan-chua-du |
+| mkt-t5-chi-phi-quy-2-theo-ngay-chay | 4 | M7 | W | hard | E2 | fin | Ghi theo ngày chạy, chi phí quý 2 của Nykaa chênh bao nhiêu? | Xét chi phí chiến dịch của Nykaa (`brand_id = 1`) trong quý 2/2025, từ ngày 1/4/2025 tới hết ngày 30/6/2025. · Ở mỗi loại chiến dịch, tính chi phí của quý theo hai cách ghi ở tab Nghiệp vụ (ghi theo ngày bắt đầu và ghi theo ngày chạy). Chênh lệch bằ … | C, K, T | tinh-hai-cach-tren-mot-lan-noi, bo-chien-dich-bat-dau-truoc-quy, ngay-cuoi-thua-mot-ngay, thieu-can-tren |
 | mkt-t6-so-chien-dich-theo-so-kenh | 4 | M7 | W | basic | A3 | mkt | Bao nhiêu chiến dịch chạy trên một, hai hay ba kênh? | Xét mọi dòng của `campaign_channels`; mỗi dòng là một kênh của một chiến dịch. · Số kênh của một chiến dịch là số dòng có cùng `campaign_id`. Đếm số kênh của từng chiến dịch, rồi đếm số chiến dịch the … | CC | nham-thu-tu-kenh-voi-so-kenh |
 | mkt-t7-union-mat-doanh-thu | 4 | M7 | D | easy | A3 | sal | Doanh thu gộp quý 4/2024 và quý 1/2025 bị thiếu | Sửa truy vấn dưới đây để mỗi thương hiệu có đúng số chiến dịch và tổng doanh thu của các chiến dịch bắt đầu trong quý 4/2024 và quý 1/2025. · Giữ nguyên các cột `brand_id`, `so_chien_dich`, `doanh_thu` và thứ tự sắp. | C | union-bo-trung |
 | mkt-t8-ty-le-roi-pheu-sai-mau | 4 | M7 | D | easy | D1 | mkt | Tỷ lệ rơi ở tầng cuối của phễu gần 100% | Truy vấn dưới đây tính tỷ lệ rơi của ba tầng quan tâm, cân nhắc, chuyển đổi ở mỗi loại chiến dịch bắt đầu trong tháng 5/2025, trên tổng của từng loại. · Tỷ lệ rơi của một tầng bằng 1 trừ (tổng tầng đó … | C | mau-so-tang-dau |
@@ -171,7 +171,7 @@ Dữ liệu sạch (`C`) không có NULL: module NULL và Data Quality dùng `R`
 
 | Hình thức | Khách hàng | Tài chính | Marketing | Vận hành | Bán hàng |
 |---|---:|---:|---:|---:|---:|
-| Viết | 6 | 10 | 17 | 14 | 9 |
+| Viết | 6 | 11 | 17 | 13 | 9 |
 | Sửa lỗi | 4 | 4 | 8 | 7 | 5 |
 | Tối ưu | 0 | 2 | 2 | 1 | 1 |
 | Case | 1 | 2 | 3 | 3 | 1 |
@@ -180,11 +180,11 @@ Dữ liệu sạch (`C`) không có NULL: module NULL và Data Quality dùng `R`
 
 | Gói | Cơ bản | Dễ | Trung bình | Khó | Cộng |
 |---|---:|---:|---:|---:|---:|
-| goi-1 | < | g | e | n | e | r | a | t | o | r |   | o | b | j | e | c | t |   | m | a | i | n | . | < | l | o | c | a | l | s | > | . | < | g | e | n | e | x | p | r | > |   | a | t |   | 0 | x | 0 | 0 | 0 | 0 | 0 | 2 | 2 | 0 | A | 9 | 4 | 7 | C | A | 9 | 0 | > | 20 |
-| goi-2 | < | g | e | n | e | r | a | t | o | r |   | o | b | j | e | c | t |   | m | a | i | n | . | < | l | o | c | a | l | s | > | . | < | g | e | n | e | x | p | r | > |   | a | t |   | 0 | x | 0 | 0 | 0 | 0 | 0 | 2 | 2 | 0 | A | 9 | 4 | 7 | C | A | 9 | 0 | > | 20 |
-| goi-3 | < | g | e | n | e | r | a | t | o | r |   | o | b | j | e | c | t |   | m | a | i | n | . | < | l | o | c | a | l | s | > | . | < | g | e | n | e | x | p | r | > |   | a | t |   | 0 | x | 0 | 0 | 0 | 0 | 0 | 2 | 2 | 0 | A | 9 | 4 | 7 | C | A | 9 | 0 | > | 20 |
-| goi-4 | < | g | e | n | e | r | a | t | o | r |   | o | b | j | e | c | t |   | m | a | i | n | . | < | l | o | c | a | l | s | > | . | < | g | e | n | e | x | p | r | > |   | a | t |   | 0 | x | 0 | 0 | 0 | 0 | 0 | 2 | 2 | 0 | A | 9 | 4 | 7 | C | A | 9 | 0 | > | 20 |
-| goi-5 | < | g | e | n | e | r | a | t | o | r |   | o | b | j | e | c | t |   | m | a | i | n | . | < | l | o | c | a | l | s | > | . | < | g | e | n | e | x | p | r | > |   | a | t |   | 0 | x | 0 | 0 | 0 | 0 | 0 | 2 | 2 | 0 | A | 9 | 4 | 7 | C | A | 9 | 0 | > | 20 |
+| goi-1 | < | g | e | n | e | r | a | t | o | r |   | o | b | j | e | c | t |   | m | a | i | n | . | < | l | o | c | a | l | s | > | . | < | g | e | n | e | x | p | r | > |   | a | t |   | 0 | x | 0 | 0 | 0 | 0 | 0 | 2 | 8 | F | 9 | 3 | 6 | F | C | A | 9 | 0 | > | 20 |
+| goi-2 | < | g | e | n | e | r | a | t | o | r |   | o | b | j | e | c | t |   | m | a | i | n | . | < | l | o | c | a | l | s | > | . | < | g | e | n | e | x | p | r | > |   | a | t |   | 0 | x | 0 | 0 | 0 | 0 | 0 | 2 | 8 | F | 9 | 3 | 6 | F | C | A | 9 | 0 | > | 20 |
+| goi-3 | < | g | e | n | e | r | a | t | o | r |   | o | b | j | e | c | t |   | m | a | i | n | . | < | l | o | c | a | l | s | > | . | < | g | e | n | e | x | p | r | > |   | a | t |   | 0 | x | 0 | 0 | 0 | 0 | 0 | 2 | 8 | F | 9 | 3 | 6 | F | C | A | 9 | 0 | > | 20 |
+| goi-4 | < | g | e | n | e | r | a | t | o | r |   | o | b | j | e | c | t |   | m | a | i | n | . | < | l | o | c | a | l | s | > | . | < | g | e | n | e | x | p | r | > |   | a | t |   | 0 | x | 0 | 0 | 0 | 0 | 0 | 2 | 8 | F | 9 | 3 | 6 | F | C | A | 9 | 0 | > | 20 |
+| goi-5 | < | g | e | n | e | r | a | t | o | r |   | o | b | j | e | c | t |   | m | a | i | n | . | < | l | o | c | a | l | s | > | . | < | g | e | n | e | x | p | r | > |   | a | t |   | 0 | x | 0 | 0 | 0 | 0 | 0 | 2 | 8 | F | 9 | 3 | 6 | F | C | A | 9 | 0 | > | 20 |
 
 ### Phủ dạng × mảng (90 câu module; case không tính)
 
@@ -197,7 +197,7 @@ Dữ liệu sạch (`C`) không có NULL: module NULL và Data Quality dùng `R`
 | B1 | 2 | 3 | · | 1 | 2 | 8 |
 | B2 | 1 | 1 | · | · | · | 2 |
 | B3 | · | · | · | · | 2 | 2 |
-| B4 | · | · | · | 3 | · | 3 |
+| B4 | · | · | · | 2 | · | 2 |
 | C1 | 3 | 2 | · | · | · | 5 |
 | C2 | 1 | 1 | · | · | 1 | 3 |
 | C3 | · | 3 | 1 | · | 2 | 6 |
@@ -206,13 +206,13 @@ Dữ liệu sạch (`C`) không có NULL: module NULL và Data Quality dùng `R`
 | D2 | · | · | · | · | · | 0 |
 | D3 | · | 1 | · | · | · | 1 |
 | E1 | 1 | 2 | 1 | 7 | · | 11 |
-| E2 | · | 1 | · | 2 | 1 | 4 |
+| E2 | · | 1 | · | 2 | 2 | 5 |
 | E3 | · | · | · | · | · | 0 |
-| **Cộng** | 15 | 27 | 10 | 22 | 16 | 90 |
+| **Cộng** | 15 | 27 | 10 | 21 | 17 | 90 |
 
 Dạng có câu: 16/18; chưa có: D2, E3; chỉ 1 câu: A4, C4, D3.
 
-Mảng trên cả 100 câu (gồm case): sales 16, marketing 30, customer 11, operations 25, finance 18.
+Mảng trên cả 100 câu (gồm case): sales 16, marketing 30, customer 11, operations 24, finance 19.
 
 ### Ô trùng (dạng × mảng × cấp × hình thức)
 
@@ -228,6 +228,8 @@ Mảng trên cả 100 câu (gồm case): sales 16, marketing 30, customer 11, op
 - E1 · operations · basic · debug: `mkt-t9-bo-trung-khong-het`, `mkt-k9-ma-lap-ra-ca-file` (cùng mảng dòng trùng nhưng khác câu hỏi, lỗi, kỹ năng: bỏ trùng rồi đếm, cộng / liệt kê mã lặp bằng `HAVING`; k9 đổi người hỏi)
 
 Ô `E2 · operations · hard · write` không còn trùng: `mkt-t4-quy-tac-doi-chieu-nhat-ky` (trùng chủ đề với `mkt-k6-do-chinh-xac-quy-tac`) được viết lại thành `mkt-t4-ngung-kenh-anh-huong-doanh-thu` (C2 · marketing · hard · write). `mkt-p7` đổi dạng A1 → C3 (C3 · customer · medium · write, ô mới).
+
+Quyết định giảng viên 11/11/2026 (`ho-so/goi-4/DA-SUA.md`): `mkt-t5-dang-chay-binh-quan-theo-tuan` (B4 · operations · hard · write) viết lại thành `mkt-t5-chi-phi-quy-2-theo-ngay-chay`, ô mới **E2 · finance · hard · write**: không trùng câu nào trong gói 4 và trong bộ (`mkt-k5-dong-doanh-thu-lech-ban-sach` là E2 · finance · easy). Dạng B4 · operations · hard nay chỉ còn `mkt-s9-dang-chay-dau-thang-lech` (debug). Danh sách 7 ô trùng ở trên không đổi.
 
 ### Chênh lệch so với bản đồ bản 1 (phân bổ gốc)
 
@@ -248,6 +250,8 @@ Câu đổi khoá so với bản 1:
 Đổi khi chuẩn hoá theo quy chuẩn (10/11, `BRIEF-CHUAN-HOA.md`, chi tiết `ho-so/CHUAN-HOA.md`): `mkt-k7` cấp medium → easy; 11 tiêu đề rút còn ≤ 13 tiếng (r1, r2, n2, s3, s5, j5, j9, q5, q6, q9, p3).
 
 Đổi theo kiểm V4 (11/11/2026, `ho-so/KIEM-V4-B.md`, `ho-so/KIEM-V4-C.md`): `mkt-t4-quy-tac-doi-chieu-nhat-ky` (trùng chủ đề với k6) viết lại thành `mkt-t4-ngung-kenh-anh-huong-doanh-thu`, ô E2 · operations → C2 · marketing, cấp giữ hard; `mkt-p7-chien-dich-ngay-8-3-theo-chi-muc` dạng A1 → C3 (thêm so với ROI chung), cấp giữ medium; tiêu đề f8, p7 đổi. Không câu nào đổi cấp.
+
+Đổi theo quyết định giảng viên (11/11/2026, `ho-so/goi-4/DA-SUA.md` mục "Viết lại mkt-t5 cho đủ Khó"): `mkt-t5-dang-chay-binh-quan-theo-tuan` viết lại thành `mkt-t5-chi-phi-quy-2-theo-ngay-chay` (chi phí quý 2/2025 của Nykaa ghi theo ngày chạy so với ghi theo ngày bắt đầu), ô B4 · operations → E2 · finance, cấp giữ hard; thống kê dạng × mảng, hình thức × mảng, mảng trên 100 câu đã cập nhật.
 
 | | write | debug | optimize | case | basic | easy | medium | hard |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|

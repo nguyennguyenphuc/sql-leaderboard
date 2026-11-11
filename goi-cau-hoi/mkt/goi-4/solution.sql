@@ -319,95 +319,139 @@ JOIN tong_thuong_hieu t ON t.brand_id = k.brand_id
 JOIN channels ch ON ch.channel_id = k.channel_id
 ORDER BY k.brand_id, ch.channel_name;
 
--- [mkt-t5-dang-chay-binh-quan-theo-tuan] solution
-WITH theo_ngay AS (
-  SELECT k.cal_date, k.week_start, COUNT(c.campaign_id) AS so_dang_chay
-  FROM calendar k
-  LEFT JOIN campaigns c
-    ON c.start_date <= k.cal_date
-   AND k.cal_date <= c.start_date + INTERVAL c.duration_days - 1 DAY
-  WHERE k.cal_date >= '2025-01-01' AND k.cal_date < '2025-02-01'
-  GROUP BY k.cal_date, k.week_start
+-- [mkt-t5-chi-phi-quy-2-theo-ngay-chay] solution
+WITH ngay_chay AS (
+  SELECT c.type_id,
+         c.acquisition_cost * c.conversions / c.duration_days AS chi_phi_mot_ngay
+  FROM campaigns c
+  JOIN calendar k
+    ON k.cal_date BETWEEN c.start_date AND c.start_date + INTERVAL c.duration_days - 1 DAY
+  WHERE c.brand_id = 1
+    AND k.cal_date >= '2025-04-01' AND k.cal_date < '2025-07-01'
+), theo_ngay_chay AS (
+  SELECT type_id, SUM(chi_phi_mot_ngay) AS chi_phi
+  FROM ngay_chay
+  GROUP BY type_id
+), theo_ngay_bat_dau AS (
+  SELECT type_id, SUM(acquisition_cost * conversions) AS chi_phi
+  FROM campaigns
+  WHERE brand_id = 1
+    AND start_date >= '2025-04-01' AND start_date < '2025-07-01'
+  GROUP BY type_id
 )
-SELECT week_start,
-       COUNT(*) AS so_ngay,
-       ROUND(AVG(so_dang_chay), 1) AS bq_dang_chay_moi_ngay
-FROM theo_ngay
-GROUP BY week_start
-ORDER BY week_start;
+SELECT t.type_name,
+       ROUND(b.chi_phi, 2) AS chi_phi_theo_ngay_bat_dau,
+       ROUND(r.chi_phi, 2) AS chi_phi_theo_ngay_chay,
+       ROUND(r.chi_phi - b.chi_phi, 2) AS chenh_lech
+FROM campaign_types t
+JOIN theo_ngay_bat_dau b ON b.type_id = t.type_id
+JOIN theo_ngay_chay r ON r.type_id = t.type_id
+ORDER BY t.type_name;
 
--- [mkt-t5-dang-chay-binh-quan-theo-tuan] wrong: chi_chien_dich_bat_dau_trong_ky
--- Chỉ lấy chiến dịch bắt đầu từ 1/1/2025: mất các chiến dịch bắt đầu cuối tháng 12/2024 còn chạy sang tháng 1 (rớt ở public).
-WITH theo_ngay AS (
-  SELECT k.cal_date, k.week_start, COUNT(c.campaign_id) AS so_dang_chay
-  FROM calendar k
-  LEFT JOIN campaigns c
-    ON c.start_date <= k.cal_date
-   AND k.cal_date <= c.start_date + INTERVAL c.duration_days - 1 DAY
-   AND c.start_date >= '2025-01-01'
-  WHERE k.cal_date >= '2025-01-01' AND k.cal_date < '2025-02-01'
-  GROUP BY k.cal_date, k.week_start
-)
-SELECT week_start,
-       COUNT(*) AS so_ngay,
-       ROUND(AVG(so_dang_chay), 1) AS bq_dang_chay_moi_ngay
-FROM theo_ngay
-GROUP BY week_start
-ORDER BY week_start;
+-- [mkt-t5-chi-phi-quy-2-theo-ngay-chay] wrong: tinh_hai_cach_tren_mot_lan_noi
+-- Tính cả hai cách ghi trên cùng một lần nối với lịch: chi phí ghi theo ngày bắt đầu bị cộng lại ở mỗi ngày chạy trong quý (rớt ở public).
+SELECT t.type_name,
+       ROUND(SUM(CASE WHEN c.start_date >= '2025-04-01' THEN c.acquisition_cost * c.conversions ELSE 0 END), 2) AS chi_phi_theo_ngay_bat_dau,
+       ROUND(SUM(c.acquisition_cost * c.conversions / c.duration_days), 2) AS chi_phi_theo_ngay_chay,
+       ROUND(SUM(c.acquisition_cost * c.conversions / c.duration_days)
+             - SUM(CASE WHEN c.start_date >= '2025-04-01' THEN c.acquisition_cost * c.conversions ELSE 0 END), 2) AS chenh_lech
+FROM campaigns c
+JOIN campaign_types t ON t.type_id = c.type_id
+JOIN calendar k
+  ON k.cal_date BETWEEN c.start_date AND c.start_date + INTERVAL c.duration_days - 1 DAY
+WHERE c.brand_id = 1
+  AND k.cal_date >= '2025-04-01' AND k.cal_date < '2025-07-01'
+GROUP BY t.type_name
+ORDER BY t.type_name;
 
--- [mkt-t5-dang-chay-binh-quan-theo-tuan] wrong: lech_bien_ngay_cuoi
--- Ngày cuối lấy start_date + duration_days (thừa một ngày) (rớt ở public).
-WITH theo_ngay AS (
-  SELECT k.cal_date, k.week_start, COUNT(c.campaign_id) AS so_dang_chay
-  FROM calendar k
-  LEFT JOIN campaigns c
-    ON c.start_date <= k.cal_date
-   AND k.cal_date <= c.start_date + INTERVAL c.duration_days DAY
-  WHERE k.cal_date >= '2025-01-01' AND k.cal_date < '2025-02-01'
-  GROUP BY k.cal_date, k.week_start
+-- [mkt-t5-chi-phi-quy-2-theo-ngay-chay] wrong: chi_xet_chien_dich_bat_dau_trong_quy
+-- Chỉ lấy chiến dịch bắt đầu trong quý cho cả hai cách ghi: mất phần chi phí quý 2 của các chiến dịch bắt đầu tháng 3/2025 còn chạy sang tháng 4, chênh lệch ra 0 (rớt ở public).
+WITH cd_quy AS (
+  SELECT campaign_id, type_id, start_date, duration_days,
+         acquisition_cost * conversions AS chi_phi
+  FROM campaigns
+  WHERE brand_id = 1
+    AND start_date >= '2025-04-01' AND start_date < '2025-07-01'
+), theo_ngay_chay AS (
+  SELECT q.type_id, SUM(q.chi_phi / q.duration_days) AS chi_phi
+  FROM cd_quy q
+  JOIN calendar k
+    ON k.cal_date BETWEEN q.start_date AND q.start_date + INTERVAL q.duration_days - 1 DAY
+  WHERE k.cal_date >= '2025-04-01' AND k.cal_date < '2025-07-01'
+  GROUP BY q.type_id
+), theo_ngay_bat_dau AS (
+  SELECT type_id, SUM(chi_phi) AS chi_phi
+  FROM cd_quy
+  GROUP BY type_id
 )
-SELECT week_start,
-       COUNT(*) AS so_ngay,
-       ROUND(AVG(so_dang_chay), 1) AS bq_dang_chay_moi_ngay
-FROM theo_ngay
-GROUP BY week_start
-ORDER BY week_start;
+SELECT t.type_name,
+       ROUND(b.chi_phi, 2) AS chi_phi_theo_ngay_bat_dau,
+       ROUND(r.chi_phi, 2) AS chi_phi_theo_ngay_chay,
+       ROUND(r.chi_phi - b.chi_phi, 2) AS chenh_lech
+FROM campaign_types t
+JOIN theo_ngay_bat_dau b ON b.type_id = t.type_id
+JOIN theo_ngay_chay r ON r.type_id = t.type_id
+ORDER BY t.type_name;
 
--- [mkt-t5-dang-chay-binh-quan-theo-tuan] wrong: can_tren_lay_ca_ngay_1_2
--- Cận trên viết bằng BETWEEN tới ngày 1/2/2025: tuần 27/1/2025 có thêm ngày 1/2, ra 6 ngày (rớt ở public).
-WITH theo_ngay AS (
-  SELECT k.cal_date, k.week_start, COUNT(c.campaign_id) AS so_dang_chay
-  FROM calendar k
-  LEFT JOIN campaigns c
-    ON c.start_date <= k.cal_date
-   AND k.cal_date <= c.start_date + INTERVAL c.duration_days - 1 DAY
-  WHERE k.cal_date BETWEEN '2025-01-01' AND '2025-02-01'
-  GROUP BY k.cal_date, k.week_start
+-- [mkt-t5-chi-phi-quy-2-theo-ngay-chay] wrong: ngay_cuoi_thua_mot_ngay
+-- Ngày chạy cuối lấy start_date + duration_days: mỗi chiến dịch có thêm một ngày, phần chi phí theo ngày chạy vượt chi phí thật (rớt ở public).
+WITH ngay_chay AS (
+  SELECT c.type_id,
+         c.acquisition_cost * c.conversions / c.duration_days AS chi_phi_mot_ngay
+  FROM campaigns c
+  JOIN calendar k
+    ON k.cal_date BETWEEN c.start_date AND c.start_date + INTERVAL c.duration_days DAY
+  WHERE c.brand_id = 1
+    AND k.cal_date >= '2025-04-01' AND k.cal_date < '2025-07-01'
+), theo_ngay_chay AS (
+  SELECT type_id, SUM(chi_phi_mot_ngay) AS chi_phi
+  FROM ngay_chay
+  GROUP BY type_id
+), theo_ngay_bat_dau AS (
+  SELECT type_id, SUM(acquisition_cost * conversions) AS chi_phi
+  FROM campaigns
+  WHERE brand_id = 1
+    AND start_date >= '2025-04-01' AND start_date < '2025-07-01'
+  GROUP BY type_id
 )
-SELECT week_start,
-       COUNT(*) AS so_ngay,
-       ROUND(AVG(so_dang_chay), 1) AS bq_dang_chay_moi_ngay
-FROM theo_ngay
-GROUP BY week_start
-ORDER BY week_start;
+SELECT t.type_name,
+       ROUND(b.chi_phi, 2) AS chi_phi_theo_ngay_bat_dau,
+       ROUND(r.chi_phi, 2) AS chi_phi_theo_ngay_chay,
+       ROUND(r.chi_phi - b.chi_phi, 2) AS chenh_lech
+FROM campaign_types t
+JOIN theo_ngay_bat_dau b ON b.type_id = t.type_id
+JOIN theo_ngay_chay r ON r.type_id = t.type_id
+ORDER BY t.type_name;
 
--- [mkt-t5-dang-chay-binh-quan-theo-tuan] wrong: chia_bay_ngay
--- Chia tổng của tuần cho 7: tuần 30/12/2024 và tuần 27/1/2025 (mỗi tuần 5 ngày trong tháng) sai bình quân (rớt ở public).
-WITH theo_ngay AS (
-  SELECT k.cal_date, k.week_start, COUNT(c.campaign_id) AS so_dang_chay
-  FROM calendar k
-  LEFT JOIN campaigns c
-    ON c.start_date <= k.cal_date
-   AND k.cal_date <= c.start_date + INTERVAL c.duration_days - 1 DAY
-  WHERE k.cal_date >= '2025-01-01' AND k.cal_date < '2025-02-01'
-  GROUP BY k.cal_date, k.week_start
+-- [mkt-t5-chi-phi-quy-2-theo-ngay-chay] wrong: thieu_can_tren
+-- Lọc ngày bắt đầu và ngày lịch chỉ từ 1/4/2025, không có cận trên: public khớp vì dữ liệu dừng ở tháng 6/2025; hidden-1 thêm NY-CMP-56555 (Nykaa, Social Media, bắt đầu 1/7/2025) nên dòng Social Media lệch (chỉ rớt ở hidden-1).
+WITH ngay_chay AS (
+  SELECT c.type_id,
+         c.acquisition_cost * c.conversions / c.duration_days AS chi_phi_mot_ngay
+  FROM campaigns c
+  JOIN calendar k
+    ON k.cal_date BETWEEN c.start_date AND c.start_date + INTERVAL c.duration_days - 1 DAY
+  WHERE c.brand_id = 1
+    AND k.cal_date >= '2025-04-01'
+), theo_ngay_chay AS (
+  SELECT type_id, SUM(chi_phi_mot_ngay) AS chi_phi
+  FROM ngay_chay
+  GROUP BY type_id
+), theo_ngay_bat_dau AS (
+  SELECT type_id, SUM(acquisition_cost * conversions) AS chi_phi
+  FROM campaigns
+  WHERE brand_id = 1
+    AND start_date >= '2025-04-01'
+  GROUP BY type_id
 )
-SELECT week_start,
-       COUNT(*) AS so_ngay,
-       ROUND(SUM(so_dang_chay) / 7, 1) AS bq_dang_chay_moi_ngay
-FROM theo_ngay
-GROUP BY week_start
-ORDER BY week_start;
+SELECT t.type_name,
+       ROUND(b.chi_phi, 2) AS chi_phi_theo_ngay_bat_dau,
+       ROUND(r.chi_phi, 2) AS chi_phi_theo_ngay_chay,
+       ROUND(r.chi_phi - b.chi_phi, 2) AS chenh_lech
+FROM campaign_types t
+JOIN theo_ngay_bat_dau b ON b.type_id = t.type_id
+JOIN theo_ngay_chay r ON r.type_id = t.type_id
+ORDER BY t.type_name;
 
 -- [mkt-t6-so-chien-dich-theo-so-kenh] solution
 WITH kenh_moi_chien_dich AS (

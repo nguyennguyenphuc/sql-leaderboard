@@ -230,35 +230,34 @@ Mã danh mục dùng trong đề: thương hiệu \code{brand_id} 1 Nykaa, 2 Pur
 \ghichuthietke{Khó (kiểm V4, 11/11/2026: viết lại câu cũ \code{mkt-t4-quy-tac-doi-chieu-nhat-ky} vì trùng chủ đề với k6 và chấm oan ở hidden-1 khi đếm nhật ký \code{DUPLICATE}). Ô C2 · marketing · hard · write: không trùng trong gói (f4 là C2 · finance) và không trùng câu nào của bộ. Khác c5 (case Dễ, CTR và ROI theo kênh) và c10 (ROI theo kênh): câu này đo mức doanh thu của thương hiệu phụ thuộc vào từng kênh. Năm trục: bảng 3 (\code{campaigns}, \code{campaign_channels}, \code{channels}; Trung bình); bước 4 tầng: chiến dịch trong quý, số kênh của từng chiến dịch, tổng thương hiệu tính riêng, gom theo thương hiệu và kênh rồi nối lại (Khó); mơ hồ: đề nói bằng ngôn ngữ kinh doanh (bị ảnh hưởng, mất hẳn), định nghĩa ở tab Nghiệp vụ, cách nối mở bằng \code{erdkhoa} (Khó); bẫy 3, một bẫy chỉ lộ ở hidden-1 (Khó); nghiệp vụ: hai tỷ trọng, một tỷ trọng có điều kiện theo số kênh của chiến dịch (Khó). Đạt Khó 4/5. ERD 5 bảng chỉ khoá, 2 bảng nhiễu, không vẽ đường nối. Bài sai: cộng tổng doanh thu thương hiệu trên dòng đã nối kênh (tỷ trọng còn khoảng một nửa, rớt public); coi kênh đứng đầu chuỗi (\code{channel_pos = 1}) là kênh duy nhất (tỷ trọng mất hẳn khoảng 16\% thay vì 5--6\%, rớt public); thiếu cận trên (chỉ rớt hidden-1: \code{NY-CMP-56555} ngày 1/7/2025 chạy WhatsApp và YouTube, số chiến dịch hai dòng Nykaa thêm 1, tỷ trọng Nykaa lệch). Lời giải khoảng 2,5 giây. hidden-1 bỏ chiến dịch đuôi 7 nên kết quả khác public.}
 \end{cauhoi}
 
-% ================================================================ T5 · Viết · Khó · B4 · operations
-\begin{cauhoi}[ma=mkt-t5-dang-chay-binh-quan-theo-tuan, dulieu=mkt, domain=operations,
-  hinhthuc=write, cap=hard, dang=B4, kynang={CTE, LEFT JOIN khoảng ngày, AVG}, bay={bo-chien-dich-bat-dau-truoc-ky, lech-bien-ngay-cuoi, can-tren-lay-them-ngay, tuan-chua-du},
-  tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.1]
-\tieude{Bình quân mỗi ngày có bao nhiêu chiến dịch đang chạy?}
-\boicanh[Chị Hạnh · Trưởng phòng marketing số]{Chị đang xếp người theo dõi chiến dịch cho tháng 2/2025. Chị cần biết tháng 1 vừa rồi bình quân mỗi ngày phòng mình có bao nhiêu chiến dịch đang chạy, tính theo từng tuần.}
+% ================================================================ T5 · Viết · Khó · E2 · finance
+\begin{cauhoi}[ma=mkt-t5-chi-phi-quy-2-theo-ngay-chay, dulieu=mkt, domain=finance,
+  hinhthuc=write, cap=hard, dang=E2, kynang={nhiều CTE, nối khoảng ngày với lịch, tính riêng hai cách ghi rồi nối}, bay={tinh-hai-cach-tren-mot-lan-noi, bo-chien-dich-bat-dau-truoc-quy, ngay-cuoi-thua-mot-ngay, thieu-can-tren},
+  tacgia={A}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.01]
+\tieude{Ghi theo ngày chạy, chi phí quý 2 của Nykaa chênh bao nhiêu?}
+\boicanh[Chị Mai · Kế toán quản trị]{Báo cáo của phòng marketing tính trọn chi phí một chiến dịch vào ngày bắt đầu, còn sổ kế toán ghi chi phí theo những ngày chiến dịch thật sự chạy. Vì vậy số chi phí quý 2/2025 của Nykaa ở hai bên không khớp. Chị cần biết mỗi loại chiến dịch lệch bao nhiêu để ngồi đối chiếu với phòng marketing.}
 \begin{yeucau}
-  \item Xét mọi ngày trong lịch từ ngày 1/1/2025 tới hết ngày 31/1/2025.
-  \item Đếm cho mỗi ngày số chiến dịch đang chạy (cả ba thương hiệu) như định nghĩa ở tab Nghiệp vụ, rồi gom các ngày theo tuần.
-  \item Trả về \code{week_start}, \code{so_ngay} (số ngày của tuần nằm trong khoảng xét), \code{bq_dang_chay_moi_ngay} (làm tròn 1 chữ số).
-  \item Sắp \code{week_start} tăng dần.
+  \item Xét chi phí chiến dịch của Nykaa (\code{brand_id = 1}) trong quý 2/2025, từ ngày 1/4/2025 tới hết ngày 30/6/2025.
+  \item Ở mỗi loại chiến dịch, tính chi phí của quý theo hai cách ghi ở tab Nghiệp vụ (ghi theo ngày bắt đầu và ghi theo ngày chạy). Chênh lệch bằng chi phí ghi theo ngày chạy trừ chi phí ghi theo ngày bắt đầu.
+  \item Trả về \code{type_name}, \code{chi_phi_theo_ngay_bat_dau}, \code{chi_phi_theo_ngay_chay}, \code{chenh_lech} (đơn vị tiền, làm tròn 2 chữ số, chỉ làm tròn ở kết quả cuối).
+  \item Sắp \code{type_name} tăng dần.
 \end{yeucau}
 \begin{erd}
-  \erdbang{calendar}{0,0}{cal_date:PK, week_start}
-  \erdbang{campaigns}{1,0}{campaign_id:PK, brand_id:FK, start_date:FK}
-  \erdbang{brands}{2,0}{brand_id:PK}
+  \erdbang{campaigns}{0,0}{campaign_id:PK, brand_id:FK, type_id:FK, start_date:FK}
+  \erdbang{campaign_types}{1,0}{type_id:PK}
+  \erdbang{calendar}{2,0}{cal_date:PK}
+  \erdbang{brands}{0,1}{brand_id:PK}
   \erdbang{campaign_channels}{1,1}{campaign_id:FK, channel_id:FK}
-  \erdbang{channels}{2,1}{channel_id:PK}
-  \erdkhoa{Lịch nối với chiến dịch theo khái niệm chiến dịch đang chạy ở tab Nghiệp vụ, không theo khoá. \code{campaign_channels}, \code{channels}, \code{brands} không cần.}
+  \erdkhoa{\code{campaigns} nối \code{campaign_types} theo \code{type_id}. Lịch \code{calendar} nối với chiến dịch theo ngày chạy (khái niệm chiến dịch đang chạy ở tab Nghiệp vụ), không theo khoá. \code{brands}, \code{campaign_channels} không cần.}
 \end{erd}
-\begin{nghiepvu}{Xếp số người theo dõi chiến dịch mỗi tuần cho tháng tới.}
-  \quytrinh{Vòng đời chiến dịch}{lên kế hoạch, khởi chạy, đang chạy, kết thúc, đánh giá}{}
+\begin{nghiepvu}{Đối chiếu chi phí quý 2/2025 của Nykaa giữa báo cáo của phòng marketing và sổ kế toán.}
+  \khainiem{chi-phi-chien-dich}
   \khainiem{chien-dich-dang-chay}
-  \khainiem{ky-va-thang-du}
-  \luuy{Tuần trong lịch bắt đầu thứ Hai, nên tuần đầu và tuần cuối của tháng có thể không đủ bảy ngày. Bình quân của một tuần chỉ tính trên các ngày của tuần đó nằm trong tháng.}
+  \luuy{Ngày chạy của một chiến dịch là những ngày chiến dịch đang chạy. Ghi theo ngày bắt đầu (cách của phòng marketing) là tính toàn bộ chi phí của chiến dịch vào kỳ có ngày bắt đầu. Ghi theo ngày chạy (cách của kế toán) là chia đều chi phí của chiến dịch cho các ngày chạy, rồi mỗi kỳ nhận phần chi phí của những ngày chạy nằm trong kỳ đó.}
 \end{nghiepvu}
-\goiy{Một chiến dịch bắt đầu cuối tháng 12/2024 vẫn có thể còn chạy vào những ngày đầu tháng 1/2025. Điều kiện lọc của em có giữ được các chiến dịch đó không?}
-\goiy{\code{k.cal_date BETWEEN c.start_date AND c.start_date + INTERVAL c.duration_days - 1 DAY}.}
-\ghichuthietke{Khó: 5 bảng chỉ khoá, 3 bảng nhiễu (đủ 5 bảng theo CHOT-FORMAT mục 3; QUYET-DINH-CHUNG 1.3 bản 23:05 cho thêm bảng nhiễu khi lời giải dùng ít bảng), quan hệ mở bằng \code{erdkhoa}. Khoảng xét ở v3 là quý 1/2025 (không lấy quý 2 để tránh các tuần cuối tháng 6/2025 giảm về 0 chỉ vì dữ liệu dừng ở chiến dịch bắt đầu ngày 24/6/2025); v4 rút về tháng 1/2025 vì lời giải nối khoảng ngày đọc lại cả bảng \code{campaigns} cho mỗi ngày lịch, 90 ngày mất 13--15 giây kể cả khi máy rảnh, 31 ngày còn khoảng 5 giây (public) và 3 giây (hidden-1). Bẫy ở public: lọc chiến dịch theo ngày bắt đầu trong tháng làm mất các chiến dịch bắt đầu cuối tháng 12/2024 còn chạy sang tháng 1; lấy ngày cuối bằng ngày bắt đầu cộng thời lượng (thừa một ngày); cận trên viết \code{BETWEEN} tới 1/2/2025 làm tuần cuối thêm một ngày; chia tổng cho 7 ở tuần không đủ ngày. Tuần đầu (30/12/2024) và tuần cuối (27/1/2025) mỗi tuần chỉ có 5 ngày trong khoảng xét. Mọi ngày trong tháng 1 đều có chiến dịch đang chạy nên nối trong cho cùng kết quả; dùng \code{LEFT JOIN} vẫn là cách viết an toàn. Kiểm V4 (11/11/2026): \code{erdkhoa} không còn viết sẵn điều kiện nối khoảng (chỉ trỏ tới khái niệm đang chạy); gợi ý cuối còn một biểu thức. Năm trục: bảng 2 (Dễ); bước 3--4 tầng: đếm theo ngày bằng nối khoảng, gom theo tuần, tuần thiếu ngày (Khó); mơ hồ: đề chỉ nói ``đang chạy'', cách nối phải tự suy từ khái niệm, ERD không gợi điều kiện (Khó); bẫy 4 nhưng không bẫy nào chỉ lộ ở hidden-1 (Trung bình theo QUYET-DINH-CHUNG 2.2); nghiệp vụ: trạng thái tại thời điểm (Trung bình). Đạt 2/5 trục Khó, cộng số bẫy 4. Không đặt được bẫy hidden-1 bằng biến thể có sẵn: dòng (b) nằm ở ngày 1/7/2025, còn khoảng xét phải ở tháng đủ (mọi chiến dịch kết thúc trước 28/6/2025 nên các tuần cuối tháng 6 giảm về 0) và đủ ngắn để lời giải dưới 10 giây. Chờ giảng viên: giữ Khó hay thêm biến thể ẩn.}
+\goiy{Một chiến dịch bắt đầu ngày 20/3/2025 và chạy 20 ngày. Ghi theo ngày bắt đầu thì chi phí của chiến dịch thuộc quý nào? Ghi theo ngày chạy thì quý 2 nhận chi phí của mấy ngày?}
+\goiy{\code{c.acquisition_cost * c.conversions / c.duration_days}.}
+\ghichuthietke{Khó (quyết định giảng viên 11/11/2026: viết lại câu cũ \code{mkt-t5-dang-chay-binh-quan-theo-tuan}, vốn chỉ đạt 2/5 trục Khó và không có bẫy chỉ lộ ở hidden-1). Ô E2 · finance · hard · write: không trùng câu nào trong gói và trong bộ (k5 là E2 · finance · easy). Chủ đề mới là ghi nhận chi phí theo ngày chạy; khác f7 (chi phí luỹ kế theo ngày bắt đầu, lỗi thiếu \code{ORDER BY}), s1 (đếm chiến dịch chạy sang tháng sau) và j4, s9 (đếm chiến dịch đang chạy). Năm trục: bảng 3 (\code{campaigns}, \code{calendar}, \code{campaign_types}; Khó, mức thường gặp); bước 4 tầng: nối lịch theo khoảng ngày lấy chi phí từng ngày chạy, gom theo loại, tính riêng chi phí ghi theo ngày bắt đầu, nối hai kết quả với danh mục rồi lấy chênh lệch (Khó); mơ hồ: đề nói bằng cách ghi sổ, cách chia chi phí và cách nối lịch phải tự suy từ tab Nghiệp vụ, \code{erdkhoa} không viết sẵn điều kiện (Khó); bẫy 4, một bẫy chỉ lộ ở hidden-1 (Khó); nghiệp vụ: chi phí hai thành phần, chia theo ngày chạy, chỉ lấy phần nằm trong kỳ, so với cách ghi khác (Khó). Đạt Khó 5/5. ERD 5 bảng chỉ khoá, 2 bảng nhiễu, không vẽ đường nối. Bài sai: tính hai cách ghi trên cùng một lần nối với lịch (chi phí ghi theo ngày bắt đầu bị cộng lại ở mỗi ngày chạy, lớn gấp khoảng 17 lần; rớt public); chỉ lấy chiến dịch bắt đầu trong quý (mất phần chi phí của các chiến dịch bắt đầu tháng 3/2025 còn chạy sang tháng 4, chênh lệch ra 0; rớt public); ngày chạy cuối lấy \code{start_date + duration_days} (thừa một ngày; rớt public); thiếu cận trên ở ngày bắt đầu và ngày lịch (chỉ rớt hidden-1: biến thể (b) thêm \code{NY-CMP-56555}, Nykaa, Social Media, bắt đầu 1/7/2025, cùng ngày lịch 1/7/2025, nên dòng Social Media lệch; ở public dữ liệu dừng ở tháng 6/2025 nên khớp). Không chiến dịch nào của dữ liệu chạy quá 30/6/2025, nên lời giải không cần cắt phần chi phí sau quý; vẫn lọc ngày lịch tới hết 30/6/2025. Lời giải khoảng 2 giây. hidden-1 bỏ chiến dịch đuôi 7 nên kết quả khác public.}
 \end{cauhoi}
 
 % ================================================================ T6 · Viết · Cơ bản · A3 · marketing
