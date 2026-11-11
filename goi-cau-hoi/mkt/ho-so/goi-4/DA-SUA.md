@@ -85,7 +85,7 @@ Theo `BRIEF-CAP-DO-MODULE.md`: lộ trình chuẩn (`quy_chuan/lo-trinh-sql/asse
 
 ### Gói vỡ dở lúc nhận việc
 
-Lượt v4 trước dừng giữa chừng (xem `TRANG-THAI-V4.md`): `solution.sql` đã có khối SQL cho bốn câu theo hướng mới với mã mới (`mkt-t6-so-chien-dich-theo-so-kenh`, `mkt-f3-hang-luot-nhap-trong-ngay`, `mkt-f7-chi-phi-luy-ke-ngay-nao-cung-bang`, `mkt-f8-thang-truoc-lay-so-thang-sau`), còn `cau-hoi.tex` vẫn là đề v3 với mã cũ, nên kiểm tĩnh báo 24 lỗi (thiếu khối của mã cũ). Đề của bốn câu này chưa được viết lại (`git log -p`: lần sửa `cau-hoi.tex` cuối cùng là v3). Quyết định: **hoàn thiện theo hướng đó** (bốn hướng đều khớp bài Cơ bản, Dễ của M7, M8 trên lộ trình và lấp đúng ô cấp còn thiếu): viết đủ 8 phần đề cho bốn mã mới; giữ SQL đã có, riêng f3 thêm điều kiện ngôn ngữ English để kết quả còn 21 dòng (bản dở cho 58 dòng). Năm câu còn lại để đủ 2/3/2/2 (t2, t8, t9, f2, f6) chọn trong lượt này.
+Lượt v4 trước dừng giữa chừng (xem `TRANG-THAI-V4.md` (file trạng thái tạm, đã xoá sau khi xong v4)): `solution.sql` đã có khối SQL cho bốn câu theo hướng mới với mã mới (`mkt-t6-so-chien-dich-theo-so-kenh`, `mkt-f3-hang-luot-nhap-trong-ngay`, `mkt-f7-chi-phi-luy-ke-ngay-nao-cung-bang`, `mkt-f8-thang-truoc-lay-so-thang-sau`), còn `cau-hoi.tex` vẫn là đề v3 với mã cũ, nên kiểm tĩnh báo 24 lỗi (thiếu khối của mã cũ). Đề của bốn câu này chưa được viết lại (`git log -p`: lần sửa `cau-hoi.tex` cuối cùng là v3). Quyết định: **hoàn thiện theo hướng đó** (bốn hướng đều khớp bài Cơ bản, Dễ của M7, M8 trên lộ trình và lấp đúng ô cấp còn thiếu): viết đủ 8 phần đề cho bốn mã mới; giữ SQL đã có, riêng f3 thêm điều kiện ngôn ngữ English để kết quả còn 21 dòng (bản dở cho 58 dòng). Năm câu còn lại để đủ 2/3/2/2 (t2, t8, t9, f2, f6) chọn trong lượt này.
 
 ### Phân bố cấp
 
@@ -124,7 +124,7 @@ Nhân vật mới: Bạn Linh · Thực tập sinh (t9), Bạn Tú · Thực t�
 - Thời gian solution (bộ kiểm chạy lúc MySQL đang phục vụ thêm bốn gói khác, CPU container 100–290%): câu đổi chậm nhất t9 khoảng 5–6 giây, t4 (không đổi) 5–6 giây, các câu đổi khác dưới 1,4 giây. t5 sau khi rút về tháng 1: 4,7 giây (public), 3,5 giây (hidden-1) trong bộ kiểm lần cuối; đo riêng lúc máy gần rảnh 4,8 và 3,2 giây.
 - Biên dịch XeLaTeX (`cong-cu/ket-qua/cap-do/mkt-goi-4/bien-dich/`): 0 lỗi LaTeX, 0 ký tự thiếu, 0 cảnh báo `aio-sql-cauhoi`.
 - Đếm lại cấp từ `cau-hoi.tex`: M7 2/3/2/2, M8 2/3/2/2; c7 medium, c8 hard. Thư mục gói vẫn đúng 4 file.
-- Bản đồ: không sửa `BAN-DO-100-CAU.md`; 10 dòng mới (9 câu đổi cấp và t5) kèm mã cũ ở `BAN-DO-V4-DONG.md`.
+- Bản đồ: không sửa `BAN-DO-100-CAU.md`; 10 dòng mới (9 câu đổi cấp và t5) kèm mã cũ ở `BAN-DO-V4-DONG.md` (đã gộp vào `BAN-DO-100-CAU.md` ngày 11/11, file đã xoá).
 
 ### Cửa chặn giọng văn (BRIEF-KIEM-GOI bước 6)
 

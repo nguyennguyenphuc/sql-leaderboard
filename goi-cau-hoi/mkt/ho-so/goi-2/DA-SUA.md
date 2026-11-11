@@ -54,7 +54,7 @@ Xem `../CHUAN-HOA.md` (tiêu đề ≤ 13 tiếng, gợi ý nấc cuối, kết 
 
 ## v4 – đủ 4 cấp mỗi module (11/11/2026)
 
-Theo `BRIEF-CAP-DO-MODULE.md` (quy chuẩn `data.js`: mọi module đủ Cơ bản → Khó). Mục tiêu mỗi module 2 Cơ bản · 3 Dễ · 2 Trung bình · 2 Khó, giữ 6 write + 3 debug; case c3 (Cơ bản), c4 (Dễ) giữ cấp. Agent v4 trước dừng vì giới hạn lượt gọi trước khi sửa gì (`TRANG-THAI-V4.md`); lần này làm từ đầu trên bản v3.
+Theo `BRIEF-CAP-DO-MODULE.md` (quy chuẩn `data.js`: mọi module đủ Cơ bản → Khó). Mục tiêu mỗi module 2 Cơ bản · 3 Dễ · 2 Trung bình · 2 Khó, giữ 6 write + 3 debug; case c3 (Cơ bản), c4 (Dễ) giữ cấp. Agent v4 trước dừng vì giới hạn lượt gọi trước khi sửa gì (`TRANG-THAI-V4.md` (file trạng thái tạm, đã xoá sau khi xong v4)); lần này làm từ đầu trên bản v3.
 
 Phân bổ (đếm lại từ `cau-hoi.tex`): **M3** trước 3 Cơ bản (s1, s2, s7) · 6 Dễ → sau 2 Cơ bản (s2, s7) · 3 Dễ (s4, s5, s6) · 2 Trung bình (s1, s8) · 2 Khó (s3, s9). **M4** trước 7 Dễ · 2 Trung bình (a5, a9) → sau 2 Cơ bản (a3, a6) · 3 Dễ (a2, a4, a8) · 2 Trung bình (a5, a9) · 2 Khó (a1, a7). Số câu đổi cấp: 8, là số tối thiểu (M3 phải bỏ 1 Cơ bản và 3 Dễ để có 2 Trung bình, 2 Khó; M4 phải bỏ 4 Dễ để có 2 Cơ bản, 2 Khó). Viết lại 6 câu (đổi mã), hạ 2 câu (giữ mã: a3 giữ SQL; a6 bỏ cột giá trị đơn, thêm cận trên). Hình thức mỗi module vẫn 6 write + 3 debug; debug trải đều Cơ bản, Trung bình, Khó (M3: s7, s8, s9) và Dễ, Trung bình, Khó (M4: a8, a9, a7).
 
@@ -84,7 +84,7 @@ Cửa chặn giọng văn (BRIEF-KIEM-GOI bước 6), tự rà mọi trường c
 
 Nghi trùng ô, trùng nội dung:
 - Ô (dạng · mảng · cấp · hình thức) của 8 câu không trùng trong gói và không trùng `cau-hoi.tex` các gói 1, 3, 4, 5 đọc lúc 11/11 (các gói này đang được sửa song song, cần đối chiếu lại khi gộp bản đồ). Lần đối chiếu đầu thấy a7 (A2 · fin · hard · D) trùng n9 gói 1 và bản hạ a2 về Cơ bản (A3 · mkt · basic · W) trùng t6 gói 4, nên a7 đổi sang B1 và a2 giữ Dễ (hạ a6 thay).
-- Trùng nội dung gần: s9 (đang chạy ngày đầu tháng, Sửa lỗi · Khó) cùng chủ đề "chiến dịch đang chạy" với j4 (gói 3, Viết · Trung bình) và t5 (gói 4, Viết · Khó), khác ô và khác kỹ năng chính; a6 (Nykaa theo tháng) gần c3 (Purplle theo tháng, bình quân mỗi ngày) nhưng khác thương hiệu và chỉ số. Dòng bản đồ mới ở `BAN-DO-V4-DONG.md`.
+- Trùng nội dung gần: s9 (đang chạy ngày đầu tháng, Sửa lỗi · Khó) cùng chủ đề "chiến dịch đang chạy" với j4 (gói 3, Viết · Trung bình) và t5 (gói 4, Viết · Khó), khác ô và khác kỹ năng chính; a6 (Nykaa theo tháng) gần c3 (Purplle theo tháng, bình quân mỗi ngày) nhưng khác thương hiệu và chỉ số. Dòng bản đồ mới ở `BAN-DO-V4-DONG.md` (đã gộp vào `BAN-DO-100-CAU.md` ngày 11/11, file đã xoá).
 
 ## Sửa theo KIEM-V4 (11/11/2026)
 

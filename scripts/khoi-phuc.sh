@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # khoi-phuc.sh: dựng MySQL của SQL Leaderboard trên máy mới (Linux, macOS, Git Bash trên Windows).
 #
-#   bash scripts/khoi-phuc.sh                         # tải dump từ GitHub Release v1.0.0 rồi nạp
-#   bash scripts/khoi-phuc.sh --tag v1.1.0            # release khác
+#   bash scripts/khoi-phuc.sh                         # tải dump từ GitHub Release v1.1.0 rồi nạp
+#   bash scripts/khoi-phuc.sh --tag v1.2.0            # release khác
 #   bash scripts/khoi-phuc.sh --repo chu/sql-leaderboard   # khi thư mục không phải bản clone có remote GitHub
 #   bash scripts/khoi-phuc.sh --khong-tai             # dùng dump có sẵn trong dist/dumps/ (không gọi gh)
 #   bash scripts/khoi-phuc.sh --tu-csv                # dựng từ script gốc + CSV trong mysql/**/du-lieu/

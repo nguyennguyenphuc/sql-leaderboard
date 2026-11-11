@@ -68,7 +68,7 @@ Xem `../CHUAN-HOA.md` (tiêu đề ≤ 13 tiếng, gợi ý nấc cuối, kết 
 
 ## v4 – đủ 4 cấp mỗi module (11/11/2026)
 
-Theo `BRIEF-CAP-DO-MODULE.md`: mỗi module 2 Cơ bản · 3 Dễ · 2 Trung bình · 2 Khó (không tính case), theo lộ trình `quy_chuan/lo-trinh-sql/assets/js/data.js` (Joins: `j1-don-kem-vung` basic, `j3-khach-chua-mua` easy, `j5-doanh-thu-nhom-hang` medium, `j6-mua-cung-don` hard; Subqueries: `q1-tren-gia-trung-binh` basic, `q2`, `q3` easy, `q4`, `q5` medium, `q6-don-dau-tien` hard). Case c5 (Dễ), c6 (Trung bình) giữ nguyên cấp. Agent v4 trước dừng vì giới hạn lượt trước khi sửa gì (`TRANG-THAI-V4.md`); bản này làm từ đầu.
+Theo `BRIEF-CAP-DO-MODULE.md`: mỗi module 2 Cơ bản · 3 Dễ · 2 Trung bình · 2 Khó (không tính case), theo lộ trình `quy_chuan/lo-trinh-sql/assets/js/data.js` (Joins: `j1-don-kem-vung` basic, `j3-khach-chua-mua` easy, `j5-doanh-thu-nhom-hang` medium, `j6-mua-cung-don` hard; Subqueries: `q1-tren-gia-trung-binh` basic, `q2`, `q3` easy, `q4`, `q5` medium, `q6-don-dau-tien` hard). Case c5 (Dễ), c6 (Trung bình) giữ nguyên cấp. Agent v4 trước dừng vì giới hạn lượt trước khi sửa gì (`TRANG-THAI-V4.md` (file trạng thái tạm, đã xoá sau khi xong v4)); bản này làm từ đầu.
 
 | Module | Trước (Cơ bản/Dễ/TB/Khó) | Sau | Hình thức sau (write/debug) |
 |---|---|---|---|
@@ -116,7 +116,7 @@ Không có tên kỹ thuật SQL trong lời nhắn; thuật ngữ theo STYLE-mk
 
 Không trùng trong gói (đã đối chiếu cả 20 câu). Giữa các gói: `mkt-j3-influencer-nykaa-tren-youtube` (A1 · marketing · basic · write) cùng ô với `mkt-r1-influencer-purplle-thang-1` (gói 1, M1, lọc một bảng): khác module, được phép, ghi để tham khảo. Nội dung gần: q4 và q1 cùng ý "ROI trên mức chung" (khác cấp Khó/Dễ, khác đơn vị so: tháng so với quý, chiến dịch so với tháng); q3 (Cơ bản, Viết) và q9 (Khó, Sửa lỗi) cùng dạng C3 · marketing nhưng khác cấp, hình thức. Các gói 1, 2, 4, 5 đang được sửa song song nên chỉ đối chiếu được bản trên đĩa lúc 11/11.
 
-Dòng bản đồ mới: `BAN-DO-V4-DONG.md` (7 dòng, kèm mã cũ). `../../BAN-DO-100-CAU.md` không sửa theo brief v4.
+Dòng bản đồ mới: `BAN-DO-V4-DONG.md` (đã gộp vào `BAN-DO-100-CAU.md` ngày 11/11, file đã xoá) (7 dòng, kèm mã cũ). `../../BAN-DO-100-CAU.md` không sửa theo brief v4.
 
 Điểm tự thấy yếu: j6 chưa có bẫy chỉ lộ ở hidden-1; q4 Khó chỉ dùng một bảng và ra 6 dòng (đúng mẫu o4 nhưng ít dòng); ERD Khó của j9, q4, q9 phải thêm 3–4 bảng nhiễu cho đủ 5 bảng (QUYET-DINH-CHUNG 1.3).
 

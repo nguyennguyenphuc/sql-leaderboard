@@ -1,6 +1,6 @@
 # Bảng phân công · gói 2 · Marketing (`mkt`)
 
-v2 sau kiểm B/C (10/11/2026), chi tiết ở `DA-SUA.md`. v4 (11/11/2026): 8 câu đổi cấp cho đủ 2 Cơ bản · 3 Dễ · 2 Trung bình · 2 Khó mỗi module (DA-SUA mục v4, dòng bản đồ ở `BAN-DO-V4-DONG.md`); bộ kiểm đầy đủ cả gói 0 lỗi. Kiểm SQL: bộ kiểm gói tạm (câu sửa SQL/yêu cầu) hoặc phân tích tĩnh cả gói, 0 lỗi.
+v2 sau kiểm B/C (10/11/2026), chi tiết ở `DA-SUA.md`. v4 (11/11/2026): 8 câu đổi cấp cho đủ 2 Cơ bản · 3 Dễ · 2 Trung bình · 2 Khó mỗi module (DA-SUA mục v4, dòng bản đồ ở `BAN-DO-V4-DONG.md` (đã gộp vào `BAN-DO-100-CAU.md` ngày 11/11, file đã xoá)); bộ kiểm đầy đủ cả gói 0 lỗi. Kiểm SQL: bộ kiểm gói tạm (câu sửa SQL/yêu cầu) hoặc phân tích tĩnh cả gói, 0 lỗi.
 
 | Mã | Người soạn (A) | Người kiểm (B) | Phiên bản | Kiểm SQL | Kiểm nội dung |
 |---|---|---|---|---|---|

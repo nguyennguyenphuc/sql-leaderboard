@@ -18,12 +18,21 @@ Bộ kiểm đọc một gói câu hỏi (4 file, chuẩn `aio-sql-cauhoi` v0.4)
 
 ## Chạy
 
-```bash
-docker build -t sqllb-tools "C:\Cong viec\ProjectDA\sql-leaderboard\cong-cu"     # một lần
+Chạy từ thư mục gốc repo (image `sqllb-tools` do `scripts/khoi-phuc.sh` build sẵn; build lại: `docker compose build tools`):
 
-# Git Bash: thêm MSYS_NO_PATHCONV=1 để đường dẫn /w không bị đổi
-MSYS_NO_PATHCONV=1 docker run --rm --network sqllb -v "C:\Cong viec\ProjectDA\sql-leaderboard:/w" -w /w sqllb-tools \
-  python cong-cu/kiem_tra_goi.py --goi goi-cau-hoi/<tên gói> --ra cong-cu/ket-qua/<tên gói> --host sqllb-mysql --port 3306
+```bash
+docker compose run --rm tools python cong-cu/kiem_tra_goi.py \
+  --goi goi-cau-hoi/<bộ>/goi-<k> --ra cong-cu/ket-qua/<tên> --host sqllb-mysql --port 3306
+
+bash cong-cu/kiem_tat_ca.sh 4            # cả 25 gói, 4 gói song song -> cong-cu/ket-qua/kiem-cuoi/ (~15 phút)
+bash cong-cu/kiem_tat_ca.sh 2 hr mkt     # chỉ các bộ nêu tên
+```
+
+Không qua compose (Git Bash cần `MSYS_NO_PATHCONV=1` để `/w` không bị đổi; `cygpath -w` đổi thư mục repo sang dạng Windows):
+
+```bash
+MSYS_NO_PATHCONV=1 docker run --rm --network sqllb -v "$(cygpath -w "$PWD"):/w" -w /w sqllb-tools \
+  python cong-cu/kiem_tra_goi.py --goi goi-cau-hoi/<bộ>/goi-<k> --ra cong-cu/ket-qua/<tên> --host sqllb-mysql --port 3306
 ```
 
 - `--goi`: thư mục gói hoặc file `.zip`. Với zip: kiểm ≤ 2 MB, phẳng, chỉ 4 file. Với thư mục: ước lượng cỡ zip của 4 file; file lạ chỉ cảnh báo.
@@ -101,8 +110,7 @@ Cảnh báo: `SOLUTION_0_DONG`, `NGHIEPVU_LO_SO`, `WRONG_LOI_CHAY`, `LATEX_GACH_
 ## Tự kiểm thử (10/11/2026: 13/13 đạt)
 
 ```bash
-MSYS_NO_PATHCONV=1 docker run --rm --network sqllb -v "C:\Cong viec\ProjectDA\sql-leaderboard:/w" -w /w sqllb-tools \
-  python cong-cu/tu_kiem_thu.py
+docker compose run --rm tools python cong-cu/tu_kiem_thu.py
 ```
 
 1. Gói mẫu 16 câu (`quy_chuan/goi-cau-hoi-mau`, chỉ phân tích vì không có dữ liệu Datathon): 16 câu (4 × 4 hình thức),

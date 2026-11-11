@@ -83,18 +83,28 @@ Lưu ý:
 - Mật khẩu trong `mysql/.env` chỉ gồm chữ và số: `SQL_RUNNER_PASSWORD` được thay vào file SQL bằng `sed`.
 - Volume `sqllb-mysql-data` đã có từ lần dựng trước thì MySQL giữ mật khẩu root cũ, không đọc lại `mysql/.env`.
   Hai giá trị lệch nhau thì sửa `.env` cho khớp, hoặc xoá volume rồi dựng lại.
-- Trên máy gốc, container `sqllb-mysql` được dựng bằng `docker run` (xem `mysql/README.md`). Không chạy
-  `docker compose up` ở đó: trùng tên container. Script khôi phục kiểm điều này và dừng lại.
+- Bộ nhớ đệm InnoDB mặc định 1 GB. Máy đủ RAM thì đặt lớn hơn trước khi dựng, ví dụ WSL 10 GB:
+  `SQLLB_BUFFER_POOL=6G bash scripts/khoi-phuc.sh`. Bộ kiểm cả 25 gói chạy khoảng 15 phút với 6 GB.
+- Sau khi dựng, tắt adaptive hash index (MySQL từng crash khi nhiều truy vấn song song):
+  `docker exec sqllb-mysql sh -c 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql -uroot -e "SET PERSIST innodb_adaptive_hash_index=OFF"'`.
+- Đã có sẵn 10 dump (ví dụ chép từ máy khác): đặt vào `dist/dumps/` cùng `SHA256SUMS` rồi chạy `--khong-tai`;
+  script vẫn kiểm SHA256.
+- Nếu đã có container `sqllb-mysql` dựng tay bằng `docker run` (không qua compose), không chạy `docker compose up`:
+  trùng tên container. Script khôi phục kiểm điều này và dừng lại.
 - Dump của `jelly` và `jelly_hidden_1` có view ghi đủ tên database, nên phải nạp đúng tên database gốc.
 
 ### Cập nhật dump trên Release
 
 Trên máy gốc, lúc MySQL rảnh:
 
+Chỉ cần khi database đổi (sửa `mysql/**`, biến thể ẩn). Sửa câu hỏi không làm đổi database.
+
 ```bash
 bash scripts/xuat-dump.sh                         # 10 database -> dist/dumps/*.sql.gz + SHA256SUMS
-gh release create v1.1.0 dist/dumps/*.sql.gz dist/dumps/SHA256SUMS --title "Dữ liệu MySQL v1.1.0" --notes "..."
+gh release create v1.2.0 dist/dumps/*.sql.gz dist/dumps/SHA256SUMS --title "SQL Leaderboard v1.2.0" --notes "..."
 ```
+
+Rồi đổi tag mặc định `TAG=` trong `scripts/khoi-phuc.sh` và `scripts/khoi-phuc.ps1`.
 
 `xuat-dump.sh` chạy `mysqldump --single-transaction --routines --no-tablespaces` qua `docker exec sqllb-mysql`, mật
 khẩu root đọc từ `mysql/.env` và chuyển vào container qua biến `MYSQL_PWD`. Dump `hr` nén khoảng 1,7 MB; tổng 10 dump
@@ -142,6 +152,24 @@ bash scripts/zip-overleaf.sh hr         # chỉ bộ hr
 Mỗi zip phẳng, gồm đúng 4 file `cau-hoi.tex`, `solution.sql`, `aio-sql-cauhoi.sty`, `HUONG_DAN.md`. Trên Overleaf:
 New Project → Upload Project → chọn file zip, rồi Menu → Compiler: **XeLaTeX**, file chính `cau-hoi.tex`.
 
+### Đóng gói bàn giao (PDF + Overleaf của 25 gói)
+
+```bash
+# 1. biên dịch 25 gói, chép PDF ra dist/pdf/<bộ>-goi-<k>.pdf
+for bo in scm aivb jelly hr mkt; do for k in 1 2 3 4 5; do
+  bash cong-cu/bien_dich.sh goi-cau-hoi/$bo/goi-$k "$PWD/cong-cu/ket-qua/bien-dich/$bo-goi-$k" \
+    && mkdir -p dist/pdf && cp "cong-cu/ket-qua/bien-dich/$bo-goi-$k/cau-hoi.pdf" "dist/pdf/$bo-goi-$k.pdf"
+done; done
+# 2. zip Overleaf từng gói, rồi gom thành 2 file (Windows: tar.exe; Linux/macOS: zip)
+bash scripts/zip-overleaf.sh
+(cd dist/pdf && tar.exe -a -c -f ../pdf-25-goi.zip *.pdf)
+(cd dist/overleaf && tar.exe -a -c -f ../overleaf-25-goi.zip *.zip)
+# 3. đính vào Release hiện hành (ghi đè file cùng tên)
+gh release upload v1.1.0 dist/pdf-25-goi.zip dist/overleaf-25-goi.zip --clobber
+```
+
+Mỗi gói biên dịch khoảng 40 giây. Bàn giao qua 2 file zip này trên GitHub Release.
+
 ## Thêm câu hỏi mới
 
 1. Đọc `quy_chuan/DOC_TRUOC.md` và `quy_chuan/CHOT-FORMAT-CAU-HOI.md` (định dạng gói, khoá của `\begin{cauhoi}`,
@@ -154,11 +182,35 @@ New Project → Upload Project → chọn file zip, rồi Menu → Compiler: **X
    `scripts/xuat-dump.sh`, `scripts/khoi-phuc.sh`, `scripts/khoi-phuc.ps1`.
 4. Gói chỉ được coi là xong khi bộ kiểm báo `KIEM TRA: 0 loi` và `bien_dich.sh` cho PDF không lỗi.
 
-Hiện có 25 gói, 500 câu (cập nhật 10/11/2026).
+Hiện có 25 gói, 500 câu, bản v1.1.0 (cập nhật 11/11/2026).
+
+## Quy tắc đang áp dụng
+
+- **Thứ tự ưu tiên:** `quy_chuan/` > `QUYET-DINH-CHUNG.md` (mục 0 trước) > `style/STYLE-<bộ>.md` > `BRIEF-*.md`.
+  HackerRank và tài liệu dự án (thư mục `Project DA` của giảng viên) chỉ lấp chỗ quy chuẩn không nói.
+- **Cấp độ:** mỗi module (9 câu, không tính case) đủ **2 Cơ bản · 3 Dễ · 2 Trung bình · 2 Khó** theo lộ trình
+  `quy_chuan/lo-trinh-sql`. Câu đổi cấp phải khác độ khó thật (≥ 3/5 trục, QUYET-DINH-CHUNG 2.2), không chỉ đổi nhãn.
+  Câu Khó có ít nhất một bẫy chỉ lộ ở hidden-1; câu Sửa lỗi Khó có ≥ 2 lỗi chồng nhau.
+- **Trùng ô** (dạng × mảng × cấp × hình thức): cấm trong cùng một gói, và cấm khi hai câu trùng cả chủ đề. Trùng ô giữa
+  hai gói khác chủ đề được giữ, ghi ở mục "Ô trùng" của `BAN-DO-100-CAU.md`.
+- **Thời gian chạy:** solution, mọi wrong/starter và cách giải tự nhiên của học viên < 10 giây (nên ≤ 5 giây khi
+  MySQL rảnh). Câu chậm thì thu phạm vi dữ liệu nếu giữ được độ khó, không dùng gợi ý chỉ mục. Nếu không giữ được độ
+  khó: giữ câu, ghi chú câu chậm vào đề (`\luuy`) và ghi thời gian cần nới ở `\ghichuthietke` để nền tảng đặt giới
+  hạn riêng cho câu đó.
+- **Starter, gợi ý:** starter không có chú thích nói thẳng lỗi; gợi ý nấc cuối chỉ một biểu thức; đề không dẫn học viên
+  gắn cứng ngày cuối dữ liệu (đúng public, rớt hidden-1).
+- **Sau khi sửa câu:** cập nhật dòng câu trong `BAN-DO-100-CAU.md`, ghi `ho-so/goi-<k>/DA-SUA.md` và
+  `BANG-PHAN-CONG.md`, rồi sinh lại số liệu thống kê: `python -X utf8 cong-cu/sinh_thong_ke.py <bộ>` (thay phần số
+  liệu của khối "## Thống kê", giữ phần ô trùng ghi tay).
 
 ## Kết quả kiểm và báo cáo
 
-- `BAO-CAO-TONG-HOP.md`: thống kê 500 câu, quy trình đã chạy và danh sách việc chờ giảng viên quyết.
-- `bao-cao/kiem-cuoi/<bộ>-goi-<k>.json`: báo cáo bộ kiểm lần cuối (public + hidden-1) của từng gói, 25/25 gói `0 loi`.
+- `BAO-CAO-TONG-HOP.md`: mục 0 là trạng thái v1.1.0 (số câu, các vòng v3, v4, kiểm độc lập V4, kiểm máy cuối,
+  quyết định của giảng viên); mục 1–5 giữ bản 10/11.
+- `bao-cao/kiem-cuoi/<bộ>-goi-<k>.json`, `TONG-HOP.txt`: báo cáo bộ kiểm lần cuối (11/11/2026) của từng gói,
+  25/25 gói `0 loi`.
+- `goi-cau-hoi/<bộ>/ho-so/`: hồ sơ từng gói (`DA-SUA.md` ghi mọi vòng sửa) và kiểm độc lập V4 của bộ
+  (`KIEM-V4-DANH-SACH.md`, `KIEM-V4-B.md`, `KIEM-V4-C.md`).
 - Chạy lại bộ kiểm cho mọi gói: `bash cong-cu/kiem_tat_ca.sh 4` (4 gói song song; thêm tên bộ để chỉ chạy bộ đó).
-- PDF đề và zip tải lên Overleaf của 25 gói được đính kèm Release cùng bản dump.
+  Kết quả ở `cong-cu/ket-qua/kiem-cuoi/`; mỗi báo cáo có số giây của từng truy vấn (`solution.*.giay`).
+- Release v1.1.0: 10 dump + `SHA256SUMS`, `pdf-25-goi.zip` (25 PDF), `overleaf-25-goi.zip` (25 zip Overleaf).

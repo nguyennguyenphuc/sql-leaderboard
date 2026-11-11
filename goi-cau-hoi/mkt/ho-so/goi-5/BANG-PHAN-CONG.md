@@ -2,7 +2,7 @@
 
 Module 9 Data Quality, Module 10 Query Performance, 2 case Khó. Bản v2 sau kiểm B/C (chi tiết `DA-SUA.md`).
 Kiểm lại 10/11/2026: gói tạm 4 câu sửa SQL/yêu cầu (k6, p2, p3, p7) **KIEM TRA: 0 loi**; cả gói `--chi-phan-tich` **0 loi**; biên dịch XeLaTeX 0 lỗi.
-v4 (11/11/2026, BRIEF-CAP-DO-MODULE): đổi 7 câu để mỗi module có 2 Cơ bản · 3 Dễ · 2 Trung bình · 2 Khó (k1, k5, k9, p2, p5, p6, p8; chi tiết mục v4 của `DA-SUA.md`, dòng bản đồ mới ở `BAN-DO-V4-DONG.md`). Bộ kiểm đầy đủ cả gói (public + hidden-1) 11/11: **KIEM TRA: 0 loi**, 0 cảnh báo; biên dịch XeLaTeX 59 trang, 0 lỗi LaTeX, 0 ký tự thiếu.
+v4 (11/11/2026, BRIEF-CAP-DO-MODULE): đổi 7 câu để mỗi module có 2 Cơ bản · 3 Dễ · 2 Trung bình · 2 Khó (k1, k5, k9, p2, p5, p6, p8; chi tiết mục v4 của `DA-SUA.md`, dòng bản đồ mới ở `BAN-DO-V4-DONG.md` (đã gộp vào `BAN-DO-100-CAU.md` ngày 11/11, file đã xoá)). Bộ kiểm đầy đủ cả gói (public + hidden-1) 11/11: **KIEM TRA: 0 loi**, 0 cảnh báo; biên dịch XeLaTeX 59 trang, 0 lỗi LaTeX, 0 ký tự thiếu.
 
 | Mã | Người soạn (A) | Người kiểm (B) | Phiên bản | Kiểm SQL | Kiểm nội dung |
 |---|---|---|---|---|---|

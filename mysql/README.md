@@ -18,13 +18,9 @@ Dữ liệu lấy từ Postgres của lớp (`docker-postgres-1`, DB `scm`, sche
 ## Dựng lại từ đầu
 
 ```bash
-# 1. container (một lần). Mật khẩu: tạo mysql/.env trước (2 dòng KEY=giá trị, không ngoặc)
-docker network create sqllb
-docker run -d --name sqllb-mysql --network sqllb --restart unless-stopped -p 127.0.0.1:3307:3306 \
-  -v sqllb-mysql-data:/var/lib/mysql -v "C:\Cong viec\ProjectDA\sql-leaderboard\mysql:/sqllb:ro" \
-  --env-file "C:\Cong viec\ProjectDA\sql-leaderboard\mysql\.env" mysql:8.0 \
-  --character-set-server=utf8mb4 --collation-server=utf8mb4_0900_ai_ci --local-infile=1 --secure-file-priv="" \
-  --innodb-buffer-pool-size=1G
+# 1. container (một lần), từ thư mục gốc repo. Mật khẩu: mysql/.env (2 dòng KEY=giá trị; khoi-phuc.sh tự tạo)
+#    Cách nhanh hơn từ dump: bash scripts/khoi-phuc.sh (README.md gốc). Bộ nhớ đệm mặc định 1G, đặt lớn hơn nếu đủ RAM.
+SQLLB_BUFFER_POOL=6G docker compose up -d mysql
 
 # 2. xuất từ PG (chỉ đọc) + tạo bảng (01_tao_bang_scm.sql) + nạp + so số dòng   (~3 phút)
 bash mysql/02_nap_scm.sh            # --chi-nap: dùng lại CSV đã có trong mysql/du-lieu/
