@@ -155,9 +155,9 @@ Khung xanh nét đứt (\emph{Thiết kế ERD}) là ghi chú cho người duy�
   hinhthuc=write, cap=easy, dang=E2, kynang={LEFT JOIN, IS NULL, GROUP BY}, bay={dieu-kien-noi-dat-o-where},
   tacgia={Gói 5}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.01]
 \tieude{Mã hàng nào có bán nhưng thiếu số tồn kho kỳ 2017-07?}
-\boicanh[Chị Ngân · Nhân viên kế hoạch nhu cầu]{Chị đang làm báo cáo fill rate (tỷ lệ lấp đầy) tháng 7, cần số bán khớp với số tồn kho. Em tìm giúp chị những mã hàng có bán ở cửa hàng mà kỳ đó lại không có số tồn kho.}
+\boicanh[Chị Ngân · Nhân viên kế hoạch nhu cầu]{Chị đang làm báo cáo fill rate (tỷ lệ lấp đầy) tháng 7 cho hai cửa hàng 47 và 51, cần số bán khớp với số tồn kho. Em tìm giúp chị những mã hàng có bán ở cửa hàng mà kỳ đó lại không có số tồn kho.}
 \begin{yeucau}
-  \item Xét các dòng bán của tháng 7/2017 trong \code{sales} (từ \code{'2017-07-01'} tới trước \code{'2017-08-01'}).
+  \item Xét các dòng bán của cửa hàng 47 và 51 trong tháng 7/2017 ở \code{sales} (từ \code{'2017-07-01'} tới trước \code{'2017-08-01'}).
   \item Tìm các cặp (\code{store_nbr}, \code{item_nbr}) có dòng bán nhưng không có dòng nào trong \code{inventory_snapshots} ở kỳ \code{'2017-07'}.
   \item Trả về \code{store_nbr}, \code{item_nbr}, \code{so_dong} (số dòng bán của cặp), \code{tong_ban} (tổng \code{unit_sales}).
   \item Sắp theo \code{store_nbr}, rồi \code{item_nbr}.
@@ -167,14 +167,14 @@ Khung xanh nét đứt (\emph{Thiết kế ERD}) là ghi chú cho người duy�
   \erdbang{inventory_snapshots}{1,0}{store_nbr:PK, item_nbr:PK, ym:PK, sold}
   \erdnoi[kieu=n-1, tren={\code{store_nbr, item_nbr; ym = '2017-07'}}]{sales.store_nbr}{inventory_snapshots.store_nbr}
 \end{erd}
-\begin{nghiepvu}{Quyết định có cần bổ sung số tồn kho trước khi tính fill rate kỳ 2017-07 hay không.}
+\begin{nghiepvu}{Quyết định có cần bổ sung số tồn kho trước khi tính fill rate kỳ 2017-07 của cửa hàng 47 và 51 hay không.}
   \khainiem{dong-thieu-cap}
   \khainiem{dong-tra-hang}
   \luuy{Phần lớn cặp cửa hàng, mã hàng có một dòng tồn kho cho mỗi kỳ từ 2017-01 tới 2017-08. Cặp có dòng ở kỳ khác vẫn có thể thiếu dòng ở kỳ 2017-07.}
 \end{nghiepvu}
 \goiy{Điều kiện kỳ \code{ym = '2017-07'} thuộc về phép nối. Nếu đặt ở \code{WHERE}, dòng không có cặp (ô \code{ym} trống) sẽ bị loại.}
 \goiy{Gom \code{sales} theo cặp cửa hàng, mã hàng trước, rồi \code{LEFT JOIN} sang \code{inventory_snapshots} và giữ dòng có \code{item_nbr} bên phải là NULL.}
-\ghichuthietke{Dễ: 2 bảng, chữ trên đường nối nêu đủ khoá và điều kiện kỳ. Điểm lạ thật: ba cặp chỉ có dòng trả hàng (\code{unit_sales} âm) mà không có dòng tồn kho kỳ 2017-07. Wrong đặt \code{ym} ở WHERE ra rỗng; wrong bỏ điều kiện kỳ chạy được nhưng sai khi cặp có dòng ở kỳ khác.}
+\ghichuthietke{Dễ: 2 bảng, chữ trên đường nối nêu đủ khoá và điều kiện kỳ. Chỉ xét hai cửa hàng 47, 51 để truy vấn dùng chỉ mục cửa hàng của \code{sales}, chạy dưới 1 giây. Điểm lạ thật: cặp cửa hàng 47, mã \code{205209} chỉ có một dòng trả hàng (\code{unit_sales} âm) mà không có dòng tồn kho kỳ 2017-07; hidden-1 thêm cặp cửa hàng 51, mã \code{903285} bán đủ 31 ngày nhưng thiếu dòng kỳ này. Wrong đặt \code{ym} ở WHERE ra rỗng; wrong bỏ điều kiện kỳ chạy được nhưng sai khi cặp có dòng ở kỳ khác.}
 \end{cauhoi}
 
 % ================================================================ K2 · write · Cơ bản (v4: hạ từ Trung bình)

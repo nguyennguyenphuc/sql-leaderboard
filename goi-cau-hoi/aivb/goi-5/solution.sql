@@ -473,13 +473,13 @@ SELECT t.channel_code, t.thang, t.so_lenh,
        ROUND(100 * (t.so_lenh - tr.so_lenh) / tr.so_lenh, 1) AS thay_doi_pct
 FROM (SELECT channel_code, MONTH(transaction_date) AS thang, COUNT(*) AS so_lenh
       FROM core_payment_order
-      WHERE payment_status = 'COMPLETED'
-        AND transaction_date >= '2026-01-01' AND transaction_date < '2027-01-01'
+      WHERE transaction_type = 'TRANSFER' AND payment_status = 'COMPLETED'
+        AND transaction_date >= '2026-07-01' AND transaction_date < '2027-01-01'
       GROUP BY channel_code, MONTH(transaction_date)) t
 LEFT JOIN (SELECT channel_code, MONTH(transaction_date) AS thang, COUNT(*) AS so_lenh
            FROM core_payment_order
-           WHERE payment_status = 'COMPLETED'
-             AND transaction_date >= '2026-01-01' AND transaction_date < '2027-01-01'
+           WHERE transaction_type = 'TRANSFER' AND payment_status = 'COMPLETED'
+             AND transaction_date >= '2026-07-01' AND transaction_date < '2027-01-01'
            GROUP BY channel_code, MONTH(transaction_date)) tr
   ON tr.channel_code = t.channel_code AND tr.thang = t.thang - 1
 ORDER BY t.channel_code, t.thang;
@@ -488,8 +488,8 @@ ORDER BY t.channel_code, t.thang;
 WITH theo_thang AS (
   SELECT channel_code, MONTH(transaction_date) AS thang, COUNT(*) AS so_lenh
   FROM core_payment_order
-  WHERE payment_status = 'COMPLETED'
-    AND transaction_date >= '2026-01-01' AND transaction_date < '2027-01-01'
+  WHERE transaction_type = 'TRANSFER' AND payment_status = 'COMPLETED'
+    AND transaction_date >= '2026-07-01' AND transaction_date < '2027-01-01'
   GROUP BY channel_code, MONTH(transaction_date)
 ),
 co_thang_truoc AS (
@@ -506,8 +506,8 @@ ORDER BY channel_code, thang;
 WITH theo_thang AS (
   SELECT channel_code, MONTH(transaction_date) AS thang, COUNT(*) AS so_lenh
   FROM core_payment_order
-  WHERE payment_status = 'COMPLETED'
-    AND transaction_date >= '2026-01-01'
+  WHERE transaction_type = 'TRANSFER' AND payment_status = 'COMPLETED'
+    AND transaction_date >= '2026-07-01'
   GROUP BY channel_code, MONTH(transaction_date)
 ),
 co_thang_truoc AS (
@@ -524,8 +524,8 @@ ORDER BY channel_code, thang;
 WITH theo_thang AS (
   SELECT channel_code, MONTH(transaction_date) AS thang, COUNT(*) AS so_lenh
   FROM core_payment_order
-  WHERE payment_status = 'COMPLETED'
-    AND transaction_date >= '2026-01-01' AND transaction_date < '2027-01-01'
+  WHERE transaction_type = 'TRANSFER' AND payment_status = 'COMPLETED'
+    AND transaction_date >= '2026-07-01' AND transaction_date < '2027-01-01'
   GROUP BY channel_code, MONTH(transaction_date)
 ),
 co_thang_truoc AS (

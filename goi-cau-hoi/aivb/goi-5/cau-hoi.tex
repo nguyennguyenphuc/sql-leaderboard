@@ -476,10 +476,10 @@
   hinhthuc=optimize, cap=hard, dang=B2, kynang={LAG, PARTITION BY, CTE}, bay={tu-noi-tinh-hai-lan, thieu-can-tren, lag-khong-chia-nhom},
   tacgia={Agent gói 5}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.1, quettoida={core_payment_order=1}, ngansach=2]
 \tieude{Tăng trưởng tháng theo kênh, chỉ quét bảng lệnh một lần}
-\boicanh[Anh Sơn · Data engineer]{Dữ liệu lệnh càng về cuối năm càng nhiều, báo cáo tăng trưởng theo kênh đã chạy quá giờ hẹn hai lần. Em viết lại giúp anh cho nhẹ.}
+\boicanh[Anh Sơn · Data engineer]{Dữ liệu lệnh càng về cuối năm càng nhiều, báo cáo tăng trưởng lệnh chuyển khoản theo kênh đã chạy quá giờ hẹn hai lần. Em viết lại giúp anh cho nhẹ.}
 \begin{yeucau}
-  \item Báo cáo vẫn gồm số lệnh thành công (\code{'COMPLETED'}) theo kênh và tháng năm 2026, số lệnh tháng trước của cùng kênh và phần trăm thay đổi (làm tròn 1 chữ số).
-  \item Trả về \code{channel_code}, \code{thang} (số 1 tới 12), \code{so_lenh}, \code{so_lenh_thang_truoc}, \code{thay_doi_pct}; tháng 1 không có tháng trước nên hai cột cuối để rỗng.
+  \item Báo cáo vẫn xét lệnh chuyển khoản (\code{transaction_type} là \code{'TRANSFER'}) thành công (\code{'COMPLETED'}) từ tháng 7 tới tháng 12 năm 2026, gồm số lệnh theo kênh và tháng, số lệnh tháng trước của cùng kênh và phần trăm thay đổi (làm tròn 1 chữ số).
+  \item Trả về \code{channel_code}, \code{thang} (số 7 tới 12), \code{so_lenh}, \code{so_lenh_thang_truoc}, \code{thay_doi_pct}; tháng 7 không có tháng trước trong báo cáo nên hai cột cuối để rỗng.
   \item Sắp theo \code{channel_code}, rồi \code{thang}.
 \end{yeucau}
 \begin{rangbuoc}
@@ -492,17 +492,17 @@
   \erdbang{core_account}{2,0}{account_id:PK}
   \erdbang{core_loan_disbursement}{0,1}{disbursement_id:PK, payment_order_id}
   \erdbang{core_loan_payment_allocation}{1,1}{allocation_id:PK, payment_order_id}
-  \erdkhoa{Mọi cột cần dùng (\code{channel_code}, \code{transaction_date}, \code{payment_status}) nằm trong \code{core_payment_order}; bốn bảng còn lại không cần.}
+  \erdkhoa{Mọi cột cần dùng (\code{channel_code}, \code{transaction_type}, \code{transaction_date}, \code{payment_status}) nằm trong \code{core_payment_order}; bốn bảng còn lại không cần.}
 \end{erd}
-\begin{nghiepvu}{Theo dõi kênh nào đang tăng hay giảm số giao dịch thành công qua từng tháng.}
+\begin{nghiepvu}{Theo dõi kênh nào đang tăng hay giảm số lệnh chuyển khoản thành công qua từng tháng.}
   \khainiem{kenh-giao-dich}
   \khainiem{lan-quet-bang}
   \khainiem{ngay-tham-chieu}
-  \luuy{Chỉ so tháng trước trong cùng năm 2026; lệnh sau ngày 31/12/2026 không thuộc báo cáo.}
+  \luuy{Chỉ so tháng trước trong kỳ báo cáo; lệnh sau ngày 31/12/2026 không thuộc báo cáo.}
 \end{nghiepvu}
-\goiy{Hai bảng dẫn xuất giống hệt nhau, mỗi bảng đọc lại cả năm lệnh. Có cần tính bảng tổng theo tháng hai lần không?}
+\goiy{Hai bảng dẫn xuất giống hệt nhau, mỗi bảng đọc lại sáu tháng lệnh. Có cần tính bảng tổng theo tháng hai lần không?}
 \goiy{Tính bảng tổng theo kênh × tháng một lần trong CTE, rồi lấy số tháng trước bằng \code{LAG(so_lenh) OVER (PARTITION BY channel_code ORDER BY thang)}.}
-\ghichuthietke{Khó: 5 bảng chỉ khoá, 4 bảng nhiễu. Starter đọc \code{core_payment_order} 2 lần. Wrong: thiếu cận trên năm (hidden-1 có lệnh MOBILE ngày 2027-01-01 cộng vào tháng 1); \code{LAG} không chia theo kênh.}
+\ghichuthietke{Khó: 5 bảng chỉ khoá, 4 bảng nhiễu. Chỉ xét lệnh chuyển khoản sáu tháng cuối năm để mỗi lần quét chỉ gom khoảng 300 nghìn dòng: solution dưới 2 giây, starter dưới 4 giây. Starter đọc \code{core_payment_order} 2 lần. Wrong: thiếu cận trên năm (hidden-1 có lệnh chuyển khoản MOBILE ngày 2027-01-01, thành dòng tháng 1 đứng trước tháng 7); \code{LAG} không chia theo kênh.}
 \end{cauhoi}
 
 % ================================================================ P5 · Trung bình · optimize

@@ -896,7 +896,7 @@ SELECT DATE_FORMAT(transaction_date, '%Y-%m') AS thang,
        ROUND(SUM(CASE WHEN channel_code IN ('MOBILE', 'WEB', 'QR', 'API') THEN amount ELSE 0 END) / 1000000000, 2) AS kenh_so_ty_dong,
        ROUND(SUM(CASE WHEN channel_code IN ('BRANCH', 'ATM', 'POS') THEN amount ELSE 0 END) / 1000000000, 2) AS kenh_vat_ly_ty_dong
 FROM core_payment_order
-WHERE payment_status = 'COMPLETED'
+WHERE transaction_type = 'TRANSFER' AND payment_status = 'COMPLETED'
   AND transaction_date >= '2026-01-01' AND transaction_date < '2027-01-01'
 GROUP BY DATE_FORMAT(transaction_date, '%Y-%m')
 ORDER BY thang;
@@ -906,7 +906,7 @@ SELECT DATE_FORMAT(transaction_date, '%Y-%m') AS thang,
        ROUND(SUM(CASE WHEN channel_code IN ('MOBILE', 'WEB', 'QR', 'API') THEN amount ELSE 0 END) / 1000000000, 2) AS kenh_so_ty_dong,
        ROUND(SUM(CASE WHEN channel_code IN ('BRANCH', 'ATM', 'POS') THEN amount ELSE 0 END) / 1000000000, 2) AS kenh_vat_ly_ty_dong
 FROM core_payment_order
-WHERE payment_status = 'COMPLETED' AND transaction_date >= '2026-01-01'
+WHERE transaction_type = 'TRANSFER' AND payment_status = 'COMPLETED' AND transaction_date >= '2026-01-01'
 GROUP BY DATE_FORMAT(transaction_date, '%Y-%m')
 ORDER BY thang;
 
@@ -916,7 +916,7 @@ WITH thang AS (
          SUM(CASE WHEN channel_code IN ('MOBILE', 'WEB', 'QR', 'API') THEN amount ELSE 0 END) AS kenh_so,
          SUM(amount) AS tong
   FROM core_payment_order
-  WHERE payment_status = 'COMPLETED'
+  WHERE transaction_type = 'TRANSFER' AND payment_status = 'COMPLETED'
     AND transaction_date >= '2026-01-01' AND transaction_date < '2027-01-01'
   GROUP BY DATE_FORMAT(transaction_date, '%Y-%m')
 )
@@ -929,7 +929,7 @@ WITH thang AS (
   SELECT DATE_FORMAT(transaction_date, '%Y-%m') AS thang,
          100 * SUM(CASE WHEN channel_code IN ('MOBILE', 'WEB', 'QR', 'API') THEN amount ELSE 0 END) / SUM(amount) AS ty_trong
   FROM core_payment_order
-  WHERE payment_status = 'COMPLETED'
+  WHERE transaction_type = 'TRANSFER' AND payment_status = 'COMPLETED'
     AND transaction_date >= '2026-01-01' AND transaction_date < '2027-01-01'
   GROUP BY DATE_FORMAT(transaction_date, '%Y-%m')
 )

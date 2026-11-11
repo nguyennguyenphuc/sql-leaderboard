@@ -8,7 +8,7 @@
 WITH b AS (
   SELECT store_nbr, item_nbr, COUNT(*) AS so_dong, SUM(unit_sales) AS tong_ban
   FROM sales
-  WHERE `date` >= '2017-07-01' AND `date` < '2017-08-01'
+  WHERE store_nbr IN (47, 51) AND `date` >= '2017-07-01' AND `date` < '2017-08-01'
   GROUP BY store_nbr, item_nbr
 )
 SELECT b.store_nbr, b.item_nbr, b.so_dong, b.tong_ban
@@ -25,7 +25,7 @@ ORDER BY b.store_nbr, b.item_nbr;
 WITH b AS (
   SELECT store_nbr, item_nbr, COUNT(*) AS so_dong, SUM(unit_sales) AS tong_ban
   FROM sales
-  WHERE `date` >= '2017-07-01' AND `date` < '2017-08-01'
+  WHERE store_nbr IN (47, 51) AND `date` >= '2017-07-01' AND `date` < '2017-08-01'
   GROUP BY store_nbr, item_nbr
 )
 SELECT b.store_nbr, b.item_nbr, b.so_dong, b.tong_ban
@@ -42,7 +42,7 @@ ORDER BY b.store_nbr, b.item_nbr;
 WITH b AS (
   SELECT store_nbr, item_nbr, COUNT(*) AS so_dong, SUM(unit_sales) AS tong_ban
   FROM sales
-  WHERE `date` >= '2017-07-01' AND `date` < '2017-08-01'
+  WHERE store_nbr IN (47, 51) AND `date` >= '2017-07-01' AND `date` < '2017-08-01'
   GROUP BY store_nbr, item_nbr
 )
 SELECT b.store_nbr, b.item_nbr, b.so_dong, b.tong_ban

@@ -94,3 +94,17 @@ Khái niệm dùng chung đồng bộ ở cả 5 gói (và `style/STYLE-scm.md`)
 | Khái niệm `ngay-cao-diem`, `lead-time-don` | C (s9; `lead-time-don` của gói 5 ngắn hơn bốn gói kia) | Đồng bộ bản dùng chung; ô dữ liệu của `lead-time-don` giữ ghi chú giờ có phần lẻ, mốc thời gian của gói 5 | Phân tích tĩnh 0 lỗi |
 
 - Kiểm cả gói sau sửa: bộ kiểm đầy đủ trên `scm`, `scm_hidden_1` (`cong-cu/ket-qua/sua-v4/scm-goi-5/`) → KIEM TRA: 0 loi, 0 cảnh báo; phân tích tĩnh (`scm-goi-5-tinh`) 0 lỗi; biên dịch `cong-cu/bien_dich.sh` (`cong-cu/ket-qua/sua-v4/scm-goi-5/bien-dich/`) → 0 lỗi LaTeX, 0 ký tự thiếu, 0 cảnh báo aio-sql-cauhoi. Thư mục gói vẫn đúng 4 file. Module vẫn 2 Cơ bản · 3 Dễ · 2 Trung bình · 2 Khó; 0 ô trùng trong cùng gói.
+
+## Thu phạm vi câu chậm (11/11/2026)
+
+Đo lúc máy rảnh, `docker exec … mysql` bằng `sql_runner` (gồm khoảng 0,3 giây khởi động client); public / hidden-1; "sau" 3 lần. Không dùng gợi ý chỉ mục; không sửa database, biến thể ẩn.
+
+| Mã | Phạm vi cũ → mới | Giây trước → sau |
+|---|---|---|
+| `scm-k1-ban-khong-co-ton-kho` | Cả chuỗi 54 cửa hàng, tháng 7/2017 → hai cửa hàng 47 và 51 (`store_nbr IN (47, 51)`), tháng 7/2017. Sửa bối cảnh ("báo cáo fill rate tháng 7 cho hai cửa hàng 47 và 51"), yêu cầu 1, câu mở tab Nghiệp vụ, ghi chú; `BAN-DO-100-CAU.md`, `BAN-DO-GOI.md` | solution 9,8–11,9 / 8,9–10,8 → 0,7 / 0,6–0,8; wrong `noi_moi_ky` 13,8 / 11,4 → 0,7–0,8 / 0,6–0,7; wrong `dieu_kien_ky_dat_o_where` 0,2 / 0,1 → 0,1–0,2 / 0,1; tự nhiên (`LEFT JOIN` từng dòng rồi gom, `OR`) 0,8 |
+
+Kết quả mới: public 1 dòng (cửa hàng 47, mã `205209`, một dòng trả hàng −1,44), hidden-1 2 dòng (thêm cửa hàng 51, mã `903285`, bán đủ 31 ngày) → hai biến thể khác nhau (trước đây hai biến thể khác nhau nhờ chính dòng 51/903285). Cả hai wrong ra rỗng ở cả hai biến thể (cặp nào cũng có dòng tồn kho ở kỳ khác) nên rớt cả hai. Đã thử và bỏ: chín cửa hàng loại A qua `JOIN stores` (khoảng 3 giây) vì viết `store_nbr BETWEEN 44 AND 52` thì MySQL quét toàn chỉ mục (6,5–9,9 giây); ba ngày 17–19/7 (2,4–3,0 giây, phải đổi hẳn cách đặt bài).
+
+**Độ khó giữ nguyên:** vẫn Dễ, 2 bảng, `LEFT JOIN … IS NULL` với điều kiện kỳ ở phép nối; bẫy `dieu-kien-noi-dat-o-where` và wrong bỏ điều kiện kỳ vẫn rớt; điểm lạ dòng trả hàng không có tồn kho vẫn có ở public, hidden-1 vẫn khác public.
+
+- Kiểm cả gói sau sửa: bộ kiểm đầy đủ (`cong-cu/ket-qua/sua-cham/scm-goi-5/`) → KIEM TRA: 0 loi, 0 cảnh báo (20 câu); biên dịch (`cong-cu/ket-qua/sua-cham/scm-goi-5/bien-dich/`) → 55 trang, 0 lỗi LaTeX, 0 ký tự thiếu, 0 cảnh báo aio-sql-cauhoi. Thư mục gói vẫn 4 file; giữ CRLF.

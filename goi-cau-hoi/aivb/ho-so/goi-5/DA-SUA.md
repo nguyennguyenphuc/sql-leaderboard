@@ -100,3 +100,17 @@ Căn cứ `ho-so/KIEM-V4-B.md`, `ho-so/KIEM-V4-C.md`. Không đổi cấp, khôn
 | (ghi chú dòng p8, mục v4) | C: "aivb-f5 gói 4 nay là C1" là sai | Sửa ghi chú: dạng D2 vẫn còn ở aivb-f5 (gói 4, Khó, `dang=D2`) và case c8; không cần bù câu cohort | – |
 
 Kiểm cả gói: bộ kiểm đầy đủ `cong-cu/ket-qua/sua-v4/aivb-goi-5`: KIEM TRA: 0 loi; biên dịch `cong-cu/ket-qua/sua-v4/aivb-goi-5/bien-dich`: 58 trang, 0 lỗi LaTeX. Thư mục gói vẫn 4 file.
+
+## Thu phạm vi câu chậm (11/11/2026)
+
+Đo lúc máy rảnh, `docker exec … mysql` bằng `sql_runner` (gồm khoảng 0,3 giây khởi động client); public / hidden-1; "sau" 3 lần. Không dùng gợi ý chỉ mục; không sửa database, biến thể ẩn. `core_payment_order` luôn bị quét toàn bảng (khoảng 1 giây mỗi lần); phần chậm là gom bảng tạm, nên phải giảm số dòng vào phép gom.
+
+| Mã | Phạm vi cũ → mới | Giây trước → sau |
+|---|---|---|
+| `aivb-p4-mom-tu-noi` | Mọi loại lệnh thành công, tháng 1–12/2026 (84 dòng = 7 kênh × 12 tháng) → chỉ lệnh chuyển khoản (`transaction_type = 'TRANSFER'`), tháng 7–12/2026 (30 dòng = 5 kênh × 6 tháng; khoảng 300 nghìn dòng vào phép gom). Sửa bối cảnh, yêu cầu 1–2 (`thang` từ 7 tới 12, tháng 7 để rỗng hai cột cuối), `\erdkhoa` (thêm `transaction_type`), câu mở và `\luuy` tab Nghiệp vụ, gợi ý 1 ("sáu tháng lệnh"), ghi chú; tiêu đề giữ. Starter, solution, hai wrong cùng thêm `transaction_type = 'TRANSFER'` và mốc `'2026-07-01'`. `BAN-DO-100-CAU.md` đồng bộ | starter 19,3 / 17,0 → 3,8–4,1 / 3,2–3,5; solution 8,9–9,9 / 7,8–7,9 → 1,8–1,9 / 1,6–1,9; wrong `thieu_can_tren_nam` 10,6 / 9,3 → 1,9–2,1 / 1,5–1,8; wrong `lag_khong_chia_kenh` 10,2 / 7,9 → 1,9–2,0 / 1,6–1,8; tự nhiên (gom và `LAG … OVER w` trong cùng SELECT, `BETWEEN`) 1,8–2,0 |
+
+Ràng buộc đo lại (bộ kiểm, EXPLAIN ANALYZE trên public): solution quét `core_payment_order` 1 lần, 2.303.878 dòng trung gian; starter 2 lần, 4.607.536 dòng → vi phạm `quettoida={core_payment_order=1}`; dòng trung gian đúng bằng 2 × solution nên `ngansach=2` không bắt, chỉ `quettoida` bắt. Starter vẫn ra đúng kết quả ở cả hai biến thể. Wrong thiếu cận trên vẫn chỉ rớt hidden-1 (lệnh chuyển khoản MOBILE ngày 2027-01-01 thành dòng tháng 1 đứng trước tháng 7, 31 dòng); wrong `LAG` không chia kênh rớt cả hai. Đã thử và bỏ: quý 4 mọi loại lệnh (solution 2,1–2,3 giây, starter quét hai lần nên gần gấp đôi); cả năm lệnh chuyển khoản (solution 3,4 giây).
+
+**Độ khó giữ nguyên:** vẫn Tối ưu Khó, 5 bảng chỉ khoá, cùng ràng buộc `quettoida`, `ngansach`, cùng starter tự nối hai bảng dẫn xuất và cùng hai bẫy (thiếu cận trên năm rớt hidden-1, `LAG` không chia kênh); thêm một điều kiện lọc loại lệnh. Cách viết khác `YEAR(…) = 2026 AND MONTH(…) >= 7` chạy 3,1–3,6 giây.
+
+- Kiểm cả gói sau sửa: bộ kiểm đầy đủ (`cong-cu/ket-qua/sua-cham/aivb-goi-5/`) → KIEM TRA: 0 loi; biên dịch (`cong-cu/ket-qua/sua-cham/aivb-goi-5/bien-dich/`) → 58 trang, 0 lỗi LaTeX, 0 ký tự thiếu, 0 cảnh báo aio-sql-cauhoi. Thư mục gói vẫn 4 file; giữ CRLF.

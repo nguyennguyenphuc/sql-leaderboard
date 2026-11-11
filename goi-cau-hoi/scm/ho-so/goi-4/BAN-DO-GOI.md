@@ -28,7 +28,7 @@ Không hai câu trùng ô dạng × mảng × cấp × hình thức.
 | scm-f8-luy-ke-nhan-hang-ncc | 8 | debug | hard | B3 | operations | Luỹ kế nhận hàng tháng 7/2017 lệch phiếu nhập | purchase_orders | khung RANGE mặc định khi trùng ngày + thiếu PARTITION BY (2 lỗi) |
 | scm-f9-thay-doi-ty-le-huy-thang | 8 | debug | basic | B2 | after_sales | Tháng đầu năm 2017 lại có mức thay đổi tỷ lệ huỷ | orders | sắp giảm dần trong OVER (so với tháng sau) |
 | scm-c7-fill-rate-thang-3 | case | case | medium (4 bước) | – | operations | Fill rate tháng 3/2017 giảm do bán tăng hay nhập giảm? | inventory_snapshots, items | LAG; bình quân ngày (tháng 2 ít ngày); quy mô thay tỷ lệ |
-| scm-c8-giao-tre-ngay-cao-diem | case | case | hard (5 bước) | – | marketing | Vì sao ngày cao điểm năm 2016 giao trễ nhiều? | orders, event_calendar, warehouse_daily_ops | thành phần dài nhất ≠ tăng nhiều nhất; kho nhỏ |
+| scm-c8-giao-tre-ngay-cao-diem | case | case | hard (5 bước) | – | marketing | Vì sao ngày cao điểm cuối năm 2016 giao trễ nhiều? | orders, event_calendar, warehouse_daily_ops | thành phần dài nhất ≠ tăng nhiều nhất; kho nhỏ |
 
 Phân bố mảng (20 câu): operations 8 (gồm c7), sales 3, customer 3, marketing 3 (gồm c8), after_sales 2, finance 1.
 Phân bố cấp (18 câu module, v4): basic 4, easy 6, medium 4, hard 4; mỗi module 2 · 3 · 2 · 2.

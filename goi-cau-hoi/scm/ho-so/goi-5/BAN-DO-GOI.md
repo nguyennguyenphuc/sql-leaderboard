@@ -5,7 +5,7 @@ gói 5 = Module 9 Data Quality (tiền tố `k`) + Module 10 Query Performance (
 
 | # | Mã | Module | Hình thức | Cấp | Dạng | Mảng | Tiêu đề | Điểm lạ / kỹ thuật chính |
 |---|---|---|---|---|---|---|---|---|
-| 1 | `scm-k1-ban-khong-co-ton-kho` | 9 | write | easy | E2 | sales | Mã hàng nào có bán nhưng thiếu số tồn kho kỳ 2017-07? | 3 cặp chỉ có dòng trả hàng, không có tồn kho kỳ 2017-07 (dòng thiếu cặp) |
+| 1 | `scm-k1-ban-khong-co-ton-kho` | 9 | write | easy | E2 | sales | Mã hàng nào có bán nhưng thiếu số tồn kho kỳ 2017-07? | cửa hàng 47, 51: cặp 47/205209 chỉ có dòng trả hàng, không có tồn kho kỳ 2017-07 (dòng thiếu cặp); hidden-1 thêm 51/903285 |
 | 2 | `scm-k2-ngay-le-ghi-hai-dong` | 9 | write | medium | E1 | marketing | Ngày nào có hai dòng lễ ở cùng địa phương? | `holidays` trùng theo (ngày, địa phương) |
 | 3 | `scm-k3-co-dung-han-mau-thuan` | 9 | debug | medium | E1 | customer | Kiểm tra cờ đúng hạn báo nhầm đơn | 2 đơn giao bằng cam kết mà `on_time` = 0; starter dùng `<` |
 | 4 | `scm-k4-giao-dich-thap-bat-thuong` | 9 | write | medium | E1 | customer | Lượt giao dịch thấp bất thường vào ngày nào? | ngoại lai so với trung bình riêng của cửa hàng |

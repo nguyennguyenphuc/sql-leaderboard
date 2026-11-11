@@ -368,27 +368,27 @@
   hinhthuc=write, cap=medium, dang=C1, kynang={ROW_NUMBER, PARTITION BY, CTE}, bay={trung-hang},
   tacgia={Agent gói 4}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co]
 \tieude{Ba mã hàng tươi sống nào bán chạy nhất mỗi ngành?}
-\boicanh[Chị Ngân · Trưởng ngành hàng]{Tháng 9 chị làm lại sơ đồ quầy hàng tươi sống. Chị cần ba mã bán chạy nhất của từng ngành trong tháng 7 để giữ vị trí đẹp.}
+\boicanh[Chị Ngân · Trưởng ngành hàng]{Tháng 9 chị làm lại sơ đồ quầy hàng tươi sống, làm thử ở cửa hàng 23 trước. Chị cần ba mã bán chạy nhất của từng ngành ở cửa hàng này trong tháng 7 để giữ vị trí đẹp.}
 \begin{yeucau}
-  \item Xét hàng tươi sống, lượng bán từ ngày 01/07/2017 tới hết ngày 31/07/2017, cộng mọi cửa hàng.
+  \item Xét hàng tươi sống bán ở cửa hàng 23 (\code{store_nbr} bằng 23), từ ngày 01/07/2017 tới hết ngày 31/07/2017.
   \item Xếp hạng mã hàng trong từng ngành hàng theo tổng \code{unit_sales} giảm dần; lấy đúng 3 mã mỗi ngành.
   \item Trả về \code{family}, \code{item_nbr}, \code{luong_ban} (làm tròn 0 chữ số), \code{hang}.
   \item Sắp theo \code{family}, rồi \code{hang}. Hai mã bằng lượng bán thì \code{item_nbr} nhỏ hơn đứng trước.
 \end{yeucau}
 \begin{erd}
-  \erdbang{sales}{0,0}{date*, store_nbr, item_nbr:FK, unit_sales*}
+  \erdbang{sales}{0,0}{date*, store_nbr*, item_nbr:FK, unit_sales*}
   \erdbang{items}{1,0}{item_nbr:PK, family*, perishable*}
   \erdbang{stores}{0,1}{store_nbr:PK}
   \erdnoi[kieu=n-1]{sales.item_nbr}{items.item_nbr}
   \erdnoi[kieu=n-1]{sales.store_nbr}{stores.store_nbr}
 \end{erd}
-\begin{nghiepvu}{Chọn mã hàng giữ vị trí trưng bày chính ở quầy hàng tươi sống.}
+\begin{nghiepvu}{Chọn mã hàng giữ vị trí trưng bày chính ở quầy hàng tươi sống của cửa hàng 23.}
   \khainiem{luong-ban-va-nhu-cau}
   \luuy{Hàng tươi sống là mã có \code{perishable} bằng 1. Quầy chỉ có ba vị trí chính cho mỗi ngành hàng, nên mỗi ngành lấy đúng 3 mã.}
 \end{nghiepvu}
 \goiy{Tính lượng bán từng mã trong một CTE trước, rồi mới xếp hạng; điều kiện trên hạng đặt ở truy vấn ngoài.}
 \goiy{Hàm xếp hạng nào luôn cho số khác nhau kể cả khi hai mã bằng lượng bán? Thêm \code{item_nbr} làm tiêu chí phụ trong \code{ORDER BY} của cửa sổ.}
-\ghichuthietke{Trung bình: 3 bảng có ký hiệu. Bẫy hoà hạng ở hidden-1: DAIRY có hai mã bằng lượng bán ở hạng 3, RANK ra 4 dòng. Wrong thiếu PARTITION BY rớt ở public.}
+\ghichuthietke{Trung bình: 3 bảng có ký hiệu. Chỉ xét cửa hàng 23 để truy vấn dùng chỉ mục cửa hàng của \code{sales}, chạy dưới 1 giây. Bẫy hoà hạng ở hidden-1: DAIRY có hai mã \code{1460808}, \code{1963265} cùng bán 205 ở hạng 3, RANK ra 4 dòng; public không hoà. Wrong thiếu PARTITION BY rớt ở public.}
 \end{cauhoi}
 
 % ================================================================ f2 · write · Trung bình
@@ -656,8 +656,8 @@
 % ================================================================ c8 · case · Khó
 \begin{cauhoi}[ma=scm-c8-giao-tre-ngay-cao-diem, dulieu=scm, domain=marketing,
   hinhthuc=case, cap=hard, diem=50, tacgia={Agent gói 4}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.01]
-\tieude{Vì sao ngày cao điểm năm 2016 giao trễ nhiều?}
-\boicanh[Chị Mai · Trưởng nhóm marketing]{Năm 2016 khách phàn nàn đơn ngày khuyến mãi giao trễ. Năm nay chị muốn chạy thêm chương trình, nhưng cần biết trễ ở chặng nào và ở kho nào trước khi bàn với bên vận hành.}
+\tieude{Vì sao ngày cao điểm cuối năm 2016 giao trễ nhiều?}
+\boicanh[Chị Mai · Trưởng nhóm marketing]{Tháng 11 và 12 năm 2016, khách phàn nàn đơn ngày khuyến mãi giao trễ. Năm nay chị muốn chạy thêm chương trình, nhưng cần biết trễ ở chặng nào và ở kho nào trước khi bàn với bên vận hành.}
 \begin{erd}
   \erdbang{orders}{0,0}{order_id:PK, dest_hub_id:FK, dest_point_id:FK}
   \erdbang{event_calendar}{1,0}{date:PK}
@@ -676,7 +676,7 @@
 \end{nghiepvu}
 \begin{buoc}[ma=b1, diem=10, hinhthuc=write, bang={orders, event_calendar}]{Ngày cao điểm giao đúng hạn kém bao nhiêu?}
   \begin{yeucau}
-    \item Xét đơn không huỷ đặt trong năm 2016; phân loại ngày đặt thành ngày cao điểm và ngày nền theo tab Nghiệp vụ, bỏ các ngày kề cận còn lại. Ngày sự kiện đầu năm 2017 vẫn tính khi xét ngày kề cận.
+    \item Xét đơn không huỷ đặt từ ngày 01/11/2016 tới hết ngày 31/12/2016; phân loại ngày đặt thành ngày cao điểm và ngày nền theo tab Nghiệp vụ, bỏ các ngày kề cận còn lại. Ngày sự kiện đầu năm 2017 vẫn tính khi xét ngày kề cận.
     \item Trả về \code{loai_ngay} (\code{'cao_diem'}, \code{'nen'}), \code{so_don}, \code{ty_le_dung_han_pct} (phần trăm, 2 chữ số), \code{lead_time_tb_h} (giờ, 1 chữ số); sắp theo \code{loai_ngay}.
   \end{yeucau}
   \goiy{Ngày nền là ngày không có ngày sự kiện nào cách từ 2 ngày trở xuống; kiểm bằng \code{NOT EXISTS} với \code{ABS(DATEDIFF(...)) <= 2}.}
@@ -690,14 +690,14 @@
 \end{buoc}
 \begin{buoc}[ma=b3, diem=10, hinhthuc=write, bang={orders, event_calendar, sorting_hubs}]{Kho đích nào phân loại chậm vào ngày cao điểm?}
   \begin{yeucau}
-    \item Đơn không huỷ đặt vào ngày cao điểm năm 2016, theo kho đích.
+    \item Đơn không huỷ đặt vào ngày cao điểm trong cùng kỳ với bước 1, theo kho đích.
     \item Trả về \code{dest_hub_id}, \code{so_don}, \code{ty_le_dung_han_pct} (2 chữ số), \code{phan_loai_tb_h} (bình quân \code{t3b_sorting_h}, 1 chữ số), \code{ty_trong_don_pct} (phần trăm số đơn của kho trên tổng đơn ngày cao điểm, 1 chữ số).
     \item Sắp \code{phan_loai_tb_h} giảm dần; bằng nhau thì \code{dest_hub_id} theo thứ tự chữ cái.
   \end{yeucau}
 \end{buoc}
 \begin{buoc}[ma=b4, diem=10, hinhthuc=write, bang={warehouse_daily_ops, event_calendar}]{Kho có quá tải vào ngày cao điểm không?}
   \begin{yeucau}
-    \item Xét các ngày năm 2016 của từng kho. Trả về \code{hub_id}, \code{ty_le_tai_ngay_khac} và \code{ty_le_tai_cao_diem} (tỷ lệ tải bình quân của các ngày còn lại và của ngày cao điểm, làm tròn 2 chữ số), \code{so_ngay_qua_tai_cao_diem} (số ngày cao điểm có tỷ lệ tải lớn hơn 1).
+    \item Xét các ngày từ 01/11/2016 tới 31/12/2016 của từng kho. Trả về \code{hub_id}, \code{ty_le_tai_ngay_khac} và \code{ty_le_tai_cao_diem} (tỷ lệ tải bình quân của các ngày còn lại và của ngày cao điểm, làm tròn 2 chữ số), \code{so_ngay_qua_tai_cao_diem} (số ngày cao điểm có tỷ lệ tải lớn hơn 1).
     \item Sắp \code{ty_le_tai_cao_diem} giảm dần; bằng nhau thì \code{hub_id} theo thứ tự chữ cái.
   \end{yeucau}
 \end{buoc}
@@ -708,10 +708,10 @@
     \phuongan*{Ngày cao điểm giao trễ chủ yếu do thời gian phân loại tăng, tập trung ở DC\_HANOI, kho nhận phần lớn đơn và quá tải ngày cao điểm.}
       {Đúng: bước 2 cho thấy t3b tăng nhiều nhất; bước 3 cho thấy DC\_HANOI chậm nhất và chiếm phần lớn đơn; bước 4 cho thấy kho này quá tải.}
     \phuongan{Ngày cao điểm giao trễ chủ yếu do cả sáu kho cùng quá tải, nên cần tăng nhân sự phân loại cho mọi kho trong các đợt khuyến mãi.}
-      {Bước 4 cho thấy chỉ DC\_HANOI có tỷ lệ tải bình quân ngày cao điểm trên 1; các kho vệ tinh còn dưới 0,5.}
+      {Bước 4 cho thấy chỉ DC\_HANOI quá tải rõ: tỷ lệ tải bình quân ngày cao điểm 1,71, quá tải 4 trong 5 ngày cao điểm. DC\_HCM ở quanh mức 1, bốn kho còn lại dưới 0,7.}
   \end{luachon}
 \end{buoc}
-\ghichuthietke{Case Khó: 6 bảng chỉ khoá, 2 bảng nhiễu, erdkhoa; 4 bước SQL dùng CTE, NOT EXISTS, UNION ALL, SUM() OVER () và 1 bước kết luận. Phương án sai: lấy thành phần dài nhất thay thành phần tăng nhiều nhất; khái quát quá tải của một kho thành quá tải của mọi kho. Cả bốn bước SQL ra kết quả khác public ở hidden-1; riêng bước 4 khác vì \code{warehouse_daily_ops} của hidden-1 tăng 15\% đơn cần xử lý, khối lượng và tỷ lệ tải ở khoảng một phần mười số ngày.}
+\ghichuthietke{Case Khó: 6 bảng chỉ khoá, 2 bảng nhiễu, erdkhoa; 4 bước SQL dùng CTE, NOT EXISTS, UNION ALL, SUM() OVER () và 1 bước kết luận. Phương án sai: lấy thành phần dài nhất thay thành phần tăng nhiều nhất; khái quát quá tải của một kho thành quá tải của mọi kho. Kỳ xét là tháng 11 và 12/2016 (5 ngày cao điểm) để bước 1, 2 chỉ phân loại khoảng 67 nghìn đơn, chạy dưới 3 giây. Cả bốn bước SQL ra kết quả khác public ở hidden-1; riêng bước 4 khác vì \code{warehouse_daily_ops} của hidden-1 tăng 15\% đơn cần xử lý, khối lượng và tỷ lệ tải ở khoảng một phần mười số ngày.}
 \end{cauhoi}
 
 \end{document}

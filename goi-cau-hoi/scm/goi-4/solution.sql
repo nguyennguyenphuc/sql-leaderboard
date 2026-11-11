@@ -515,7 +515,7 @@ WITH ban AS (
   SELECT it.family, s.item_nbr, SUM(s.unit_sales) AS luong_ban
   FROM sales s
   JOIN items it ON it.item_nbr = s.item_nbr
-  WHERE s.`date` >= '2017-07-01' AND s.`date` < '2017-08-01' AND it.perishable = 1
+  WHERE s.store_nbr = 23 AND s.`date` >= '2017-07-01' AND s.`date` < '2017-08-01' AND it.perishable = 1
   GROUP BY it.family, s.item_nbr
 ), xep AS (
   SELECT family, item_nbr, luong_ban,
@@ -533,7 +533,7 @@ WITH ban AS (
   SELECT it.family, s.item_nbr, SUM(s.unit_sales) AS luong_ban
   FROM sales s
   JOIN items it ON it.item_nbr = s.item_nbr
-  WHERE s.`date` >= '2017-07-01' AND s.`date` < '2017-08-01' AND it.perishable = 1
+  WHERE s.store_nbr = 23 AND s.`date` >= '2017-07-01' AND s.`date` < '2017-08-01' AND it.perishable = 1
   GROUP BY it.family, s.item_nbr
 ), xep AS (
   SELECT family, item_nbr, luong_ban,
@@ -551,7 +551,7 @@ WITH ban AS (
   SELECT it.family, s.item_nbr, SUM(s.unit_sales) AS luong_ban
   FROM sales s
   JOIN items it ON it.item_nbr = s.item_nbr
-  WHERE s.`date` >= '2017-07-01' AND s.`date` < '2017-08-01' AND it.perishable = 1
+  WHERE s.store_nbr = 23 AND s.`date` >= '2017-07-01' AND s.`date` < '2017-08-01' AND it.perishable = 1
   GROUP BY it.family, s.item_nbr
 ), xep AS (
   SELECT family, item_nbr, luong_ban,
@@ -1038,7 +1038,7 @@ WITH don AS (
                                WHERE ABS(DATEDIFF(e.`date`, o.order_date)) <= 2) THEN 'nen'
          END AS loai_ngay
   FROM orders o
-  WHERE o.is_cancelled = 0 AND o.order_date >= '2016-01-01' AND o.order_date < '2017-01-01'
+  WHERE o.is_cancelled = 0 AND o.order_date >= '2016-11-01' AND o.order_date < '2017-01-01'
 )
 SELECT loai_ngay, COUNT(*) AS so_don,
        ROUND(100 * AVG(on_time), 2) AS ty_le_dung_han_pct,
@@ -1057,7 +1057,7 @@ WITH don AS (
                                WHERE ABS(DATEDIFF(e.`date`, o.order_date)) <= 2) THEN 'nen'
          END AS loai_ngay
   FROM orders o
-  WHERE o.order_date >= '2016-01-01' AND o.order_date < '2017-01-01'
+  WHERE o.order_date >= '2016-11-01' AND o.order_date < '2017-01-01'
 )
 SELECT loai_ngay, COUNT(*) AS so_don,
        ROUND(100 * AVG(on_time), 2) AS ty_le_dung_han_pct,
@@ -1075,7 +1075,7 @@ WITH don AS (
                                WHERE ABS(DATEDIFF(e.`date`, o.order_date)) <= 2) THEN 'nen'
          END AS loai_ngay
   FROM orders o
-  WHERE o.is_cancelled = 0 AND o.order_date >= '2016-01-01' AND o.order_date < '2017-01-01'
+  WHERE o.is_cancelled = 0 AND o.order_date >= '2016-11-01' AND o.order_date < '2017-01-01'
 ), tp AS (
   SELECT loai_ngay,
          AVG(t1_tao_don_pick_h) AS t1, AVG(t2_pick_xuat_h) AS t2,
@@ -1104,7 +1104,7 @@ WITH don AS (
   SELECT o.dest_hub_id, o.on_time, o.t3b_sorting_h
   FROM orders o
   JOIN event_calendar e ON e.`date` = o.order_date
-  WHERE o.is_cancelled = 0 AND o.order_date >= '2016-01-01' AND o.order_date < '2017-01-01'
+  WHERE o.is_cancelled = 0 AND o.order_date >= '2016-11-01' AND o.order_date < '2017-01-01'
 ), kho AS (
   SELECT dest_hub_id, COUNT(*) AS so_don,
          100 * AVG(on_time) AS ty_le_dung_han, AVG(t3b_sorting_h) AS phan_loai_tb
@@ -1124,7 +1124,7 @@ WITH ngay AS (
          CASE WHEN e.`date` IS NOT NULL THEN 1 ELSE 0 END AS la_cao_diem
   FROM warehouse_daily_ops w
   LEFT JOIN event_calendar e ON e.`date` = w.`date`
-  WHERE w.`date` >= '2016-01-01' AND w.`date` < '2017-01-01'
+  WHERE w.`date` >= '2016-11-01' AND w.`date` < '2017-01-01'
 )
 SELECT hub_id,
        ROUND(AVG(CASE WHEN la_cao_diem = 0 THEN workload_ratio END), 2) AS ty_le_tai_ngay_khac,

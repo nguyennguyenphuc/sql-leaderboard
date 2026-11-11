@@ -632,22 +632,22 @@
 \begin{cauhoi}[ma=aivb-c7-kenh-so-va-quay, dulieu=aivb, domain=marketing,
   hinhthuc=case, cap=medium, diem=30, tacgia={Agent gói 4}, trangthai=review, bokiemtra={public, hidden-1}, thutu=co, saiso=0.01]
 \tieude{Kênh số có đang thay thế kênh vật lý?}
-\boicanh[Anh Hưng · Giám đốc chi nhánh]{Hội sở định thu hẹp điểm giao dịch vật lý (quầy, ATM, POS) vì cho rằng khách đã chuyển hết sang kênh số. Anh cần số liệu năm nay trước khi góp ý cho kế hoạch đó.}
+\boicanh[Anh Hưng · Giám đốc chi nhánh]{Hội sở định thu hẹp quầy và ATM vì cho rằng khách đã chuyển hết việc chuyển khoản sang kênh số. Anh cần số liệu năm nay trước khi góp ý cho kế hoạch đó.}
 \begin{erd}
-  \erdbang{core_payment_order}{0,0}{payment_order_id:PK, channel_code*, transaction_date*, amount*, payment_status*}
+  \erdbang{core_payment_order}{0,0}{payment_order_id:PK, transaction_type*, channel_code*, transaction_date*, amount*, payment_status*}
   \erdbang{core_account_posting}{1,0}{posting_id:PK, payment_order_id:FK, account_id:FK}
   \erdbang{core_account}{1,1}{account_id:PK}
   \erdnoi[kieu=1-n]{core_payment_order.payment_order_id}{core_account_posting.payment_order_id}
   \erdnoi[kieu=n-1]{core_account_posting.account_id}{core_account.account_id}
 \end{erd}
-\begin{nghiepvu}{Góp ý cho kế hoạch thu hẹp điểm giao dịch vật lý dựa trên xu hướng tỷ trọng kênh số.}
+\begin{nghiepvu}{Góp ý cho kế hoạch thu hẹp quầy và ATM dựa trên xu hướng tỷ trọng kênh số của lệnh chuyển khoản.}
   \khainiem{kenh-giao-dich}
   \khainiem{tang-truong-ky-truoc}
   \luuy{Muốn nói kênh này thay thế kênh kia cần xem tỷ trọng qua nhiều tháng liền nhau.}
 \end{nghiepvu}
-\begin{buoc}[ma=b1, diem=8, hinhthuc=write, bang={core_payment_order}]{Giá trị giao dịch theo tháng và nhóm kênh}
+\begin{buoc}[ma=b1, diem=8, hinhthuc=write, bang={core_payment_order}]{Giá trị chuyển khoản theo tháng và nhóm kênh}
   \begin{yeucau}
-    \item Lệnh thành công năm 2026 (ngày giao dịch từ 01/01/2026 tới hết ngày 31/12/2026). Nhóm kênh theo tab Nghiệp vụ.
+    \item Lệnh chuyển khoản (\code{transaction_type} là \code{'TRANSFER'}) thành công năm 2026 (ngày giao dịch từ 01/01/2026 tới hết ngày 31/12/2026). Nhóm kênh theo tab Nghiệp vụ.
     \item Trả về \code{thang} (chuỗi \code{'2026-01'}), \code{kenh_so_ty_dong}, \code{kenh_vat_ly_ty_dong} (tỷ đồng, làm tròn 2 chữ số); sắp theo \code{thang}.
   \end{yeucau}
   \goiy{Hai cột là hai tổng có điều kiện \code{SUM(CASE WHEN channel_code IN (...) THEN amount ELSE 0 END)}.}
@@ -660,21 +660,21 @@
 \end{buoc}
 \begin{buoc}[ma=b3, diem=7, hinhthuc=write, bang={core_payment_order}]{Tỷ trọng thay đổi thế nào so với tháng trước?}
   \begin{yeucau}
-    \item Trả về \code{thang}, \code{ty_trong_kenh_so_pct} (như bước 2), \code{thay_doi_diem} (tỷ trọng tháng đó trừ tỷ trọng tháng trước, tính từ tỷ trọng chưa làm tròn, điểm phần trăm, làm tròn 2 chữ số; tháng 1 để trống); sắp theo \code{thang}.
+    \item Cùng phạm vi như bước 1. Trả về \code{thang}, \code{ty_trong_kenh_so_pct} (như bước 2), \code{thay_doi_diem} (tỷ trọng tháng đó trừ tỷ trọng tháng trước, tính từ tỷ trọng chưa làm tròn, điểm phần trăm, làm tròn 2 chữ số; tháng 1 để trống); sắp theo \code{thang}.
   \end{yeucau}
   \goiy{Tính tỷ trọng chưa làm tròn trong một CTE, rồi lấy tháng trước bằng \code{LAG}.}
 \end{buoc}
 \begin{buoc}[ma=b4, diem=7, hinhthuc=ketluan, bang={core_payment_order}]{Kết luận}
   \begin{luachon}
-    \phuongan{Kênh số đang thay thế kênh vật lý, vì giá trị qua kênh vật lý tháng 12 thấp nhất năm, khoảng 188 tỷ đồng.}
-      {Bước 1 cho thấy giá trị qua kênh số tháng 12 cũng giảm; quy mô một tháng không cho biết khách chuyển kênh.}
-    \phuongan*{Kênh số không thay thế kênh vật lý trong năm 2026, vì tỷ trọng kênh số dao động từ 52 tới 62\% và tăng giảm xen kẽ.}
+    \phuongan{Kênh số đang thay thế kênh vật lý, vì giá trị chuyển khoản qua kênh vật lý tháng 5 thấp nhất năm, khoảng 12 tỷ đồng.}
+      {Bước 1 cho thấy giá trị qua kênh số tháng 5 cũng thấp nhất năm; quy mô một tháng không cho biết khách chuyển kênh.}
+    \phuongan*{Kênh số không thay thế kênh vật lý trong năm 2026, vì tỷ trọng kênh số dao động từ 93 tới 94\% và tăng giảm xen kẽ.}
       {Đúng: bước 2 cho thấy tỷ trọng không đi theo một chiều, bước 3 cho thấy tháng tăng và tháng giảm nối tiếp nhau.}
-    \phuongan{Kênh số đang mất dần vị trí, vì tỷ trọng kênh số tháng 12 giảm khoảng 1,6 điểm phần trăm so với tháng 11.}
-      {Một tháng giảm chưa đủ để thành xu hướng; bước 3 cho thấy các tháng trước cũng có lúc giảm rồi tăng lại.}
+    \phuongan{Kênh số đang mất dần vị trí, vì tỷ trọng kênh số tháng 11 giảm khoảng 0,7 điểm phần trăm so với tháng 10.}
+      {Một tháng giảm chưa đủ để thành xu hướng; bước 3 cho thấy tháng 12 tăng lại, các tháng trước cũng giảm rồi tăng xen kẽ.}
   \end{luachon}
 \end{buoc}
-\ghichuthietke{Case Trung bình: 3 bảng có ký hiệu, 3 bước SQL và 1 bước kết luận. Bước 1 đếm có điều kiện, bước 2 tỷ trọng, bước 3 LAG. Wrong b1 thiếu cận trên rớt ở hidden-1 (thêm tháng 2027-01). Phương án sai: lấy quy mô thay cho tỷ trọng; lấy một tháng làm xu hướng. v3 giữ cách đo theo giá trị: đo theo số lệnh thì tỷ trọng kênh số chỉ dao động 71,5--72,1\%, cũng không đi một chiều, nên phương án đúng không đổi; API chỉ chiếm 11--14\% giá trị mỗi tháng, không chi phối kết quả.}
+\ghichuthietke{Case Trung bình: 3 bảng có ký hiệu, 3 bước SQL và 1 bước kết luận. Chỉ xét lệnh chuyển khoản (khoảng 600 nghìn lệnh; kênh số MOBILE, API, WEB, kênh vật lý BRANCH, ATM) để mỗi bước chạy khoảng 3 giây thay cho 8--10 giây khi gom mọi loại lệnh. Bước 1 đếm có điều kiện, bước 2 tỷ trọng, bước 3 LAG. Wrong b1 thiếu cận trên rớt ở hidden-1 (lệnh chuyển khoản MOBILE ngày 2027-01-01 thành tháng 2027-01). Phương án sai: lấy quy mô thay cho tỷ trọng; lấy một tháng làm xu hướng. Đo theo giá trị: tỷ trọng kênh số 92,84--94,17\%, mười một lần đổi tháng tăng giảm xen kẽ đều đặn.}
 \end{cauhoi}
 
 % ================================================================ c8 · case · Khó

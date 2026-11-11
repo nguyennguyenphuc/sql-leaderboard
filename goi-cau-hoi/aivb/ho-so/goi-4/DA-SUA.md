@@ -123,4 +123,22 @@ Mã t6 đổi đồng bộ ở `cau-hoi.tex`, `solution.sql`, `BANG-PHAN-CONG.md
 
 Chờ giảng viên: STYLE-aivb mục E, khái niệm `ty-le-casa`, còn ghi "tiền gửi có kỳ hạn còn hiệu lực … `deposit_status` thuộc `'ACTIVE'`, `'RENEWED'`", trái với dữ liệu và với định nghĩa bộ đang dùng. Hiện không câu nào dùng khái niệm này; người giữ STYLE nên sửa về `'ACTIVE'` (người sửa gói không sửa file STYLE).
 
+**Đã quyết 11/11: sửa STYLE theo định nghĩa bộ đang dùng.** Đã sửa `style/STYLE-aivb.md`: (1) bảng thuật ngữ, dòng `'RENEWED'` (dòng 106): thêm "còn hiệu lực" cho `'RENEWED'` vào cột từ tránh và ghi "'RENEWED' là hợp đồng cũ đã tái tục sang hợp đồng mới ('ACTIVE'), không còn hiệu lực; cộng cả hai là tính trùng"; (2) `\khaibaokhainiem{ty-le-casa}` (dòng 404): tiền gửi có kỳ hạn còn hiệu lực là `deposit_status = 'ACTIVE'`, bỏ `'RENEWED'`; (3) `\khaibaokhainiem{tien-gui-co-ky-han}` (dòng 408): thêm `deposit_status` (`'ACTIVE'` là đang còn hiệu lực), khớp gói 1, 4; (4) `\khaibaokhainiem{rut-truoc-han}` (dòng 416): chú nghĩa `'ACTIVE'` (đang còn hiệu lực), `'RENEWED'` (hợp đồng cũ đã tái tục sang hợp đồng mới, không còn hiệu lực). Rà `grep -n RENEWED` toàn bộ `goi-cau-hoi/aivb/`: không câu hỏi nào còn coi `'RENEWED'` là còn hiệu lực (gói 1 c2 `\ghichuthietke` và gói 4 t6 wrong `cong_ca_hop_dong_tai_tuc` đều coi đó là lỗi; còn lại là hồ sơ), nên không sửa câu hỏi, SQL nào.
+
 Kiểm cả gói: bộ kiểm đầy đủ `cong-cu/ket-qua/sua-v4/aivb-goi-4`: KIEM TRA: 0 loi; biên dịch `cong-cu/ket-qua/sua-v4/aivb-goi-4/bien-dich`: 54 trang, 0 lỗi LaTeX (biên dịch lại sau khi thêm gợi ý c7 b2; bộ kiểm cũng chạy lại sau đó: 0 lỗi).
+
+## Thu phạm vi câu chậm (11/11/2026)
+
+Đo lúc máy rảnh, `docker exec … mysql` bằng `sql_runner` (gồm khoảng 0,3 giây khởi động client); public / hidden-1; "sau" 3 lần. Không dùng gợi ý chỉ mục; không sửa database, biến thể ẩn.
+
+| Mã | Phạm vi cũ → mới | Giây trước → sau |
+|---|---|---|
+| `aivb-c7-kenh-so-va-quay` | Mọi loại lệnh thành công năm 2026 (khoảng 2 triệu) → chỉ lệnh chuyển khoản (`transaction_type = 'TRANSFER'`, khoảng 600 nghìn), vẫn đủ 12 tháng. Ở loại lệnh này kênh số là MOBILE, API, WEB; kênh vật lý là BRANCH, ATM. Sửa bối cảnh ("thu hẹp quầy và ATM … chuyển hết việc chuyển khoản sang kênh số"), câu mở tab Nghiệp vụ, ERD (`transaction_type*`), tên và yêu cầu b1 ("Giá trị chuyển khoản theo tháng và nhóm kênh"), b3 thêm "Cùng phạm vi như bước 1", ba phương án, ghi chú; tiêu đề, mã, wrong giữ. Solution và wrong b1 chỉ thêm `transaction_type = 'TRANSFER'`. `BAN-DO-100-CAU.md` đồng bộ tên b1 | b1 solution 8,7–9,8 / 7,0–7,5 → 2,7–2,9 / 2,5–2,7; b1 wrong `thieu_can_tren_nam` 8,9 / 7,6 → 2,7–2,8 / 2,4–2,5; b2 8,8 / 6,8 → 2,6–2,8 / 2,3–2,5; b3 8,1 / 6,7 → 2,6–2,8 / 2,4–2,5 |
+
+**Độ khó giữ nguyên:** vẫn 3 bảng có ký hiệu, 3 bước SQL + 1 bước kết luận, cùng kỹ năng (tổng có điều kiện, tỷ trọng, `LAG`); bẫy b1 thiếu cận trên năm vẫn rớt đúng hidden-1 (dòng 2027-01-01 của hidden-1 chính là lệnh chuyển khoản MOBILE); hai bẫy kết luận giữ (quy mô thay tỷ trọng, một tháng thay xu hướng). Đã thử tiền bán hàng `SALES_IN` (khoảng 2 giây mọi cách viết) nhưng bỏ vì mất bẫy thiếu cận trên.
+
+**Kết luận c7 không đổi phương án đúng, sửa số trong lời.** Số mới (public): tỷ trọng kênh số theo giá trị 92,84–94,17%, mười một lần đổi tháng tăng giảm xen kẽ đều đặn (hidden-1 92,69–94,22%, cũng xen kẽ); giá trị qua kênh vật lý tháng 5 thấp nhất năm (12,41 tỷ) và kênh số tháng 5 cũng thấp nhất (187,61 tỷ); tháng 11 giảm 0,68 điểm so với tháng 10 rồi tháng 12 tăng lại 0,12. Phương án đúng: "…dao động từ 93 tới 94\% và tăng giảm xen kẽ" (cũ 52 tới 62\%). Hai phương án sai: "…giá trị chuyển khoản qua kênh vật lý tháng 5 thấp nhất năm, khoảng 12 tỷ đồng" (cũ tháng 12, 188 tỷ) và "…tỷ trọng kênh số tháng 11 giảm khoảng 0,7 điểm phần trăm so với tháng 10" (cũ tháng 12, 1,6); lời giải thích sửa theo số mới.
+
+**Lưu ý cách viết khác:** viết điều kiện năm bằng `YEAR(transaction_date) = 2026` thì MySQL tra chỉ mục `ix_po_type_date` cho từng lệnh chuyển khoản, chạy 4,8–5,7 giây (bản cũ cùng cách viết khoảng 9–10 giây); viết khoảng ngày như đề ghi (`>= … AND < …` hoặc `BETWEEN`) thì 1,7–1,8 giây.
+
+- Kiểm cả gói sau sửa: bộ kiểm đầy đủ (`cong-cu/ket-qua/sua-cham/aivb-goi-4/`) → KIEM TRA: 0 loi; 1 cảnh báo có từ trước, không thuộc câu sửa (`aivb-f5-cohort-khach-vay` `NGHIEPVU_LO_SO` báo nhầm năm 2018, 2019, giống `sua-v4`); biên dịch (`cong-cu/ket-qua/sua-cham/aivb-goi-4/bien-dich/`) → 54 trang, 0 lỗi LaTeX, 0 ký tự thiếu, 0 cảnh báo aio-sql-cauhoi. Thư mục gói vẫn 4 file; giữ CRLF.
